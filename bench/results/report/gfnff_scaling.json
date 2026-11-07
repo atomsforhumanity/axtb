@@ -15,7 +15,9 @@
   "hess_mib": 27.7,
   "xtb_hess_s": 42.244,
   "dE": 1.2789769243681803e-13,
-  "dG": 2.7599450502791e-15
+  "dG": 2.7599450502791e-15,
+  "load1_min": 2.41,
+  "load1_max": 2.81
  },
  {
   "id": "crambin",
@@ -33,7 +35,9 @@
   "hess_mib": 66.6,
   "xtb_hess_s": 225.184,
   "dE": 4.973799150320701e-13,
-  "dG": 5.335835939757061e-14
+  "dG": 5.335835939757061e-14,
+  "load1_min": 2.16,
+  "load1_max": 2.41
  },
  {
   "id": "water333",
@@ -51,7 +55,9 @@
   "hess_mib": 171.4,
   "xtb_hess_s": null,
   "dE": 6.252776074688882e-13,
-  "dG": 6.3265365168874155e-15
+  "dG": 6.3265365168874155e-15,
+  "load1_min": 2.15,
+  "load1_max": 2.16
  },
  {
   "id": "water1000",
@@ -69,7 +75,9 @@
   "hess_mib": 1169.0,
   "xtb_hess_s": null,
   "dE": 1.3073986337985843e-11,
-  "dG": 2.6742497105658458e-14
+  "dG": 2.6742497105658458e-14,
+  "load1_min": 2.15,
+  "load1_max": 2.3
  },
  {
   "id": "water1700",
@@ -87,7 +95,9 @@
   "hess_mib": 3192.7,
   "xtb_hess_s": null,
   "dE": null,
-  "dG": null
+  "dG": null,
+  "load1_min": 2.17,
+  "load1_max": 4.66
  },
  {
   "id": "crambin-water",
@@ -105,7 +115,9 @@
   "hess_mib": 3367.0,
   "xtb_hess_s": null,
   "dE": null,
-  "dG": null
+  "dG": null,
+  "load1_min": 2.31,
+  "load1_max": 4.66
  },
  {
   "id": "water3300",
@@ -123,6 +135,8 @@
   "hess_mib": null,
   "xtb_hess_s": null,
   "dE": null,
-  "dG": null
+  "dG": null,
+  "load1_min": 2.47,
+  "load1_max": 4.13
  }
 ]

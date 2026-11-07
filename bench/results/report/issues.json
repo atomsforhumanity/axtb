@@ -42,11 +42,11 @@
   "status": "Parametrization detail; xtb 6.8.0 uses mctc-lib's (CODATA 2018) bohr, as tblite"
  },
  {
-  "program": "xtb vs tblite",
+  "program": "xtb 6.7.1 vs tblite",
   "finding": "Different D4 cutoffs (xtb: 72/40 bohr hard; tblite: 50/25 bohr smoothed), plus the constants above",
-  "consequence": "The two programs' GFN2-xTB energies differ by ~1e-8 Eh for small molecules and grow with size: 2.0e-12 Eh (0.00 kcal/mol) for (H2O)333 (999 atoms)",
+  "consequence": "The two programs' GFN2-xTB energies differ by 3e-09\u20133e-08 Eh for molecules up to 30 atoms and more for larger ones: 4.5e-04 Eh (0.28 kcal/mol) for (H2O)333 (999 atoms)",
   "in_axtb": "Both reproduced; default 72/40 with a smooth switch",
-  "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs"
+  "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs and agrees with tblite to 2e-12 Eh on the same molecules"
  },
  {
   "program": "xtb vs tblite",

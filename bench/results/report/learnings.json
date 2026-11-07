@@ -1,7 +1,7 @@
 [
  {
   "topic": "Reproducing a program",
-  "lesson": "Matching a reference program to 1e-13 Eh means reproducing its constants, not only its equations: xtb's older bohr constant and single-precision literals each move energies by ~1e-8 Eh, more than a loose comparison would ever show. A second, independent implementation (tblite) separated program quirks from the method's definition."
+  "lesson": "Matching a reference program to 5e-13 Eh means reproducing its constants, not only its equations: xtb 6.7.1's older bohr constant moves energies by up to 1e-07 Eh and its single-precision literals by 6e-10 Eh, more than a loose comparison would ever show. A second, independent implementation (tblite) separated program quirks from the method's definition."
  },
  {
   "topic": "Different answers are not always bugs",
@@ -9,7 +9,7 @@
  },
  {
   "topic": "Cheap invariance tests find real bugs",
-  "lesson": "Permuting the atoms of CsOH changed xtb's and tblite's ALPB energy by 2.9e-3 Eh. That one test led to the Born-radius bug, and reading the same routine found the reference-state error."
+  "lesson": "Permuting the atoms of CsOH changed xtb's and tblite's ALPB energy by 2.9e-03 Eh. That one test led to the Born-radius bug, and reading the same routine found the reference-state error."
  },
  {
   "topic": "Input validation",
@@ -21,7 +21,7 @@
  },
  {
   "topic": "Start-up dominates small molecules",
-  "lesson": "A water energy and gradient takes 6.77 ms as an in-process call and 2.0 ms as an axtb process, against 14 ms for the xtb program (laptop). For small molecules, how a calculation is called matters more than how fast its code is."
+  "lesson": "A water energy and gradient takes 0.7 ms of calculation inside an axtb process, 1.8 ms for the whole process, and 15 ms for the xtb 6.8.0 program (laptop, one thread). For small molecules, how a calculation is started matters more than how fast its code is."
  },
  {
   "topic": "Math libraries depend on the CPU",
@@ -36,8 +36,8 @@
   "lesson": "Against a tightly converged reference the analytic Hessian's frequencies were within 6e-05 cm\u207b\u00b9 for every test system; finite differences at their default settings were off by up to 0.7 cm\u207b\u00b9 in the gas phase, from the SCF convergence of each displacement. With implicit solvent it is worse (14 cm\u207b\u00b9 in the soft modes of caffeine): the ALPB/GBSA surface term is smooth in its first derivatives but not its second, so a finite-difference Hessian depends on the step, while the analytic one is the exact derivative at the point. For transition-state searches, where the imaginary and low modes decide the outcome, this matters as much as the speed."
  },
  {
-  "topic": "xtb --hess ignores --acc for GFN2-xTB",
-  "lesson": "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. Its Hessians therefore carry about 1e-4 Eh/bohr\u00b2 of noise, up to a few cm\u207b\u00b9 for large molecules. With sccacc=0.001, axtb's analytic Hessian agrees with xtb's to xtb's own finite-difference error."
+  "topic": "xtb --hess ignored --acc for GFN2-xTB",
+  "lesson": "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. On caffeine its --hess --acc 0.001 is therefore 2.2e-04 Eh/bohr\u00b2 from the analytic Hessian and $hess sccacc=0.001 3.7e-05, xtb's own finite-difference error. xtb 6.8.0 passes --acc to the displacements (PR #1500): 3.7e-05 at --acc 0.001."
  },
  {
   "topic": "Process start-up on many-core machines",
@@ -53,7 +53,7 @@
  },
  {
   "topic": "Defaults can be badly wrong, and only an independent implementation shows it",
-  "lesson": "The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to 149 cm\u207b\u00b9 off. Nothing in its output warns; it took an independent analytic Hessian, checked against tight references, to see it. The common tighter setting (--acc 0.001) keeps the error near 1 cm\u207b\u00b9, but a check on a single small molecule would have suggested that the default was safe."
+  "lesson": "The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to 149 cm\u207b\u00b9 off. Nothing in its output warns; it took an independent analytic Hessian, checked against tight references, to see it. The common tighter setting (--acc 0.001) keeps the error at 1.1 cm\u207b\u00b9, but a check on a single small molecule would have suggested that the default was safe."
  },
  {
   "topic": "A complete specification makes reimplementation fast",
@@ -73,11 +73,11 @@
  },
  {
   "topic": "Comparing orbitals across programs needs overlaps, not coefficients",
-  "lesson": "xtb, tblite and g-xTB 1.1.0 each write Molden files with their own normalization and ordering, so coefficients cannot be compared directly. Reading every file with an independent reader and comparing orbitals through the overlap of the two bases (1 \u2212 |\u27e8i|i\u27e9|, degenerate sets by singular values) showed agreement to ~1e-10 and found the dialect differences on the way."
+  "lesson": "xtb, tblite and g-xTB 1.1.0 each write Molden files with their own normalization and ordering, so coefficients cannot be compared directly. Reading every file with an independent reader and comparing orbitals through the overlap of the two bases (1 \u2212 |\u27e8i|i\u27e9|, degenerate sets by singular values) showed agreement to 1e-09 or better per orbital (g-xTB 1.1.0's UF\u2086 apart, where the two SCFs take different paths) and found the dialect differences on the way."
  },
  {
   "topic": "Most of a thermochemistry difference can be atomic masses",
-  "lesson": "On the same Hessian, axtb's default vibrational analysis and xtb's differ by up to 0.10 cm\u207b\u00b9 and 4.0e-06 Eh in G(RRHO) (caffeine), almost all from the hydrogen mass (1.0080 in current standard atomic weights, 1.00794 in xtb). With xtb's masses and projection the two agree to 8e-11 Eh."
+  "lesson": "On the same Hessian, axtb's default vibrational analysis and xtb's differ by up to 0.10 cm\u207b\u00b9 and 4.0e-06 Eh in G(RRHO) (caffeine), almost all from the hydrogen mass (1.0080 in current standard atomic weights, 1.00794 in xtb). With xtb's masses and projection the two agree to 1e-10 Eh."
  },
  {
   "topic": "One array can set a program's size limit",
@@ -93,6 +93,6 @@
  },
  {
   "topic": "Restarting the SCF saves iterations but can change the answer",
-  "lesson": "Starting each SCF from the previous geometry's solution cut GFN2-xTB iterations by about 40% along optimizations and random walks, g-xTB's by 10\u201345% (an IRC from 9 to 5 per step). But a restart follows its own SCF solution: recompressing a stretched N2 at 3000 K, or metal clusters, ended up to 0.5 Eh above a fresh start, and the programs do the same within one run. Paths through bond breaking should check against fresh starts. A restarted g-xTB SCF also stops just at the thresholds with history-dependent gradient noise, which doubled a geomeTRIC optimization's steps until restarts converged ten times tighter."
+  "lesson": "Starting each SCF from the previous geometry's solution cut GFN2-xTB's iterations per point by 27%\u201342% along optimizations and random walks, g-xTB's by 3%\u201343% (an IRC from 9 to 5 per step). But a restart follows its own SCF solution: recompressing a stretched bond (N2 at 3000 K, F2) ended up to 0.32 Eh above a fresh start, metal clusters differed either way, and the programs do the same within one run. Paths through bond breaking should check against fresh starts. During development a restarted g-xTB SCF also stopped just at the thresholds with history-dependent gradient noise, which doubled a geomeTRIC optimization's steps until restarts converged ten times tighter."
  }
 ]

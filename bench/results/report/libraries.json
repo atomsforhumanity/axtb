@@ -4,28 +4,28 @@
   "license": "MIT",
   "packaging": "Nothing to ship; static CLI and abi3 wheel",
   "threads": "Per call (Par) on axtb's own rayon pool",
-  "verdict": "Default backend"
+  "verdict": "Default backend, and the library of the timings on the AMD node; always used below 200 basis functions"
  },
  {
   "library": "OpenBLAS",
   "license": "BSD-3",
   "packaging": "25\u201330 MB; C toolchain for static builds; scipy-openblas32 wheel",
   "threads": "Global by default; per-thread openblas_set_num_threads_local",
-  "verdict": "Optional runtime-loaded backend for large multithreaded runs"
+  "verdict": "Run-time backend (AXTB_LAPACK): OpenMP or sequential builds; pthreads builds are refused"
  },
  {
   "library": "Intel oneMKL",
   "license": "Proprietary (redistributable)",
   "packaging": "~300 MB runtime; static only via oneAPI",
   "threads": "mkl_set_num_threads_local; libiomp5 spin-waits",
-  "verdict": "Fastest eigensolver on the Intel laptop at every thread count; slowest in throughput mode on the AMD node. Optional at run time only, never linked into the LGPL build"
+  "verdict": "Run-time backend (AXTB_LAPACK), never linked into the LGPL build: the fastest eigensolver on the Intel laptop at every thread count and the library of the laptop's timings; slowest in throughput mode on the AMD node"
  },
  {
   "library": "AMD AOCL (BLIS + libFLAME)",
   "license": "BSD-3",
   "packaging": "Built from GitHub sources (the prebuilt tarball's EULA restricts use)",
   "threads": "bli_thread_set_num_threads_local",
-  "verdict": "Among the fastest in throughput mode on the AMD node, slower than MKL and OpenBLAS on the Intel laptop. Candidate runtime backend for AMD nodes"
+  "verdict": "Run-time backend (AXTB_LAPACK with AXTB_LAPACK_BLAS): among the fastest in throughput mode on the AMD node and measured alongside faer in its timings; slower than MKL and OpenBLAS on the Intel laptop"
  },
  {
   "library": "nalgebra",
@@ -46,7 +46,7 @@
   "license": "NVIDIA EULA",
   "packaging": "Runtime-loaded CUDA",
   "threads": "GPU",
-  "verdict": "Optional GPU backend (branch gpu-backend): worth it on the node for basis sets above ~1000 functions; not for small molecules"
+  "verdict": "Optional GPU backend (a development experiment, not in this release): worth it on the node for basis sets above ~1000 functions; not for small molecules"
  },
  {
   "library": "ELPA / ScaLAPACK",

@@ -2,14 +2,17 @@
 """Build the report's datasets (bench/results/report/*.json, one JSON array of row objects
 each) from the raw results:
 
+  bench/results/final-laptop/, final-9985wx/       final timings (final_timings.py) on the laptop and
+                                                    the 64-core node: energy + gradient, Hessians, the
+                                                    performance requirement (FINAL, REQ_PARTS, TIGHT)
   bench/results/results.json                        laptop suite (run_benchmarks.py)
-  bench/results/cluster-9985wx/results.json         64-core node suite
+  bench/results/cluster-9985wx/results.json         64-core node suite (earlier whole-node runs)
   bench/linalg/results/{raw,aocl_raw,throughput}.tsv            laptop linear algebra
   bench/results/cluster-9985wx/linalg/{raw,throughput64,throughput128}.tsv   node
   tests/reference_matrix/results.json               991-case reference matrix
 
 The datasets hold no host names or paths, only CPU models and versions, so the same files
-can be published as they are.
+can be published as they are. bench/check_report.py checks the page (index.html) against them.
 """
 
 from __future__ import annotations
@@ -51,14 +54,56 @@ def suites() -> dict:
     return {m: json.loads(v["suite"].read_text()) for m, v in MACHINES.items() if v["suite"].exists()}
 
 
+def xtb_label(text: str) -> str:
+    """'xtb version 6.8.0 (4b8c987...)' -> 'xtb 6.8.0'; the g-xTB build of 6.7.1 named as such."""
+    import re
+    v = re.search(r"(\d+\.\d+\.\d+)", text or "")
+    if not v:
+        return text or None
+    return f"xtb {v[1]}" + (" (the g-xTB 2.0.1 build)" if "g-xTB" in text else "")
+
+
+def suite_build(m: str, meta: dict) -> str:
+    """The axtb a suite ran: the commit its machine.json records, else the version in its meta."""
+    mp = Path(MACHINES[m]["suite"]).parent / "machine.json"
+    if mp.exists():
+        a = json.loads(mp.read_text()).get("axtb", "")
+        tok = a.split()[0] if a else ""
+        if tok and all(ch in "0123456789abcdef" for ch in tok):
+            return f"commit {tok}"
+    return f"version {meta.get('axtb')}"
+
+
+def final_versions() -> dict:
+    """The axtb commits of the final timings and the run-time libraries' versions (thread_determinism.json)."""
+    import re
+    out = {"commits": set(), "libs": {}}
+    for m, cfg in FINAL.items():
+        sp = cfg["dir"] / "summary.json"
+        if sp.exists():
+            out["commits"] |= {t["axtb_commit"][:7] for t in json.loads(sp.read_text()).get("tasks", {}).values() if t.get("axtb_commit")}
+        tp = cfg["dir"] / "thread_determinism.json"
+        if tp.exists():
+            for r in json.loads(tp.read_text()).get("rows", []):
+                e = r.get("eigensolver") or ""
+                v = re.search(r"Math Kernel Library Version ([\d.]+)", e) or re.search(r"AOCL-LAPACK ([\d.]+)", e)
+                if v and r.get("solver"):
+                    out["libs"].setdefault(r["solver"], {})[m] = v[1]
+    return out
+
+
 def machine_rows(res: dict) -> None:
     rows = []
     for m, v in MACHINES.items():
         if m not in res:
             continue
         meta = res[m]["meta"]
-        rows.append({"machine": m, "label": v["label"], "cpu": v["cpu"], "date": meta["date"][:10]})
+        rows.append({"machine": m, "label": v["label"], "cpu": v["cpu"], "date": meta["date"][:10],
+                     "axtb": suite_build(m, meta), "xtb": xtb_label(meta.get("xtb", ""))})
     write("machines", rows)
+    fv = final_versions()
+    mkl = fv["libs"].get("MKL", {})
+    mkl_text = ", ".join(f"{ver} ({FINAL[m]['label'].lower()} timings)" for m, ver in mkl.items())
     write("versions", [
         {"item": "xtb 6.8.0", "value": "xtb version 6.8.0 (4b8c987), official Linux release: the GFN2-xTB reference for xtb conventions",
          "reference": "Bannwarth et al., WIREs Comput. Mol. Sci. 11, e1493 (2021), doi:10.1002/wcms.1493", "license": "LGPL-3.0"},
@@ -67,7 +112,7 @@ def machine_rows(res: dict) -> None:
         {"item": "g-xtb 1.1.0", "value": "the g-xTB v1.1 program", "reference": "github.com/grimme-lab/g-xtb", "license": "GPL-3.0"},
         {"item": "tblite", "value": f"tblite {res['laptop']['meta']['tblite']} (PyPI wheel), dftd4 4.3.1",
          "reference": "github.com/tblite/tblite", "license": "LGPL-3.0"},
-        {"item": "axtb", "value": f"axtb {res['laptop']['meta']['axtb']}, Rust, faer 0.22",
+        {"item": "axtb", "value": f"axtb {res['laptop']['meta']['axtb']}" + (f" (commit {', '.join(sorted(fv['commits']))} in the final timings)" if fv["commits"] else "") + ", Rust, faer 0.22",
          "reference": "github.com/atomsforhumanity/axtb", "license": "LGPL-3.0-or-later; GPL-3.0-only with g-xTB"},
         {"item": "GFN2-xTB", "value": "self-consistent D4 dispersion; ALPB/GBSA implicit solvation",
          "reference": "Bannwarth, Ehlert, Grimme, JCTC 15, 1652 (2019), doi:10.1021/acs.jctc.8b01176; Ehlert et al., JCTC 17, 4250 (2021), doi:10.1021/acs.jctc.1c00471",
@@ -77,7 +122,8 @@ def machine_rows(res: dict) -> None:
          "license": ""},
         {"item": "GFN-FF", "value": "generic force field with automatic topology",
          "reference": "Spicher, Grimme, Angew. Chem. Int. Ed. 59, 15665 (2020), doi:10.1002/anie.202004239", "license": ""},
-        {"item": "Linear algebra", "value": "faer 0.22 (axtb), faer 0.24; OpenBLAS 0.3.32 (laptop) / 0.3.34 (node); Intel MKL 2026.2; AMD AOCL 5.3 built from source",
+        {"item": "Linear algebra", "value": "faer 0.22 (axtb), faer 0.24; OpenBLAS 0.3.32 (laptop) / 0.3.34 (node); Intel MKL 2026.2 (eigensolver benchmarks)"
+                  + (f", {mkl_text}" if mkl_text else "") + "; AMD AOCL 5.3 built from source",
          "reference": "faer.veganb.tw; openblas.net; intel.com/oneMKL; github.com/amd (aocl-blis, aocl-libflame)", "license": "MIT; BSD-3; Intel Simplified Software License; BSD-3"},
         {"item": "Constants", "value": "NIST CODATA 2022 (axtb default conventions)",
          "reference": "Mohr et al., CODATA 2022, physics.nist.gov/constants", "license": "public domain"},
@@ -97,6 +143,21 @@ def accuracy(res: dict) -> None:
         "model": x["model"].upper(), "solvent": x["solvent"], "E_xtb": x["E_xtb"], "E_axtb": x["E_axtb"],
         "dG": x["dG"], "t_xtb": x["t_xtb"], "t_axtb": x["t_axtb"],
     } for x in r["solvation"]])
+
+
+def xtb_tblite(res: dict) -> None:
+    """xtb's GFN2-xTB energy minus tblite's per benchmark molecule, for each xtb version a suite ran
+    (accuracy part of run_benchmarks.py, tight SCF): d_671 from a 6.7.1 suite, d_680 from a 6.8.0 one."""
+    by = {}
+    for m, r in res.items():
+        ver = xtb_label(r["meta"].get("xtb", "")) or ""
+        key = "d_671" if "6.7.1" in ver else "d_680" if "6.8.0" in ver else None
+        if key is None:
+            continue
+        for x in r["accuracy"]:
+            row = by.setdefault(x["name"], {"molecule": x["name"], "atoms": x["nat"], "d_671": None, "d_680": None})
+            row[key] = x["E_xtb"] - x["E_tblite"]
+    write("xtb_tblite", sorted(by.values(), key=lambda r: r["atoms"]))
 
 
 def speed(res: dict) -> None:
@@ -257,13 +318,13 @@ def conventions() -> None:
 def libraries() -> None:
     write("libraries", [
         {"library": "faer (pure Rust)", "license": "MIT", "packaging": "Nothing to ship; static CLI and abi3 wheel",
-         "threads": "Per call (Par) on axtb's own rayon pool", "verdict": "Default backend"},
+         "threads": "Per call (Par) on axtb's own rayon pool", "verdict": "Default backend, and the library of the timings on the AMD node; always used below 200 basis functions"},
         {"library": "OpenBLAS", "license": "BSD-3", "packaging": "25–30 MB; C toolchain for static builds; scipy-openblas32 wheel",
-         "threads": "Global by default; per-thread openblas_set_num_threads_local", "verdict": "Optional runtime-loaded backend for large multithreaded runs"},
+         "threads": "Global by default; per-thread openblas_set_num_threads_local", "verdict": "Run-time backend (AXTB_LAPACK): OpenMP or sequential builds; pthreads builds are refused"},
         {"library": "Intel oneMKL", "license": "Proprietary (redistributable)", "packaging": "~300 MB runtime; static only via oneAPI",
-         "threads": "mkl_set_num_threads_local; libiomp5 spin-waits", "verdict": "Fastest eigensolver on the Intel laptop at every thread count; slowest in throughput mode on the AMD node. Optional at run time only, never linked into the LGPL build"},
+         "threads": "mkl_set_num_threads_local; libiomp5 spin-waits", "verdict": "Run-time backend (AXTB_LAPACK), never linked into the LGPL build: the fastest eigensolver on the Intel laptop at every thread count and the library of the laptop's timings; slowest in throughput mode on the AMD node"},
         {"library": "AMD AOCL (BLIS + libFLAME)", "license": "BSD-3", "packaging": "Built from GitHub sources (the prebuilt tarball's EULA restricts use)",
-         "threads": "bli_thread_set_num_threads_local", "verdict": "Among the fastest in throughput mode on the AMD node, slower than MKL and OpenBLAS on the Intel laptop. Candidate runtime backend for AMD nodes"},
+         "threads": "bli_thread_set_num_threads_local", "verdict": "Run-time backend (AXTB_LAPACK with AXTB_LAPACK_BLAS): among the fastest in throughput mode on the AMD node and measured alongside faer in its timings; slower than MKL and OpenBLAS on the Intel laptop"},
         {"library": "nalgebra", "license": "Apache-2.0", "packaging": "Pure Rust",
          "threads": "None", "verdict": "Rejected: 6–9× slower eigensolver, 9e-6 residual at n = 1000"},
         {"library": "ndarray-linalg / lapack crates", "license": "MIT/Apache", "packaging": "Wrappers over a system LAPACK",
@@ -309,9 +370,15 @@ def program_diffs() -> dict:
             if r["case"].endswith("0.1 K"):
                 ev["lowT"] = r["xtb_minus_tblite"]
     write("program_diffs", rows)
-    acc = json.loads((OUT / "accuracy.json").read_text())
-    big = max(acc, key=lambda r: abs(r["E_xtb"] - r["E_tblite"]))
-    ev["gas_max"] = (big["molecule"], big["atoms"], big["E_xtb"] - big["E_tblite"])
+    xt = json.loads((OUT / "xtb_tblite.json").read_text()) if (OUT / "xtb_tblite.json").exists() else []
+    old = [r for r in xt if r["d_671"] is not None]
+    if old:
+        big = max(old, key=lambda r: abs(r["d_671"]))
+        small = [abs(r["d_671"]) for r in old if r["atoms"] <= 30]
+        ev["gas_max"] = (big["molecule"], big["atoms"], big["d_671"], min(small, default=None), max(small, default=None))
+    new = [abs(r["d_680"]) for r in xt if r["d_680"] is not None]
+    if new:
+        ev["gas_680"] = max(new)
     return ev
 
 
@@ -453,11 +520,12 @@ def issues(ev: dict) -> None:
         {"program": "xtb", "finding": "Radius tables converted with an older bohr constant (0.52917726 Å)",
          "consequence": "xtb and tblite differ by up to ~1e-8 Eh", "in_axtb": "CODATA 2022 by default; reproduced in each mode",
          "status": "Parametrization detail; xtb 6.8.0 uses mctc-lib's (CODATA 2018) bohr, as tblite"},
-        {"program": "xtb vs tblite", "finding": "Different D4 cutoffs (xtb: 72/40 bohr hard; tblite: 50/25 bohr smoothed), plus the constants above",
-         "consequence": (f"The two programs' GFN2-xTB energies differ by ~1e-8 Eh for small molecules and grow with size: {abs(gm[2]):.1e} Eh "
+        {"program": "xtb 6.7.1 vs tblite", "finding": "Different D4 cutoffs (xtb: 72/40 bohr hard; tblite: 50/25 bohr smoothed), plus the constants above",
+         "consequence": (f"The two programs' GFN2-xTB energies differ by {gm[3]:.0e}–{gm[4]:.0e} Eh for molecules up to 30 atoms and more for larger ones: {abs(gm[2]):.1e} Eh "
                          f"({abs(gm[2]) * kcal:.2f} kcal/mol) for {gm[0]} ({gm[1]} atoms)") if gm else "The two programs disagree by ~1e-5 Eh for molecules longer than 25 bohr",
          "in_axtb": "Both reproduced; default 72/40 with a smooth switch",
-         "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs"},
+         "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs" + (
+             f" and agrees with tblite to {ev['gas_680']:.0e} Eh on the same molecules" if ev.get("gas_680") is not None else "")},
         {"program": "xtb vs tblite", "finding": "xtb switches to integer (aufbau) occupations at or below 0.1 K; tblite always smears",
          "consequence": (f"O2 singlet at 0.1 K: xtb is {abs(low):.1e} Eh ({abs(low) * kcal:.1f} kcal/mol) {'below' if low < 0 else 'above'} tblite; at 1 K they agree"
                          if low else "Different energies for degenerate frontier orbitals at very low temperature"),
@@ -481,19 +549,24 @@ def issues(ev: dict) -> None:
     ])
 
 
-def learnings(res: dict) -> None:
+def learnings(res: dict, ev: dict) -> None:
     lap, node = res.get("laptop"), res.get("node")
 
     def tpw(r, label, jobs):
         return next(x["wall"] for x in r["throughput"] if x["label"].startswith(label) and x["jobs"] == jobs)
+    xc = {r["id"].split(":")[0]: r for r in (json.loads((OUT / "xtb680_changes.json").read_text()) if (OUT / "xtb680_changes.json").exists() else [])}
     rows = [
-        {"topic": "Reproducing a program", "lesson": "Matching a reference program to 1e-13 Eh means reproducing its constants, not only its equations: "
-         "xtb's older bohr constant and single-precision literals each move energies by ~1e-8 Eh, more than a loose comparison would ever show. "
+        {"topic": "Reproducing a program", "lesson": "Matching a reference program to "
+         + (f"{xc['xtb-6.8.0']['dE_tight']:.0e} Eh" if "xtb-6.8.0" in xc else "1e-12 Eh") + " means reproducing its constants, not only its equations: "
+         + (f"xtb 6.7.1's older bohr constant moves energies by up to {xc['radii']['dE_tight']:.0e} Eh and its single-precision literals by {xc['D4 CN']['dE_tight']:.0e} Eh"
+            if "radii" in xc and "D4 CN" in xc else "xtb's older bohr constant and single-precision literals move energies")
+         + ", more than a loose comparison would ever show. "
          "A second, independent implementation (tblite) separated program quirks from the method's definition."},
         {"topic": "Different answers are not always bugs", "lesson": "Open-shell metal clusters at low electronic temperature and one test structure have several self-consistent solutions. "
          "Restarting each program from the other's converged moments shows whether a mismatch is a second solution of the same equations "
          "or an implementation error; every mismatch in the matrix was settled this way."},
-        {"topic": "Cheap invariance tests find real bugs", "lesson": "Permuting the atoms of CsOH changed xtb's and tblite's ALPB energy by 2.9e-3 Eh. "
+        {"topic": "Cheap invariance tests find real bugs", "lesson": "Permuting the atoms of CsOH changed xtb's and tblite's ALPB energy"
+         + (f" by {ev['csoh']:.1e} Eh. " if ev.get("csoh") else ". ") +
          "That one test led to the Born-radius bug, and reading the same routine found the reference-state error."},
         {"topic": "Input validation", "lesson": "xtb and tblite return energies for impossible electron counts, with atomic charges that do not add up to the molecular charge. "
          "A wrapper cannot see this from the energy alone; axtb checks electron counts before and after filling the orbitals."},
@@ -505,11 +578,14 @@ def learnings(res: dict) -> None:
                      f"{tpw(node, 'xtb, OMP_NUM_THREADS unset', big['jobs']):.1f} s on the 64-core node instead of "
                      f"{tpw(node, 'xtb, OMP_NUM_THREADS=1', big['jobs']):.1f} s with one thread per job. "
                      "axtb has no implicit threading, so there is no setting to forget."})
-    if lap:
-        w = next(x for x in lap["timing"] if x["name"] == "water" and x["threads"] == 1)
-        rows.append({"topic": "Start-up dominates small molecules", "lesson":
-                     f"A water energy and gradient takes {w['axtb'] * 1e3:.2f} ms as an in-process call and {w['axtb_cli'] * 1e3:.1f} ms as an axtb process, "
-                     f"against {w['xtb'] * 1e3:.0f} ms for the xtb program (laptop). For small molecules, how a calculation is called matters more than how fast its code is."})
+    fl = FINAL["laptop"]["dir"] / "gfn2-eg-t1.json"
+    if fl.exists():
+        sm = {s["program"]: s for s in json.loads(fl.read_text())["summary"] if s["molecule"] == "water"}
+        x, a = sm.get("xtb 6.8.0"), sm.get("axtb CLI")
+        if x and a and a.get("inner_median"):
+            rows.append({"topic": "Start-up dominates small molecules", "lesson":
+                         f"A water energy and gradient takes {a['inner_median'] * 1e3:.1f} ms of calculation inside an axtb process, {a['median'] * 1e3:.1f} ms for the whole process, "
+                         f"and {x['median'] * 1e3:.0f} ms for the xtb 6.8.0 program (laptop, one thread). For small molecules, how a calculation is started matters more than how fast its code is."})
     # eigensolver libraries, from the linear-algebra datasets
     la = json.loads((OUT / "linalg.json").read_text())
     tp = json.loads((OUT / "linalg_tp.json").read_text())
@@ -555,9 +631,15 @@ def learnings(res: dict) -> None:
                         "in its first derivatives but not its second, so a finite-difference Hessian depends on the step, while the analytic one is the exact derivative at the point. "
                         if num_s else "")
                      + "For transition-state searches, where the imaginary and low modes decide the outcome, this matters as much as the speed."})
-        rows.append({"topic": "xtb --hess ignores --acc for GFN2-xTB", "lesson":
-                     "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. "
-                     "Its Hessians therefore carry about 1e-4 Eh/bohr² of noise, up to a few cm⁻¹ for large molecules. With sccacc=0.001, axtb's analytic Hessian agrees with xtb's to xtb's own finite-difference error."})
+        xa, x8 = ROOT / "bench/results/xtb_gfn2_hess_acc.json", ROOT / "bench/results/xtb_gfn2_hess_acc_6.8.0.json"
+        if xa.exists() and x8.exists():
+            a6 = {q["setting"].split(" ")[0]: q for q in json.loads(xa.read_text())["rows"]}
+            a8 = {q["setting"].split(" ")[0]: q for q in json.loads(x8.read_text())["rows"]}
+            rows.append({"topic": "xtb --hess ignored --acc for GFN2-xTB", "lesson":
+                         "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. "
+                         f"On caffeine its --hess --acc 0.001 is therefore {a6['--acc']['max_dH_vs_analytic']:.1e} Eh/bohr² from the analytic Hessian and $hess sccacc=0.001 "
+                         f"{a6['$hess']['max_dH_vs_analytic']:.1e}, xtb's own finite-difference error. xtb 6.8.0 passes --acc to the displacements (PR #1500): "
+                         f"{a8['--acc']['max_dH_vs_analytic']:.1e} at --acc 0.001."})
     cf = OUT / "cli_fix.json"
     if cf.exists():
         allc = json.loads(cf.read_text())
@@ -595,11 +677,12 @@ def learnings(res: dict) -> None:
     if gf.exists():
         g = json.loads(gf.read_text())
         d1 = next((q for q in g if q["molecule"] == "taxol" and q["method"] == "program --hess --acc 1"), None)
+        d3 = next((q for q in g if q["molecule"] == "taxol" and q["method"] == "program --hess --acc 0.001"), None)
         if d1:
             rows.append({"topic": "Defaults can be badly wrong, and only an independent implementation shows it", "lesson":
                          f"The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to {d1['max_dfreq']:.0f} cm⁻¹ off. Nothing in its output warns; "
-                         "it took an independent analytic Hessian, checked against tight references, to see it. The common tighter setting (--acc 0.001) keeps the error near 1 cm⁻¹, "
-                         "but a check on a single small molecule would have suggested that the default was safe."})
+                         "it took an independent analytic Hessian, checked against tight references, to see it. The common tighter setting (--acc 0.001) keeps the error "
+                         + (f"at {d3['max_dfreq']:.1f} cm⁻¹" if d3 else "near 1 cm⁻¹") + ", but a check on a single small molecule would have suggested that the default was safe."})
     g2 = OUT / "gxtb2.json"
     if g2.exists():
         g = json.loads(g2.read_text())
@@ -643,17 +726,24 @@ def learnings(res: dict) -> None:
                          "Which rung converged changes the energy, so a path profile mixing rungs is not one surface; record the rung with every result."})
     ml = OUT / "molden.json"
     if ml.exists():
+        mo = json.loads(ml.read_text())
+        uf6 = lambda r: r["program"] == MOLDEN_PROGRAMS["gxtb11"] and r["molecule"].startswith("UF6")
+        rest = max((r["orbital"] for r in mo if not uf6(r) and r["orbital"] is not None), default=None)
         rows.append({"topic": "Comparing orbitals across programs needs overlaps, not coefficients", "lesson":
                      "xtb, tblite and g-xTB 1.1.0 each write Molden files with their own normalization and ordering, so coefficients cannot be compared directly. "
                      "Reading every file with an independent reader and comparing orbitals through the overlap of the two bases (1 − |⟨i|i⟩|, degenerate sets by singular values) "
-                     "showed agreement to ~1e-10 and found the dialect differences on the way."})
+                     + (f"showed agreement to {rest:.0e} or better per orbital (g-xTB 1.1.0's UF₆ apart, where the two SCFs take different paths) " if rest else "showed close agreement ")
+                     + "and found the dialect differences on the way."})
     vc = OUT / "vib_conventions.json"
     if vc.exists():
         v = json.loads(vc.read_text())
         worst = max(v, key=lambda r: r["dG"])
+        vb = OUT / "vibrational.json"
+        same = max((r["dthermo_same"] for r in json.loads(vb.read_text()) if r["method"].startswith("GFN2")), default=None) if vb.exists() else None
         rows.append({"topic": "Most of a thermochemistry difference can be atomic masses", "lesson":
                      f"On the same Hessian, axtb's default vibrational analysis and xtb's differ by up to {max(r['dfreq'] for r in v):.2f} cm⁻¹ and {worst['dG']:.1e} Eh in G(RRHO) ({worst['molecule']}), "
-                     "almost all from the hydrogen mass (1.0080 in current standard atomic weights, 1.00794 in xtb). With xtb's masses and projection the two agree to 8e-11 Eh."})
+                     "almost all from the hydrogen mass (1.0080 in current standard atomic weights, 1.00794 in xtb)."
+                     + (f" With xtb's masses and projection the two agree to {same:.0e} Eh." if same else "")})
     gs = OUT / "gfnff_scaling.json"
     if gs.exists():
         g = {r["atoms"]: r for r in json.loads(gs.read_text())}
@@ -671,24 +761,46 @@ def learnings(res: dict) -> None:
                  "Some GFN-FF topology decisions in symmetric molecules are ties decided in the last bit of a vector norm. The Intel compilers inline NORM2 with different fused multiply-add orders, "
                  "and xtb 6.7.1 (ifort) and 6.8.0 (ifx) round it differently, which decides which of several equidistant neighbours comes first. "
                  "Matching each, read from the binary's disassembly, was needed to reproduce NF₃'s out-of-plane term and a nitrogen torsion list."})
-    pf = ROOT / "bench/results/gxtb_parity_features.json"
-    if pf.exists():
-        rows.append({"topic": "Restarting the SCF saves iterations but can change the answer", "lesson":
-                     "Starting each SCF from the previous geometry's solution cut GFN2-xTB iterations by about 40% along optimizations and random walks, "
-                     "g-xTB's by 10–45% (an IRC from 9 to 5 per step). But a restart follows its own SCF solution: recompressing a stretched N2 at 3000 K, or "
-                     "metal clusters, ended up to 0.5 Eh above a fresh start, and the programs do the same within one run. Paths through bond breaking should "
-                     "check against fresh starts. A restarted g-xTB SCF also stops just at the thresholds with history-dependent gradient noise, which doubled "
-                     "a geomeTRIC optimization's steps until restarts converged ten times tighter."})
+    pf, gr = ROOT / "bench/results/gxtb_parity_features.json", OUT / "guess_reuse.json"
+    if pf.exists() and gr.exists():
+        seqs = json.loads(gr.read_text())
+        cut = lambda meths: [1 - r["iter_reuse"] / r["iter_fresh"] for r in seqs if r["method"] in meths and r["iter_fresh"]]
+        c2, cx = cut({"GFN2-xTB"}), cut({"g-xTB 2.0.1", "g-xTB v1.1"})
+        irc = next((r for r in seqs if "IRC" in r["sequence"]), None)
+        sols = json.loads(pf.read_text()).get("solutions", [])
+        up = max(((max((x for x in r["dE_reuse_minus_fresh"] if x is not None), default=0), r["molecule"]) for r in sols), default=(None, None))
+        if c2 and cx:
+            rows.append({"topic": "Restarting the SCF saves iterations but can change the answer", "lesson":
+                         f"Starting each SCF from the previous geometry's solution cut GFN2-xTB's iterations per point by {min(c2):.0%}–{max(c2):.0%} along optimizations and random walks, "
+                         f"g-xTB's by {min(cx):.0%}–{max(cx):.0%}" + (f" (an IRC from {irc['iter_fresh']:.0f} to {irc['iter_reuse']:.0f} per step)" if irc else "") + ". "
+                         "But a restart follows its own SCF solution: recompressing a stretched bond (N2 at 3000 K, F2)"
+                         + (f" ended up to {up[0]:.2f} Eh above a fresh start" if up[0] else " ended above a fresh start") +
+                         ", metal clusters differed either way, and the programs do the same within one run. Paths through bond breaking should "
+                         "check against fresh starts. During development a restarted g-xTB SCF also stopped just at the thresholds with history-dependent gradient noise, which doubled "
+                         "a geomeTRIC optimization's steps until restarts converged ten times tighter."})
     write("learnings", rows)
 
 
 def scope() -> None:
+    def load(n):
+        f = OUT / f"{n}.json"
+        return json.loads(f.read_text()) if f.exists() else []
+    eg, hs = load("ft_eg"), load("ft_hess")
+    rng = lambda xs: f"{min(xs)}–{max(xs)}" if xs else "?"
+    ths = lambda rows: ", ".join(str(t) for t in sorted({r["threads"] for r in rows if r["method"] != "g-xTB v1.1"}))
+    timing = (f"Timings of GFN2-xTB and g-xTB energies, gradients and Hessians against xtb 6.8.0 and both g-xTB programs on an Intel laptop and a shared "
+              f"64-core AMD node ({rng([r['atoms'] for r in eg + hs])} atoms; energy + gradient on {ths(eg)} threads, Hessians on {ths(hs)}), "
+              "axtb with faer and with Intel MKL loaded at run time (and AMD AOCL on the node); earlier GFN2-xTB thread, batch and start-up runs on both machines")
+    ffv, ffh, ffa, ffs = load("gfnff_versions"), load("gfnff_hessian"), load("gfnff_accuracy"), load("gfnff_scaling")
+    gfnff = (f"GFN-FF topology, charges, energies and gradients against xtb 6.8.0 and 6.7.1 --gfnff on {max((r['structures'] for r in ffv), default='?')} structures "
+             f"(H–Rn, charges −3 to +3, metal complexes, hydrogen- and halogen-bonded dimers, up to {max((r['largest'] for r in ffa), default='?')} atoms); "
+             f"Hessians on {len(ffh)} structures; time and memory up to {max((r['atoms'] for r in ffs), default='?')} atoms")
     write("scope", [
         {"kind": "Tested", "item": "GFN2-xTB energies, analytic gradients, atomic charges and dipoles against xtb 6.8.0, xtb 6.7.1 (the g-xTB 2.0.1 build) and tblite 0.8.0"},
         {"kind": "Tested", "item": "Elements H–Rn, charges −3 to +3, spin multiplicities up to 11, open-shell transition-metal complexes"},
         {"kind": "Tested", "item": "ALPB (25 solvents) and GBSA (14 solvents) in all three reference states; electronic temperatures 0–5000 K; SCF accuracies 1–1e-6"},
         {"kind": "Tested", "item": "Semi-numerical Hessians and frequencies against xtb --hess; analytic Hessians against tightly converged references (8 benchmark systems, and 45 reference-matrix cases: closed and open shell, charges, transition metals, ALPB and GBSA in several solvents, high electronic temperature, all three conventions) and against xtb --hess; thread-count invariance; invalid inputs"},
-        {"kind": "Tested", "item": "Timings of GFN2-xTB and g-xTB energies, gradients and Hessians against xtb 6.8.0, tblite 0.8.0 and both g-xTB programs on a 64-core node (3–600 atoms, 1 and 8 threads, shared with another user's jobs); earlier GFN2-xTB thread, batch and start-up runs on a laptop and the node"},
+        {"kind": "Tested", "item": timing},
         {"kind": "Tested", "item": "A GPU eigensolver (FP64, mixed and adaptive precision) on two GPUs without fast FP64, up to 6000 basis functions; it is kept on a separate branch, not in the main code"},
         {"kind": "Not tested", "item": "How the molecules were chosen: hand-picked test structures, generated water clusters and alkanes, and hand-built metal complexes. "
          "They are not optimized geometries and not a sample of any production workload."},
@@ -701,7 +813,7 @@ def scope() -> None:
         {"kind": "Tested", "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs it replaces (9 structures, including two that need a retry at a higher electronic temperature)"},
         {"kind": "Tested", "item": "Vibrational analysis and quasi-RRHO thermochemistry against xtb 6.7.1 and the g-xTB 2.0.1 program (7 molecules, linear and symmetric tops, a transition state)"},
         {"kind": "Tested", "item": "Molden orbital files against the files of xtb, the g-xTB 2.0.1 program and g-xtb 1.1.0 (23 cases, s to f functions, open shells)"},
-        {"kind": "Tested", "item": "GFN-FF topology, charges, energies and gradients against xtb 6.7.1 --gfnff on 269 structures (H–Rn, charges −3 to +3, metal complexes, hydrogen- and halogen-bonded dimers, up to 640 atoms); Hessians on 8 structures; time and memory up to 9900 atoms"},
+        {"kind": "Tested", "item": gfnff},
         {"kind": "Not tested", "item": "The solvation composite in solvents other than water, with GBSA or at other reference states; GFN-FF with implicit solvent or point charges (QM/MM electrostatic embedding); GFN1-xTB, periodic systems, CPCM-X and COSMO solvation, point charges"},
         {"kind": "Not tested", "item": "Geometry optimizations and molecular dynamics (axtb provides energies, gradients and Hessians; an outside optimizer drives them)"},
         {"kind": "Not tested", "item": "GFN2-xTB and g-xTB above 999 atoms (GFN-FF was run up to 9900); CPUs other than these two; macOS, Windows and ARM"},
@@ -959,7 +1071,8 @@ def gxtb2_hess_memory() -> None:
         for k, sec in lap["best_wall"].items():
             steps.append({"id": f"laptop|{k}", "machine": "laptop", "step": label.get(k, k), "seconds": sec, "speedup": base / sec,
                           "decision": "released" if k == "final" else "—"})
-    write("gxtb2_hess_steps", steps)
+    if steps:
+        write("gxtb2_hess_steps", steps)
 
 
 def gxtb_etemp() -> None:
@@ -1066,87 +1179,282 @@ def composite() -> None:
     write("composite", rows)
 
 
-def laptop_check() -> None:
-    """Quiet-laptop check of the node timings (bench/laptop_check): axtb CLI vs the official program binaries on an Intel CPU."""
-    rows = []
-    for kind, f in (("E+G", "eg.json"), ("Hessian", "hess.json")):
-        path = ROOT / "bench/results/laptop-check" / f
-        if not path.exists():
-            continue
-        for r in json.loads(path.read_text())["rows"]:
-            rows.append({"id": f"{kind}|{r['method']}|{r['molecule']}|{r['threads']}", "kind": kind, "method": r["method"],
-                         "molecule": r["molecule"], "threads": r["threads"], "program": r["program_s"], "axtb": r["axtb_s"],
-                         "speedup": r["speedup"], "program_cores": r["program_cores"], "axtb_cores": r["axtb_cores"],
-                         "load": round(r["load"], 1)})
-    write("laptop_check", rows)
-
-
 FT_METHOD = {"gfn2": "GFN2-xTB", "gxtb2": "g-xTB 2.0.1", "gxtb11": "g-xTB v1.1"}
+# The final timings (bench/final_timings.py) on both machines. `library` is the requirement's setting on that
+# CPU: Intel MKL loaded at run time on the Intel laptop, faer (axtb's default) on the AMD node; the other
+# libraries ran alongside.
+FINAL = {
+    "laptop": {"dir": ROOT / "bench/results/final-laptop", "label": "Laptop", "library": "MKL"},
+    "node": {"dir": ROOT / "bench/results/final-9985wx", "label": "64-core node", "library": "faer"},
+}
+AXTB_LIBS = {"axtb CLI": "faer", "axtb CLI [MKL]": "MKL", "axtb CLI [AOCL]": "AOCL"}  # energy + gradient, default conventions
+LIB_NAMES = {"faer": "faer", "MKL": "Intel MKL", "AOCL": "AMD AOCL"}
+# the requirement: 1 to 8 threads, axtb at its defaults faster than the reference program at its defaults
+REQ_PARTS = {"gfn2": "xtb 6.8.0", "gxtb2": "g-xTB 2.0.1 program"}
+REQ_THREADS = (1, 2, 4, 8)
+TIGHT = 1.05  # requirement cells below this median speed-up are flagged
 # reference program, accurate setting, default setting, axtb; per method and kind
 FT_PROGS = {
-    ("gfn2", "E+G"): {"xtb 6.8.0": "program", "tblite 0.8.0": "tblite", "axtb CLI": "axtb"},
-    ("gxtb2", "E+G"): {"g-xTB 2.0.1 program": "program", "axtb CLI": "axtb"},
-    ("gxtb11", "E+G"): {"g-xtb 1.1.0 program": "program", "axtb CLI": "axtb"},
+    ("gfn2", "E+G"): {"xtb 6.8.0": "program"},
+    ("gxtb2", "E+G"): {"g-xTB 2.0.1 program": "program"},
+    ("gxtb11", "E+G"): {"g-xtb 1.1.0 program": "program"},
     ("gfn2", "Hessian"): {"xtb 6.8.0 --hess --acc 0.001": "program", "xtb 6.8.0 --hess": "program_default", "axtb analytic": "axtb"},
     ("gxtb2", "Hessian"): {"g-xTB 2.0.1 program --hess --acc 0.001": "program", "g-xTB 2.0.1 program --hess": "program_default", "axtb analytic": "axtb"},
     ("gxtb11", "Hessian"): {"g-xtb 1.1.0 program -hess": "program_default", "axtb numerical": "axtb"},
 }
 
 
-def final_timings() -> None:
-    """Single-calculation timings on a 64-core node against xtb 6.8.0 and the g-xTB programs (bench/final_timings.py)."""
-    path = ROOT / "bench/results/final-9985wx/summary.json"
-    if not path.exists():
-        return
-    d = json.loads(path.read_text())
-    cells = defaultdict(dict)
-    for r in d["summary"]:
-        role = FT_PROGS.get((r["part"], r["kind"]), {}).get(r["program"])
-        if role is None:
+def ratio(a, b):
+    return a / b if a and b else None
+
+
+def short(commit: str | None) -> str | None:
+    return commit[:7] if commit else None
+
+
+def eg_cells(d: dict, prog: str) -> dict:
+    """Energy + gradient cells of one task file: per molecule the program's median and, per axtb library,
+    axtb's median, the median speed-up and the speed-up of every round (program and axtb of the same round)."""
+    med = {(s["molecule"], s["program"]): s for s in d["summary"]}
+    rounds = defaultdict(dict)
+    for r in d["runs"]:
+        if r.get("ok"):
+            rounds[(r["molecule"], r["round"])][r["program"]] = r["seconds"]
+    out = {}
+    for mol in dict.fromkeys(s["molecule"] for s in d["summary"]):
+        p = med.get((mol, prog))
+        if not p:
             continue
-        k = (r["part"], r["kind"], r["molecule"], r["threads"])
-        cells[k]["atoms"] = r["atoms"]
-        cells[k][role] = r["median"]
-        cells[k][role + "_min"] = r["min"]
-        cells[k]["other_busy"] = max(cells[k].get("other_busy", 0), r.get("median_other_busy_threads") or 0)
-    acc = d.get("hessian_accuracy", {})
-    rows = []
-    for (part, kind, mol, th), c in cells.items():
-        row = {"id": f"{part}|{kind}|{mol}|{th}", "method": FT_METHOD[part], "kind": kind, "molecule": mol, "atoms": c["atoms"], "threads": th,
-               "program": c.get("program"), "program_default": c.get("program_default"), "tblite": c.get("tblite"), "axtb": c.get("axtb"),
-               "other_busy": round(c.get("other_busy", 0), 1)}
-        ref = c.get("program") or c.get("program_default")
-        row["speedup"] = ref / c["axtb"] if ref and c.get("axtb") else None
-        row["speedup_default"] = c["program_default"] / c["axtb"] if c.get("program_default") and c.get("axtb") else None
-        if kind == "Hessian":
-            a = acc.get(part, {}).get(f"{mol} | {th}t", {})
-            for lab, role in FT_PROGS[(part, kind)].items():
-                if lab in a:
-                    row[f"dfreq_{role}"] = a[lab].get("max_dfreq")
-        rows.append(row)
+        c = {"atoms": p["atoms"], "program": p["median"], "libs": {}}
+        for ax, lib in AXTB_LIBS.items():
+            a = med.get((mol, ax))
+            if not a:
+                continue
+            rr = [v[prog] / v[ax] for (mm, _), v in rounds.items() if mm == mol and prog in v and ax in v]
+            c["libs"][lib] = {"median": a["median"], "speedup": p["median"] / a["median"], "rounds": rr,
+                              "other_busy": max(p.get("median_other_busy_threads") or 0, a.get("median_other_busy_threads") or 0)}
+        out[mol] = c
+    return out
+
+
+def final_timings() -> None:
+    """Single-calculation timings against xtb 6.8.0 and the g-xTB programs on the laptop and the 64-core node
+    (bench/final_timings.py): every cell with the requirement's library as `axtb` and the others alongside."""
+    rows, head = [], []
+    for m, cfg in FINAL.items():
+        path = cfg["dir"] / "summary.json"
+        if not path.exists():
+            continue
+        d = json.loads(path.read_text())
+        commit = {k: short(t.get("axtb_commit")) for k, t in d.get("tasks", {}).items()}
+        cells = defaultdict(dict)
+        for r in d["summary"]:
+            role = FT_PROGS.get((r["part"], r["kind"]), {}).get(r["program"])
+            if role is None and r["kind"] == "E+G" and r["program"] in AXTB_LIBS:
+                role = "axtb_" + AXTB_LIBS[r["program"]].lower()
+            if role is None:
+                continue
+            k = (r["part"], r["kind"], r["molecule"], r["threads"])
+            cells[k]["atoms"] = r["atoms"]
+            cells[k][role] = r["median"]
+            cells[k]["task"] = r.get("task")
+            cells[k]["other_busy"] = max(cells[k].get("other_busy", 0), r.get("median_other_busy_threads") or 0)
+        acc = d.get("hessian_accuracy", {})
+        for (part, kind, mol, th), c in cells.items():
+            row = {"id": f"{m}|{part}|{kind}|{mol}|{th}", "machine": m, "machine_label": cfg["label"], "method": FT_METHOD[part],
+                   "kind": kind, "molecule": mol, "atoms": c["atoms"], "threads": th, "program": c.get("program")}
+            if kind == "E+G":
+                lib = cfg["library"] if f"axtb_{cfg['library'].lower()}" in c else "faer"
+                row["library"] = LIB_NAMES[lib]
+                row["axtb"] = c.get(f"axtb_{lib.lower()}")
+                row["speedup"] = ratio(c.get("program"), row["axtb"])
+                for low in ("faer", "mkl", "aocl"):
+                    row[f"axtb_{low}"] = c.get(f"axtb_{low}")
+                    row[f"speedup_{low}"] = ratio(c.get("program"), c.get(f"axtb_{low}"))
+            else:
+                row["library"] = "faer"
+                row["program_default"] = c.get("program_default")
+                row["axtb"] = c.get("axtb")
+                row["speedup"] = ratio(c.get("program") or c.get("program_default"), c.get("axtb"))
+                row["speedup_default"] = ratio(c.get("program_default"), c.get("axtb"))
+                a = acc.get(part, {}).get(f"{mol} | {th}t", {})
+                for lab, role in FT_PROGS[(part, kind)].items():
+                    row[f"dfreq_{role}"] = a.get(lab, {}).get("max_dfreq")
+            row["other_busy"] = round(c.get("other_busy", 0), 1)
+            row["commit"] = commit.get(c.get("task"))
+            rows.append(row)
+        # headline numbers per machine, method, kind and thread count
+        mine = [r for r in rows if r["machine"] == m]
+        for meth in FT_METHOD.values():
+            for kind in ("Hessian", "E+G"):
+                for th in sorted({r["threads"] for r in mine if r["method"] == meth and r["kind"] == kind}):
+                    cand = [r for r in mine if r["method"] == meth and r["threads"] == th and r["kind"] == kind and r["speedup"]]
+                    if not cand:
+                        continue
+                    tx = next((r for r in cand if r["molecule"] == "taxol"), None)
+                    best, worst = max(cand, key=lambda r: r["speedup"]), min(cand, key=lambda r: r["speedup"])
+                    big = [r for r in cand if r["atoms"] >= 20]
+                    head.append({"id": f"{m}|{meth}|{kind}|{th}", "machine": m, "machine_label": cfg["label"], "method": meth, "kind": kind,
+                                 "threads": th, "taxol_speedup": tx and tx["speedup"], "taxol_speedup_default": tx and tx.get("speedup_default"),
+                                 "taxol_axtb": tx and tx["axtb"], "taxol_program": tx and tx["program"],
+                                 "taxol_dfreq_program": tx and tx.get("dfreq_program"), "taxol_dfreq_program_default": tx and tx.get("dfreq_program_default"),
+                                 "taxol_dfreq_axtb": tx and tx.get("dfreq_axtb"),
+                                 "max_speedup": best["speedup"], "max_speedup_molecule": best["molecule"],
+                                 "max_speedup_20": max((r["speedup"] for r in big), default=None),
+                                 "max_speedup_20_molecule": max(big, key=lambda r: r["speedup"])["molecule"] if big else None,
+                                 "min_speedup": worst["speedup"], "min_speedup_molecule": worst["molecule"]})
     order = {"GFN2-xTB": 0, "g-xTB 2.0.1": 1, "g-xTB v1.1": 2}
-    rows.sort(key=lambda r: (order[r["method"]], r["threads"], r["atoms"]))
+    rows.sort(key=lambda r: (list(FINAL).index(r["machine"]), order[r["method"]], r["threads"], r["atoms"]))
     write("ft_eg", [r for r in rows if r["kind"] == "E+G"])
     write("ft_hess", [r for r in rows if r["kind"] == "Hessian"])
-    # headline numbers: largest molecule both programs ran, per method and thread count
-    head = []
-    for meth in ("GFN2-xTB", "g-xTB 2.0.1"):
-        for th in (1, 8):
-            for kind in ("Hessian", "E+G"):
-                cand = [r for r in rows if r["method"] == meth and r["threads"] == th and r["kind"] == kind and r["speedup"]]
-                if not cand:
-                    continue
-                tx = next((r for r in cand if r["molecule"] == "taxol"), None)
-                best = max(cand, key=lambda r: r["speedup"])
-                head.append({"id": f"{meth}|{kind}|{th}", "method": meth, "kind": kind, "threads": th,
-                             "taxol_speedup": tx and tx["speedup"], "taxol_speedup_default": tx and tx["speedup_default"],
-                             "taxol_axtb": tx and tx["axtb"], "taxol_program": tx and tx["program"],
-                             "taxol_dfreq_program": tx and tx.get("dfreq_program"), "taxol_dfreq_program_default": tx and tx.get("dfreq_program_default"),
-                             "taxol_dfreq_axtb": tx and tx.get("dfreq_axtb"),
-                             "max_speedup": best["speedup"], "max_speedup_molecule": best["molecule"],
-                             "max_speedup_20": max((r["speedup"] for r in cand if r["atoms"] >= 20), default=None),
-                             "min_speedup": min(r["speedup"] for r in cand)})
     write("ft_head", head)
+    requirement()
+    timing_runs()
+
+
+def requirement() -> None:
+    """The performance requirement, cell by cell: per machine, method, molecule and thread count (1 to 8), the
+    median speed-up of axtb at its defaults (the machine's library) over the reference program at its defaults,
+    the spread of the per-round speed-ups and a flag below TIGHT; the other libraries and the laptop's second
+    session (final-laptop/session2) alongside."""
+    long = []
+    for m, cfg in FINAL.items():
+        lib = cfg["library"]
+        for part, prog in REQ_PARTS.items():
+            for t in REQ_THREADS:
+                f = cfg["dir"] / f"{part}-eg-t{t}.json"
+                if not f.exists():
+                    continue
+                d = json.loads(f.read_text())
+                f2 = cfg["dir"] / "session2" / f.name
+                s2 = eg_cells(json.loads(f2.read_text()), prog) if f2.exists() else {}
+                for mol, c in eg_cells(d, prog).items():
+                    L = c["libs"].get(lib)
+                    if not L:
+                        continue
+                    S = s2.get(mol, {}).get("libs", {}).get(lib)
+                    long.append({"id": f"{m}|{part}|{mol}|{t}", "machine": m, "machine_label": cfg["label"], "method": FT_METHOD[part],
+                                 "reference": prog, "molecule": mol, "atoms": c["atoms"], "threads": t, "library": LIB_NAMES[lib],
+                                 "program": c["program"], "axtb": L["median"], "speedup": L["speedup"],
+                                 "round_min": min(L["rounds"], default=None), "round_max": max(L["rounds"], default=None), "rounds": len(L["rounds"]),
+                                 "faster": L["speedup"] > 1, "flag": L["speedup"] < TIGHT,
+                                 **{f"speedup_{low.lower()}": (c["libs"].get(low) or {}).get("speedup") for low in LIB_NAMES},
+                                 "s2_speedup": S and S["speedup"], "s2_round_min": S and min(S["rounds"], default=None),
+                                 "other_busy": round(L["other_busy"], 1), "commit": short(d["meta"].get("axtb_commit")),
+                                 "_rounds": L["rounds"], "_s2": S})
+    if not long:
+        return
+
+    def summary(rs, id_, **extra):
+        lo, hi = min(rs, key=lambda r: r["speedup"]), max(rs, key=lambda r: r["speedup"])
+        rd = min((r for r in rs if r["round_min"] is not None), key=lambda r: r["round_min"])
+        s2 = [r for r in rs if r["_s2"]]
+        s2lo = min(s2, key=lambda r: r["s2_speedup"]) if s2 else None
+        return {"id": id_, **extra, "cells": len(rs), "faster": sum(r["faster"] for r in rs), "flagged": sum(r["flag"] for r in rs),
+                "flag_below": TIGHT, "min_speedup": lo["speedup"], "min_molecule": lo["molecule"], "min_threads": lo["threads"],
+                "min_library": lo["library"], "min_machine": lo["machine_label"], "min_machine_id": lo["machine"], "min_method": lo["method"],
+                "min_round_min": lo["round_min"], "min_round_max": lo["round_max"],
+                "max_speedup": hi["speedup"], "max_molecule": hi["molecule"], "max_threads": hi["threads"],
+                "lowest_round": rd["round_min"], "lowest_round_molecule": rd["molecule"], "lowest_round_threads": rd["threads"],
+                "rounds_not_faster": sum(1 for r in rs for v in r["_rounds"] if v <= 1),
+                "rounds_total": sum(len(r["_rounds"]) for r in rs),
+                "s2_cells": len(s2) or None, "s2_faster": sum(r["s2_speedup"] > 1 for r in s2) if s2 else None,
+                "s2_min_speedup": s2lo and s2lo["s2_speedup"], "s2_min_molecule": s2lo and s2lo["molecule"],
+                "s2_min_threads": s2lo and s2lo["threads"], "s2_lowest_round": min((r["s2_round_min"] for r in s2), default=None)}
+    summ = [summary(long, "all", machine="both", machine_label="both machines", method="both methods", library="—",
+                    machines=len({r["machine"] for r in long}), methods=len({r["method"] for r in long}),
+                    molecules=len({r["molecule"] for r in long}), thread_counts=len({r["threads"] for r in long}),
+                    atoms_min=min(r["atoms"] for r in long), atoms_max=max(r["atoms"] for r in long),
+                    threads_min=min(r["threads"] for r in long), threads_max=max(r["threads"] for r in long),
+                    rounds=max(r["rounds"] for r in long))]
+    for m, cfg in FINAL.items():
+        for meth in dict.fromkeys(r["method"] for r in long):
+            rs = [r for r in long if r["machine"] == m and r["method"] == meth]
+            if rs:
+                summ.append(summary(rs, f"{m}|{meth}", machine=m, machine_label=cfg["label"], method=meth, library=rs[0]["library"]))
+    grid = {}
+    for r in long:
+        g = grid.setdefault((r["machine"], r["method"], r["molecule"]), {
+            "id": f"{r['machine']}|{r['method']}|{r['molecule']}", "machine": r["machine"], "machine_label": r["machine_label"],
+            "method": r["method"], "molecule": r["molecule"], "atoms": r["atoms"], "library": r["library"]})
+        n = r["threads"]
+        g[f"t{n}"], g[f"t{n}_lo"], g[f"t{n}_hi"], g[f"t{n}_flag"] = r["speedup"], r["round_min"], r["round_max"], r["flag"]
+    # every axtb library measured, per machine and method: the libraries the requirement does not use, alongside
+    libs = []
+    for m, cfg in FINAL.items():
+        for meth in dict.fromkeys(r["method"] for r in long):
+            rs = [r for r in long if r["machine"] == m and r["method"] == meth]
+            for low, name in LIB_NAMES.items():
+                vals = [(r, r[f"speedup_{low.lower()}"]) for r in rs if r[f"speedup_{low.lower()}"] is not None]
+                if not vals:
+                    continue
+                lo = min(vals, key=lambda x: x[1])
+                below = [r for r, v in vals if v <= 1]
+                libs.append({"id": f"{m}|{meth}|{name}", "machine": m, "machine_label": cfg["label"], "method": meth, "library": name,
+                             "requirement": name == rs[0]["library"], "cells": len(vals), "faster": sum(v > 1 for _, v in vals),
+                             "not_faster": len(below), "min_speedup": lo[1], "min_molecule": lo[0]["molecule"], "min_threads": lo[0]["threads"],
+                             "max_speedup": max(v for _, v in vals),
+                             "not_faster_molecules": ", ".join(dict.fromkeys(r["molecule"] for r in below)) or None,
+                             "not_faster_threads": ", ".join(str(t) for t in sorted({r["threads"] for r in below})) or None})
+    write("requirement", [{k: v for k, v in r.items() if not k.startswith("_")} for r in long])
+    write("requirement_grid", list(grid.values()))
+    write("requirement_summary", summ)
+    write("library_summary", libs)
+
+
+def timing_runs() -> None:
+    """How the final timings ran, per machine: commit, dates, rounds, libraries and the load from other work."""
+    rows = []
+    for m, cfg in FINAL.items():
+        sp, mp = cfg["dir"] / "summary.json", cfg["dir"] / "machine.json"
+        if not sp.exists():
+            continue
+        d = json.loads(sp.read_text())
+        mach = json.loads(mp.read_text()) if mp.exists() else {}
+        tasks = d.get("tasks", {})
+        eg = {k: t for k, t in tasks.items() if "-eg-" in k}
+        other = {k: t for k, t in tasks.items() if "-eg-" not in k}
+        busy_eg, busy_hess, task_busy = [], [], []
+        for k in tasks:
+            f = cfg["dir"] / f"{k}.json"
+            if not f.exists():
+                continue
+            runs = [r["other_busy_threads"] for r in json.loads(f.read_text())["runs"] if r.get("other_busy_threads") is not None]
+            (busy_eg if k in eg else busy_hess).extend(runs)
+            if k in eg and runs:
+                task_busy.append(statistics.median(runs))
+        quota = {}
+        for t in tasks.values():
+            q = (t.get("pod_cpu_quota") or "").split()
+            if len(q) == 2:
+                quota[t["threads"]] = round(int(q[0]) / int(q[1]))
+        libs = sorted({AXTB_LIBS[s["program"]] for s in d["summary"] if s["program"] in AXTB_LIBS}, key=list(LIB_NAMES).index)
+        commits = sorted({short(t.get("axtb_commit")) for t in tasks.values() if t.get("axtb_commit")})
+        s2p = cfg["dir"] / "session2" / "summary.json"
+        s2 = json.loads(s2p.read_text()).get("tasks", {}) if s2p.exists() else {}
+        hhmm = lambda ts: sorted(t["date"][11:16] for t in ts.values() if t.get("date"))
+        rows.append({
+            "machine": m, "label": cfg["label"], "cpu": mach.get("cpu") or MACHINES.get(m, {}).get("cpu"),
+            "cores": mach.get("cores"), "hw_threads": mach.get("hw_threads_visible"),
+            "commit": ", ".join(commits) or None, "date": min((t["date"][:10] for t in tasks.values() if t.get("date")), default=None),
+            "eg_started": "–".join(dict.fromkeys([hhmm(eg)[0], hhmm(eg)[-1]])) + " UTC" if eg else None,
+            "other_started": "–".join(dict.fromkeys([hhmm(other)[0], hhmm(other)[-1]])) + " UTC" if other else None,
+            "rounds_eg": max((t["rounds_eg"] for k, t in eg.items()), default=None),
+            "rounds_hess": max((t["rounds_hess"] for k, t in other.items() if not k.startswith("gxtb11")), default=None),
+            "rounds_v11": max((t["rounds_eg"] for k, t in other.items() if k.startswith("gxtb11")), default=None),
+            "library": LIB_NAMES[cfg["library"]], "alongside": ", ".join(LIB_NAMES[x] for x in libs if x != cfg["library"]) or None,
+            "other_busy_median": statistics.median(busy_eg) if busy_eg else None,
+            "other_busy_task_min": min(task_busy, default=None), "other_busy_task_max": max(task_busy, default=None),
+            "other_busy_max": max(busy_eg, default=None),
+            "other_busy_hess_median": statistics.median(busy_hess) if busy_hess else None,
+            "load1_min": min((min(t["load1_start"], t["load1_end"]) for t in eg.values()), default=None),
+            "load1_start_max": max((t["load1_start"] for t in tasks.values()), default=None),
+            "load1_max": max((max(t["load1_start"], t["load1_end"]) for t in eg.values()), default=None),
+            "pod_cpus_1t": quota.get(1), "pod_cpus_8t": quota.get(8),
+            "s2_eg_started": "–".join(dict.fromkeys([hhmm(s2)[0], hhmm(s2)[-1]])) + " UTC" if s2 else None,
+            "note": mach.get("note_session"),
+        })
+    write("ft_runs", rows)
 
 
 PARITY_PROGRAMS = {"gxtb201": ("g-xTB 2.0.1", "the g-xTB 2.0.1 program", "gxtb"), "gxtb11": ("g-xTB v1.1", "g-xtb 1.1.0", "gxtb"),
@@ -1359,7 +1667,10 @@ def gfnff() -> None:
                    "xtb_hb_array_gib": x.get("xtb_considered_ABH_gib"),
                    "axtb_s": g.get("wall_s"), "axtb_s8": g8.get("wall_s"), "axtb_mib": g.get("peak_rss_mib"),
                    "hess_s": h1 and h1["wall_s"], "hess_s8": h8 and h8["wall_s"], "hess_mib": h1 and h1["peak_rss_mib"],
-                   "xtb_hess_s": xh and xh["wall_s"], "dE": x.get("energy_diff"), "dG": x.get("gradient_maxdiff")})
+                   "xtb_hess_s": xh and xh["wall_s"], "dE": x.get("energy_diff"), "dG": x.get("gradient_maxdiff"),
+                   # 1-minute load before and after each of the system's runs
+                   **dict(zip(("load1_min", "load1_max"), (lambda ls: (min(ls), max(ls)) if ls else (None, None))(
+                       [v[k][0] for v in x.values() if isinstance(v, dict) for k in ("load_before", "load_after") if v.get(k)])))})
     write("gfnff_scaling", sc)
 
 
@@ -1367,6 +1678,7 @@ def main() -> None:
     res = suites()
     machine_rows(res)
     accuracy(res)
+    xtb_tblite(res)
     speed(res)
     linalg()
     matrix()
@@ -1390,11 +1702,10 @@ def main() -> None:
     gxtb_energy_differences()
     parity_features()
     final_timings()
-    laptop_check()
     phases()
     cli_fix()
     issues(ev)
-    learnings(res)
+    learnings(res, ev)
     scope()
     methods()
 

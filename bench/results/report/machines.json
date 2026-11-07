@@ -4,13 +4,15 @@
   "label": "Laptop",
   "cpu": "Intel Core i9-11900H (Tiger Lake), 8 cores / 16 threads",
   "date": "2026-11-07",
-  "note": "axtb 0.1.0 (e6b4a18), 2026-11-07"
+  "axtb": "version 0.1.0",
+  "xtb": "xtb 6.8.0"
  },
  {
   "machine": "node",
   "label": "64-core node",
   "cpu": "AMD Ryzen Threadripper PRO 9985WX (Zen 5), 64 cores / 128 threads; jobs limited to 126 CPUs",
   "date": "2026-11-05",
-  "note": "the node's whole-node datasets (suite timing, Hessian and throughput rows, phases, linear algebra, CLI throughput) are from axtb 533c1a0, 2026-11-05: no node was free for whole-node pods during the 0.1.0 release rerun; the 0.1.0 timings on this node are ft_eg and ft_hess"
+  "axtb": "commit 533c1a0",
+  "xtb": "xtb 6.7.1 (the g-xTB 2.0.1 build)"
  }
 ]
