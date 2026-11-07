@@ -4,9 +4,9 @@
  "method": "GFN2-xTB",
  "note": "axtb's xtb conventions (xtb 6.8.0) with one setting at a time put back to xtb 6.7.1's; each row: variant minus the xtb 6.8.0 program (dE in Eh, max |dG| in Eh/bohr, iterations axtb/xtb); OMP_NUM_THREADS=1",
  "load_average": [
-  8.33,
-  8.59,
-  4.98
+  6.41,
+  6.49,
+  4.96
  ],
  "summary": {
   "acc 0.0001": {

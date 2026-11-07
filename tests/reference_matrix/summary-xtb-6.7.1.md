@@ -1,6 +1,6 @@
 # axtb reference matrix against xtb 6.7.1 (26dd68d)
 
-Generated 2026-11-07T03:20:55 — xtb 6.7.1 (26dd68d) (axtb conventions "xtb-6.7.1"), tblite 0.8.0, axtb 0.1.0 (git e6b4a18).
+Generated 2026-11-07T04:20:54 — xtb 6.7.1 (26dd68d) (axtb conventions "xtb-6.7.1"), tblite 0.8.0, axtb 0.1.0 (git 3499913).
 
 Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb mode vs xtb |ΔE| ≤ 1e-7 Eh, max|ΔG| ≤ 1e-7 Eh/bohr, |Δq| ≤ 1e-6 e, |Δμ| ≤ 1e-5 e·bohr; tblite mode vs tblite 1e-9 / 1e-8 / 1e-7 / 1e-6; axtb vs xtb mode 1e-7 / 1e-6 / 1e-5 / 1e-4 (all scaled up with the SCF accuracy above 1e-4). Statuses: pass, fail, different_solution (another SCF solution of the same equations, verified by restarting each program from the other's converged moments), expected_difference (documented fixes of the default conventions), both_failed (consistent failure), axtb_failed / ref_failed, info (not meant to match).
 
