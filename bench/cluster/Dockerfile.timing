@@ -22,7 +22,7 @@ RUN rm -rf /opt/axtb
 COPY axtb /opt/axtb
 WORKDIR /opt/axtb
 RUN cargo build --release -p axtb-cli \
-    && (cd crates/axtb-py && maturin build --release -o /tmp/wheels) \
+    && (cd crates/axtb-py && maturin build --release --compatibility linux -o /tmp/wheels) \
     && pip install --no-cache-dir --force-reinstall --no-deps /tmp/wheels/*.whl && rm -rf /tmp/wheels \
     && rm -rf target/release/deps target/release/build target/release/incremental
 

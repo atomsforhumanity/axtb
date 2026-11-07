@@ -31,7 +31,7 @@ RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-too
 COPY . /opt/axtb
 WORKDIR /opt/axtb
 RUN cargo build --release -p axtb-cli \
-    && (cd crates/axtb-py && maturin build --release -o /tmp/wheels) \
+    && (cd crates/axtb-py && maturin build --release --compatibility linux -o /tmp/wheels) \
     && pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels \
     && (cd bench/linalg && cargo build --release \
         && cargo +stable build --release --features faer-avx512 --target-dir target-v4) \

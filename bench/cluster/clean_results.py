@@ -55,7 +55,9 @@ machine["linalg_libraries"] = libs
 
 res = json.loads((raw / "suite/results.json").read_text())
 xtb = re.search(r"xtb version (\S+) \((\w+)\)", res["meta"]["xtb"])
-res["meta"]["xtb"] = f"xtb {xtb.group(1)} ({xtb.group(2)}), g-xTB 2.0.1 build" if xtb else res["meta"]["xtb"]
+if xtb:  # the version line without the build's user@host; the g-xTB 2.0.1 build is xtb 6.7.1 26dd68d
+    build = ", g-xTB 2.0.1 build" if xtb.group(2).startswith("26dd68d") else ""
+    res["meta"]["xtb"] = f"xtb {xtb.group(1)} ({xtb.group(2)[:7]}){build}"
 res["meta"].update({"cores": machine["sockets"] * machine["cores_per_socket"],
                     "hw_threads": machine["sockets"] * machine["cores_per_socket"] * machine["threads_per_core"]})
 machine["xtb"] = res["meta"]["xtb"]

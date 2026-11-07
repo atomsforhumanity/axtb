@@ -750,7 +750,8 @@ def gpu() -> None:
 
 
 PHASE_GROUPS = [("Setup (classical terms, integrals, Cholesky)", ("classical", "integrals", "cholesky")),
-                ("Fock build", ("scf: potential+fock",)), ("Eigensolver", ("scf: diagonalization",)),
+                # axtb times the potentials and the Fock matrix as two phases ("scf: potential+fock" before)
+                ("Fock build", ("scf: potential+fock", "scf: potentials", "scf: fock")), ("Eigensolver", ("scf: diagonalization",)),
                 ("Other SCF (density, charges, energy, mixing)", ("scf: density", "scf: mulliken", "scf: energy+mixing")),
                 ("Gradient", ("gradient",))]
 
@@ -852,8 +853,9 @@ def gxtb2_hessian() -> None:
     d = json.loads(path.read_text())
     times, freqs = [], []
     for mol, v in d.get("versus_program", {}).items():
-        # window 1: program at its default accuracy and all three axtb methods
-        for r in v["runs"]:
+        # window 1: program at its default accuracy and all three axtb methods (cases of the
+        # interleaved accuracy run alone, e.g. Ni(CO)4, have only window 2)
+        for r in v.get("runs", []):
             label, thr = r["what"].rsplit(" ", 1)
             label = {"program --hess": "program --hess, default --acc 1"}.get(label, label)
             times.append({"id": f"{mol}|1|{r['what']}", "molecule": mol, "atoms": v["natoms"], "window": "default", "method": label,
@@ -863,7 +865,7 @@ def gxtb2_hessian() -> None:
         for what, sec in pa.get("time", {}).items():
             label, thr = what.rsplit(" ", 1)
             label = label.replace("program --acc", "program --hess --acc")
-            times.append({"id": f"{mol}|2|{what}", "molecule": mol, "atoms": v["natoms"], "window": "acc", "method": label,
+            times.append({"id": f"{mol}|2|{what}", "molecule": mol, "atoms": v.get("natoms", pa.get("natoms")), "window": "acc", "method": label,
                           "threads": int(thr.rstrip("t")), "seconds": sec})
         for meth, r in pa.get("vs_reference", {}).items():
             freqs.append({"id": f"{mol}|{meth}", "molecule": mol, "method": meth.replace("program --acc", "program --hess --acc"),
