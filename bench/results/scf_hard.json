@@ -2,7 +2,7 @@
  "description": "GFN2-xTB SCF convergence on the hard-SCF set (tests/scf_hard_set.py)",
  "date": "2026-11-07",
  "settings": {"accuracy": 0.0001, "max_iter": 250, "threads": 1, "conventions": "axtb (default)"},
- "versions": {"xtb": "6.7.1", "tblite": "0.8.0", "axtb": "e6b4a18 (target/release/axtb)", "machine": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz, 16 threads"},
+ "versions": {"xtb": "6.7.1", "tblite": "0.8.0", "axtb": "3499913 (target/release/axtb)", "machine": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz, 16 threads"},
  "cases": [
   {"id": "cluster-Au4-T300", "structure": "cluster-Au4", "category": "metal-cluster", "label": "Au4 tetrahedron", "charge": 0, "uhf": 0, "etemp": 300.0, "natoms": 4},
   {"id": "cluster-Co4-T300", "structure": "cluster-Co4", "category": "metal-cluster", "label": "Co4 tetrahedron", "charge": 0, "uhf": 0, "etemp": 300.0, "natoms": 4},

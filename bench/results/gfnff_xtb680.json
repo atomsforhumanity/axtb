@@ -4080,5 +4080,5 @@
    "note": "one thread, address space capped at 12 GiB, /usr/bin/time -v; 1-minute load 1.9-2.6 (shared machine)"
   }
  },
- "accuracy_how": "tests/gfnff_reproduction.py --part accuracy --conventions xtb-6.7.1 against xtb 6.8.0 (axtb e6b4a18): the 6.7.1 force field against the 6.8.0 program; xtb_issues: the programs' own outputs, recorded by hand"
+ "accuracy_how": "tests/gfnff_reproduction.py --part accuracy --conventions xtb-6.7.1 against xtb 6.8.0 (axtb 3499913): the 6.7.1 force field against the 6.8.0 program; xtb_issues: the programs' own outputs, recorded by hand"
 }

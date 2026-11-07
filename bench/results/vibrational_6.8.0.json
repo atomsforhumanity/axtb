@@ -4,14 +4,14 @@
  "analysis_conventions": "xtb",
  "machine": "x86_64",
  "load_before": [
-  7.75,
-  8.46,
-  4.98
+  5.65,
+  6.32,
+  4.92
  ],
  "load_after": [
-  7.61,
-  8.42,
-  4.98
+  5.65,
+  6.32,
+  4.92
  ],
  "gates": {
   "frequency_cm1": 0.01,
@@ -22,7 +22,7 @@
   "gfn2": {
    "caffeine": {
     "n_atoms": 24,
-    "xtb_hess_seconds": 0.7085528969982988,
+    "xtb_hess_seconds": 0.6060458909996669,
     "same_hessian": {
      "n_modes": [
       66,
@@ -351,7 +351,7 @@
    },
    "CO2": {
     "n_atoms": 3,
-    "xtb_hess_seconds": 0.025397175006219186,
+    "xtb_hess_seconds": 0.020453971999813803,
     "same_hessian": {
      "n_modes": [
       4,
@@ -436,7 +436,7 @@
    },
    "HCN": {
     "n_atoms": 3,
-    "xtb_hess_seconds": 0.026381312003650237,
+    "xtb_hess_seconds": 0.018971346005855594,
     "same_hessian": {
      "n_modes": [
       4,
@@ -521,7 +521,7 @@
    },
    "benzene": {
     "n_atoms": 12,
-    "xtb_hess_seconds": 0.10874987100396538,
+    "xtb_hess_seconds": 0.08739157299714861,
     "same_hessian": {
      "n_modes": [
       30,
@@ -674,7 +674,7 @@
    },
    "NH3": {
     "n_atoms": 4,
-    "xtb_hess_seconds": 0.023942867999721784,
+    "xtb_hess_seconds": 0.020694746999652125,
     "same_hessian": {
      "n_modes": [
       6,
@@ -763,7 +763,7 @@
    },
    "CH4": {
     "n_atoms": 5,
-    "xtb_hess_seconds": 0.02580858999863267,
+    "xtb_hess_seconds": 0.02153892099886434,
     "same_hessian": {
      "n_modes": [
       9,
@@ -852,7 +852,7 @@
    },
    "SN2-TS": {
     "n_atoms": 6,
-    "xtb_hess_seconds": 0.04801276599755511,
+    "xtb_hess_seconds": 0.04695435300527606,
     "same_hessian": {
      "n_modes": [
       12,

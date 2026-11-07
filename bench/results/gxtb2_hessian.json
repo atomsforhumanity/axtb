@@ -1,55 +1,55 @@
 {
  "machine": "64-core node (AMD Threadripper PRO 9985WX), 16-CPU pod; axtb_commit from the image's AXTB_REV (no git in the image)",
  "threads": 8,
- "axtb_commit": "e6b4a18",
+ "axtb_commit": "3499913",
  "reference": "Richardson (4 H(0.001) - H(0.002))/3 of numerical Hessians, SCF accuracy 1e-6",
  "response_reference": "Richardson (4 H(1e-4) - H(2e-4))/3 of response Hessians, reference SCF accuracy 1e-6",
  "cases": {
   "water": {
    "natoms": 3,
-   "load_before": "34.51 46.83 54.46",
+   "load_before": "44.79 35.02 33.51",
    "time": {
-    "analytic 1t": 0.007521884050220251,
-    "analytic 8t": 0.010009875986725092,
-    "response 1t": 0.0073636360466480255,
-    "response 8t": 0.00828653434291482,
-    "numerical 1t": 0.00754927471280098,
-    "numerical 8t": 0.007569184992462397
+    "analytic 1t": 0.006598698906600475,
+    "analytic 8t": 0.0071346149779856205,
+    "response 1t": 0.005608007777482271,
+    "response 8t": 0.0061309849843382835,
+    "numerical 1t": 0.00828141113743186,
+    "numerical 8t": 0.006015852093696594
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.000363967,
-     "tangents": 0.000170035,
-     "perturbations": 0.0003199578593802579,
-     "response": 0.00021032914061974205,
-     "explicit integrals": 0.002152537,
-     "total": 0.003226823
+     "reference scf": 0.000298859,
+     "tangents": 0.000156064,
+     "perturbations": 0.00030987649712293375,
+     "response": 0.00021001550287706622,
+     "explicit integrals": 0.002130145,
+     "total": 0.003113245
     },
     "analytic 8t": {
-     "reference scf": 0.001943293,
-     "tangents": 0.000182925,
-     "perturbations": 0.0001305225461028582,
-     "response": 8.035545389714182e-05,
-     "explicit integrals": 0.001364522,
-     "total": 0.003731733
+     "reference scf": 0.001370422,
+     "tangents": 0.000195043,
+     "perturbations": 0.00010798683573160217,
+     "response": 6.660616426839781e-05,
+     "explicit integrals": 0.001217732,
+     "total": 0.002982658
     },
     "response 1t": {
-     "reference scf": 0.000321183,
-     "response setup": 3.475e-06,
-     "displaced gradients": 0.002534633,
-     "total": 0.002866442
+     "reference scf": 0.000289355,
+     "response setup": 2.864e-06,
+     "displaced gradients": 0.002442725,
+     "total": 0.002740704
     },
     "response 8t": {
-     "reference scf": 0.001863413,
-     "response setup": 3.785e-06,
-     "displaced gradients": 0.000922398,
-     "total": 0.002815955
+     "reference scf": 0.00139546,
+     "response setup": 3.615e-06,
+     "displaced gradients": 0.000898602,
+     "total": 0.002316966
     },
     "numerical 1t": {
-     "total": 0.003810091
+     "total": 0.00409379
     },
     "numerical 8t": {
-     "total": 0.001664224
+     "total": 0.001652707
     }
    },
    "asymmetry": {
@@ -75,62 +75,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 8.2,
-    "analytic 8t": 7.1,
-    "response 1t": 8.2,
+    "analytic 1t": 8.1,
+    "analytic 8t": 6.2,
+    "response 1t": 8.1,
     "response 8t": 6.2,
     "numerical 1t": 8.2,
-    "numerical 8t": 7.2
+    "numerical 8t": 6.1
    },
-   "load_after": "34.51 46.83 54.46",
+   "load_after": "44.79 35.02 33.51",
    "reference_spread": 2.254124510103761e-06,
    "references_difference": 1.5958903643031874e-10
   },
   "O2 triplet": {
    "natoms": 2,
-   "load_before": "34.51 46.83 54.46",
+   "load_before": "44.79 35.02 33.51",
    "time": {
-    "analytic 1t": 0.0066527267917990685,
-    "analytic 8t": 0.00919304694980383,
-    "response 1t": 0.006012693978846073,
-    "response 8t": 0.007737949024885893,
-    "numerical 1t": 0.006870424374938011,
-    "numerical 8t": 0.006619846913963556
+    "analytic 1t": 0.005908160004764795,
+    "analytic 8t": 0.007734318263828754,
+    "response 1t": 0.005412464961409569,
+    "response 8t": 0.0059097022749483585,
+    "numerical 1t": 0.005846776999533176,
+    "numerical 8t": 0.005266535095870495
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.000363507,
-     "tangents": 0.000151969,
-     "perturbations": 0.00018123138364982294,
-     "response": 0.000235495616350177,
-     "explicit integrals": 0.001739646,
-     "total": 0.002681623
+     "reference scf": 0.000354774,
+     "tangents": 0.000154102,
+     "perturbations": 0.00018388323716704796,
+     "response": 0.000234075762832952,
+     "explicit integrals": 0.001763965,
+     "total": 0.002700183
     },
     "analytic 8t": {
-     "reference scf": 0.002032287,
-     "tangents": 0.000167702,
-     "perturbations": 0.00010616687259576729,
-     "response": 0.0001008851274042327,
-     "explicit integrals": 0.001664223,
-     "total": 0.004108119
+     "reference scf": 0.001465365,
+     "tangents": 0.00018566,
+     "perturbations": 7.290260138699579e-05,
+     "response": 7.09433986130042e-05,
+     "explicit integrals": 0.001614669,
+     "total": 0.003450402
     },
     "response 1t": {
-     "reference scf": 0.000359621,
-     "response setup": 5.779e-06,
-     "displaced gradients": 0.0017886,
-     "total": 0.002159287
+     "reference scf": 0.00035894,
+     "response setup": 5.749e-06,
+     "displaced gradients": 0.001732817,
+     "total": 0.002103786
     },
     "response 8t": {
-     "reference scf": 0.001906077,
-     "response setup": 8.943e-06,
-     "displaced gradients": 0.000772252,
-     "total": 0.00271221
+     "reference scf": 0.001386446,
+     "response setup": 7.632e-06,
+     "displaced gradients": 0.000687013,
+     "total": 0.002098097
     },
     "numerical 1t": {
-     "total": 0.003061535
+     "total": 0.003000354
     },
     "numerical 8t": {
-     "total": 0.001547117
+     "total": 0.001622351
     }
    },
    "asymmetry": {
@@ -156,62 +156,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 8.1,
+    "analytic 1t": 8.2,
     "analytic 8t": 6.1,
-    "response 1t": 8.1,
-    "response 8t": 5.1,
-    "numerical 1t": 8.3,
+    "response 1t": 8.2,
+    "response 8t": 6.1,
+    "numerical 1t": 8.2,
     "numerical 8t": 7.3
    },
-   "load_after": "34.51 46.83 54.46",
+   "load_after": "44.79 35.02 33.51",
    "reference_spread": 3.695900546940578e-06,
    "references_difference": 9.341725138535365e-12
   },
   "caffeine": {
    "natoms": 24,
-   "load_before": "34.51 46.83 54.46",
+   "load_before": "44.79 35.02 33.51",
    "time": {
-    "analytic 1t": 0.4619934968650341,
-    "analytic 8t": 0.11421564500778913,
-    "response 1t": 1.1098745022900403,
-    "response 8t": 0.16975592402741313,
-    "numerical 1t": 1.5987451449036598,
-    "numerical 8t": 0.22907681996002793
+    "analytic 1t": 0.47287653014063835,
+    "analytic 8t": 0.12527552992105484,
+    "response 1t": 1.170313723385334,
+    "response 8t": 0.1783328247256577,
+    "numerical 1t": 1.6229175389744341,
+    "numerical 8t": 0.22538161929696798
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.014144946,
-     "tangents": 0.014189934,
-     "perturbations": 0.0661499450663745,
-     "response": 0.1295740789336255,
-     "explicit integrals": 0.222531906,
-     "total": 0.446802418
+     "reference scf": 0.013891883,
+     "tangents": 0.014392656,
+     "perturbations": 0.07346978237853981,
+     "response": 0.1358504686214602,
+     "explicit integrals": 0.221055509,
+     "total": 0.45884006
     },
     "analytic 8t": {
-     "reference scf": 0.01289126,
-     "tangents": 0.015161615,
-     "perturbations": 0.01023524777091511,
-     "response": 0.018499763229084892,
-     "explicit integrals": 0.043316443,
-     "total": 0.10026427
+     "reference scf": 0.014153527,
+     "tangents": 0.014689093,
+     "perturbations": 0.011682182225177895,
+     "response": 0.020512400774822106,
+     "explicit integrals": 0.049552781,
+     "total": 0.110842293
     },
     "response 1t": {
-     "reference scf": 0.014152677,
-     "response setup": 5.1357e-05,
-     "displaced gradients": 1.0804878900000001,
-     "total": 1.094709071
+     "reference scf": 0.015608055,
+     "response setup": 6.6159e-05,
+     "displaced gradients": 1.136401156,
+     "total": 1.152094459
     },
     "response 8t": {
-     "reference scf": 0.015149867,
-     "response setup": 9.5704e-05,
-     "displaced gradients": 0.140366138,
-     "total": 0.155654834
+     "reference scf": 0.01373007,
+     "response setup": 7.4853e-05,
+     "displaced gradients": 0.150291631,
+     "total": 0.164139338
     },
     "numerical 1t": {
-     "total": 1.583028035
+     "total": 1.6087463560000002
     },
     "numerical 8t": {
-     "total": 0.216236146
+     "total": 0.212326284
     }
    },
    "asymmetry": {
@@ -237,62 +237,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 12.2,
-    "analytic 8t": 14.7,
-    "response 1t": 12.2,
-    "response 8t": 24.2,
-    "numerical 1t": 9.2,
-    "numerical 8t": 24.2
+    "analytic 1t": 14.2,
+    "analytic 8t": 17.7,
+    "response 1t": 10.2,
+    "response 8t": 26.1,
+    "numerical 1t": 10.2,
+    "numerical 8t": 23.1
    },
-   "load_after": "35.11 46.75 54.39",
+   "load_after": "44.33 35.08 33.54",
    "reference_spread": 3.2126905604723532e-06,
    "references_difference": 1.920135974048734e-08
   },
   "Cu(NH3)4 2+": {
    "natoms": 17,
-   "load_before": "35.11 46.75 54.39",
+   "load_before": "44.33 35.08 33.54",
    "time": {
-    "analytic 1t": 0.1872854307293892,
-    "analytic 8t": 0.05683632893487811,
-    "response 1t": 0.38742033997550607,
-    "response 8t": 0.07097851019352674,
-    "numerical 1t": 0.5887057781219482,
-    "numerical 8t": 0.09332383098080754
+    "analytic 1t": 0.1833568336442113,
+    "analytic 8t": 0.05795650603249669,
+    "response 1t": 0.38353521982207894,
+    "response 8t": 0.07259312877431512,
+    "numerical 1t": 0.5810810141265392,
+    "numerical 8t": 0.09291395684704185
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.007000891,
-     "tangents": 0.005104748,
-     "perturbations": 0.023286582436895933,
-     "response": 0.05180816956310407,
-     "explicit integrals": 0.090237849,
-     "total": 0.177534844
+     "reference scf": 0.007038331,
+     "tangents": 0.005037059,
+     "perturbations": 0.022861116430967315,
+     "response": 0.05061482156903269,
+     "explicit integrals": 0.088585743,
+     "total": 0.174178343
     },
     "analytic 8t": {
-     "reference scf": 0.008555269,
-     "tangents": 0.005229806,
-     "perturbations": 0.0038845996592030228,
-     "response": 0.007674847340796978,
-     "explicit integrals": 0.020845274,
-     "total": 0.046269084
+     "reference scf": 0.009222838,
+     "tangents": 0.005334727,
+     "perturbations": 0.0038408920517366296,
+     "response": 0.008002788948263369,
+     "explicit integrals": 0.020282149,
+     "total": 0.046773409
     },
     "response 1t": {
-     "reference scf": 0.007123305,
-     "response setup": 3.1738e-05,
-     "displaced gradients": 0.369804713,
-     "total": 0.376973186
+     "reference scf": 0.006967254,
+     "response setup": 2.8863e-05,
+     "displaced gradients": 0.366707309,
+     "total": 0.373718028
     },
     "response 8t": {
-     "reference scf": 0.007615114,
-     "response setup": 4.61e-05,
-     "displaced gradients": 0.052953589,
-     "total": 0.060642795
+     "reference scf": 0.008813812,
+     "response setup": 4.7531e-05,
+     "displaced gradients": 0.052541419,
+     "total": 0.061458596
     },
     "numerical 1t": {
-     "total": 0.578507199
+     "total": 0.571824807
     },
     "numerical 8t": {
-     "total": 0.082985291
+     "total": 0.082461358
     }
    },
    "asymmetry": {
@@ -319,61 +319,61 @@
    },
    "peak_rss_mb": {
     "analytic 1t": 10.2,
-    "analytic 8t": 13.0,
-    "response 1t": 9.3,
-    "response 8t": 15.2,
+    "analytic 8t": 13.3,
+    "response 1t": 9.2,
+    "response 8t": 16.1,
     "numerical 1t": 8.2,
-    "numerical 8t": 15.2
+    "numerical 8t": 16.2
    },
-   "load_after": "34.70 46.47 54.26",
+   "load_after": "42.78 34.92 33.49",
    "reference_spread": 2.101355968009422e-06,
    "references_difference": 1.684117639788596e-08
   },
   "ferrocene": {
    "natoms": 21,
-   "load_before": "34.70 46.47 54.26",
+   "load_before": "42.78 34.92 33.49",
    "time": {
-    "analytic 1t": 0.370282671879977,
-    "analytic 8t": 0.09499918110668659,
-    "response 1t": 0.8604108272120357,
-    "response 8t": 0.1338392412289977,
-    "numerical 1t": 1.0764160160906613,
-    "numerical 8t": 0.1584977712482214
+    "analytic 1t": 0.36680124094709754,
+    "analytic 8t": 0.09892326779663563,
+    "response 1t": 0.9032925409264863,
+    "response 8t": 0.13554283929988742,
+    "numerical 1t": 1.0677444287575781,
+    "numerical 8t": 0.1637805076315999
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.010280863,
-     "tangents": 0.01114944,
-     "perturbations": 0.04812318220431136,
-     "response": 0.10803633179568864,
-     "explicit integrals": 0.179538399,
-     "total": 0.357245583
+     "reference scf": 0.00996913,
+     "tangents": 0.010717507,
+     "perturbations": 0.04601393658971898,
+     "response": 0.10832689741028102,
+     "explicit integrals": 0.178743152,
+     "total": 0.35388808
     },
     "analytic 8t": {
-     "reference scf": 0.009614682,
-     "tangents": 0.011532256,
-     "perturbations": 0.007003050401709767,
-     "response": 0.015001055598290233,
-     "explicit integrals": 0.038710075,
-     "total": 0.082023273
+     "reference scf": 0.010924207,
+     "tangents": 0.011541837,
+     "perturbations": 0.007225300418279033,
+     "response": 0.014765399581720967,
+     "explicit integrals": 0.039893066,
+     "total": 0.084488809
     },
     "response 1t": {
-     "reference scf": 0.010887466,
-     "response setup": 4.9965e-05,
-     "displaced gradients": 0.835198905,
-     "total": 0.846151399
+     "reference scf": 0.010264915,
+     "response setup": 4.5298e-05,
+     "displaced gradients": 0.87985906,
+     "total": 0.890184748
     },
     "response 8t": {
-     "reference scf": 0.009667711,
-     "response setup": 5.8808e-05,
-     "displaced gradients": 0.111340641,
-     "total": 0.121129083
+     "reference scf": 0.006706641,
+     "response setup": 4.8262e-05,
+     "displaced gradients": 0.118307326,
+     "total": 0.125092765
     },
     "numerical 1t": {
-     "total": 1.062514316
+     "total": 1.055070889
     },
     "numerical 8t": {
-     "total": 0.14592471
+     "total": 0.151744057
     }
    },
    "asymmetry": {
@@ -399,62 +399,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 12.3,
-    "analytic 8t": 14.8,
-    "response 1t": 11.2,
-    "response 8t": 24.1,
-    "numerical 1t": 9.1,
-    "numerical 8t": 18.1
+    "analytic 1t": 12.1,
+    "analytic 8t": 13.0,
+    "response 1t": 11.1,
+    "response 8t": 23.1,
+    "numerical 1t": 9.2,
+    "numerical 8t": 16.1
    },
-   "load_after": "33.92 46.11 54.10",
+   "load_after": "40.48 34.57 33.38",
    "reference_spread": 2.0202192944074326e-06,
    "references_difference": 1.064609151946172e-07
   },
   "Ni(CO)4": {
    "natoms": 9,
-   "load_before": "33.92 46.11 54.10",
+   "load_before": "40.48 34.57 33.38",
    "time": {
-    "analytic 1t": 0.0901405718177557,
-    "analytic 8t": 0.035996061749756336,
-    "response 1t": 0.13665490737184882,
-    "response 8t": 0.0343346637673676,
-    "numerical 1t": 0.2075817189179361,
-    "numerical 8t": 0.043675363063812256
+    "analytic 1t": 0.08772505773231387,
+    "analytic 8t": 0.03394808107987046,
+    "response 1t": 0.1399692688137293,
+    "response 8t": 0.033352544996887445,
+    "numerical 1t": 0.21231744112446904,
+    "numerical 8t": 0.04372747614979744
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.004366488,
-     "tangents": 0.003369799,
-     "perturbations": 0.006369378302592324,
-     "response": 0.015824093697407674,
-     "explicit integrals": 0.052646397,
-     "total": 0.082597687
+     "reference scf": 0.004282994,
+     "tangents": 0.003238693,
+     "perturbations": 0.006276311514417943,
+     "response": 0.015660746485582057,
+     "explicit integrals": 0.051679792,
+     "total": 0.081159319
     },
     "analytic 8t": {
-     "reference scf": 0.006568821,
-     "tangents": 0.003544872,
-     "perturbations": 0.001321631433311496,
-     "response": 0.002870944566688504,
-     "explicit integrals": 0.012369836,
-     "total": 0.026724948
+     "reference scf": 0.005569621,
+     "tangents": 0.003496752,
+     "perturbations": 0.0015331176949718818,
+     "response": 0.002886172305028118,
+     "explicit integrals": 0.0128136,
+     "total": 0.026349768
     },
     "response 1t": {
-     "reference scf": 0.004471225,
-     "response setup": 2.673e-05,
-     "displaced gradients": 0.123840341,
-     "total": 0.128348693
+     "reference scf": 0.004340411,
+     "response setup": 2.2324e-05,
+     "displaced gradients": 0.128953664,
+     "total": 0.133327716
     },
     "response 8t": {
-     "reference scf": 0.005885613,
-     "response setup": 3.959e-05,
-     "displaced gradients": 0.019903627,
-     "total": 0.025854048
+     "reference scf": 0.005550412,
+     "response setup": 3.7366e-05,
+     "displaced gradients": 0.020286875,
+     "total": 0.025898298
     },
     "numerical 1t": {
-     "total": 0.200176922
+     "total": 0.205307212
     },
     "numerical 8t": {
-     "total": 0.034863759
+     "total": 0.035920449
     }
    },
    "asymmetry": {
@@ -480,62 +480,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 9.1,
-    "analytic 8t": 12.9,
-    "response 1t": 9.1,
-    "response 8t": 16.3,
-    "numerical 1t": 8.2,
-    "numerical 8t": 11.1
+    "analytic 1t": 9.3,
+    "analytic 8t": 10.6,
+    "response 1t": 9.2,
+    "response 8t": 14.2,
+    "numerical 1t": 8.1,
+    "numerical 8t": 11.2
    },
-   "load_after": "33.92 46.11 54.10",
+   "load_after": "40.48 34.57 33.38",
    "reference_spread": 8.716156347232662e-07,
    "references_difference": 5.948030001867721e-08
   },
   "UF6": {
    "natoms": 7,
-   "load_before": "33.92 46.11 54.10",
+   "load_before": "40.48 34.57 33.38",
    "time": {
-    "analytic 1t": 0.07741236826404929,
-    "analytic 8t": 0.031816285103559494,
-    "response 1t": 0.10013324301689863,
-    "response 8t": 0.027821307070553303,
-    "numerical 1t": 0.149413307197392,
-    "numerical 8t": 0.0332205081358552
+    "analytic 1t": 0.07754554133862257,
+    "analytic 8t": 0.02836626209318638,
+    "response 1t": 0.10273110773414373,
+    "response 8t": 0.026398881804198027,
+    "numerical 1t": 0.14884631661698222,
+    "numerical 8t": 0.031122470274567604
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.003966376,
-     "tangents": 0.003055626,
-     "perturbations": 0.003525024724091447,
-     "response": 0.011168305275908553,
-     "explicit integrals": 0.04819398,
-     "total": 0.069934059
+     "reference scf": 0.003917124,
+     "tangents": 0.003005532,
+     "perturbations": 0.0038542405405883363,
+     "response": 0.011381875459411663,
+     "explicit integrals": 0.048489261,
+     "total": 0.070675845
     },
     "analytic 8t": {
-     "reference scf": 0.005681225,
-     "tangents": 0.003253223,
-     "perturbations": 0.0009390570269420841,
-     "response": 0.0018910199730579158,
-     "explicit integrals": 0.010618241,
-     "total": 0.022428997
+     "reference scf": 0.00476535,
+     "tangents": 0.003138432,
+     "perturbations": 0.000920110545752358,
+     "response": 0.0018316794542476418,
+     "explicit integrals": 0.010607641,
+     "total": 0.02129994
     },
     "response 1t": {
-     "reference scf": 0.003991584,
-     "response setup": 2.0121e-05,
-     "displaced gradients": 0.089007048,
-     "total": 0.093024661
+     "reference scf": 0.004162783,
+     "response setup": 2.1232e-05,
+     "displaced gradients": 0.091256322,
+     "total": 0.095450373
     },
     "response 8t": {
-     "reference scf": 0.00571766,
-     "response setup": 3.4212e-05,
-     "displaced gradients": 0.013924123,
-     "total": 0.019700782
+     "reference scf": 0.005047875,
+     "response setup": 3.373e-05,
+     "displaced gradients": 0.01437465,
+     "total": 0.019487893
     },
     "numerical 1t": {
-     "total": 0.141858313
+     "total": 0.141986365
     },
     "numerical 8t": {
-     "total": 0.024122564
+     "total": 0.024864733
     }
    },
    "asymmetry": {
@@ -562,61 +562,61 @@
    },
    "peak_rss_mb": {
     "analytic 1t": 9.2,
-    "analytic 8t": 8.1,
-    "response 1t": 9.2,
-    "response 8t": 14.1,
-    "numerical 1t": 8.2,
-    "numerical 8t": 8.2
+    "analytic 8t": 9.9,
+    "response 1t": 9.1,
+    "response 8t": 14.2,
+    "numerical 1t": 7.2,
+    "numerical 8t": 9.2
    },
-   "load_after": "34.09 45.95 54.01",
+   "load_after": "40.36 34.64 33.41",
    "reference_spread": 5.488802115594105e-07,
    "references_difference": 5.097474842230554e-07
   },
   "GdCl3 octet": {
    "natoms": 4,
-   "load_before": "34.09 45.95 54.01",
+   "load_before": "40.36 34.64 33.41",
    "time": {
-    "analytic 1t": 0.06607694830745459,
-    "analytic 8t": 0.04256635578349233,
-    "response 1t": 0.0630892338231206,
-    "response 8t": 0.033894692081958055,
-    "numerical 1t": 0.1562931351363659,
-    "numerical 8t": 0.04387310007587075
+    "analytic 1t": 0.06483942177146673,
+    "analytic 8t": 0.039760908111929893,
+    "response 1t": 0.06178009882569313,
+    "response 8t": 0.032393932808190584,
+    "numerical 1t": 0.1548730256035924,
+    "numerical 8t": 0.04151582811027765
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.007785801,
-     "tangents": 0.002223915,
-     "perturbations": 0.0021704081071652623,
-     "response": 0.014915991892834738,
-     "explicit integrals": 0.030448729,
-     "total": 0.05756168
+     "reference scf": 0.00775574,
+     "tangents": 0.002269665,
+     "perturbations": 0.0021453208816738347,
+     "response": 0.014608008118326165,
+     "explicit integrals": 0.029869895,
+     "total": 0.056666766
     },
     "analytic 8t": {
-     "reference scf": 0.013561187,
-     "tangents": 0.002358697,
-     "perturbations": 0.0008302602674284186,
-     "response": 0.0034702577325715807,
-     "explicit integrals": 0.00985906,
-     "total": 0.030112363
+     "reference scf": 0.011461256,
+     "tangents": 0.002363547,
+     "perturbations": 0.0007635987049542738,
+     "response": 0.003141197295045726,
+     "explicit integrals": 0.009866556,
+     "total": 0.027634471
     },
     "response 1t": {
-     "reference scf": 0.007824079,
-     "response setup": 3.5153e-05,
-     "displaced gradients": 0.046775176,
-     "total": 0.054640736
+     "reference scf": 0.007628398,
+     "response setup": 3.6435e-05,
+     "displaced gradients": 0.046166837,
+     "total": 0.053837428
     },
     "response 8t": {
-     "reference scf": 0.013208747,
-     "response setup": 5.4902e-05,
-     "displaced gradients": 0.008641027,
-     "total": 0.021925508
+     "reference scf": 0.01182287,
+     "response setup": 5.1928e-05,
+     "displaced gradients": 0.00860002,
+     "total": 0.020490782
     },
     "numerical 1t": {
-     "total": 0.147234419
+     "total": 0.14651574
     },
     "numerical 8t": {
-     "total": 0.031225237
+     "total": 0.030146852
     }
    },
    "asymmetry": {
@@ -642,62 +642,62 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 10.3,
-    "analytic 8t": 8.1,
+    "analytic 1t": 9.2,
+    "analytic 8t": 9.2,
     "response 1t": 9.2,
-    "response 8t": 16.2,
+    "response 8t": 16.1,
     "numerical 1t": 9.2,
-    "numerical 8t": 16.2
+    "numerical 8t": 14.2
    },
-   "load_after": "34.09 45.95 54.01",
+   "load_after": "40.36 34.64 33.41",
    "reference_spread": 1.7626163592576738e-07,
    "references_difference": 7.653310901689636e-09
   },
   "taxol": {
    "natoms": 113,
-   "load_before": "34.09 45.95 54.01",
+   "load_before": "40.36 34.64 33.41",
    "time": {
-    "analytic 1t": 51.63969849422574,
-    "analytic 8t": 8.823326530866325,
-    "response 1t": 103.20469770627096,
-    "response 8t": 13.37671865010634,
-    "numerical 1t": 154.55124711198732,
-    "numerical 8t": 20.055473444983363
+    "analytic 1t": 52.730108227115124,
+    "analytic 8t": 7.99715239321813,
+    "response 1t": 104.49351489916444,
+    "response 8t": 14.12871099030599,
+    "numerical 1t": 166.01773001113907,
+    "numerical 8t": 22.251389912329614
    },
    "phases": {
     "analytic 1t": {
-     "reference scf": 0.33601552,
-     "tangents": 0.483458072,
-     "perturbations": 7.79501001972037,
-     "response": 36.02766290727963,
-     "explicit integrals": 6.751822457,
-     "total": 51.395592468
+     "reference scf": 0.293797783,
+     "tangents": 0.458977276,
+     "perturbations": 7.50678260133094,
+     "response": 38.16423716266906,
+     "explicit integrals": 6.078301547,
+     "total": 52.503878963
     },
     "analytic 8t": {
-     "reference scf": 0.174592329,
-     "tangents": 0.537487789,
-     "perturbations": 1.2567729260332807,
-     "response": 5.057428021966719,
-     "explicit integrals": 1.643999714,
-     "total": 8.671435628
+     "reference scf": 0.183001089,
+     "tangents": 0.547266593,
+     "perturbations": 1.114015329290106,
+     "response": 4.580983848709894,
+     "explicit integrals": 1.393848202,
+     "total": 7.820459756
     },
     "response 1t": {
-     "reference scf": 0.293156342,
-     "response setup": 0.002067231,
-     "displaced gradients": 102.694289455,
-     "total": 102.990320915
+     "reference scf": 0.276724824,
+     "response setup": 0.00206028,
+     "displaced gradients": 103.988130513,
+     "total": 104.267444611
     },
     "response 8t": {
-     "reference scf": 0.200946589,
-     "response setup": 0.002936279,
-     "displaced gradients": 13.044095321,
-     "total": 13.249008579
+     "reference scf": 0.200068995,
+     "response setup": 0.003319437,
+     "displaced gradients": 13.775747765,
+     "total": 13.979895609
     },
     "numerical 1t": {
-     "total": 154.324879314
+     "total": 165.757115991
     },
     "numerical 8t": {
-     "total": 19.904568747
+     "total": 22.084579615
     }
    },
    "asymmetry": {
@@ -714,14 +714,14 @@
     }
    },
    "peak_rss_mb": {
-    "analytic 1t": 146.6,
-    "analytic 8t": 238.0,
-    "response 1t": 97.3,
-    "response 8t": 416.4,
-    "numerical 1t": 59.9,
-    "numerical 8t": 334.5
+    "analytic 1t": 145.2,
+    "analytic 8t": 232.6,
+    "response 1t": 90.7,
+    "response 8t": 414.7,
+    "numerical 1t": 58.0,
+    "numerical 8t": 327.1
    },
-   "load_after": "37.35 41.02 47.18"
+   "load_after": "65.75 55.79 43.50"
   }
  },
  "program": {
@@ -730,8 +730,8 @@
     "step": 0.005,
     "scc_accuracy": 0.3
    },
-   "program_wall_ohess_1t": 0.06272813025861979,
-   "axtb_analytic_1t": 0.00915059121325612,
+   "program_wall_ohess_1t": 0.07138902880251408,
+   "axtb_analytic_1t": 0.006815553177148104,
    "max_dH_projected": 4.758705512247774e-05,
    "max_dfreq": 0.24767039601897523,
    "max_dH_projected_axtb_numerical_program_settings": 3.189834560363147e-05,
@@ -768,8 +768,8 @@
     "step": 0.005,
     "scc_accuracy": 0.3
    },
-   "program_wall_ohess_1t": 0.05124941607937217,
-   "axtb_analytic_1t": 0.006701765116304159,
+   "program_wall_ohess_1t": 0.06542750028893352,
+   "axtb_analytic_1t": 0.0064860680140554905,
    "max_dH_projected": 5.360828949774403e-05,
    "max_dfreq": 0.025192650785356818,
    "max_dH_projected_axtb_numerical_program_settings": 5.360828949735162e-05,
@@ -799,8 +799,8 @@
     "step": 0.005,
     "scc_accuracy": 0.3
    },
-   "program_wall_ohess_1t": 4.920599395874888,
-   "axtb_analytic_1t": 0.4654344250448048,
+   "program_wall_ohess_1t": 5.057908084243536,
+   "axtb_analytic_1t": 0.4675460336729884,
    "max_dH_projected": 0.007770546349391706,
    "max_dfreq": 136.14365130186104,
    "max_dH_projected_axtb_numerical_program_settings": 0.0077680045017132805,
@@ -1026,8 +1026,8 @@
     "step": 0.005,
     "scc_accuracy": 0.3
    },
-   "program_wall_ohess_1t": 0.7146777017042041,
-   "axtb_analytic_1t": 0.09162372536957264,
+   "program_wall_ohess_1t": 0.8285980159416795,
+   "axtb_analytic_1t": 0.09224296221509576,
    "max_dH_projected": 0.002775911435894951,
    "max_dfreq": 39.190381964793715,
    "max_dH_projected_axtb_numerical_program_settings": 0.0026599856165086533,
@@ -1118,8 +1118,8 @@
     "step": 0.005,
     "scc_accuracy": 0.3
    },
-   "program_wall_ohess_1t": 0.4732482028193772,
-   "axtb_analytic_1t": 0.0665437220595777,
+   "program_wall_ohess_1t": 0.4695607451722026,
+   "axtb_analytic_1t": 0.07105768984183669,
    "max_dH_projected": 0.019821253570045345,
    "max_dfreq": 91.78328303738851,
    "max_dH_projected_axtb_numerical_program_settings": 0.019818072052248274,
@@ -1168,88 +1168,88 @@
    "runs": [
     {
      "what": "program --hess 1t",
-     "load_before": "35.35 46.59 47.98",
-     "seconds": 5.082753942813724
+     "load_before": "44.42 55.56 53.05",
+     "seconds": 4.908440052997321
     },
     {
      "what": "axtb analytic 1t",
-     "load_before": "35.88 46.51 47.94",
-     "seconds": 0.496793266851455,
+     "load_before": "43.90 55.27 52.97",
+     "seconds": 0.49645768804475665,
      "phases": {
-      "reference scf": 0.014292519,
-      "tangents": 0.013712076,
-      "perturbations": 0.07783584237835542,
-      "response": 0.1436555516216446,
-      "explicit integrals": 0.231093574,
-      "total": 0.480703483
+      "reference scf": 0.014113493,
+      "tangents": 0.023941027,
+      "perturbations": 0.07644350049648077,
+      "response": 0.14612874050351923,
+      "explicit integrals": 0.220621036,
+      "total": 0.48134335
      }
     },
     {
      "what": "axtb response 1t",
-     "load_before": "35.88 46.51 47.94",
-     "seconds": 1.130396659951657,
+     "load_before": "43.90 55.27 52.97",
+     "seconds": 1.2108114529401064,
      "phases": {
-      "reference scf": 0.014168913,
-      "response setup": 5.2229e-05,
-      "displaced gradients": 1.100402532,
-      "total": 1.11464097
+      "reference scf": 0.014223599,
+      "response setup": 7.4021e-05,
+      "displaced gradients": 1.17859082,
+      "total": 1.192906297
      }
     },
     {
      "what": "axtb numerical 1t",
-     "load_before": "35.88 46.51 47.94",
-     "seconds": 1.6449036640115082,
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 1.974586509168148,
      "phases": {
-      "total": 1.629346903
+      "total": 1.959062444
      }
     },
     {
      "what": "program --hess 8t",
-     "load_before": "36.05 46.37 47.89",
-     "seconds": 0.8608452300541103
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 1.0435566329397261
     },
     {
      "what": "axtb analytic 8t",
-     "load_before": "36.05 46.37 47.89",
-     "seconds": 0.14922020211815834,
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 0.15188341634348035,
      "phases": {
-      "reference scf": 0.014660253,
-      "tangents": 0.016444277,
-      "perturbations": 0.01432882077586162,
-      "response": 0.02580647822413838,
-      "explicit integrals": 0.061708586,
-      "total": 0.133170239
+      "reference scf": 0.01674367,
+      "tangents": 0.021073934,
+      "perturbations": 0.012717438994401142,
+      "response": 0.02290269800559886,
+      "explicit integrals": 0.064268517,
+      "total": 0.137933109
      }
     },
     {
      "what": "axtb response 8t",
-     "load_before": "36.05 46.37 47.89",
-     "seconds": 0.21349156508222222,
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 0.22208698093891144,
      "phases": {
-      "reference scf": 0.014430166,
-      "response setup": 9.1037e-05,
-      "displaced gradients": 0.181790507,
-      "total": 0.196357119
+      "reference scf": 0.020364146,
+      "response setup": 0.000123966,
+      "displaced gradients": 0.183243345,
+      "total": 0.203792248
      }
     },
     {
      "what": "axtb numerical 8t",
-     "load_before": "36.05 46.37 47.89",
-     "seconds": 0.2690798998810351,
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 0.31784064415842295,
      "phases": {
-      "total": 0.254364505
+      "total": 0.303089072
      }
     }
    ],
    "time": {
-    "program --hess 1t": 5.082753942813724,
-    "axtb analytic 1t": 0.496793266851455,
-    "axtb response 1t": 1.130396659951657,
-    "axtb numerical 1t": 1.6449036640115082,
-    "program --hess 8t": 0.8608452300541103,
-    "axtb analytic 8t": 0.14922020211815834,
-    "axtb response 8t": 0.21349156508222222,
-    "axtb numerical 8t": 0.2690798998810351
+    "program --hess 1t": 4.908440052997321,
+    "axtb analytic 1t": 0.49645768804475665,
+    "axtb response 1t": 1.2108114529401064,
+    "axtb numerical 1t": 1.974586509168148,
+    "program --hess 8t": 1.0435566329397261,
+    "axtb analytic 8t": 0.15188341634348035,
+    "axtb response 8t": 0.22208698093891144,
+    "axtb numerical 8t": 0.31784064415842295
    },
    "frequencies_program": [
     70.91999435537063,
@@ -1411,48 +1411,48 @@
     "runs": [
      {
       "what": "program --acc 0.001 1t",
-      "load_before": "47.08 47.79 47.00",
-      "seconds": 5.325732905883342
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 5.617636647075415
      },
      {
       "what": "axtb analytic 1t",
-      "load_before": "44.83 47.31 46.85",
-      "seconds": 0.46306526008993387
+      "load_before": "55.96 51.74 53.50",
+      "seconds": 0.4754161541350186
      },
      {
       "what": "program --acc 0.0001 1t",
-      "load_before": "44.83 47.31 46.85",
-      "seconds": 5.375413214787841
+      "load_before": "55.96 51.74 53.50",
+      "seconds": 5.698925433214754
      },
      {
       "what": "program --acc 0.001 8t",
-      "load_before": "42.44 46.78 46.68",
-      "seconds": 0.7665652008727193
+      "load_before": "54.52 51.51 53.41",
+      "seconds": 0.793364570941776
      },
      {
       "what": "axtb analytic 8t",
-      "load_before": "42.44 46.78 46.68",
-      "seconds": 0.11738330591470003
+      "load_before": "54.52 51.51 53.41",
+      "seconds": 0.11208878131583333
      },
      {
       "what": "program --acc 0.0001 8t",
-      "load_before": "42.44 46.78 46.68",
-      "seconds": 0.7841397360898554
+      "load_before": "54.52 51.51 53.41",
+      "seconds": 0.8615915491245687
      }
     ],
     "time": {
-     "program --acc 0.001 1t": 5.325732905883342,
-     "axtb analytic 1t": 0.46306526008993387,
-     "program --acc 0.0001 1t": 5.375413214787841,
-     "program --acc 0.001 8t": 0.7665652008727193,
-     "axtb analytic 8t": 0.11738330591470003,
-     "program --acc 0.0001 8t": 0.7841397360898554
+     "program --acc 0.001 1t": 5.617636647075415,
+     "axtb analytic 1t": 0.4754161541350186,
+     "program --acc 0.0001 1t": 5.698925433214754,
+     "program --acc 0.001 8t": 0.793364570941776,
+     "axtb analytic 8t": 0.11208878131583333,
+     "program --acc 0.0001 8t": 0.8615915491245687
     },
     "vs_analytic": {
      "program --acc 0.001": {
       "max_dH_projected": 3.2025796849577404e-05,
-      "max_dfreq": 0.5396071988188282,
-      "mean_dfreq": 0.030446639111436163
+      "max_dfreq": 0.5396071990202991,
+      "mean_dfreq": 0.030446641821504885
      },
      "program --acc 0.0001": {
       "max_dH_projected": 2.7616335298352723e-05,
@@ -1467,8 +1467,8 @@
       "mean_dfreq": 2.626552067289712e-07
      },
      "program --acc 0.001": {
-      "max_dfreq": 0.5396058623612383,
-      "mean_dfreq": 0.03044664269620108
+      "max_dfreq": 0.5396058625627091,
+      "mean_dfreq": 0.0304466454062698
      },
      "program --acc 0.0001": {
       "max_dfreq": 0.354401274636178,
@@ -1478,7 +1478,7 @@
     "reference": {
      "what": "Richardson numerical 0.002/0.001 bohr, SCF accuracy 1e-6, program conventions",
      "spread": 3.212690867226975e-06,
-     "load_before": "42.44 46.78 46.68"
+     "load_before": "54.52 51.51 53.41"
     }
    }
   },
@@ -1488,442 +1488,442 @@
    "runs": [
     {
      "what": "program --hess 1t",
-     "load_before": "36.05 46.37 47.89",
-     "seconds": 348.9455295018852
+     "load_before": "43.19 54.93 52.87",
+     "seconds": 382.4337208797224
     },
     {
      "what": "axtb analytic 1t",
-     "load_before": "43.99 43.67 46.11",
-     "seconds": 54.91755818575621,
+     "load_before": "68.87 61.44 56.30",
+     "seconds": 57.64488544780761,
      "phases": {
-      "reference scf": 0.281573786,
-      "tangents": 0.491659418,
-      "perturbations": 8.222086724808927,
-      "response": 38.629382837191066,
-      "explicit integrals": 7.040497007,
-      "total": 54.666490855
+      "reference scf": 0.375511703,
+      "tangents": 0.540804421,
+      "perturbations": 8.649507707787636,
+      "response": 40.62957444621237,
+      "explicit integrals": 7.203964455,
+      "total": 57.400796351
      }
     },
     {
      "what": "axtb response 1t",
-     "load_before": "51.90 45.60 46.61",
-     "seconds": 105.2769934781827,
+     "load_before": "69.46 63.10 57.18",
+     "seconds": 113.92093107523397,
      "phases": {
-      "reference scf": 0.321203761,
-      "response setup": 0.002422105,
-      "displaced gradients": 104.728118162,
-      "total": 105.052249909
+      "reference scf": 0.321138596,
+      "response setup": 0.002496496,
+      "displaced gradients": 113.362991656,
+      "total": 113.68716648
      }
     },
     {
      "what": "axtb numerical 1t",
-     "load_before": "37.82 43.04 45.62",
-     "seconds": 163.67898095678538,
+     "load_before": "58.30 61.02 57.13",
+     "seconds": 155.20209412509575,
      "phases": {
-      "total": 163.449199306
+      "total": 154.972337179
      }
     },
     {
      "what": "program --hess 8t",
-     "load_before": "46.24 46.72 46.70",
-     "seconds": 45.457262438721955
+     "load_before": "34.96 51.26 54.14",
+     "seconds": 51.87764773797244
     },
     {
      "what": "axtb analytic 8t",
-     "load_before": "39.77 44.88 46.07",
-     "seconds": 7.287122673820704,
+     "load_before": "52.83 53.60 54.78",
+     "seconds": 8.164400021079928,
      "phases": {
-      "reference scf": 0.177124573,
-      "tangents": 0.505800878,
-      "perturbations": 1.0483283371527878,
-      "response": 4.206175345847212,
-      "explicit integrals": 1.205468613,
-      "total": 7.144533158
+      "reference scf": 0.186769748,
+      "tangents": 0.530375002,
+      "perturbations": 1.1591201878017274,
+      "response": 4.629331585198273,
+      "explicit integrals": 1.515497616,
+      "total": 8.022316868
      }
     },
     {
      "what": "axtb response 8t",
-     "load_before": "40.67 44.98 46.10",
-     "seconds": 13.68182485178113,
+     "load_before": "53.24 53.68 54.80",
+     "seconds": 15.173512240406126,
      "phases": {
-      "reference scf": 0.177683064,
-      "response setup": 0.003261328,
-      "displaced gradients": 13.354770097,
-      "total": 13.536432589
+      "reference scf": 0.11868221,
+      "response setup": 0.002436104,
+      "displaced gradients": 14.904071996999999,
+      "total": 15.025887751
      }
     },
     {
      "what": "axtb numerical 8t",
-     "load_before": "40.29 44.70 45.99",
-     "seconds": 20.45473417919129,
+     "load_before": "55.16 54.07 54.91",
+     "seconds": 20.568946997169405,
      "phases": {
-      "total": 20.308208831
+      "total": 20.430149836
      }
     }
    ],
    "time": {
-    "program --hess 1t": 348.9455295018852,
-    "axtb analytic 1t": 54.91755818575621,
-    "axtb response 1t": 105.2769934781827,
-    "axtb numerical 1t": 163.67898095678538,
-    "program --hess 8t": 45.457262438721955,
-    "axtb analytic 8t": 7.287122673820704,
-    "axtb response 8t": 13.68182485178113,
-    "axtb numerical 8t": 20.45473417919129
+    "program --hess 1t": 382.4337208797224,
+    "axtb analytic 1t": 57.64488544780761,
+    "axtb response 1t": 113.92093107523397,
+    "axtb numerical 1t": 155.20209412509575,
+    "program --hess 8t": 51.87764773797244,
+    "axtb analytic 8t": 8.164400021079928,
+    "axtb response 8t": 15.173512240406126,
+    "axtb numerical 8t": 20.568946997169405
    },
    "frequencies_program": [
-    54.456382853175796,
-    66.42743655948053,
-    80.25059090863147,
-    87.65756302894445,
-    96.49999662059338,
-    104.30581001530327,
-    113.58754049757212,
-    117.38010480663444,
-    125.14961783339204,
-    142.66523858870312,
-    147.68604260412118,
-    148.82580306580175,
-    158.8822823027359,
-    169.11255410285784,
-    175.0905429957987,
-    183.18034107968992,
-    197.25915656573403,
-    211.60145369982413,
-    214.0767108397329,
-    221.467861227102,
-    230.90369064515025,
-    234.35947304614265,
-    239.0052620068761,
-    248.26869893195774,
-    258.9738219192556,
-    268.40154435230306,
-    270.46543167862467,
-    274.99078479625274,
-    279.7383998477733,
-    288.21470713682766,
-    295.4826768137413,
-    300.1595871112915,
-    301.3822431169295,
-    307.76266702408276,
-    309.88997022852107,
-    315.4534103949101,
-    323.7646478715504,
-    335.54018196058604,
-    343.8854646259765,
-    351.1698168502409,
-    356.3416777877843,
-    358.3080435965251,
-    361.7913279130973,
-    366.1561787996362,
-    368.4319978487369,
-    373.77579349575547,
-    381.9377815801827,
-    386.70755965280654,
-    388.8269866318209,
-    393.4810969421445,
-    395.49111771215723,
-    396.15526658853224,
-    399.94589409368956,
-    410.3589303399224,
-    429.058085427293,
-    434.8671276009944,
-    438.5654521262132,
-    440.5274597598546,
-    442.98784585140635,
-    450.1166777591561,
-    452.18561511794496,
-    462.0495565857494,
-    465.9575161484445,
-    473.2622909445411,
-    477.4744029478028,
-    485.4109530669542,
-    492.9296188372331,
-    495.0309057584793,
-    499.68896833923185,
-    522.8492587813893,
-    537.9860893610205,
-    551.2426596606464,
-    553.533730691194,
-    557.1299565428875,
-    558.4817413138684,
-    572.241231689997,
-    584.5957983162821,
-    588.2183191437359,
-    601.9010941458763,
-    602.2621047689261,
-    605.5899381060553,
-    606.8140566494181,
-    611.635590169643,
-    616.0458489467667,
-    626.4952594374073,
-    636.5359895072622,
-    645.9035949073331,
-    652.9701012925175,
-    666.6305793748425,
-    672.1499805594508,
-    672.29744193334,
-    674.8931472869356,
-    676.1546540006107,
-    681.0039959493305,
-    691.1420867797038,
-    702.3394075184026,
-    712.0423117378142,
-    725.2703829502568,
-    729.2377968822758,
-    731.9931411129756,
-    735.2905043313474,
-    740.8158285589398,
-    747.9089012172499,
-    751.0891154210581,
-    769.1250524384716,
-    793.5287596362843,
-    801.9546782449158,
-    821.5328841315184,
-    841.3627108587227,
-    844.6172762915304,
-    848.3329544413673,
-    853.0867405299948,
-    856.4725454759761,
-    859.2718404550635,
-    864.4783250969799,
-    872.9604575486366,
-    881.5613641104765,
-    887.9482114417204,
-    909.5457906803841,
-    916.2786328297875,
-    920.9454519704241,
-    927.6865785017219,
-    940.6676533615886,
-    946.8453637147804,
-    949.5103410604017,
-    957.0037820021654,
-    965.1228764494556,
-    968.9449902716674,
-    983.0781838637648,
-    992.6857090812074,
-    1001.8547579864257,
-    1007.0711055994972,
-    1016.6077353093505,
-    1021.198999580178,
-    1022.6017508752789,
-    1027.1674590681623,
-    1031.854501558174,
-    1034.1718820297995,
-    1041.0660150955816,
-    1048.2843828899943,
-    1051.838175980755,
-    1054.6776402035216,
-    1055.8562833654019,
-    1059.8211890793825,
-    1062.0951013303006,
-    1071.1187839319055,
-    1080.8643891458403,
-    1082.8793790568498,
-    1088.9679739098851,
-    1090.8381542984232,
-    1091.742039467064,
-    1093.0711445014501,
-    1108.1673160562168,
-    1108.6907939141115,
-    1114.8574753832847,
-    1118.615213726327,
-    1119.6607486623031,
-    1122.4857182856483,
-    1124.3970955077277,
-    1124.696725106439,
-    1125.9410217835414,
-    1126.7464780828614,
-    1130.4258454399185,
-    1131.1633653578797,
-    1132.530934847371,
-    1139.7983732918285,
-    1145.4185559915506,
-    1147.1914545489967,
-    1148.2600807444117,
-    1151.2008221005551,
-    1153.3872717388915,
-    1156.5191495732588,
-    1158.1051951229667,
-    1159.1639125369147,
-    1159.9852305264842,
-    1167.4483723006447,
-    1178.1860179401535,
-    1180.7590138826583,
-    1192.6190758881792,
-    1203.0632703822926,
-    1205.5739683390834,
-    1210.2275833069702,
-    1225.863181825291,
-    1231.0394173079644,
-    1238.6929803512492,
-    1255.429454328961,
-    1258.4180603946595,
-    1261.6710604030397,
-    1263.2731681039643,
-    1264.064031902186,
-    1268.8187352592545,
-    1273.4153571475763,
-    1275.159893396396,
-    1276.2203804656829,
-    1279.579919237618,
-    1284.2729021962225,
-    1286.5409688910536,
-    1303.6845037207709,
-    1315.8912774727148,
-    1322.5543258574282,
-    1325.2766047294008,
-    1327.4965117233623,
-    1330.8075086212991,
-    1333.7543752082904,
-    1351.2431584765131,
-    1355.2575611877894,
-    1366.0392230047626,
-    1369.1992799190782,
-    1373.445768715722,
-    1378.8223240161692,
-    1393.0138165656515,
-    1395.1946602683695,
-    1407.4586896660273,
-    1414.4477691902741,
-    1415.0029287779403,
-    1418.8692703957636,
-    1433.502273601578,
-    1436.6939138953132,
-    1439.4252494498835,
-    1450.2676598884948,
-    1452.0071986817795,
-    1453.6319772492916,
-    1456.1782066958353,
-    1457.0342443174513,
-    1469.039157855049,
-    1475.423191933195,
-    1476.0416081580179,
-    1482.1999320517314,
-    1484.8444320187907,
-    1486.9872969907474,
-    1489.0000798518781,
-    1493.235180791533,
-    1497.503375120984,
-    1498.0308632955919,
-    1502.4149504956724,
-    1508.4146814718636,
-    1510.375309788971,
-    1513.8015657317044,
-    1519.954998971513,
-    1524.0890563677367,
-    1526.0343798038955,
-    1531.8926882340922,
-    1538.0654517689438,
-    1541.6678265076964,
-    1542.5725942077745,
-    1547.181667962534,
-    1553.656666129469,
-    1562.2201026788214,
-    1573.40188907435,
-    1573.7553693999391,
-    1576.698768708431,
-    1579.3389458947004,
-    1582.3272309352922,
-    1583.4651063852752,
-    1585.8222130873794,
-    1590.8628697097354,
-    1593.5642620750984,
-    1594.287234258671,
-    1594.7223734533702,
-    1597.7979053823576,
-    1598.6086087674823,
-    1604.1465296233587,
-    1608.217688904543,
-    1614.0221442426052,
-    1615.9772637510857,
-    1619.1598623187463,
-    1626.458789166205,
-    1635.577502638006,
-    1645.8008736291642,
-    1703.2490208120576,
-    1710.7723399449292,
-    1712.1065652223667,
-    1722.3656672061816,
-    1732.5485761798375,
-    1735.520420269918,
-    1746.5580234878096,
-    1748.2936335402553,
-    1754.028908920835,
-    1765.4473364086907,
-    1769.1151241228526,
-    1792.2641019847808,
-    1799.5488466029133,
-    3113.0914338667044,
-    3133.655083652387,
-    3139.7958532928087,
-    3142.6518488620436,
-    3151.6601611986566,
-    3157.853282646507,
-    3157.9492419334424,
-    3162.5717995274904,
-    3163.4185411057824,
-    3167.059090766222,
-    3168.4760563648138,
-    3168.906877097566,
-    3171.3577250141307,
-    3178.9577560484095,
-    3179.9317686331033,
-    3182.221874269029,
-    3184.813416184412,
-    3189.3673689518682,
-    3191.1635785690073,
-    3193.5869345612764,
-    3196.8895295561074,
-    3197.7072104346785,
-    3200.8553343041885,
-    3209.549462545649,
-    3211.228653606286,
-    3212.7334819166404,
-    3213.2792644807073,
-    3213.762986964318,
-    3217.559975696352,
-    3225.4922965330743,
-    3226.831001048407,
-    3228.0739164696056,
-    3232.2608384768623,
-    3238.5906120190557,
-    3243.0923150920025,
-    3243.7122291989194,
-    3246.1837716080104,
-    3249.3726635813646,
-    3250.5624622727532,
-    3256.7920498712697,
-    3259.8674343232165,
-    3265.381962475388,
-    3270.2419432128927,
-    3285.325100947554,
-    3288.4397282777363,
-    3305.22275821479,
-    3320.8588773972915,
-    3337.6997367781287,
-    3450.7888033754043,
-    3496.775891670797,
-    3539.5480754566706
+    54.456382869341994,
+    66.42743661662534,
+    80.25059080417962,
+    87.6575629266169,
+    96.49999666274552,
+    104.30581004581543,
+    113.58754048692523,
+    117.38010482065334,
+    125.1496177995575,
+    142.6652385471869,
+    147.68604263987555,
+    148.82580315294447,
+    158.88228231914093,
+    169.11255406922064,
+    175.09054298895086,
+    183.18034109719906,
+    197.25915656362588,
+    211.60145372651772,
+    214.07671084664256,
+    221.4678613007195,
+    230.9036906610122,
+    234.35947307409683,
+    239.00526205044136,
+    248.26869889798817,
+    258.97382193635497,
+    268.4015443500172,
+    270.46543169494,
+    274.990784796081,
+    279.7383998402117,
+    288.2147071559178,
+    295.48267694794055,
+    300.1595870881113,
+    301.38224314945234,
+    307.76266704756,
+    309.88997021966367,
+    315.453410413424,
+    323.76464783650783,
+    335.5401819480445,
+    343.88546464303545,
+    351.1698168574707,
+    356.3416777886239,
+    358.30804359906745,
+    361.7913279380584,
+    366.15617880535297,
+    368.4319978416865,
+    373.7757934892167,
+    381.9377815854025,
+    386.7075596675879,
+    388.8269866000586,
+    393.48109692713393,
+    395.4911177084288,
+    396.1552666344559,
+    399.94589406448586,
+    410.35893031230347,
+    429.0580854232761,
+    434.8671275977161,
+    438.565452104752,
+    440.527459699108,
+    442.9878458893045,
+    450.11667777962157,
+    452.18561513985424,
+    462.0495565884413,
+    465.95751613128624,
+    473.262290944814,
+    477.47440297513754,
+    485.410953066289,
+    492.9296188192757,
+    495.03090575223337,
+    499.6889683307568,
+    522.8492587541407,
+    537.9860893157091,
+    551.2426596643389,
+    553.5337306701515,
+    557.1299565472826,
+    558.4817413074804,
+    572.2412317019918,
+    584.595798335652,
+    588.2183191597246,
+    601.9010940581188,
+    602.262104767473,
+    605.5899380927927,
+    606.8140566379733,
+    611.635590187917,
+    616.0458489627091,
+    626.495259423053,
+    636.5359895368708,
+    645.9035948927666,
+    652.9701012969226,
+    666.630579368865,
+    672.1499805818794,
+    672.2974419470183,
+    674.893147284673,
+    676.154654004425,
+    681.0039959337562,
+    691.1420867735953,
+    702.3394074930093,
+    712.0423117380396,
+    725.2703829509991,
+    729.2377968806379,
+    731.9931411041836,
+    735.2905043469357,
+    740.8158285459579,
+    747.9089012263181,
+    751.0891154158045,
+    769.1250524343365,
+    793.5287596411532,
+    801.9546782521801,
+    821.5328841314886,
+    841.3627108646261,
+    844.6172762952314,
+    848.3329544384585,
+    853.0867405180946,
+    856.4725454807513,
+    859.271840453763,
+    864.4783250851515,
+    872.9604575330912,
+    881.561364112658,
+    887.9482114434063,
+    909.5457906815119,
+    916.2786328593492,
+    920.9454519807159,
+    927.6865785019728,
+    940.6676533664164,
+    946.8453637152394,
+    949.5103410822089,
+    957.00378200204,
+    965.1228764716902,
+    968.9449902659898,
+    983.0781838637924,
+    992.685709074725,
+    1001.8547579845716,
+    1007.0711056011756,
+    1016.607735325954,
+    1021.1989997014823,
+    1022.6017509043022,
+    1027.1674590636699,
+    1031.8545015612046,
+    1034.1718820269696,
+    1041.0660150908614,
+    1048.2843828978885,
+    1051.8381759707945,
+    1054.6776402052676,
+    1055.8562833673836,
+    1059.8211890633777,
+    1062.0951013295376,
+    1071.1187839325335,
+    1080.8643891335948,
+    1082.8793790861741,
+    1088.9679739100945,
+    1090.8381542958905,
+    1091.7420395081049,
+    1093.0711445244492,
+    1108.1673160547896,
+    1108.6907939127489,
+    1114.8574753804262,
+    1118.6152137387912,
+    1119.6607486596456,
+    1122.4857182297812,
+    1124.3970954990034,
+    1124.6967249984675,
+    1125.9410217805594,
+    1126.7464780874702,
+    1130.4258454489204,
+    1131.163365354687,
+    1132.530934847435,
+    1139.7983732968416,
+    1145.4185559867183,
+    1147.1914545543862,
+    1148.2600807569247,
+    1151.2008220408557,
+    1153.3872717452869,
+    1156.5191495701536,
+    1158.1051951434963,
+    1159.1639125307522,
+    1159.985230533939,
+    1167.4483723039643,
+    1178.1860179407215,
+    1180.7590138743024,
+    1192.6190758831972,
+    1203.063270376112,
+    1205.5739683609988,
+    1210.2275833042838,
+    1225.8631818031317,
+    1231.0394173036793,
+    1238.69298035775,
+    1255.4294543099943,
+    1258.4180603915493,
+    1261.6710603191036,
+    1263.2731681064884,
+    1264.0640318973428,
+    1268.818735279859,
+    1273.4153570801586,
+    1275.1598933989262,
+    1276.2203804653823,
+    1279.5799192265724,
+    1284.2729021787115,
+    1286.5409688809214,
+    1303.6845037183332,
+    1315.8912774569487,
+    1322.5543258518626,
+    1325.2766047272987,
+    1327.4965117247225,
+    1330.8075086286701,
+    1333.7543752116546,
+    1351.2431584828712,
+    1355.2575611878196,
+    1366.0392229981678,
+    1369.199279913907,
+    1373.4457687199267,
+    1378.822324016168,
+    1393.0138165682706,
+    1395.1946602630314,
+    1407.4586897454676,
+    1414.447769198563,
+    1415.0029287791317,
+    1418.869270390326,
+    1433.502273606309,
+    1436.6939139025274,
+    1439.425249446669,
+    1450.2676598899557,
+    1452.0071986770436,
+    1453.6319772497272,
+    1456.1782067054369,
+    1457.034244318825,
+    1469.039157850673,
+    1475.4231919353647,
+    1476.0416081584965,
+    1482.1999320519014,
+    1484.8444320126437,
+    1486.9872969718233,
+    1489.0000798713295,
+    1493.235180793313,
+    1497.503375172963,
+    1498.0308632580077,
+    1502.4149504769273,
+    1508.4146814836745,
+    1510.3753098008053,
+    1513.8015657287563,
+    1519.9549989651591,
+    1524.0890563677713,
+    1526.0343798029717,
+    1531.8926882346273,
+    1538.0654517443902,
+    1541.6678265419505,
+    1542.5725941805872,
+    1547.181667960946,
+    1553.6566661257343,
+    1562.220102678557,
+    1573.401889072358,
+    1573.7553693935822,
+    1576.6987687226458,
+    1579.3389458957345,
+    1582.3272309349206,
+    1583.4651063755957,
+    1585.8222130885783,
+    1590.8628697174647,
+    1593.5642620760505,
+    1594.28723425826,
+    1594.722373451824,
+    1597.7979053850217,
+    1598.6086087644371,
+    1604.1465296313859,
+    1608.2176889255845,
+    1614.0221442443649,
+    1615.9772637211013,
+    1619.1598622945965,
+    1626.4587891536082,
+    1635.5775026338504,
+    1645.8008736473193,
+    1703.2490208122101,
+    1710.7723399449135,
+    1712.1065652215516,
+    1722.3656672060858,
+    1732.5485761785517,
+    1735.5204202626537,
+    1746.5580234774588,
+    1748.2936335501267,
+    1754.0289089205867,
+    1765.4473364084217,
+    1769.11512412063,
+    1792.2641019865894,
+    1799.5488466010659,
+    3113.0914338681,
+    3133.655083654251,
+    3139.795853268628,
+    3142.651848861066,
+    3151.6601611999354,
+    3157.85328264475,
+    3157.949241927663,
+    3162.571799551199,
+    3163.418541108957,
+    3167.0590907810456,
+    3168.4760563585924,
+    3168.906877085742,
+    3171.357725010188,
+    3178.957756064579,
+    3179.9317686377476,
+    3182.221874259274,
+    3184.813416187659,
+    3189.3673689481075,
+    3191.163578566506,
+    3193.58693455947,
+    3196.8895295590637,
+    3197.7072104202252,
+    3200.8553343260137,
+    3209.549462583521,
+    3211.22865360638,
+    3212.733481917014,
+    3213.2792645095606,
+    3213.76298696786,
+    3217.559975695789,
+    3225.4922965322517,
+    3226.8310010475566,
+    3228.0739164526844,
+    3232.2608384764094,
+    3238.590612019062,
+    3243.0923150654125,
+    3243.7122291958467,
+    3246.183771606929,
+    3249.372663580991,
+    3250.5624622691544,
+    3256.7920498691624,
+    3259.8674343193115,
+    3265.3819624790904,
+    3270.2419432131646,
+    3285.3251009467435,
+    3288.439728275846,
+    3305.222758217985,
+    3320.8588773990646,
+    3337.699736777447,
+    3450.7888033756853,
+    3496.7758916712537,
+    3539.5480754567684
    ],
    "vs_program": {
     "analytic": {
      "max_dH_projected": 0.08890867722807538,
-     "max_dfreq": 148.52959234538366,
-     "mean_dfreq": 78.14320435900994,
-     "max_dfreq_above_500": 127.74011680304994
+     "max_dfreq": 148.52959236154985,
+     "mean_dfreq": 78.14320435932945,
+     "max_dfreq_above_500": 127.7401168150447
     },
     "response": {
      "max_dH_projected": 0.08890867302538863,
-     "max_dfreq": 148.52963728042084,
-     "mean_dfreq": 78.14321297685973,
-     "max_dfreq_above_500": 127.74012838901376
+     "max_dfreq": 148.52963729658705,
+     "mean_dfreq": 78.14321297717923,
+     "max_dfreq_above_500": 127.74012840100852
     },
     "numerical": {
      "max_dH_projected": 0.0889064616347478,
-     "max_dfreq": 148.55971351424023,
-     "mean_dfreq": 78.14629320832,
-     "max_dfreq_above_500": 127.74418405710645
+     "max_dfreq": 148.5597135304064,
+     "mean_dfreq": 78.1462932086395,
+     "max_dfreq_above_500": 127.74418406910121
     }
    },
    "frequencies_axtb_analytic": [
@@ -2265,53 +2265,53 @@
     "runs": [
      {
       "what": "program --acc 0.001 1t",
-      "load_before": "42.44 46.78 46.68",
-      "seconds": 429.81369608361274
+      "load_before": "54.52 51.51 53.41",
+      "seconds": 427.43735756119713
      },
      {
       "what": "axtb analytic 1t",
-      "load_before": "39.38 44.49 45.48",
-      "seconds": 53.264024674892426
+      "load_before": "34.94 42.66 48.50",
+      "seconds": 52.44675496732816
      },
      {
       "what": "program --acc 0.0001 1t",
-      "load_before": "44.01 44.91 45.57",
-      "seconds": 464.26453431369737
+      "load_before": "42.99 43.57 48.50",
+      "seconds": 488.64418156212196
      },
      {
       "what": "program --acc 0.001 8t",
-      "load_before": "32.79 42.43 44.49",
-      "seconds": 54.03588587511331
+      "load_before": "56.61 53.52 51.97",
+      "seconds": 65.26266007497907
      },
      {
       "what": "axtb analytic 8t",
-      "load_before": "32.03 40.54 43.72",
-      "seconds": 7.035988241899759
+      "load_before": "64.83 56.92 53.28",
+      "seconds": 7.114062631968409
      },
      {
       "what": "program --acc 0.0001 8t",
-      "load_before": "32.59 40.51 43.69",
-      "seconds": 59.52786481613293
+      "load_before": "62.37 56.54 53.17",
+      "seconds": 58.78692895779386
      }
     ],
     "time": {
-     "program --acc 0.001 1t": 429.81369608361274,
-     "axtb analytic 1t": 53.264024674892426,
-     "program --acc 0.0001 1t": 464.26453431369737,
-     "program --acc 0.001 8t": 54.03588587511331,
-     "axtb analytic 8t": 7.035988241899759,
-     "program --acc 0.0001 8t": 59.52786481613293
+     "program --acc 0.001 1t": 427.43735756119713,
+     "axtb analytic 1t": 52.44675496732816,
+     "program --acc 0.0001 1t": 488.64418156212196,
+     "program --acc 0.001 8t": 65.26266007497907,
+     "axtb analytic 8t": 7.114062631968409,
+     "program --acc 0.0001 8t": 58.78692895779386
     },
     "vs_analytic": {
      "program --acc 0.001": {
       "max_dH_projected": 0.00010424660328701985,
-      "max_dfreq": 1.0665598886561725,
-      "mean_dfreq": 0.14197104464853844
+      "max_dfreq": 1.0665600748163797,
+      "mean_dfreq": 0.14197102607880469
      },
      "program --acc 0.0001": {
       "max_dH_projected": 2.3971396697297642e-05,
-      "max_dfreq": 0.2779469826103682,
-      "mean_dfreq": 0.015572045576506625
+      "max_dfreq": 0.27794741763881703,
+      "mean_dfreq": 0.015572046688721116
      }
     },
     "vs_reference": {
@@ -2321,18 +2321,18 @@
       "mean_dfreq": 7.157433863022797e-07
      },
      "program --acc 0.001": {
-      "max_dfreq": 1.0665607653998421,
-      "mean_dfreq": 0.14197095354341557
+      "max_dfreq": 1.0665609515600494,
+      "mean_dfreq": 0.14197093497368182
      },
      "program --acc 0.0001": {
-      "max_dfreq": 0.2779355893069342,
-      "mean_dfreq": 0.015572085211033853
+      "max_dfreq": 0.277936024335383,
+      "mean_dfreq": 0.015572086323248344
      }
     },
     "reference": {
      "what": "Richardson numerical 0.002/0.001 bohr, SCF accuracy 1e-6, program conventions",
      "spread": 2.5140739736695394e-06,
-     "load_before": "37.61 40.48 43.48"
+     "load_before": "48.91 53.70 52.40"
     }
    }
   },
@@ -2341,42 +2341,42 @@
     "runs": [
      {
       "what": "program --acc 0.001 1t",
-      "load_before": "48.13 48.01 47.07",
-      "seconds": 0.7197637851350009
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 1.1261618961580098
      },
      {
       "what": "axtb analytic 1t",
-      "load_before": "48.13 48.01 47.07",
-      "seconds": 0.09021393209695816
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 0.10069479001685977
      },
      {
       "what": "program --acc 0.0001 1t",
-      "load_before": "48.13 48.01 47.07",
-      "seconds": 0.7481036600656807
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 0.8719404768198729
      },
      {
       "what": "program --acc 0.001 8t",
-      "load_before": "48.13 48.01 47.07",
-      "seconds": 0.17734872084110975
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 0.2942001922056079
      },
      {
       "what": "axtb analytic 8t",
-      "load_before": "47.08 47.79 47.00",
-      "seconds": 0.036691582296043634
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 0.04236330883577466
      },
      {
       "what": "program --acc 0.0001 8t",
-      "load_before": "47.08 47.79 47.00",
-      "seconds": 0.17952446499839425
+      "load_before": "57.27 51.84 53.54",
+      "seconds": 0.3345412788912654
      }
     ],
     "time": {
-     "program --acc 0.001 1t": 0.7197637851350009,
-     "axtb analytic 1t": 0.09021393209695816,
-     "program --acc 0.0001 1t": 0.7481036600656807,
-     "program --acc 0.001 8t": 0.17734872084110975,
-     "axtb analytic 8t": 0.036691582296043634,
-     "program --acc 0.0001 8t": 0.17952446499839425
+     "program --acc 0.001 1t": 1.1261618961580098,
+     "axtb analytic 1t": 0.10069479001685977,
+     "program --acc 0.0001 1t": 0.8719404768198729,
+     "program --acc 0.001 8t": 0.2942001922056079,
+     "axtb analytic 8t": 0.04236330883577466,
+     "program --acc 0.0001 8t": 0.3345412788912654
     },
     "vs_analytic": {
      "program --acc 0.001": {
@@ -2408,7 +2408,7 @@
     "reference": {
      "what": "Richardson numerical 0.002/0.001 bohr, SCF accuracy 1e-6, program conventions",
      "spread": 8.671738795928974e-07,
-     "load_before": "47.08 47.79 47.00"
+     "load_before": "57.27 51.84 53.54"
     }
    }
   }
@@ -2417,73 +2417,73 @@
   "taxol 1t": {
    "natoms": 113,
    "threads": 1,
-   "load_before": "37.35 41.02 47.18",
-   "seconds": 52.29706872301176,
+   "load_before": "65.75 55.79 43.50",
+   "seconds": 58.06732118083164,
    "phases": {
-    "reference scf": 0.300168866,
-    "tangents": 0.505412622,
-    "perturbations": 7.87278979108215,
-    "response": 36.90128183391784,
-    "explicit integrals": 6.490267006,
-    "total": 52.07138797
+    "reference scf": 0.326498245,
+    "tangents": 0.693625351,
+    "perturbations": 8.646992625640522,
+    "response": 41.19842962435948,
+    "explicit integrals": 6.948356527,
+    "total": 57.815683518
    },
-   "peak_rss_mb": 145.1,
-   "peak_rss_mb_single_point": 37.6,
+   "peak_rss_mb": 146.7,
+   "peak_rss_mb_single_point": 38.0,
    "machine": "64-core node"
   },
   "(H2O)100 8t": {
    "natoms": 300,
    "threads": 8,
-   "load_before": "37.30 40.37 46.63",
-   "seconds": 101.00323554500937,
+   "load_before": "67.88 58.33 45.15",
+   "seconds": 110.2260260921903,
    "phases": {
-    "reference scf": 0.597588705,
-    "tangents": 4.826560854,
-    "perturbations": 17.597498934490826,
-    "response": 66.90350883550917,
-    "explicit integrals": 10.432695144,
-    "total": 100.367475744
+    "reference scf": 0.620465905,
+    "tangents": 4.879618412,
+    "perturbations": 19.320197052589464,
+    "response": 72.05435728141053,
+    "explicit integrals": 12.562503262,
+    "total": 109.447012493
    },
-   "peak_rss_mb": 1021.1,
-   "peak_rss_mb_single_point": 140.4,
+   "peak_rss_mb": 1036.0,
+   "peak_rss_mb_single_point": 139.7,
    "machine": "64-core node"
   },
   "(H2O)200 8t": {
    "natoms": 600,
    "threads": 8,
-   "load_before": "44.13 41.95 46.53",
-   "seconds": 1250.1213331809267,
+   "load_before": "56.74 56.96 46.12",
+   "seconds": 1269.5454863728955,
    "phases": {
-    "reference scf": 2.513237164,
-    "tangents": 36.270696637,
-    "perturbations": 172.48257010737476,
-    "response": 970.0375865326253,
-    "explicit integrals": 65.769053523,
-    "total": 1247.110308944
+    "reference scf": 3.349846826,
+    "tangents": 40.91521611,
+    "perturbations": 174.20649343213697,
+    "response": 986.415245966863,
+    "explicit integrals": 61.134222744,
+    "total": 1266.063568043
    },
-   "peak_rss_mb": 4214.8,
-   "peak_rss_mb_single_point": 617.7,
+   "peak_rss_mb": 4212.7,
+   "peak_rss_mb_single_point": 620.0,
    "machine": "64-core node"
   }
  },
  "program_accuracy": {
   "Ni(CO)4": {
-   "load_before": "39.69 44.27 45.82",
+   "load_before": "49.82 52.94 54.52",
    "runs": {
     "--acc 1": {
-     "seconds": 0.22090086713433266,
+     "seconds": 0.19659799290820956,
      "threads": 8,
-     "max_dfreq": 28.956127436588815,
-     "mean_dfreq": 10.736197467567019
+     "max_dfreq": 28.95612744623469,
+     "mean_dfreq": 10.736197466568475
     },
     "--acc 0.01": {
-     "seconds": 0.24694540817290545,
+     "seconds": 0.2193450233899057,
      "threads": 8,
      "max_dfreq": 1.5320429529591024,
      "mean_dfreq": 0.31680738824329613
     },
     "--acc 0.0001": {
-     "seconds": 0.22039420483633876,
+     "seconds": 0.2275049383752048,
      "threads": 8,
      "max_dfreq": 0.054541292388250895,
      "mean_dfreq": 0.019816813352712244
@@ -2496,22 +2496,22 @@
    }
   },
   "caffeine": {
-   "load_before": "40.84 44.43 45.86",
+   "load_before": "49.68 52.86 54.49",
    "runs": {
     "--acc 1": {
-     "seconds": 1.2479235879145563,
+     "seconds": 0.7962695923633873,
      "threads": 8,
-     "max_dfreq": 103.98167576254015,
-     "mean_dfreq": 30.41394148165316
+     "max_dfreq": 103.98167578525481,
+     "mean_dfreq": 30.413941480696586
     },
     "--acc 0.01": {
-     "seconds": 1.308812262956053,
+     "seconds": 0.8102661469019949,
      "threads": 8,
-     "max_dfreq": 4.342504512063961,
-     "mean_dfreq": 0.2910257535119848
+     "max_dfreq": 4.3425045125992625,
+     "mean_dfreq": 0.2910258394846135
     },
     "--acc 0.0001": {
-     "seconds": 0.9612979800440371,
+     "seconds": 0.9996172888204455,
      "threads": 8,
      "max_dfreq": 0.3544026110937679,
      "mean_dfreq": 0.0213629009406034
@@ -2524,25 +2524,25 @@
    }
   },
   "taxol": {
-   "load_before": "44.68 45.10 46.04",
+   "load_before": "46.06 51.66 54.04",
    "runs": {
     "--acc 1": {
-     "seconds": 45.409218413289636,
+     "seconds": 45.74413228686899,
      "threads": 8,
-     "max_dfreq": 148.52959241993887,
-     "mean_dfreq": 78.14320436013023
+     "max_dfreq": 148.5295924340271,
+     "mean_dfreq": 78.14320435954697
     },
     "--acc 0.01": {
-     "seconds": 61.124966328032315,
+     "seconds": 52.54716871492565,
      "threads": 8,
-     "max_dfreq": 9.922779342833564,
-     "mean_dfreq": 1.3813719888761264
+     "max_dfreq": 9.922779342130752,
+     "mean_dfreq": 1.3813719850647466
     },
     "--acc 0.0001": {
-     "seconds": 61.775442622136325,
+     "seconds": 66.84833174291998,
      "threads": 8,
-     "max_dfreq": 0.2779470554610022,
-     "mean_dfreq": 0.015572049418276392
+     "max_dfreq": 0.27794801202580466,
+     "mean_dfreq": 0.015572048343400494
     }
    }
   }

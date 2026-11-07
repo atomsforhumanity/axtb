@@ -1,6 +1,6 @@
 {
  "machine": "64-core node (AMD Threadripper PRO 9985WX), 16-CPU pod",
- "axtb_commit": "e6b4a18",
+ "axtb_commit": "3499913",
  "how": "the axtb CLI (energy + gradient; GFN-FF also the analytic Hessian) on 1, 2, 4 and 8 threads, three runs per thread count, with faer and with each run-time LAPACK library (AXTB_LAPACK): largest differences against 1 thread, SCF iterations, and whether the three runs of a thread count gave identical bits (2026-11-07, ad-hoc script of the release rerun)",
  "rows": [
   {
