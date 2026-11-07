@@ -1,0 +1,156 @@
+[
+ {
+  "molecule": "water",
+  "atoms": 3,
+  "charge": 0,
+  "E_xtb": -5.070175961192,
+  "E_tblite": -5.07017596377807,
+  "E_axtb_xtbref": -5.07017596119495,
+  "E_axtb_tbliteref": -5.07017596377807,
+  "dG_vs_xtb": 4.667836429883554e-11,
+  "dG_vs_tblite": 1.754878482113087e-10
+ },
+ {
+  "molecule": "caffeine",
+  "atoms": 24,
+  "charge": 0,
+  "E_xtb": -42.154421982457,
+  "E_tblite": -42.15442201416676,
+  "E_axtb_xtbref": -42.154421983002116,
+  "E_axtb_tbliteref": -42.154422014166755,
+  "dG_vs_xtb": 4.5288060974471285e-10,
+  "dG_vs_tblite": 6.444341303554871e-10
+ },
+ {
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "charge": 0,
+  "E_xtb": -70.185353117523,
+  "E_tblite": -70.18535317213856,
+  "E_axtb_xtbref": -70.18535312037642,
+  "E_axtb_tbliteref": -70.18535317213855,
+  "dG_vs_xtb": 5.273212075329603e-11,
+  "dG_vs_tblite": 5.929287014714082e-11
+ },
+ {
+  "molecule": "taxol",
+  "atoms": 113,
+  "charge": 0,
+  "E_xtb": -186.500449129904,
+  "E_tblite": -186.50043989629074,
+  "E_axtb_xtbref": -186.50044913566464,
+  "E_axtb_tbliteref": -186.50043989629066,
+  "dG_vs_xtb": 7.556036837885749e-10,
+  "dG_vs_tblite": 3.468175399645723e-10
+ },
+ {
+  "molecule": "C50H102",
+  "atoms": 152,
+  "charge": 0,
+  "E_xtb": -158.581791683696,
+  "E_tblite": -158.58174354420782,
+  "E_axtb_xtbref": -158.5817916058151,
+  "E_axtb_tbliteref": -158.58174354420785,
+  "dG_vs_xtb": 1.0930511457757364e-08,
+  "dG_vs_tblite": 1.366499587096559e-10
+ },
+ {
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "charge": 0,
+  "E_xtb": -507.31812218713,
+  "E_tblite": -507.3180958592677,
+  "E_axtb_xtbref": -507.31812219966594,
+  "E_axtb_tbliteref": -507.3180958592678,
+  "dG_vs_xtb": 1.7745607778368866e-09,
+  "dG_vs_tblite": 2.5332385494847287e-10
+ },
+ {
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "charge": 0,
+  "E_xtb": -1014.687160209409,
+  "E_tblite": -1014.6868108606026,
+  "E_axtb_xtbref": -1014.6871601900583,
+  "E_axtb_tbliteref": -1014.6868108606021,
+  "dG_vs_xtb": 3.0939046741229603e-09,
+  "dG_vs_tblite": 1.669586205399476e-10
+ },
+ {
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "charge": 0,
+  "E_xtb": -1689.826238131679,
+  "E_tblite": -1689.82578724703,
+  "E_axtb_xtbref": -1689.8262381269162,
+  "E_axtb_tbliteref": -1689.8257872470303,
+  "dG_vs_xtb": 5.071173756095171e-09,
+  "dG_vs_tblite": 2.674214560731414e-10
+ },
+ {
+  "molecule": "ferrocene",
+  "atoms": 21,
+  "charge": 0,
+  "E_xtb": -29.577956842104,
+  "E_tblite": -29.57795684581112,
+  "E_axtb_xtbref": -29.577956842281594,
+  "E_axtb_tbliteref": -29.577956845811123,
+  "dG_vs_xtb": 1.0662733396293807e-10,
+  "dG_vs_tblite": 1.152487121883173e-10
+ },
+ {
+  "molecule": "[Cu(NH3)4]2+",
+  "atoms": 17,
+  "charge": 2,
+  "E_xtb": -20.741488303109,
+  "E_tblite": -20.741488313326585,
+  "E_axtb_xtbref": -20.741488303140112,
+  "E_axtb_tbliteref": -20.741488313326634,
+  "dG_vs_xtb": 5.24164409793082e-11,
+  "dG_vs_tblite": 2.3135571583510206e-11
+ },
+ {
+  "molecule": "[ZnCl4]2-",
+  "atoms": 5,
+  "charge": -2,
+  "E_xtb": -19.328163140907,
+  "E_tblite": -19.328163145227013,
+  "E_axtb_xtbref": -19.328163141506543,
+  "E_axtb_tbliteref": -19.32816314522703,
+  "dG_vs_xtb": 1.8990359632042875e-11,
+  "dG_vs_tblite": 5.607290846920687e-11
+ },
+ {
+  "molecule": "CF3Br-benzene",
+  "atoms": 17,
+  "charge": 0,
+  "E_xtb": -36.293217460974,
+  "E_tblite": -36.29321747610206,
+  "E_axtb_xtbref": -36.293217461498905,
+  "E_axtb_tbliteref": -36.293217476102036,
+  "dG_vs_xtb": 7.19496399959052e-10,
+  "dG_vs_tblite": 8.949295731558449e-10
+ },
+ {
+  "molecule": "iodobenzene-acetone",
+  "atoms": 22,
+  "charge": 0,
+  "E_xtb": -32.723040191595,
+  "E_tblite": -32.72304020886165,
+  "E_axtb_xtbref": -32.72304019202104,
+  "E_axtb_tbliteref": -32.72304020886167,
+  "dG_vs_xtb": 4.691295581171762e-10,
+  "dG_vs_tblite": 3.8789716924614304e-10
+ },
+ {
+  "molecule": "MB16-43 #33 (Al,B,S,F)",
+  "atoms": 16,
+  "charge": 0,
+  "E_xtb": -26.276524683744,
+  "E_tblite": -26.276524694480408,
+  "E_axtb_xtbref": -26.276524684290955,
+  "E_axtb_tbliteref": -26.276524694480415,
+  "dG_vs_xtb": 2.1600831540125043e-10,
+  "dG_vs_tblite": 2.0106775966421964e-10
+ }
+]

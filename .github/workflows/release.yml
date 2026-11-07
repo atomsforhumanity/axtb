@@ -1,0 +1,209 @@
+# Release builds and publishing.
+#
+# On a tag vX.Y.Z (the workspace version): build the manylinux_2_28 wheel, the sdist and the
+# stripped CLI; attach the CLI, the wheel and the sdist to a GitHub release of the tag; publish
+# the wheel and the sdist to PyPI (trusted publishing, no token) and the crates to crates.io (in
+# dependency order, with the CARGO_REGISTRY_TOKEN secret).
+#
+# Run by hand (workflow_dispatch): the same builds as workflow artifacts; with "publish" set, also
+# PyPI and crates.io (no GitHub release without a tag).
+#
+# What the maintainers set up first is in the README, "Releases".
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Also publish to PyPI and crates.io"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version:
+    name: version check
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: the workspace version, and the tag's when there is one
+        run: |
+          version=$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)
+          echo "workspace version: $version"
+          if [ "${GITHUB_REF_TYPE}" = tag ] && [ "${GITHUB_REF_NAME}" != "v$version" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match the workspace version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  wheel:
+    name: wheel (manylinux_2_28, x86-64)
+    needs: version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: maturin build in the manylinux_2_28 container
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          target: x86_64
+          manylinux: "2_28"
+          # pyproject.toml sets compatibility = "manylinux_2_28"
+          args: --release --locked -m crates/axtb-py/Cargo.toml --out dist
+      - name: check the wheel (tag, x86-64-v3 build, license files)
+        run: |
+          set -eu
+          ls -l dist
+          whl=$(ls dist/axtb-*-cp310-abi3-manylinux_2_28_x86_64.whl)
+          unzip -p "$whl" axtb/_build.py | grep -q 'X86_64_V3 = True'
+          for f in COPYING COPYING.LESSER LICENSE NOTICE; do
+            unzip -l "$whl" | grep -q "dist-info/licenses/$f\$"
+          done
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: install the wheel and run a calculation
+        run: |
+          python -m pip install dist/axtb-*.whl
+          cd "$RUNNER_TEMP"
+          python -c 'import axtb; r = axtb.singlepoint([8, 1, 1], [[0, 0, 0.22], [0, 1.43, -0.89], [0, -1.43, -0.89]], method="gxtb-v2.0.1", gradient=True); print(axtb.__version__, r["energy"])'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel
+          path: dist/*.whl
+          if-no-files-found: error
+
+  sdist:
+    name: sdist
+    needs: version
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: PyO3/maturin-action@v1
+        with:
+          command: sdist
+          args: -m crates/axtb-py/Cargo.toml --out dist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: build and install from the sdist, outside the repository
+        run: |
+          python -m pip install "$PWD"/dist/axtb-*.tar.gz
+          cd "$RUNNER_TEMP"
+          python -c 'import axtb; print(axtb.__version__, axtb.singlepoint([8, 1, 1], [[0, 0, 0.22], [0, 1.43, -0.89], [0, -1.43, -0.89]])["energy"])'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  cli:
+    name: CLI (stripped, glibc 2.28, x86-64)
+    needs: version
+    runs-on: ubuntu-24.04
+    container: quay.io/pypa/manylinux_2_28_x86_64
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rust
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: cargo build --profile dist -p axtb-cli
+        run: cargo build --locked --profile dist -p axtb-cli
+      - name: check and package the binary
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          set -eu
+          bin=target/dist/axtb
+          "$bin" --version
+          # stripped, and no glibc symbol newer than 2.28
+          if objdump -h "$bin" | grep -q '\.debug_'; then echo "::error::$bin has debug sections"; exit 1; fi
+          newest=$(objdump -T "$bin" | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -n 1)
+          echo "newest glibc symbol: $newest"
+          [ "$(printf '%s\n' "$newest" GLIBC_2.28 | sort -V | tail -n 1)" = GLIBC_2.28 ]
+          name=axtb-$VERSION-x86_64-linux
+          mkdir -p "dist/$name"
+          cp "$bin" COPYING COPYING.LESSER LICENSE NOTICE README.md "dist/$name/"
+          tar -C dist -czf "dist/$name.tar.gz" "$name"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  github-release:
+    name: GitHub release of the tag
+    if: github.ref_type == 'tag'
+    needs: [version, wheel, sdist, cli]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: create the release with the CLI, the wheel and the sdist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" dist/* --repo "$GITHUB_REPOSITORY"
+          --title "axtb ${{ needs.version.outputs.version }}"
+          --notes "See CHANGELOG.md for what this release contains."
+
+  pypi:
+    name: publish to PyPI
+    if: github.ref_type == 'tag' || inputs.publish
+    needs: [wheel, sdist, cli]
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/axtb/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheel
+          path: dist
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  crates-io:
+    name: publish to crates.io
+    if: github.ref_type == 'tag' || inputs.publish
+    needs: [wheel, sdist, cli]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: cargo publish, in dependency order
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -eu
+          [ -n "$CARGO_REGISTRY_TOKEN" ] || { echo "::error::the CARGO_REGISTRY_TOKEN secret is not set"; exit 1; }
+          version=$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)
+          for crate in axtb-d4 axtb-solvation axtb axtb-gfnff axtb-gxtb axtb-driver axtb-cli; do
+            # a rerun after a partial failure skips what is already there
+            if curl -sf -A "axtb-release (github.com/atomsforhumanity/axtb)" \
+                "https://crates.io/api/v1/crates/$crate/$version" > /dev/null; then
+              echo "$crate $version is already on crates.io"
+              continue
+            fi
+            cargo publish --locked -p "$crate"
+          done

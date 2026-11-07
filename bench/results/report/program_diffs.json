@@ -1,0 +1,83 @@
+[
+ {
+  "id": "solv|ALPB|gsolv",
+  "topic": "Implicit solvent, reference state",
+  "case": "ALPB, water, 'gsolv' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": -4.760444483054016e-09,
+  "tblite": 0.0,
+  "axtb": 3.857891783809464e-11
+ },
+ {
+  "id": "solv|ALPB|bar1M",
+  "topic": "Implicit solvent, reference state",
+  "case": "ALPB, water, 'bar1M' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": 1.7284573772258227e-08,
+  "tblite": 0.0,
+  "axtb": 3.859845776332804e-11
+ },
+ {
+  "id": "solv|ALPB|reference",
+  "topic": "Implicit solvent, reference state",
+  "case": "ALPB, water, 'reference' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": -0.0050106008533550295,
+  "tblite": 0.0,
+  "axtb": 3.859668140648864e-11
+ },
+ {
+  "id": "solv|GBSA|gsolv",
+  "topic": "Implicit solvent, reference state",
+  "case": "GBSA, water, 'gsolv' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": 5.0562736220172155e-09,
+  "tblite": 0.0,
+  "axtb": 3.764455414057011e-11
+ },
+ {
+  "id": "solv|GBSA|bar1M",
+  "topic": "Implicit solvent, reference state",
+  "case": "GBSA, water, 'bar1M' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": 1.856549403100871e-08,
+  "tblite": 0.0,
+  "axtb": 3.765876499528531e-11
+ },
+ {
+  "id": "solv|GBSA|reference",
+  "topic": "Implicit solvent, reference state",
+  "case": "GBSA, water, 'reference' state: 4 solutes (neutral, anion, cation)",
+  "quantity": "E \u2212 E(tblite), largest |value|",
+  "xtb": -0.005010600716117253,
+  "tblite": 0.0,
+  "axtb": 3.766587042264291e-11
+ },
+ {
+  "id": "csoh",
+  "topic": "Atom order in implicit solvent",
+  "case": "compressed CsOH in water (ALPB): E(H,O,Cs) \u2212 E(Cs,O,H)",
+  "quantity": "energy change from reversing the atom order",
+  "xtb": 0.002885937479999434,
+  "tblite": 0.0028859373326861615,
+  "axtb": -3.552713678800501e-15
+ },
+ {
+  "id": "lowT|O2 singlet (degenerate \u03c0*), 0.1 K",
+  "topic": "Occupations at low electronic temperature",
+  "case": "O2 singlet (degenerate \u03c0*), 0.1 K",
+  "quantity": "E \u2212 E(tblite)",
+  "xtb": -0.0025197264836664957,
+  "tblite": 0.0,
+  "axtb": -3.063416187387702e-11
+ },
+ {
+  "id": "lowT|O2 singlet (degenerate \u03c0*), 1.0 K",
+  "topic": "Occupations at low electronic temperature",
+  "case": "O2 singlet (degenerate \u03c0*), 1.0 K",
+  "quantity": "E \u2212 E(tblite)",
+  "xtb": 4.090305871784494e-09,
+  "tblite": 0.0,
+  "axtb": -3.420197458581242e-11
+ }
+]

@@ -1,0 +1,1232 @@
+{
+ "description": "axtb vibrational analysis (conventions xtb-6.7.1) vs xtb 6.7.1 (GFN2-xTB) and the g-xTB 2.0.1 program; see tests/vibrational_check.py",
+ "xtb_version": "6.7.1 (26dd68d)",
+ "analysis_conventions": "xtb-6.7.1",
+ "machine": "x86_64",
+ "load_before": [
+  26.52,
+  30.67,
+  33.76
+ ],
+ "load_after": [
+  22.64,
+  28.96,
+  33.0
+ ],
+ "gates": {
+  "frequency_cm1": 0.01,
+  "thermo_eh": 1e-06
+ },
+ "all_gates_pass": true,
+ "results": {
+  "gfn2": {
+   "caffeine": {
+    "n_atoms": 24,
+    "xtb_hess_seconds": 7.240158800967038,
+    "same_hessian": {
+     "n_modes": [
+      66,
+      66
+     ],
+     "max_frequency_diff": 4.948608898303064e-05,
+     "max_reduced_mass_diff_nondegenerate": 4.6539695972791506e-05,
+     "point_group": {
+      "xtb": "c1",
+      "axtb": "C1"
+     },
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "n_imaginary_thermo": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "thermo_diff": {
+      "zpve": -2.3155116712914037e-11,
+      "enthalpy": -6.2414240442620894e-12,
+      "ts": 7.081783770512828e-11,
+      "g_rrho": -7.705924787160257e-11,
+      "free_energy": -7.705835969318287e-11
+     },
+     "xtb": {
+      "zpve": 0.182234089118,
+      "enthalpy": 0.19579930092800168,
+      "ts": 0.05247082957600169,
+      "g_rrho": 0.143328471352,
+      "free_energy": -42.011093511104
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 2.5870308426688666,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.4353298026896607,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.01197852088256468,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 0.0007164863770726075
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.4590960450223065,
+     "n_imaginary": {
+      "axtb": 1,
+      "xtb_g98": 1
+     },
+     "ir_groups_km_mol": [
+      [
+       0.0407,
+       0.008927144468049798
+      ],
+      [
+       0.9275,
+       0.9778610600309596
+      ],
+      [
+       0.3658,
+       0.3503149711392156
+      ],
+      [
+       0.409,
+       0.3523260263349218
+      ],
+      [
+       0.7819,
+       0.8919042834848437
+      ],
+      [
+       8.713,
+       8.641629418462532
+      ],
+      [
+       10.9635,
+       10.979315050571977
+      ],
+      [
+       9.3215,
+       9.179475641837104
+      ],
+      [
+       3.0782,
+       3.1284186201790556
+      ],
+      [
+       0.9451,
+       1.002360901038206
+      ],
+      [
+       0.0335,
+       0.029205742326091903
+      ],
+      [
+       8.8448,
+       8.980723980168843
+      ],
+      [
+       0.0746,
+       0.1019931452860503
+      ],
+      [
+       19.7693,
+       19.734558561629395
+      ],
+      [
+       13.7832,
+       12.964946239206661
+      ],
+      [
+       3.3981,
+       3.3624021846857057
+      ],
+      [
+       3.4462,
+       3.4563627558923815
+      ],
+      [
+       2.51,
+       2.481693603048537
+      ],
+      [
+       12.2049,
+       12.272358072952592
+      ],
+      [
+       0.9948,
+       0.971073325435558
+      ],
+      [
+       0.0017,
+       0.0015020722113267013
+      ],
+      [
+       41.1702,
+       42.142481374652384
+      ],
+      [
+       59.2276,
+       58.6201539867337
+      ],
+      [
+       13.3383,
+       13.384111283356951
+      ],
+      [
+       1.5566,
+       1.5827832251292218
+      ],
+      [
+       3.5235,
+       3.5164177346301426
+      ],
+      [
+       2.1844,
+       2.180389366183191
+      ],
+      [
+       50.9215,
+       51.42471679799283
+      ],
+      [
+       56.049,
+       56.294469461910275
+      ],
+      [
+       0.9577,
+       0.9019092193731196
+      ],
+      [
+       30.6915,
+       31.194595283417804
+      ],
+      [
+       4.0369,
+       4.183922162955373
+      ],
+      [
+       0.7323,
+       0.7424708438682074
+      ],
+      [
+       7.0355,
+       8.381357334076789
+      ],
+      [
+       4.5391,
+       4.487720358321822
+      ],
+      [
+       22.0753,
+       22.343466973623222
+      ],
+      [
+       48.6478,
+       49.728866817881745
+      ],
+      [
+       54.4802,
+       54.47662208694004
+      ],
+      [
+       89.5074,
+       90.95312612294869
+      ],
+      [
+       36.2977,
+       36.67506518978577
+      ],
+      [
+       5.6868,
+       5.300525780127218
+      ],
+      [
+       30.1843,
+       30.88746698597159
+      ],
+      [
+       2.5914,
+       3.344008563197097
+      ],
+      [
+       8.6598,
+       8.70959165009111
+      ],
+      [
+       9.9266,
+       10.07827425193855
+      ],
+      [
+       11.5053,
+       11.377186702493448
+      ],
+      [
+       129.5545,
+       130.61701973679905
+      ],
+      [
+       18.573,
+       18.469458894275007
+      ],
+      [
+       29.5873,
+       25.956922958485844
+      ],
+      [
+       15.1527,
+       14.397537125137623
+      ],
+      [
+       3.8159,
+       4.023641087877252
+      ],
+      [
+       145.8887,
+       148.72562820542336
+      ],
+      [
+       218.4857,
+       220.20776580654223
+      ],
+      [
+       988.8929,
+       988.2084447022204
+      ],
+      [
+       492.2425,
+       494.3533846887445
+      ],
+      [
+       16.2949,
+       17.43610521552463
+      ],
+      [
+       14.4877,
+       14.986131648588888
+      ],
+      [
+       36.3233,
+       38.624558885933475
+      ],
+      [
+       16.1677,
+       17.18440774984715
+      ],
+      [
+       8.1408,
+       9.82437343570479
+      ],
+      [
+       3.7311,
+       3.605740339689911
+      ],
+      [
+       1.1474,
+       1.6419249480442708
+      ],
+      [
+       1.4426,
+       1.3809118353768397
+      ],
+      [
+       2.8771,
+       3.2568326106999836
+      ]
+     ],
+     "max_ir_rel_diff": 0.43099611996188847,
+     "max_ir_abs_diff": 3.630377041514155,
+     "thermo_diff": {
+      "zpve": -1.549341796980297e-05,
+      "enthalpy": -1.210621336769635e-05,
+      "ts": 1.0719405082744438e-05,
+      "g_rrho": -2.282561845043385e-05,
+      "free_energy": -2.282617651161445e-05
+     },
+     "symmetry_number": 1
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.08872177039211238,
+     "max_ir_rel_diff": 0.0034443762756320353,
+     "zpve": -3.821834250017364e-06,
+     "enthalpy": -3.725247803870735e-06,
+     "ts": 1.8302787824914235e-07,
+     "g_rrho": -3.908275682112938e-06,
+     "symmetry_number": [
+      1,
+      1
+     ]
+    }
+   },
+   "CO2": {
+    "n_atoms": 3,
+    "xtb_hess_seconds": 0.11006101802922785,
+    "same_hessian": {
+     "n_modes": [
+      4,
+      4
+     ],
+     "max_frequency_diff": 4.947230502239108e-05,
+     "max_reduced_mass_diff_nondegenerate": 1.8199125612738953e-05,
+     "point_group": {
+      "xtb": "din",
+      "axtb": "Dinfh"
+     },
+     "symmetry_number": {
+      "xtb": 2,
+      "axtb": 2
+     },
+     "n_imaginary_thermo": {
+      "xtb": 0,
+      "axtb": 0
+     },
+     "thermo_diff": {
+      "zpve": -3.5370491258124304e-13,
+      "enthalpy": -2.526295145299784e-13,
+      "ts": 4.340625081589167e-14,
+      "g_rrho": -2.9603750006934604e-13,
+      "free_energy": -2.948752353404416e-13
+     },
+     "xtb": {
+      "zpve": 0.011889069022,
+      "enthalpy": 0.015520176305999556,
+      "ts": 0.024327979816999558,
+      "g_rrho": -0.008807803511,
+      "free_energy": -10.317260087828
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.3262020528566154,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.00031163406409878317,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.011500693021616826,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 1.099038315481901e-05
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.19196693601588777,
+     "n_imaginary": {
+      "axtb": 0,
+      "xtb_g98": 0
+     },
+     "ir_groups_km_mol": [
+      [
+       137.4008,
+       137.36372610998302
+      ],
+      [
+       0.0,
+       4.468779951726852e-16
+      ],
+      [
+       1046.7471,
+       1046.420899307209
+      ]
+     ],
+     "max_ir_rel_diff": 0.00031163276477284954,
+     "max_ir_abs_diff": 0.3262006927909624,
+     "thermo_diff": {
+      "zpve": 9.974898668250326e-07,
+      "enthalpy": 7.873010804196334e-07,
+      "ts": -3.1224708639532306e-07,
+      "g_rrho": 1.0995481668132218e-06,
+      "free_energy": 1.0994620893711726e-06
+     },
+     "symmetry_number": 2
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.018035665065099238,
+     "max_ir_rel_diff": 8.614967654710785e-06,
+     "zpve": 1.8317128317596465e-09,
+     "enthalpy": 4.9935663989225665e-09,
+     "ts": -3.236677309156888e-08,
+     "g_rrho": 3.7360339490491445e-08,
+     "symmetry_number": [
+      2,
+      2
+     ]
+    }
+   },
+   "HCN": {
+    "n_atoms": 3,
+    "xtb_hess_seconds": 0.14641503803431988,
+    "same_hessian": {
+     "n_modes": [
+      4,
+      4
+     ],
+     "max_frequency_diff": 4.6432873659796314e-05,
+     "max_reduced_mass_diff_nondegenerate": 6.151275105281684e-06,
+     "point_group": {
+      "xtb": "cin",
+      "axtb": "Cinfv"
+     },
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "n_imaginary_thermo": {
+      "xtb": 0,
+      "axtb": 0
+     },
+     "thermo_diff": {
+      "zpve": -2.640339336057451e-12,
+      "enthalpy": -1.8136221691111842e-12,
+      "ts": 1.5318718515899832e-12,
+      "g_rrho": -3.3454931533394294e-12,
+      "free_energy": -2.3456792064280307e-12
+     },
+     "xtb": {
+      "zpve": 0.016254480027,
+      "enthalpy": 0.019729881691000095,
+      "ts": 0.022817856221000094,
+      "g_rrho": -0.00308797453,
+      "free_energy": -5.507154197952
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.011576831708740798,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.0006103783929310298,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.0011987870547045532,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 5.711539450557763e-05
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.08003534354793373,
+     "n_imaginary": {
+      "axtb": 0,
+      "xtb_g98": 0
+     },
+     "ir_groups_km_mol": [
+      [
+       20.5782,
+       20.5700135866746
+      ],
+      [
+       25.3805,
+       25.37099489942678
+      ],
+      [
+       9.262,
+       9.25637760202429
+      ]
+     ],
+     "max_ir_rel_diff": 0.0006070392977445431,
+     "max_ir_abs_diff": 0.009505100573221625,
+     "thermo_diff": {
+      "zpve": -4.121979586720059e-07,
+      "enthalpy": -3.969710278307892e-07,
+      "ts": 2.0580756616289664e-08,
+      "g_rrho": -4.175517844462115e-07,
+      "free_energy": -4.1767052483265843e-07
+     },
+     "symmetry_number": 1
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.08646690687055525,
+     "max_ir_rel_diff": 0.00014904327944554588,
+     "zpve": -3.521921751528656e-07,
+     "enthalpy": -3.399089150493695e-07,
+     "ts": 8.196798927800897e-08,
+     "g_rrho": -4.2187690432737845e-07,
+     "symmetry_number": [
+      1,
+      1
+     ]
+    }
+   },
+   "benzene": {
+    "n_atoms": 12,
+    "xtb_hess_seconds": 0.9519549491815269,
+    "same_hessian": {
+     "n_modes": [
+      30,
+      30
+     ],
+     "max_frequency_diff": 4.952383937961713e-05,
+     "max_reduced_mass_diff_nondegenerate": 4.6586408555704395e-05,
+     "point_group": {
+      "xtb": "d6h",
+      "axtb": "D6h"
+     },
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "n_imaginary_thermo": {
+      "xtb": 0,
+      "axtb": 0
+     },
+     "thermo_diff": {
+      "zpve": 1.4729883979214264e-12,
+      "enthalpy": -1.55500612386561e-13,
+      "ts": -2.157388850898556e-12,
+      "g_rrho": 2.001884769065043e-12,
+      "free_energy": 2.0019541580040823e-12
+     },
+     "xtb": {
+      "zpve": 0.097508586079,
+      "enthalpy": 0.10303227290699901,
+      "ts": 0.030733385330999008,
+      "g_rrho": 0.072298887576,
+      "free_energy": -15.807341768425
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 12.576780176716966,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.05156383448083477,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.00430426344667012,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 1.6781506565285067e-05
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.33349514021165305,
+     "n_imaginary": {
+      "axtb": 0,
+      "xtb_g98": 0
+     },
+     "ir_groups_km_mol": [
+      [
+       0.0,
+       1.3821420107558108e-19
+      ],
+      [
+       0.0,
+       9.068458419609662e-21
+      ],
+      [
+       0.0,
+       1.435001844214324e-21
+      ],
+      [
+       32.6142,
+       32.61640193829969
+      ],
+      [
+       0.0,
+       6.20690023281622e-20
+      ],
+      [
+       0.0,
+       9.50816840812529e-19
+      ],
+      [
+       0.0,
+       6.237406870859853e-22
+      ],
+      [
+       0.0013,
+       4.900424557915396e-21
+      ],
+      [
+       0.0,
+       1.7633033235257216e-20
+      ],
+      [
+       0.1725,
+       0.3721394260861538
+      ],
+      [
+       0.0004,
+       3.203668707723206e-21
+      ],
+      [
+       0.0,
+       7.898861929333827e-21
+      ],
+      [
+       0.0,
+       3.673981437239587e-21
+      ],
+      [
+       0.0002,
+       2.518050970992151e-19
+      ],
+      [
+       0.0134,
+       0.0015853363242502518
+      ],
+      [
+       0.0,
+       1.81367194714847e-20
+      ],
+      [
+       0.0279,
+       2.795030357780897e-15
+      ],
+      [
+       0.0,
+       1.0560760561775585e-17
+      ],
+      [
+       243.90699999999998,
+       256.4843972966248
+      ],
+      [
+       0.0,
+       1.531445341763424e-17
+      ]
+     ],
+     "max_ir_rel_diff": 0.05156636462514335,
+     "max_ir_abs_diff": 12.577397296624838,
+     "thermo_diff": {
+      "zpve": -2.4276643035836543e-06,
+      "enthalpy": -2.4306653687716784e-06,
+      "ts": -8.041919883489124e-09,
+      "g_rrho": -2.4226234488916587e-06,
+      "free_energy": -2.42276032480504e-06
+     },
+     "symmetry_number": 12
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.08647584448090129,
+     "max_ir_rel_diff": 5.5871970630649186e-05,
+     "zpve": -1.9952662665828624e-06,
+     "enthalpy": -1.9380893558629264e-06,
+     "ts": 1.6619267501419288e-07,
+     "g_rrho": -2.10428203087365e-06,
+     "symmetry_number": [
+      12,
+      12
+     ]
+    }
+   },
+   "NH3": {
+    "n_atoms": 4,
+    "xtb_hess_seconds": 0.051996419206261635,
+    "same_hessian": {
+     "n_modes": [
+      6,
+      6
+     ],
+     "max_frequency_diff": 4.3788376615339075e-05,
+     "max_reduced_mass_diff_nondegenerate": 4.4780094365481915e-05,
+     "point_group": {
+      "xtb": "c3v",
+      "axtb": "C3v"
+     },
+     "symmetry_number": {
+      "xtb": 3,
+      "axtb": 3
+     },
+     "n_imaginary_thermo": {
+      "xtb": 0,
+      "axtb": 0
+     },
+     "thermo_diff": {
+      "zpve": 9.2192919964873e-13,
+      "enthalpy": 1.2414722028175618e-12,
+      "ts": 1.2202391874716056e-13,
+      "g_rrho": 1.1194465493469252e-12,
+      "free_energy": 1.119992987241858e-12
+     },
+     "xtb": {
+      "zpve": 0.033549331245,
+      "enthalpy": 0.03735232148999934,
+      "ts": 0.021826327433999343,
+      "g_rrho": 0.015525994056,
+      "free_energy": -4.410718042611
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.08423372329897916,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.0030056038901703076,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.0006005870236265309,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 4.8379847118424526e-05
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.05573642550234581,
+     "n_imaginary": {
+      "axtb": 0,
+      "xtb_g98": 0
+     },
+     "ir_groups_km_mol": [
+      [
+       211.1723,
+       211.1722515503018
+      ],
+      [
+       55.1135,
+       55.02879324578641
+      ],
+      [
+       0.1949,
+       0.19472036322502945
+      ],
+      [
+       10.968,
+       10.935508368826302
+      ]
+     ],
+     "max_ir_rel_diff": 0.002962402550483084,
+     "max_ir_abs_diff": 0.08470675421359175,
+     "thermo_diff": {
+      "zpve": -6.975950824633648e-08,
+      "enthalpy": -7.28073833861087e-08,
+      "ts": -3.6686623149095876e-09,
+      "g_rrho": -6.913872107293384e-08,
+      "free_energy": -6.91444670408714e-08
+     },
+     "symmetry_number": 3
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.0995880076739013,
+     "max_ir_rel_diff": 8.009269416641026e-05,
+     "zpve": -9.671179791378992e-07,
+     "enthalpy": -9.63252252371427e-07,
+     "ts": 1.3132615211963738e-07,
+     "g_rrho": -1.0945784044910645e-06,
+     "symmetry_number": [
+      3,
+      3
+     ]
+    }
+   },
+   "CH4": {
+    "n_atoms": 5,
+    "xtb_hess_seconds": 0.06903686979785562,
+    "same_hessian": {
+     "n_modes": [
+      9,
+      9
+     ],
+     "max_frequency_diff": 4.4898402848048136e-05,
+     "max_reduced_mass_diff_nondegenerate": 4.075000000014484e-05,
+     "point_group": {
+      "xtb": "td",
+      "axtb": "Td"
+     },
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "n_imaginary_thermo": {
+      "xtb": 0,
+      "axtb": 0
+     },
+     "thermo_diff": {
+      "zpve": -5.516004319972012e-13,
+      "enthalpy": -1.5466794511809212e-13,
+      "ts": -8.045647481580431e-15,
+      "g_rrho": -1.466222976365117e-13,
+      "free_energy": -1.4654943925052066e-13
+     },
+     "xtb": {
+      "zpve": 0.044820597485,
+      "enthalpy": 0.04862872526700013,
+      "ts": 0.02110348635700013,
+      "g_rrho": 0.02752523891,
+      "free_energy": -4.147693281126
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.4206284738117887,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.004751366222533107,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.00039493556101888316,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 4.48231648750232e-06
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.144527210747583,
+     "n_imaginary": {
+      "axtb": 0,
+      "xtb_g98": 0
+     },
+     "ir_groups_km_mol": [
+      [
+       44.807100000000005,
+       44.61320124610896
+      ],
+      [
+       0.0,
+       8.709945923372437e-27
+      ],
+      [
+       0.0,
+       3.04358100895341e-22
+      ],
+      [
+       88.5279,
+       88.10993207627588
+      ]
+     ],
+     "max_ir_rel_diff": 0.004721312984088861,
+     "max_ir_abs_diff": 0.4179679237241203,
+     "thermo_diff": {
+      "zpve": 5.25990961286471e-07,
+      "enthalpy": 5.243812138885917e-07,
+      "ts": -1.863700284376879e-09,
+      "g_rrho": 5.262449141729686e-07,
+      "free_energy": 5.262417994700286e-07
+     },
+     "symmetry_number": 12
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.09080903680205665,
+     "max_ir_rel_diff": 6.29795837492249e-05,
+     "zpve": -1.2554235657782908e-06,
+     "enthalpy": -1.250216229327361e-06,
+     "ts": 1.3883353882152005e-07,
+     "g_rrho": -1.3890497681488811e-06,
+     "symmetry_number": [
+      12,
+      12
+     ]
+    }
+   },
+   "SN2-TS": {
+    "n_atoms": 6,
+    "xtb_hess_seconds": 0.1539795428980142,
+    "same_hessian": {
+     "n_modes": [
+      12,
+      12
+     ],
+     "max_frequency_diff": 3.1796441476217296e-05,
+     "max_reduced_mass_diff_nondegenerate": 4.382940384317635e-05,
+     "point_group": {
+      "xtb": "d3h",
+      "axtb": "D3h"
+     },
+     "symmetry_number": {
+      "xtb": 6,
+      "axtb": 6
+     },
+     "n_imaginary_thermo": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "thermo_diff": {
+      "zpve": 1.7698689736000972e-12,
+      "enthalpy": 1.0661263538658261e-12,
+      "ts": 1.8145207558717402e-14,
+      "g_rrho": 1.0479828810305847e-12,
+      "free_energy": 1.0480505352461478e-12
+     },
+     "xtb": {
+      "zpve": 0.03651125904,
+      "enthalpy": 0.04192492069200071,
+      "ts": 0.03134665647800071,
+      "g_rrho": 0.010578264214,
+      "free_energy": -12.984026779872
+     },
+     "max_ir_abs_diff_axtb_dipole_derivatives": 5.175595799775266,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.14091521007160457,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.022892902500416312,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 4.869100700980913e-05
+    },
+    "axtb_hessian": {
+     "max_frequency_diff": 0.2949307989733825,
+     "n_imaginary": {
+      "axtb": 1,
+      "xtb_g98": 1
+     },
+     "ir_groups_km_mol": [
+      [
+       1620.0774,
+       1618.4123302535822
+      ],
+      [
+       25.6798,
+       24.30528229387164
+      ],
+      [
+       0.0,
+       2.9612711540732153e-12
+      ],
+      [
+       88.6961,
+       94.1255289212807
+      ],
+      [
+       0.0015,
+       1.183429421210308e-09
+      ],
+      [
+       3.8059,
+       3.2690871701414235
+      ],
+      [
+       0.0,
+       4.3474219577958776e-11
+      ],
+      [
+       0.5779,
+       0.6063002727218996
+      ]
+     ],
+     "max_ir_rel_diff": 0.14104753930964462,
+     "max_ir_abs_diff": 5.429428921280703,
+     "thermo_diff": {
+      "zpve": -2.288127245127225e-06,
+      "enthalpy": -2.4075313976371082e-06,
+      "ts": -3.7513194581229037e-07,
+      "g_rrho": -2.032399451823083e-06,
+      "free_energy": -2.032457354417261e-06
+     },
+     "symmetry_number": 6
+    },
+    "conventions_axtb_minus_xtb": {
+     "max_frequency_diff": 0.09152668181150148,
+     "max_ir_rel_diff": 0.00013983727472419237,
+     "zpve": -9.59171499934075e-07,
+     "enthalpy": -9.552023913159124e-07,
+     "ts": -1.4032134122710094e-07,
+     "g_rrho": -8.148810500888115e-07,
+     "symmetry_number": [
+      6,
+      6
+     ]
+    }
+   }
+  },
+  "gxtb-v2.0.1": {
+   "caffeine": {
+    "n_atoms": 24,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": 3.393535452644869e-12,
+      "enthalpy": 3.5177149410037245e-07,
+      "ts": 4.00879811776611e-08,
+      "g_rrho": 7.51290696321405e-12
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "point_group": {
+      "xtb": "c1",
+      "axtb": "C1"
+     },
+     "g_rrho_xtb_thermo": 0.150577611676
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.980455196346156e-05,
+     "thermo_diff": {
+      "zpve": -8.893524805486663e-12,
+      "enthalpy": -2.506467255969369e-12,
+      "ts": 2.477690275171085e-11,
+      "g_rrho": -2.728337000768022e-11,
+      "free_energy": -2.717115421546623e-11
+     },
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "g_rrho_program": 0.150572401228,
+     "seconds": 24.186204998055473,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.027603491977458816,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.0002545406618741178
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.3543539903256878,
+     "g_rrho_diff": 5.210455512966172e-06,
+     "zpve_diff": 1.3593353936358632e-06,
+     "analytic_hessian_seconds": 7.37416
+    }
+   },
+   "CO2": {
+    "n_atoms": 3,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": -9.992527638669202e-14,
+      "enthalpy": -4.540728921163806e-08,
+      "ts": 7.713934879749473e-09,
+      "g_rrho": -2.2408984390320796e-13
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 2,
+      "axtb": 2
+     },
+     "point_group": {
+      "xtb": "din",
+      "axtb": "Dinfh"
+     },
+     "g_rrho_xtb_thermo": -0.008595053121
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.702177557192044e-05,
+     "thermo_diff": {
+      "zpve": 3.3046482217358175e-14,
+      "enthalpy": 5.690847099115715e-13,
+      "ts": 2.677962018804436e-13,
+      "g_rrho": 3.0128850803112783e-13,
+      "free_energy": 3.126388037344441e-13
+     },
+     "symmetry_number": {
+      "xtb": 2,
+      "axtb": 2
+     },
+     "g_rrho_program": -0.008594886569,
+     "seconds": 0.5585059691220522,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.002461863593907765,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 3.02991048341581e-06
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.037787003512676165,
+     "g_rrho_diff": -1.6655222409046877e-07,
+     "zpve_diff": -1.6424009992646593e-07,
+     "analytic_hessian_seconds": 0.06587531
+    }
+   },
+   "HCN": {
+    "n_atoms": 3,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": 1.891136552911732e-12,
+      "enthalpy": -1.6483266758460235e-08,
+      "ts": -3.274393112553953e-08,
+      "g_rrho": 2.664366990923206e-12
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "point_group": {
+      "xtb": "cin",
+      "axtb": "Cinfv"
+     },
+     "g_rrho_xtb_thermo": -0.002466483742
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.4376814457791625e-05,
+     "thermo_diff": {
+      "zpve": 2.0865843775030868e-12,
+      "enthalpy": 2.2092570828302627e-12,
+      "ts": 7.750605712786296e-13,
+      "g_rrho": 1.434195210509026e-12,
+      "free_energy": 2.4442670110147446e-12
+     },
+     "symmetry_number": {
+      "xtb": 1,
+      "axtb": 1
+     },
+     "g_rrho_program": -0.00246616016,
+     "seconds": 0.4346171428915113,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005127605725974149,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 8.300922292183678e-05
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.07223443796010542,
+     "g_rrho_diff": -3.235793356328419e-07,
+     "zpve_diff": -3.207171088634442e-07,
+     "analytic_hessian_seconds": 0.088078005
+    }
+   },
+   "benzene": {
+    "n_atoms": 12,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": 2.39451514172373e-12,
+      "enthalpy": 2.6108408018865603e-08,
+      "ts": -2.5944770862956767e-08,
+      "g_rrho": 4.178879464689089e-12
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "point_group": {
+      "xtb": "d6h",
+      "axtb": "D6h"
+     },
+     "g_rrho_xtb_thermo": 0.076438352049
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.770359373651445e-05,
+     "thermo_diff": {
+      "zpve": -1.1320222537136715e-11,
+      "enthalpy": -1.0090331348244774e-11,
+      "ts": 1.8413673363859573e-12,
+      "g_rrho": -1.1931705623524635e-11,
+      "free_energy": -1.290345608140342e-11
+     },
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "g_rrho_program": 0.076439077558,
+     "seconds": 2.579644831130281,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0080219080054178,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.000154815477866883
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.05597146206036996,
+     "g_rrho_diff": -7.255048211501913e-07,
+     "zpve_diff": -7.10724605515467e-07,
+     "analytic_hessian_seconds": 0.454480807
+    }
+   },
+   "NH3": {
+    "n_atoms": 4,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": 6.457195889097989e-13,
+      "enthalpy": -3.7848085679415e-08,
+      "ts": 3.8284788526909974e-08,
+      "g_rrho": 1.2579520758393414e-13
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 3,
+      "axtb": 3
+     },
+     "point_group": {
+      "xtb": "c3v",
+      "axtb": "C3v"
+     },
+     "g_rrho_xtb_thermo": 0.015489123867
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.00800977331528e-05,
+     "thermo_diff": {
+      "zpve": -1.6728493590356663e-12,
+      "enthalpy": -1.8344631369515696e-12,
+      "ts": -9.18487508272392e-13,
+      "g_rrho": -9.159738939557016e-13,
+      "free_energy": -9.166001291305292e-13
+     },
+     "symmetry_number": {
+      "xtb": 3,
+      "axtb": 3
+     },
+     "g_rrho_program": 0.015489250362,
+     "seconds": 0.121359309181571,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005287315453337271,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 5.150517703141825e-05
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.05347769773561595,
+     "g_rrho_diff": -1.264948742123878e-07,
+     "zpve_diff": -1.2703235428151993e-07,
+     "analytic_hessian_seconds": 0.022914975
+    }
+   },
+   "CH4": {
+    "n_atoms": 5,
+    "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
+     "thermo_diff": {
+      "zpve": -4.738591463659958e-12,
+      "enthalpy": 4.177629524260151e-08,
+      "ts": 1.223876174016869e-09,
+      "g_rrho": -4.58092938582233e-12
+     },
+     "thermo_digits": 6,
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "point_group": {
+      "xtb": "td",
+      "axtb": "Td"
+     },
+     "g_rrho_xtb_thermo": 0.028152440557
+    },
+    "program_hessian_analysis_vs_printout": {
+     "max_frequency_diff": 4.049050039611757e-05,
+     "thermo_diff": {
+      "zpve": 1.271524552315384e-12,
+      "enthalpy": 5.828115767769759e-13,
+      "ts": -4.2224557184056266e-13,
+      "g_rrho": 1.0050571486175386e-12,
+      "free_energy": 1.0018652574217413e-12
+     },
+     "symmetry_number": {
+      "xtb": 12,
+      "axtb": 12
+     },
+     "g_rrho_program": 0.028152138161,
+     "seconds": 0.16716792108491063,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0006711472393874374,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 2.2779788455368106e-05
+    },
+    "axtb_vs_program_hessian": {
+     "max_frequency_diff": 0.02768421436553581,
+     "g_rrho_diff": 3.023914190956878e-07,
+     "zpve_diff": 3.0181026143549783e-07,
+     "analytic_hessian_seconds": 0.032818969
+    }
+   }
+  }
+ }
+}

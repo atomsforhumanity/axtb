@@ -1,0 +1,514 @@
+[
+ {
+  "id": "water|axtb analytic|1t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.004385564
+ },
+ {
+  "id": "water|axtb analytic|8t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.003639234
+ },
+ {
+  "id": "water|axtb response|1t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.004243504
+ },
+ {
+  "id": "water|axtb response|8t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.003919309
+ },
+ {
+  "id": "water|axtb numerical|1t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 0.00481738
+ },
+ {
+  "id": "water|axtb numerical|8t",
+  "case": "water",
+  "atoms": 3,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.002517579
+ },
+ {
+  "id": "water|xtb|1t",
+  "case": "water",
+  "atoms": 3,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 0.01367823383770883
+ },
+ {
+  "id": "water|xtb|8t",
+  "case": "water",
+  "atoms": 3,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.01123224594630301
+ },
+ {
+  "id": "caffeine|axtb analytic|1t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.050784792
+ },
+ {
+  "id": "caffeine|axtb analytic|8t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.024636797
+ },
+ {
+  "id": "caffeine|axtb response|1t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.404057908
+ },
+ {
+  "id": "caffeine|axtb response|8t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.083980419
+ },
+ {
+  "id": "caffeine|axtb numerical|1t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 1.136584353
+ },
+ {
+  "id": "caffeine|axtb numerical|8t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.191245238
+ },
+ {
+  "id": "caffeine|xtb|1t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 1.4278745499905199
+ },
+ {
+  "id": "caffeine|xtb|8t",
+  "case": "caffeine",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.24864706117659807
+ },
+ {
+  "id": "tyr-xab|axtb analytic|1t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.09526583
+ },
+ {
+  "id": "tyr-xab|axtb analytic|8t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.04040327
+ },
+ {
+  "id": "tyr-xab|axtb response|1t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.811195696
+ },
+ {
+  "id": "tyr-xab|axtb response|8t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.149749712
+ },
+ {
+  "id": "tyr-xab|axtb numerical|1t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 2.352787658
+ },
+ {
+  "id": "tyr-xab|axtb numerical|8t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.401793109
+ },
+ {
+  "id": "tyr-xab|xtb|1t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 3.0441814339719713
+ },
+ {
+  "id": "tyr-xab|xtb|8t",
+  "case": "tyr-xab",
+  "atoms": 33,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.5199672419112176
+ },
+ {
+  "id": "taxol|axtb analytic|1t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 3.846713105
+ },
+ {
+  "id": "taxol|axtb analytic|8t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.937497025
+ },
+ {
+  "id": "taxol|axtb response|1t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 36.299076763
+ },
+ {
+  "id": "taxol|axtb response|8t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 6.595029443
+ },
+ {
+  "id": "taxol|axtb numerical|1t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 109.484127692
+ },
+ {
+  "id": "taxol|axtb numerical|8t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 17.301751636
+ },
+ {
+  "id": "taxol|xtb|1t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 122.80022418196313
+ },
+ {
+  "id": "taxol|xtb|8t",
+  "case": "taxol",
+  "atoms": 113,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 20.991619053995237
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb analytic|1t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.017554252
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb analytic|8t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.010225337
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb response|1t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.106347334
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb response|8t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.023329577
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb numerical|1t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 0.320370663
+ },
+ {
+  "id": "Cu(NH3)4 2+|axtb numerical|8t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.064526792
+ },
+ {
+  "id": "Cu(NH3)4 2+|xtb|1t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 0.4023902590852231
+ },
+ {
+  "id": "Cu(NH3)4 2+|xtb|8t",
+  "case": "Cu(NH3)4 2+",
+  "atoms": 17,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.07943837600760162
+ },
+ {
+  "id": "caffeine+ doublet|axtb analytic|1t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.054131766
+ },
+ {
+  "id": "caffeine+ doublet|axtb analytic|8t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.027433931
+ },
+ {
+  "id": "caffeine+ doublet|axtb response|1t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.405240769
+ },
+ {
+  "id": "caffeine+ doublet|axtb response|8t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.080156947
+ },
+ {
+  "id": "caffeine+ doublet|axtb numerical|1t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 1.272386553
+ },
+ {
+  "id": "caffeine+ doublet|axtb numerical|8t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.217786278
+ },
+ {
+  "id": "caffeine+ doublet|xtb|1t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 1.5589873509015888
+ },
+ {
+  "id": "caffeine+ doublet|xtb|8t",
+  "case": "caffeine+ doublet",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.2617073159199208
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb analytic|1t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.055965153
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb analytic|8t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.026433519
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb response|1t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 0.44452707
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb response|8t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 0.084707634
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb numerical|1t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 1.252595932
+ },
+ {
+  "id": "caffeine ALPB(water)|axtb numerical|8t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 0.209892026
+ },
+ {
+  "id": "caffeine ALPB(water)|xtb|1t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 1.4894567159935832
+ },
+ {
+  "id": "caffeine ALPB(water)|xtb|8t",
+  "case": "caffeine ALPB(water)",
+  "atoms": 24,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 0.25116718700155616
+ },
+ {
+  "id": "taxol ALPB(water)|axtb analytic|1t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 3.804241502
+ },
+ {
+  "id": "taxol ALPB(water)|axtb analytic|8t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 1.022563404
+ },
+ {
+  "id": "taxol ALPB(water)|axtb response|1t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb response-based",
+  "threads": 1,
+  "seconds": 39.619859688
+ },
+ {
+  "id": "taxol ALPB(water)|axtb response|8t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb response-based",
+  "threads": 8,
+  "seconds": 6.801057001
+ },
+ {
+  "id": "taxol ALPB(water)|axtb numerical|1t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb finite differences",
+  "threads": 1,
+  "seconds": 111.540596159
+ },
+ {
+  "id": "taxol ALPB(water)|axtb numerical|8t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "axtb finite differences",
+  "threads": 8,
+  "seconds": 18.39028128
+ },
+ {
+  "id": "taxol ALPB(water)|xtb|1t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "xtb --hess",
+  "threads": 1,
+  "seconds": 129.6264606330078
+ },
+ {
+  "id": "taxol ALPB(water)|xtb|8t",
+  "case": "taxol ALPB(water)",
+  "atoms": 113,
+  "method": "xtb --hess",
+  "threads": 8,
+  "seconds": 21.74696339503862
+ }
+]

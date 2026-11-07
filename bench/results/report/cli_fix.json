@@ -1,0 +1,110 @@
+[
+ {
+  "id": "xtb, OMP_NUM_THREADS=1|128x64",
+  "setup": "xtb, one thread per job",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.16756559209898114
+ },
+ {
+  "id": "axtb CLI processes (no env vars), orig|128x64",
+  "setup": "axtb CLI as benchmarked",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.8406914048828185
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix|128x64",
+  "setup": "axtb CLI, thread-pool fix only",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.8428489631041884
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0|128x64",
+  "setup": "axtb CLI, thread-pool fix + cache-scan patch",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.07416868302971125
+ },
+ {
+  "id": "xtb, OMP_NUM_THREADS=1|512x64",
+  "setup": "xtb, one thread per job",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.5558224788401276
+ },
+ {
+  "id": "axtb CLI processes (no env vars), orig|512x64",
+  "setup": "axtb CLI as benchmarked",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 3.2858687918633223
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix|512x64",
+  "setup": "axtb CLI, thread-pool fix only",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 3.3381571299396455
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0|512x64",
+  "setup": "axtb CLI, thread-pool fix + cache-scan patch",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "repeats": 3,
+  "wall": 0.2496313659939915
+ },
+ {
+  "id": "xtb, OMP_NUM_THREADS=1|1024x128",
+  "setup": "xtb, one thread per job",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "repeats": 3,
+  "wall": 1.0942753520794213
+ },
+ {
+  "id": "axtb CLI processes (no env vars), orig|1024x128",
+  "setup": "axtb CLI as benchmarked",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "repeats": 3,
+  "wall": 5.871894156793132
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix|1024x128",
+  "setup": "axtb CLI, thread-pool fix only",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "repeats": 3,
+  "wall": 5.736059213988483
+ },
+ {
+  "id": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0|1024x128",
+  "setup": "axtb CLI, thread-pool fix + cache-scan patch",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "repeats": 3,
+  "wall": 0.5184675410855561
+ }
+]

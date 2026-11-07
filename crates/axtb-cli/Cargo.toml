@@ -1,0 +1,46 @@
+[package]
+name = "axtb-cli"
+description = "The axtb command-line program: GFN2-xTB, g-xTB and GFN-FF energies, gradients and Hessians as JSON"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+# GPL-3.0-only as built by default (includes the GPL crate axtb-gxtb, feature `gxtb`);
+# LGPL-3.0-or-later with --no-default-features (LICENSE)
+license = "GPL-3.0-only"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://github.com/atomsforhumanity/axtb#readme"
+readme = "README.md"
+keywords = ["quantum-chemistry", "tight-binding", "xtb", "g-xtb", "cli"]
+categories = ["science", "command-line-utilities"]
+# the tests read data of the repository; the package is the program
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[[bin]]
+name = "axtb"
+path = "src/main.rs"
+# the library `axtb` documents itself under that name
+doc = false
+
+[features]
+default = ["gxtb"]
+# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") from the GPL-3.0 crate axtb-gxtb; a build with it is
+# GPL-3.0 as a whole, `--no-default-features` gives an LGPL-only binary (GFN2-xTB, GFN-FF).
+gxtb = ["axtb-driver/gxtb"]
+
+[dependencies]
+axtb-driver = { workspace = true }
+clap = { version = "4.5", features = ["derive"] }
+serde = "1"
+# exact decimal-to-double parsing of JSON requests (the default parser can be 1 ulp off)
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+# the tests compare the CLI with the Rust APIs
+[dev-dependencies]
+axtb = { workspace = true }
+axtb-gfnff = { workspace = true }
+axtb-gxtb = { workspace = true }
+
+[lints]
+workspace = true

@@ -1,0 +1,110 @@
+[
+ {
+  "case": "caffeine \u00b7 ALPB water",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "model": "ALPB",
+  "solvent": "water",
+  "E_xtb": -42.17116134629,
+  "E_axtb": -42.171161346831354,
+  "dG": 4.3661630788702915e-10,
+  "t_xtb": 0.03040272486396134,
+  "t_axtb": 0.012704818975180387
+ },
+ {
+  "case": "caffeine \u00b7 ALPB thf",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "model": "ALPB",
+  "solvent": "thf",
+  "E_xtb": -42.177895250356,
+  "E_axtb": -42.17789525090112,
+  "dG": 3.370475945866855e-10,
+  "t_xtb": 0.02912327880039811,
+  "t_axtb": 0.012614938197657466
+ },
+ {
+  "case": "caffeine \u00b7 GBSA water",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "model": "GBSA",
+  "solvent": "water",
+  "E_xtb": -42.169067716711,
+  "E_axtb": -42.16906771725372,
+  "dG": 3.254428362811212e-10,
+  "t_xtb": 0.029536317102611065,
+  "t_axtb": 0.012640076922252774
+ },
+ {
+  "case": "taxol \u00b7 ALPB water",
+  "molecule": "taxol",
+  "atoms": 113,
+  "model": "ALPB",
+  "solvent": "water",
+  "E_xtb": -186.541835373923,
+  "E_axtb": -186.54183537958917,
+  "dG": 1.131002541621129e-09,
+  "t_xtb": 0.4501124450471252,
+  "t_axtb": 0.3699400839395821
+ },
+ {
+  "case": "taxol \u00b7 ALPB thf",
+  "molecule": "taxol",
+  "atoms": 113,
+  "model": "ALPB",
+  "solvent": "thf",
+  "E_xtb": -186.570706473996,
+  "E_axtb": -186.5707064797279,
+  "dG": 9.646485277237105e-10,
+  "t_xtb": 0.4484197339043021,
+  "t_axtb": 0.3888111379928887
+ },
+ {
+  "case": "taxol \u00b7 GBSA water",
+  "molecule": "taxol",
+  "atoms": 113,
+  "model": "GBSA",
+  "solvent": "water",
+  "E_xtb": -186.537398131744,
+  "E_axtb": -186.53739813753893,
+  "dG": 1.025277685667847e-09,
+  "t_xtb": 0.45300862612202764,
+  "t_axtb": 0.3587614460848272
+ },
+ {
+  "case": "[ZnCl4]2- \u00b7 ALPB water",
+  "molecule": "[ZnCl4]2-",
+  "atoms": 5,
+  "model": "ALPB",
+  "solvent": "water",
+  "E_xtb": -19.615844912196,
+  "E_axtb": -19.615844912799865,
+  "dG": 7.095918904548304e-13,
+  "t_xtb": 0.016552557004615664,
+  "t_axtb": 0.002557666040956974
+ },
+ {
+  "case": "[ZnCl4]2- \u00b7 ALPB thf",
+  "molecule": "[ZnCl4]2-",
+  "atoms": 5,
+  "model": "ALPB",
+  "solvent": "thf",
+  "E_xtb": -19.576863963979,
+  "E_axtb": -19.576863964581825,
+  "dG": 5.5452183209819816e-11,
+  "t_xtb": 0.014796877047047019,
+  "t_axtb": 0.0024959289003163576
+ },
+ {
+  "case": "[ZnCl4]2- \u00b7 GBSA water",
+  "molecule": "[ZnCl4]2-",
+  "atoms": 5,
+  "model": "GBSA",
+  "solvent": "water",
+  "E_xtb": -19.604618594497,
+  "E_axtb": -19.60461859510426,
+  "dG": 4.158974813844862e-12,
+  "t_xtb": 0.014524419093504548,
+  "t_axtb": 0.002482035895809531
+ }
+]

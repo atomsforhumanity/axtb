@@ -1,0 +1,42 @@
+[
+ {
+  "method": "axtb, reference mixer (Broyden)",
+  "cases": 104,
+  "converged": 84,
+  "failed_300K": 10,
+  "failed_0K": 10,
+  "median_iterations": 14.0
+ },
+ {
+  "method": "axtb, DIIS",
+  "cases": 104,
+  "converged": 93,
+  "failed_300K": 1,
+  "failed_0K": 10,
+  "median_iterations": 14
+ },
+ {
+  "method": "axtb default (Broyden, then DIIS)",
+  "cases": 104,
+  "converged": 93,
+  "failed_300K": 1,
+  "failed_0K": 10,
+  "median_iterations": 14
+ },
+ {
+  "method": "xtb 6.7.1",
+  "cases": 104,
+  "converged": 85,
+  "failed_300K": 9,
+  "failed_0K": 10,
+  "median_iterations": 15
+ },
+ {
+  "method": "tblite 0.8.0",
+  "cases": 104,
+  "converged": 85,
+  "failed_300K": 9,
+  "failed_0K": 10,
+  "median_iterations": 15
+ }
+]

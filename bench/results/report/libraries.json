@@ -1,0 +1,58 @@
+[
+ {
+  "library": "faer (pure Rust)",
+  "license": "MIT",
+  "packaging": "Nothing to ship; static CLI and abi3 wheel",
+  "threads": "Per call (Par) on axtb's own rayon pool",
+  "verdict": "Default backend"
+ },
+ {
+  "library": "OpenBLAS",
+  "license": "BSD-3",
+  "packaging": "25\u201330 MB; C toolchain for static builds; scipy-openblas32 wheel",
+  "threads": "Global by default; per-thread openblas_set_num_threads_local",
+  "verdict": "Optional runtime-loaded backend for large multithreaded runs"
+ },
+ {
+  "library": "Intel oneMKL",
+  "license": "Proprietary (redistributable)",
+  "packaging": "~300 MB runtime; static only via oneAPI",
+  "threads": "mkl_set_num_threads_local; libiomp5 spin-waits",
+  "verdict": "Fastest eigensolver on the Intel laptop at every thread count; slowest in throughput mode on the AMD node. Optional at run time only, never linked into the LGPL build"
+ },
+ {
+  "library": "AMD AOCL (BLIS + libFLAME)",
+  "license": "BSD-3",
+  "packaging": "Built from GitHub sources (the prebuilt tarball's EULA restricts use)",
+  "threads": "bli_thread_set_num_threads_local",
+  "verdict": "Among the fastest in throughput mode on the AMD node, slower than MKL and OpenBLAS on the Intel laptop. Candidate runtime backend for AMD nodes"
+ },
+ {
+  "library": "nalgebra",
+  "license": "Apache-2.0",
+  "packaging": "Pure Rust",
+  "threads": "None",
+  "verdict": "Rejected: 6\u20139\u00d7 slower eigensolver, 9e-6 residual at n = 1000"
+ },
+ {
+  "library": "ndarray-linalg / lapack crates",
+  "license": "MIT/Apache",
+  "packaging": "Wrappers over a system LAPACK",
+  "threads": "Whatever the LAPACK does",
+  "verdict": "Rejected: forces copies; a small FFI layer suffices"
+ },
+ {
+  "library": "cuSOLVER (via cudarc)",
+  "license": "NVIDIA EULA",
+  "packaging": "Runtime-loaded CUDA",
+  "threads": "GPU",
+  "verdict": "Optional GPU backend (branch gpu-backend): worth it on the node for basis sets above ~1000 functions; not for small molecules"
+ },
+ {
+  "library": "ELPA / ScaLAPACK",
+  "license": "LGPL / BSD",
+  "packaging": "MPI",
+  "threads": "MPI ranks",
+  "verdict": "Out of scope (n \u226b 10\u2074)"
+ }
+]

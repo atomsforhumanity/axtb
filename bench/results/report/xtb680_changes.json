@@ -1,0 +1,122 @@
+[
+ {
+  "id": "xtb-6.8.0",
+  "setting": "axtb's xtb 6.8.0 conventions, as they are",
+  "dE_tight": 4.831690603168681e-13,
+  "dG_tight": 1.5078216453190407e-14,
+  "dE_default": 3.552713678800501e-13,
+  "dG_default": 3.927413949611491e-14,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "radii: 6.7.1 tables (older bohr constant)",
+  "setting": "radii: 6.7.1 tables (older bohr constant)",
+  "dE_tight": 1.1902594110324571e-07,
+  "dG_tight": 4.296818702925753e-09,
+  "dE_default": 1.19026026368374e-07,
+  "dG_default": 4.298555310311425e-09,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "D4 CN: 6.7.1 single-precision literals and older bohr constant",
+  "setting": "D4 CN: 6.7.1 single-precision literals and older bohr constant",
+  "dE_tight": 6.078053615965473e-10,
+  "dG_tight": 7.295834866770133e-09,
+  "dE_default": 6.083311632210098e-10,
+  "dG_default": 7.295747346253354e-09,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)",
+  "setting": "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)",
+  "dE_tight": 9.358162884609555e-06,
+  "dG_tight": 3.1494591019925675e-06,
+  "dE_default": 9.358162770922718e-06,
+  "dG_default": 3.149459101936189e-06,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))",
+  "setting": "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))",
+  "dE_tight": 3.802824721788056e-11,
+  "dG_tight": 4.4288149536608756e-11,
+  "dE_default": 3.552713678800501e-13,
+  "dG_default": 3.927413949611491e-14,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)",
+  "setting": "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)",
+  "dE_tight": 0.005010611477530347,
+  "dG_tight": 0.0026971038244621506,
+  "dE_default": 0.005010611477565874,
+  "dG_default": 0.00269602369750159,
+  "iterations_differ": 1,
+  "cases": 10
+ },
+ {
+  "id": "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)",
+  "setting": "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)",
+  "dE_tight": 4.831690603168681e-13,
+  "dG_tight": 1.0372653890325378e-09,
+  "dE_default": 1.601017629582202e-08,
+  "dG_default": 9.381069190003265e-06,
+  "iterations_differ": 5,
+  "cases": 10
+ },
+ {
+  "id": "SCC 3: 6.7.1 extra final iteration",
+  "setting": "SCC 3: 6.7.1 extra final iteration",
+  "dE_tight": 4.902744876744691e-13,
+  "dG_tight": 5.139147015928436e-10,
+  "dE_default": 4.876142156717833e-09,
+  "dG_default": 6.189928410541436e-06,
+  "iterations_differ": 10,
+  "cases": 10
+ },
+ {
+  "id": "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)",
+  "setting": "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)",
+  "dE_tight": 5.044853423896711e-13,
+  "dG_tight": 4.015724731909476e-11,
+  "dE_default": 1.0237499736831523e-10,
+  "dG_default": 3.3933850650258446e-07,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "SCC 5: 6.7.1 neglected multipole integrals",
+  "setting": "SCC 5: 6.7.1 neglected multipole integrals",
+  "dE_tight": 4.796163466380676e-13,
+  "dG_tight": 1.9139736442876781e-10,
+  "dE_default": 1.0507505976420362e-10,
+  "dG_default": 6.276860755813352e-08,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "SCC 6: 6.7.1 gradient from mixed moments",
+  "setting": "SCC 6: 6.7.1 gradient from mixed moments",
+  "dE_tight": 4.831690603168681e-13,
+  "dG_tight": 1.7422642124040148e-10,
+  "dE_default": 3.552713678800501e-13,
+  "dG_default": 1.3956720727446812e-06,
+  "iterations_differ": 0,
+  "cases": 10
+ },
+ {
+  "id": "SCC 6: tblite's gradient potentials",
+  "setting": "SCC 6: tblite's gradient potentials",
+  "dE_tight": 4.831690603168681e-13,
+  "dG_tight": 4.159362385763865e-10,
+  "dE_default": 3.552713678800501e-13,
+  "dG_default": 3.9397322337056395e-06,
+  "iterations_differ": 0,
+  "cases": 10
+ }
+]

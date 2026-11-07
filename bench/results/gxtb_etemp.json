@@ -1,0 +1,7801 @@
+{
+ "programs": {
+  "2.0.1": "g-xTB 2.0.1 (grimme-lab/g-xtb 2.0.1: xtb 6.7.1 --gxtb --etemp T)",
+  "1.1": "g-xTB 1.1.0 (grimme-lab/g-xtb v1.1.0: gxtb -tel T)"
+ },
+ "summary": {
+  "v2_default": {
+   "runs": 236,
+   "compared": 229,
+   "max_abs_dE": 1.0913936421275139e-11,
+   "max_abs_dE_without_water100": 1.8189894035458565e-12,
+   "max_dgrad": 4.7375602572896636e-11,
+   "iteration_mismatches": [],
+   "failures_as_program": [
+    "Fe4 300 K"
+   ],
+   "rounding_sensitive": {
+    "ErF3 5000 K": {
+     "dE": -5.655238055624068e-09,
+     "iter_axtb": 30,
+     "iter_program": 30,
+     "dgrad": 1.7904211396994708e-08
+    },
+    "TmH3 3000 K": {
+     "dE": 1.4035344975127373e-06,
+     "iter_axtb": 75,
+     "iter_program": 72,
+     "dgrad": 2.540584815465584e-05
+    },
+    "TmH3 5000 K": {
+     "dE": null,
+     "iter_axtb": null,
+     "iter_program": null,
+     "dgrad": null
+    },
+    "Fe4 300 K": {
+     "dE": null,
+     "iter_axtb": null,
+     "iter_program": null,
+     "dgrad": null
+    },
+    "Fe4 1000 K": {
+     "dE": -1.503720341133885e-06,
+     "iter_axtb": 16,
+     "iter_program": 16,
+     "dgrad": 5.26236894675125e-05
+    },
+    "Fe4 3000 K": {
+     "dE": -2.499887159501668e-06,
+     "iter_axtb": 33,
+     "iter_program": 32,
+     "dgrad": 0.00016840730634565607
+    },
+    "Fe4 5000 K": {
+     "dE": 4.81655661133118e-07,
+     "iter_axtb": 22,
+     "iter_program": 22,
+     "dgrad": 5.548635357302198e-05
+    }
+   },
+   "errors": [
+    "TmH3 5000 K: error: SCF not converged in 250 iterations (last energy change 5.054e-7 Eh, residual 3.771e-5)"
+   ]
+  },
+  "v2_tight": {
+   "runs": 236,
+   "compared": 223,
+   "max_abs_dE": 9.094947017729282e-12,
+   "max_abs_dE_without_water100": 2.0463630789890885e-12,
+   "max_dgrad": 2.8974156407457485e-11,
+   "iteration_mismatches": [],
+   "failures_as_program": [
+    "TmH3 300 K",
+    "TmH3 1000 K",
+    "TmH3 3000 K",
+    "TmH3 5000 K",
+    "Fe4 300 K",
+    "Fe4 3000 K",
+    "Fe4 5000 K"
+   ],
+   "rounding_sensitive": {
+    "CeCl3 5000 K": {
+     "dE": -4.547473508864641e-13,
+     "iter_axtb": 75,
+     "iter_program": 51,
+     "dgrad": 1.2696007007084248e-09
+    },
+    "ErF3 3000 K": {
+     "dE": 0.0,
+     "iter_axtb": 29,
+     "iter_program": 31,
+     "dgrad": 6.169515592846508e-11
+    },
+    "ErF3 5000 K": {
+     "dE": 4.547473508864641e-13,
+     "iter_axtb": 78,
+     "iter_program": 79,
+     "dgrad": 1.5941690733016475e-09
+    },
+    "EuCl3 5000 K": {
+     "dE": null,
+     "iter_axtb": null,
+     "iter_program": null,
+     "dgrad": null
+    },
+    "Fe4 1000 K": {
+     "dE": null,
+     "iter_axtb": null,
+     "iter_program": null,
+     "dgrad": null
+    },
+    "N2_stretched 5000 K": {
+     "dE": -8.526512829121202e-14,
+     "iter_axtb": 11,
+     "iter_program": 11,
+     "dgrad": 4.924394225724882e-13
+    }
+   },
+   "errors": [
+    "Fe4 1000 K: error: SCF not converged in 250 iterations (last energy change -9.095e-13 Eh, residual 3.014e-9)"
+   ]
+  },
+  "v2_default_conventions": {
+   "max_abs_dE_vs_program": 1.85321277967887e-06,
+   "max_abs_kB_part": 4.54515429737512e-08,
+   "kB_part_largest": [
+    [
+     4.54515429737512e-08,
+     "EuCl3",
+     5000.0
+    ],
+    [
+     3.676518645079341e-08,
+     "CeCl3",
+     5000.0
+    ],
+    [
+     1.338116817350965e-08,
+     "ErF3",
+     3000.0
+    ],
+    [
+     1.2672671800828539e-09,
+     "GdH3",
+     5000.0
+    ],
+    [
+     1.1104930308647454e-09,
+     "PuO2",
+     5000.0
+    ]
+   ],
+   "dE_largest": [
+    [
+     1.85321277967887e-06,
+     "water100",
+     5000.0
+    ],
+    [
+     1.8531618479755707e-06,
+     "water100",
+     3000.0
+    ],
+    [
+     1.8531518435338512e-06,
+     "water100",
+     1000.0
+    ],
+    [
+     1.8531518435338512e-06,
+     "water100",
+     300.0
+    ],
+    [
+     5.197216523811221e-08,
+     "c50h102",
+     3000.0
+    ]
+   ]
+  },
+  "v1.1": {
+   "runs": 64,
+   "compared": 60,
+   "max_abs_dE": 1.9554136088117957e-11,
+   "iteration_mismatches": []
+  }
+ },
+ "v2": [
+  {
+   "molecule": "acetate",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -228.551501119111,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.355227538141662e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 7.514605257497031e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.308109838457312e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.535298682658351e-95
+   }
+  },
+  {
+   "molecule": "acetate",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -228.551501119111,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.924080670460796e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 9.072603779358701e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.308109838457312e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.183266153630309e-29
+   }
+  },
+  {
+   "molecule": "acetate",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -228.551501119152,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.579669976578771e-16,
+    "entropy": -3.936549186677098e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 8.526512829121202e-14,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.214306433183765e-15,
+    "entropy": -3.936389010953223e-10
+   },
+   "default_conventions": {
+    "dE": 1.1721112969098613e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.859170992020372e-10
+   }
+  },
+  {
+   "molecule": "acetate",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -228.551501302636,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.263256414560601e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0564465968698755e-15,
+    "entropy": -2.6093727114956343e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.126388037344441e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.0362804364616451e-15,
+    "entropy": -2.6093071395131515e-06
+   },
+   "default_conventions": {
+    "dE": 9.052314453583676e-11,
+    "kB_part": -2.4442670110147446e-12,
+    "iterations": 9,
+    "entropy": -2.6094054362440647e-06
+   }
+  },
+  {
+   "molecule": "ammonium",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -56.885718911813,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.8700709383812075e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.2752403300009263e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.182343774227775e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.171426408018933e-189
+   }
+  },
+  {
+   "molecule": "ammonium",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -56.885718911813,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.8700709383812075e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.2752403300009263e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.182343774227775e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -7.736117116634517e-57
+   }
+  },
+  {
+   "molecule": "ammonium",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -56.885718911813,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 9.760248165235907e-14,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 9.593671343455235e-13,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.182343774227775e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -5.779815327178738e-19
+   }
+  },
+  {
+   "molecule": "ammonium",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -56.885718911814,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.944025231932379e-13,
+    "entropy": -2.281609264565801e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.2789769243681803e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 8.062508993766926e-13,
+    "entropy": -2.2816096161521807e-11
+   },
+   "default_conventions": {
+    "dE": 9.198686257150257e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.281381893998344e-11
+   }
+  },
+  {
+   "molecule": "benzene",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -232.227094623918,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.694822225952521e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.5413018084053931e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.4210854715202004e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.833007687972014e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.9257307687657885e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -5.686590873487832e-91
+   }
+  },
+  {
+   "molecule": "benzene",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -232.227094623918,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 2.0088097851811426e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.4210854715202004e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 6.819631664933823e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.9257307687657885e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -1.1641715620697975e-27
+   }
+  },
+  {
+   "molecule": "benzene",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -232.22709462397,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 2.5934115965853266e-15,
+    "entropy": -1.520114473555182e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.581472783955377e-16,
+    "entropy": -1.5201160219416882e-09
+   },
+   "default_conventions": {
+    "dE": 2.751221472863108e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -1.5199538918732467e-09
+   }
+  },
+  {
+   "molecule": "benzene",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -232.227095124997,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.126388037344441e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.0538445116559103e-15,
+    "entropy": -6.830181670060657e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 6.288372600415926e-16,
+    "entropy": -6.829580568047043e-06
+   },
+   "default_conventions": {
+    "dE": -2.702904566831421e-11,
+    "kB_part": -6.423306331271306e-12,
+    "iterations": 7,
+    "entropy": -6.830258213824772e-06
+   }
+  },
+  {
+   "molecule": "caffeine",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -680.419231527992,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3912482277333993e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 6.17735029795341e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.2446223485749215e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.450842731074859e-74
+   }
+  },
+  {
+   "molecule": "caffeine",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -680.419231527992,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.725250580759564e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 2.1371793224034263e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.2446223485749215e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.1869717910868063e-23
+   }
+  },
+  {
+   "molecule": "caffeine",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -680.419231529019,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.085137618124122e-15,
+    "entropy": -3.02622720848621e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 3.2170446861989888e-15,
+    "entropy": -3.0268094678086343e-08
+   },
+   "default_conventions": {
+    "dE": -2.3385382519336417e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.0255833407856495e-08
+   }
+  },
+  {
+   "molecule": "caffeine",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -680.419234261565,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.6423494508810421e-15,
+    "entropy": -3.151388146665773e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.4190038033490282e-15,
+    "entropy": -3.151861692109277e-05
+   },
+   "default_conventions": {
+    "dE": 2.951310307253152e-10,
+    "kB_part": -2.9672264645341784e-11,
+    "iterations": 9,
+    "entropy": -3.1514199285478036e-05
+   }
+  },
+  {
+   "molecule": "cf3br-benzene",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -3143.956680036646,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.017754453104148e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 8.508818649666239e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.892193151637912e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.651273268287925e-69
+   }
+  },
+  {
+   "molecule": "cf3br-benzene",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -3143.956680036646,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.626643678231403e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.2862974574368025e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.892193151637912e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.7273662805055726e-21
+   }
+  },
+  {
+   "molecule": "cf3br-benzene",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -3143.956680042011,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3149203947904198e-15,
+    "entropy": -1.3250146196472482e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.0200174038743626e-15,
+    "entropy": -1.3249457097381612e-07
+   },
+   "default_conventions": {
+    "dE": -2.231899998150766e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.3244621685502196e-07
+   }
+  },
+  {
+   "molecule": "cf3br-benzene",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -3143.956687547075,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.1136924715771102e-15,
+    "entropy": -7.968258255312881e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.026414196692027e-15,
+    "entropy": -7.9680384090133e-05
+   },
+   "default_conventions": {
+    "dE": -6.59383658785373e-11,
+    "kB_part": -7.503331289626658e-11,
+    "iterations": 9,
+    "entropy": -7.968330428124228e-05
+   }
+  },
+  {
+   "molecule": "cu-nh3-4",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -1866.120130573495,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.299537028745802e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 2.3121695530425868e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.659827830735594e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.215925038143215e-68
+   }
+  },
+  {
+   "molecule": "cu-nh3-4",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -1866.120130573495,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 9.08995101411847e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 9.410874857174178e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.6552803572267294e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.1945293076136722e-21
+   }
+  },
+  {
+   "molecule": "cu-nh3-4",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -1866.120130591692,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -9.094947017729282e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 8.101158632811689e-16,
+    "entropy": -9.059695939051623e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 1.0269562977782698e-15,
+    "entropy": -9.057406562807464e-08
+   },
+   "default_conventions": {
+    "dE": -6.686150300083682e-09,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -9.053093800086681e-08
+   }
+  },
+  {
+   "molecule": "cu-nh3-4",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -1866.120135315783,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 4.195862407518902e-16,
+    "entropy": -4.9524965658793294e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -6.821210263296962e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 7.945033519973776e-16,
+    "entropy": -4.9508186475863845e-05
+   },
+   "default_conventions": {
+    "dE": -1.1496013030409813e-09,
+    "kB_part": -4.661160346586257e-11,
+    "iterations": 10,
+    "entropy": -4.952538683894057e-05
+   }
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -150.340838951463,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 9.332812300755222e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.3175905639050143e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.96527263749158e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -2.919668540150621e-101
+   }
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -150.340838951463,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 8.744161326682383e-17,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.0279971318638559e-14,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.96527263749158e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -6.316788463546158e-31
+   }
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -150.340838951465,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.2108369862318114e-15,
+    "entropy": -8.36073945084408e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.17280923756158e-14,
+    "entropy": -8.360743142501077e-11
+   },
+   "default_conventions": {
+    "dE": 4.8203219193965197e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -8.359598261662813e-11
+   }
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -150.340839013151,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 7.598088824778415e-16,
+    "entropy": -9.323233549447869e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.4210854715202004e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.837208328860697e-15,
+    "entropy": -9.323255778916221e-07
+   },
+   "default_conventions": {
+    "dE": -5.198046437726589e-10,
+    "kB_part": -8.810729923425242e-13,
+    "iterations": 7,
+    "entropy": -9.320800235684355e-07
+   }
+  },
+  {
+   "molecule": "ethanol",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -155.03145720616,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 6.227657278756737e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.2620113287731272e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.4165379980113357e-10,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -9.190537003096992e-137
+   }
+  },
+  {
+   "molecule": "ethanol",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -155.03145720616,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 6.227657278756737e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.2620113287731272e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.4165379980113357e-10,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.747129777953046e-41
+   }
+  },
+  {
+   "molecule": "ethanol",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -155.03145720616,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.3530843112619095e-15,
+    "entropy": -3.152253164443515e-14
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 9.857566152238206e-16,
+    "entropy": -3.1520422126156057e-14
+   },
+   "default_conventions": {
+    "dE": 1.4165379980113357e-10,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.162181798399344e-14
+   }
+  },
+  {
+   "molecule": "ethanol",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -155.031457206381,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 5.684341886080802e-14,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 8.867689568758941e-16,
+    "entropy": -9.894517396850826e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -3.126388037344441e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 7.667477763817487e-16,
+    "entropy": -9.89330610780289e-09
+   },
+   "default_conventions": {
+    "dE": -1.276418970519444e-10,
+    "kB_part": -5.684341886080802e-14,
+    "iterations": 8,
+    "entropy": -9.81929048504665e-09
+   }
+  },
+  {
+   "molecule": "ferrocene",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -1650.731826007227,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.700029006457271e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.592476150946709e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.0445335141848773e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.383845505624751e-79
+   }
+  },
+  {
+   "molecule": "ferrocene",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -1650.731826007227,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.5707921074969988e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.863093013199091e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.0445335141848773e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.9388751466349118e-24
+   }
+  },
+  {
+   "molecule": "ferrocene",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -1650.731826010987,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.3642420526593924e-12,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0512424264419451e-15,
+    "entropy": -1.7318957533357755e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.5614259254461353e-15,
+    "entropy": -1.73235261310401e-08
+   },
+   "default_conventions": {
+    "dE": 3.154809746774845e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.7015300480635115e-08
+   }
+  },
+  {
+   "molecule": "ferrocene",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -1650.731828493056,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.5213524884316598e-15,
+    "entropy": -3.058435592582629e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.0463630789890885e-12,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.0643209364124004e-15,
+    "entropy": -3.058509814777941e-05
+   },
+   "default_conventions": {
+    "dE": 2.7853275241795927e-10,
+    "kB_part": -2.887645678129047e-11,
+    "iterations": 10,
+    "entropy": -3.058468609583355e-05
+   }
+  },
+  {
+   "molecule": "glycine",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -284.456227574019,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.979039320256561e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.129713486264677e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 1.038232000372119e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.927436071331613e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.6683149116661093e-91
+   }
+  },
+  {
+   "molecule": "glycine",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -284.456227574019,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.979039320256561e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.1354445989274495e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 2.005340338229189e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.927436071331613e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.9702999101871925e-28
+   }
+  },
+  {
+   "molecule": "glycine",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -284.456227574034,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3183898417423734e-15,
+    "entropy": -7.357613592466732e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 1.502270530195915e-15,
+    "entropy": -7.356512149667913e-10
+   },
+   "default_conventions": {
+    "dE": 2.7415580916567706e-10,
+    "kB_part": 5.684341886080802e-14,
+    "iterations": 9,
+    "entropy": -7.353781378336467e-10
+   }
+  },
+  {
+   "molecule": "glycine",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -284.4562278275,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.025630077706069e-16,
+    "entropy": -3.4945860613828997e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 1.19522447494802e-15,
+    "entropy": -3.4942777973674314e-06
+   },
+   "default_conventions": {
+    "dE": -7.653966349607799e-10,
+    "kB_part": -3.353761712787673e-12,
+    "iterations": 9,
+    "entropy": -3.494600082066883e-06
+   }
+  },
+  {
+   "molecule": "hydroxide",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -75.798360266132,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.263256414560601e-14,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.231685752336233e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -5.684341886080802e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.042841144664578e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.581668129801983e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.2112170662144981e-175
+   }
+  },
+  {
+   "molecule": "hydroxide",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -75.798360266132,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.263256414560601e-14,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.231685752336233e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -5.684341886080802e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.042841144664578e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.581668129801983e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.181614707995033e-53
+   }
+  },
+  {
+   "molecule": "hydroxide",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -75.798360266132,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.263256414560601e-14,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.1316815540229896e-13,
+    "entropy": -2.1095182790887515e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -5.684341886080802e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.0435042547006788e-15,
+    "entropy": -2.1095182790887515e-18
+   },
+   "default_conventions": {
+    "dE": 1.581668129801983e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.236655460686171e-18
+   }
+  },
+  {
+   "molecule": "hydroxide",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -75.798360266157,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.552713678800501e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.4181364416110398e-14,
+    "entropy": -7.552367962003551e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.5579538487363607e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 4.515485207967629e-15,
+    "entropy": -7.552327529569837e-11
+   },
+   "default_conventions": {
+    "dE": 3.799982550845016e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.119383385166995e-11
+   }
+  },
+  {
+   "molecule": "iodomethane",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -337.5895872428,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.771288836773579e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8449465006019636e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 5.2239101933082566e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.7429817178525496e-79
+   }
+  },
+  {
+   "molecule": "iodomethane",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -337.5895872428,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.248201624865942e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.712308238590367e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 5.2239101933082566e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.7595858313633666e-24
+   }
+  },
+  {
+   "molecule": "iodomethane",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -337.589587238155,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.979039320256561e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.8345381597461028e-15,
+    "entropy": -1.5114010832552914e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 4.0332320816460765e-16,
+    "entropy": -1.5113329673139032e-08
+   },
+   "default_conventions": {
+    "dE": -5.339018116501393e-09,
+    "kB_part": -5.684341886080802e-14,
+    "iterations": 8,
+    "entropy": -1.4248697755812235e-08
+   }
+  },
+  {
+   "molecule": "iodomethane",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -337.589588977978,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.0192181260370035e-15,
+    "entropy": -2.0605479908968664e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.030698080332741e-16,
+    "entropy": -2.0604919788080777e-05
+   },
+   "default_conventions": {
+    "dE": 1.5006662579253316e-11,
+    "kB_part": -1.944044925039634e-11,
+    "iterations": 8,
+    "entropy": -2.060569249432716e-05
+   }
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -1048.743945835188,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.429412144204889e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.3287981825982342e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.34194885706529e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.6333615240439237e-84
+   }
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -1048.743945835188,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.7069679003611782e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.9272777818102327e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.34194885706529e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.487130644523976e-26
+   }
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -1048.743945834534,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.4833247397614286e-15,
+    "entropy": -4.398132411269404e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -6.821210263296962e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.2073675392798577e-15,
+    "entropy": -4.399570286492547e-09
+   },
+   "default_conventions": {
+    "dE": -6.314166967058554e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.334638850636203e-09
+   }
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -1048.743946756249,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.725250580759564e-15,
+    "entropy": -1.1927057226223134e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.547373340571312e-15,
+    "entropy": -1.1928903540540069e-05
+   },
+   "default_conventions": {
+    "dE": 2.2100721253082156e-10,
+    "kB_part": -1.1141310096718371e-11,
+    "iterations": 9,
+    "entropy": -1.1927193157084048e-05
+   }
+  },
+  {
+   "molecule": "methane",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -40.494435440239,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.197442310920451e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 4.7375602572896636e-11,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.059074686952769e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 7.02513602846011e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.9980077173961256e-190
+   }
+  },
+  {
+   "molecule": "methane",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -40.494435440239,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.197442310920451e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 4.7375602572896636e-11,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.059074686952769e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 7.02513602846011e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.796713258662442e-57
+   }
+  },
+  {
+   "molecule": "methane",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -40.494435440239,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.197442310920451e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 4.7375602572896636e-11,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.059074686952769e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 7.02513602846011e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -4.636915047299793e-19
+   }
+  },
+  {
+   "molecule": "methane",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -40.494435440239,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.476419235288631e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.1099736067657924e-11,
+    "entropy": -2.0386824133105156e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.4868995751603507e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.4628589138643289e-12,
+    "entropy": -2.038682061724136e-11
+   },
+   "default_conventions": {
+    "dE": 6.9505290412053e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.0370309633897982e-11
+   }
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -1961.728192381256,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.2836953722228372e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.1718737919229625e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.0445335141848773e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.6786619010588713e-79
+   }
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -1961.728192381255,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.1483869410966463e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.4103301859691442e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.035438567167148e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.48235730760828e-24
+   }
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -1961.728192385915,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.9637069748057456e-15,
+    "entropy": -3.1810368438713293e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.9116652705264414e-15,
+    "entropy": -3.180521716542597e-08
+   },
+   "default_conventions": {
+    "dE": 3.3003288990585133e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.1646425876412494e-08
+   }
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -1961.728196763313,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.177877240188252e-15,
+    "entropy": -5.325988381253653e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 1.3739009929736312e-15,
+    "entropy": -5.325378729448506e-05
+   },
+   "default_conventions": {
+    "dE": 2.546585164964199e-10,
+    "kB_part": -5.0249582272954285e-11,
+    "iterations": 9,
+    "entropy": -5.326045001632807e-05
+   }
+  },
+  {
+   "molecule": "silane_phosphine",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -633.792065285976,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 4.75097391983148e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 4.106957829375091e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.6838977141305804e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -5.950270203288278e-76
+   }
+  },
+  {
+   "molecule": "silane_phosphine",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -633.792065285976,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 5.464378949326942e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 7.75855074630627e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.6838977141305804e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.016222592660061e-23
+   }
+  },
+  {
+   "molecule": "silane_phosphine",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -633.792065287576,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.962040335230398e-16,
+    "entropy": -2.2875720616400953e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 6.715548256375214e-16,
+    "entropy": -2.2873843515496377e-08
+   },
+   "default_conventions": {
+    "dE": 4.069988790433854e-10,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.2873227832789243e-08
+   }
+  },
+  {
+   "molecule": "silane_phosphine",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -633.792067655152,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.188096488193626e-16,
+    "entropy": -2.784994575506194e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -5.684341886080801e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 5.819997261902188e-16,
+    "entropy": -2.7847322368235123e-05
+   },
+   "default_conventions": {
+    "dE": 7.287326297955588e-11,
+    "kB_part": -2.6147972675971687e-11,
+    "iterations": 8,
+    "entropy": -2.7850232349856616e-05
+   }
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -3481.396112834658,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.517492267046123e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 7.060324547225605e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.6052581486292183e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.964762056254659e-57
+   }
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -3481.396112835799,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.3642420526593924e-12,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.134781488891349e-16,
+    "entropy": -1.757931899240627e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 5.273559366969494e-16,
+    "entropy": -1.757931899240627e-18
+   },
+   "default_conventions": {
+    "dE": -1.6052581486292183e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.240788644205011e-18
+   }
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -3481.396112968159,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.366962099069724e-15,
+    "entropy": -1.0143107973326445e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 5.325601071248798e-16,
+    "entropy": -1.014211036687522e-06
+   },
+   "default_conventions": {
+    "dE": -1.6189005691558123e-10,
+    "kB_part": -9.094947017729282e-13,
+    "iterations": 10,
+    "entropy": -1.014323316555354e-06
+   }
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -3481.39613758304,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.447031714567174e-16,
+    "entropy": -0.00022522238558564636
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 3.6985611889890856e-16,
+    "entropy": -0.00022518532142308187
+   },
+   "default_conventions": {
+    "dE": -3.7425706977955997e-10,
+    "kB_part": -2.1236701286397874e-10,
+    "iterations": 11,
+    "entropy": -0.00022522415178056243
+   }
+  },
+  {
+   "molecule": "water",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -76.437427652928,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.8474111129762605e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.3956531203239706e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.465110143263672e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 5.235278877080418e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.3610136164624775e-165
+   }
+  },
+  {
+   "molecule": "water",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -76.437427652928,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.8474111129762605e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.3956531203239706e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.465110143263672e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 5.235278877080418e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.486355949654546e-50
+   }
+  },
+  {
+   "molecule": "water",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -76.437427652928,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.8474111129762605e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 9.749145934989656e-15,
+    "entropy": -2.5314219349065033e-17
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.48172618408671e-16,
+    "entropy": -2.5314219349065033e-17
+   },
+   "default_conventions": {
+    "dE": 5.235278877080418e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.677925453664335e-17
+   }
+  },
+  {
+   "molecule": "water",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -76.437427652939,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.4210854715202004e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0998146837692957e-14,
+    "entropy": -2.1004909852310584e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.2789769243681803e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.96637714392034e-16,
+    "entropy": -2.1004964348199617e-10
+   },
+   "default_conventions": {
+    "dE": 5.46123146705213e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.0958678438642875e-10
+   }
+  },
+  {
+   "molecule": "zncl4",
+   "group": "reference",
+   "etemp": 300.0,
+   "E_program": -3620.362891680702,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.1862931337582205e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 2.56539220914527e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -9.140421752817929e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -8.1330600654280295e-112
+   }
+  },
+  {
+   "molecule": "zncl4",
+   "group": "reference",
+   "etemp": 1000.0,
+   "E_program": -3620.362891680702,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.1862931337582205e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 2.56539220914527e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -9.140421752817929e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -9.023349718565033e-34
+   }
+  },
+  {
+   "molecule": "zncl4",
+   "group": "reference",
+   "etemp": 3000.0,
+   "E_program": -3620.362891680712,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.24140054621626e-16,
+    "entropy": -2.3771950537129334e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.608885579318066e-16,
+    "entropy": -2.3777958445189273e-11
+   },
+   "default_conventions": {
+    "dE": -8.185452315956354e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.7441963083494783e-11
+   }
+  },
+  {
+   "molecule": "zncl4",
+   "group": "reference",
+   "etemp": 5000.0,
+   "E_program": -3620.362891717373,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.929148673087468e-16,
+    "entropy": -6.085131099403611e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 6.806620686278323e-16,
+    "entropy": -6.08598660698203e-07
+   },
+   "default_conventions": {
+    "dE": 3.4015101846307516e-10,
+    "kB_part": -9.094947017729282e-13,
+    "iterations": 9,
+    "entropy": -6.084877812678709e-07
+   }
+  },
+  {
+   "molecule": "AgCl",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -607.150634666727,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.434752482434078e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 3.452099717193846e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.319655661471188e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.754201668383059e-57
+   }
+  },
+  {
+   "molecule": "AgCl",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -607.150634666727,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 9.367506770274758e-17,
+    "entropy": -4.219036558177504e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 8.733223427164786e-17,
+    "entropy": -4.219036558177504e-18
+   },
+   "default_conventions": {
+    "dE": -3.319655661471188e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -8.635275284913661e-18
+   }
+  },
+  {
+   "molecule": "AgCl",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -607.150634795631,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.344019919448442e-16,
+    "entropy": -1.8164204963474115e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 7.632783294297951e-17,
+    "entropy": -1.816045262519659e-06
+   },
+   "default_conventions": {
+    "dE": -3.524291969370097e-11,
+    "kB_part": -1.7053025658242404e-12,
+    "iterations": 9,
+    "entropy": -1.8164430387609741e-06
+   }
+  },
+  {
+   "molecule": "AgCl",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -607.150675338175,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.557254739192331e-16,
+    "entropy": -0.00036105430041222095
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.0816681711721685e-16,
+    "entropy": -0.000361018660967504
+   },
+   "default_conventions": {
+    "dE": -1.4266561265685596e-09,
+    "kB_part": -3.402647053007968e-10,
+    "iterations": 9,
+    "entropy": -0.00036105698903963975
+   }
+  },
+  {
+   "molecule": "AlCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1623.216639545789,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.709190709853135e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 9.137655909707831e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -2.887645678129047e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.1986694316009393e-82
+   }
+  },
+  {
+   "molecule": "AlCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1623.216639545789,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.134781488891349e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.5278577014665728e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -2.887645678129047e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.730198258772013e-25
+   }
+  },
+  {
+   "molecule": "AlCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1623.216639540532,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.500539893948478e-16,
+    "entropy": -9.424425038292732e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 6.89986262569775e-16,
+    "entropy": -9.419693953641345e-09
+   },
+   "default_conventions": {
+    "dE": -5.706397132598795e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -8.478282763209581e-09
+   }
+  },
+  {
+   "molecule": "AlCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1623.21664105948,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.636048489548017e-16,
+    "entropy": -1.907837209595077e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 6.999609225566417e-16,
+    "entropy": -1.9072711160539626e-05
+   },
+   "default_conventions": {
+    "dE": -2.7084752218797803e-09,
+    "kB_part": -1.7962520360015333e-11,
+    "iterations": 9,
+    "entropy": -1.9078438966531025e-05
+   }
+  },
+  {
+   "molecule": "AmCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1976.088868429435,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.177538298314519e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 3.642919299551295e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.00399754755199e-11,
+    "kB_part": 0.0,
+    "iterations": 11,
+    "entropy": -6.1104727725209435e-62
+   }
+  },
+  {
+   "molecule": "AmCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1976.088868434956,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8796409701215e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 4.579669976578771e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.00399754755199e-11,
+    "kB_part": 0.0,
+    "iterations": 11,
+    "entropy": -2.7786841306594816e-19
+   }
+  },
+  {
+   "molecule": "AmCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1976.088868477176,
+   "iter_program": 12,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.97229694532968e-16,
+    "entropy": -7.581329237003509e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -6.821210263296962e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 9.645062526431047e-16,
+    "entropy": -7.580905983653183e-07
+   },
+   "default_conventions": {
+    "dE": -2.9331204132176936e-11,
+    "kB_part": -6.821210263296962e-13,
+    "iterations": 12,
+    "entropy": -7.581397264452125e-07
+   }
+  },
+  {
+   "molecule": "AmCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1976.088897031537,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8796409701215e-16,
+    "entropy": -0.00028281457308455696
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.77115266897232e-15,
+    "entropy": -0.0002827555175321926
+   },
+   "default_conventions": {
+    "dE": -8.419647201662883e-10,
+    "kB_part": -2.6648194761946797e-10,
+    "iterations": 11,
+    "entropy": -0.00028281695578722565
+   }
+  },
+  {
+   "molecule": "AuCl",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -595.847470248916,
+   "iter_program": 30,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 30,
+    "iter_program": 30,
+    "dgrad": 5.615993781127315e-12,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 33,
+    "iter_program": 33,
+    "dgrad": 1.8456416950307641e-13,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -7.37827576813288e-11,
+    "kB_part": 0.0,
+    "iterations": 30,
+    "entropy": -1.2009094753590513e-55
+   }
+  },
+  {
+   "molecule": "AuCl",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -595.847470248911,
+   "iter_program": 25,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 25,
+    "iter_program": 25,
+    "dgrad": 1.9952789420685235e-14,
+    "entropy": -9.844418635747514e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 29,
+    "iter_program": 29,
+    "dgrad": 3.146788385421928e-15,
+    "entropy": -9.844418635747514e-18
+   },
+   "default_conventions": {
+    "dE": -7.389644451905042e-11,
+    "kB_part": 0.0,
+    "iterations": 25,
+    "entropy": -1.9996286068119322e-17
+   }
+  },
+  {
+   "molecule": "AuCl",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -595.847470395773,
+   "iter_program": 26,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 26,
+    "iter_program": 26,
+    "dgrad": 1.7972498489449151e-12,
+    "entropy": -2.0659454260778684e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 30,
+    "iter_program": 30,
+    "dgrad": 1.7139067942650854e-15,
+    "entropy": -2.0656719281537757e-06
+   },
+   "default_conventions": {
+    "dE": -2.8994691092520952e-09,
+    "kB_part": -3.296918293926865e-12,
+    "iterations": 26,
+    "entropy": -2.0659203751283538e-06
+   }
+  },
+  {
+   "molecule": "AuCl",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -595.847512982645,
+   "iter_program": 20,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 5.684341886080801e-13,
+    "iter_axtb": 20,
+    "iter_program": 20,
+    "dgrad": 9.121522981381247e-14,
+    "entropy": -0.0003750763567463483
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 26,
+    "iter_program": 26,
+    "dgrad": 3.469446951953614e-16,
+    "entropy": -0.0003760290775989637
+   },
+   "default_conventions": {
+    "dE": -4.48267201136332e-10,
+    "kB_part": -3.468585418886505e-10,
+    "iterations": 20,
+    "entropy": -0.0003750791154073108
+   }
+  },
+  {
+   "molecule": "BF3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -324.634373910674,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.66009053260863e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.1615427656658245e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.427658157306723e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.3836714368354164e-136
+   }
+  },
+  {
+   "molecule": "BF3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -324.634373910674,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.66009053260863e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.1615427656658245e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.427658157306723e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.9832020207731673e-41
+   }
+  },
+  {
+   "molecule": "BF3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -324.634373910674,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 7.78023478975598e-16,
+    "entropy": -4.000701416293161e-14
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 8.179221189230645e-16,
+    "entropy": -4.001545223604797e-14
+   },
+   "default_conventions": {
+    "dE": 3.4219738154206425e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.887262614303626e-14
+   }
+  },
+  {
+   "molecule": "BF3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -324.634373907575,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.1475195793586579e-15,
+    "entropy": -1.4153266780169132e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.259094840008115e-15,
+    "entropy": -1.4157223748152371e-08
+   },
+   "default_conventions": {
+    "dE": -3.715797447512159e-09,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.3103079554916695e-08
+   }
+  },
+  {
+   "molecule": "BiH3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -216.309279427829,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.7053025658242404e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.5573480005581786e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 2.8536201179818477e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.3130829756846651e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -5.220032386602761e-84
+   }
+  },
+  {
+   "molecule": "BiH3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -216.309279427829,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.7053025658242404e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 9.172350379227368e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.592680402648597e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.3130829756846651e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.1028597839667681e-25
+   }
+  },
+  {
+   "molecule": "BiH3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -216.309279429443,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.694822225952521e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 8.38305119765792e-16,
+    "entropy": -5.493390716449687e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.714111045966973e-16,
+    "entropy": -5.495074475035528e-09
+   },
+   "default_conventions": {
+    "dE": 1.342414179816842e-09,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -5.240584868585423e-09
+   }
+  },
+  {
+   "molecule": "BiH3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -216.309280435341,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.044737213407032e-15,
+    "entropy": -1.2820063042653916e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -5.115907697472721e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.0870482031882789e-16,
+    "entropy": -1.2821946789748601e-05
+   },
+   "default_conventions": {
+    "dE": -2.4925839170464315e-11,
+    "kB_part": -1.2079226507921703e-11,
+    "iterations": 8,
+    "entropy": -1.2820206119771595e-05
+   }
+  },
+  {
+   "molecule": "CaCl2",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1598.121070024443,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.443426099813962e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.5326962749261384e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.5697667044587433e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.074621773996403e-67
+   }
+  },
+  {
+   "molecule": "CaCl2",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1598.121070024443,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3704315460216776e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 9.323793799946811e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.5697667044587433e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.38136245635595e-20
+   }
+  },
+  {
+   "molecule": "CaCl2",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1598.121070042205,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.1143568292375377e-16,
+    "entropy": -2.9365385760854595e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.393918396847994e-16,
+    "entropy": -2.9361184806407743e-07
+   },
+   "default_conventions": {
+    "dE": -1.4983925211708993e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.9365456056034026e-07
+   }
+  },
+  {
+   "molecule": "CaCl2",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1598.12108439945,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.3021142204224816e-16,
+    "entropy": -0.0001479986661290449
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 9.394381973581282e-17,
+    "entropy": -0.00014797788155292661
+   },
+   "default_conventions": {
+    "dE": -1.7598722479306161e-10,
+    "kB_part": -1.3938006304670125e-10,
+    "iterations": 9,
+    "entropy": -0.00014799997895863055
+   }
+  },
+  {
+   "molecule": "CeCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1855.84310646808,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.537960253821079e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 2.887831580198102e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 5.206857167650014e-11,
+    "kB_part": 0.0,
+    "iterations": 11,
+    "entropy": -7.490303714725602e-45
+   }
+  },
+  {
+   "molecule": "CeCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1855.843106461364,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 3.903127820947816e-16,
+    "entropy": -4.129557824510393e-14
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 4.996003610813204e-16,
+    "entropy": -4.1353941584158826e-14
+   },
+   "default_conventions": {
+    "dE": 5.2295945351943374e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -3.2525878462035995e-14
+   }
+  },
+  {
+   "molecule": "CeCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1855.843108358276,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 6.999609225566417e-16,
+    "entropy": -2.1119906855804913e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 6.153278256867153e-16,
+    "entropy": -2.1103267371522838e-05
+   },
+   "default_conventions": {
+    "dE": 5.738911568187177e-10,
+    "kB_part": -2.000888343900442e-11,
+    "iterations": 11,
+    "entropy": -2.1120111319954324e-05
+   }
+  },
+  {
+   "molecule": "CeCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1855.809758144769,
+   "iter_program": 16,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 3.9979391325273284e-13,
+    "entropy": -0.03899029299914807
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 75,
+    "iter_program": 51,
+    "dgrad": 1.2696007007084248e-09,
+    "entropy": -0.039005884947919234
+   },
+   "default_conventions": {
+    "dE": -3.6712208384415135e-08,
+    "kB_part": -3.676518645079341e-08,
+    "iterations": 16,
+    "entropy": -0.03899034001248048
+   }
+  },
+  {
+   "molecule": "Cr_CO_6",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1724.611282847416,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.8189894035458565e-12,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.200564813177209e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.70536934468646e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.731646185973659e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.0775860062197717e-75
+   }
+  },
+  {
+   "molecule": "Cr_CO_6",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1724.611282847416,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.8189894035458565e-12,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.29250515740398e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.219646771412954e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.731646185973659e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.2117712482601235e-23
+   }
+  },
+  {
+   "molecule": "Cr_CO_6",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1724.611282896976,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.0096090630185017e-15,
+    "entropy": -6.791600463127555e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.970645868709653e-15,
+    "entropy": -6.792515581473248e-08
+   },
+   "default_conventions": {
+    "dE": 5.897163646295667e-09,
+    "kB_part": -2.2737367544323206e-13,
+    "iterations": 10,
+    "entropy": -6.768194929678541e-08
+   }
+  },
+  {
+   "molecule": "Cr_CO_6",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1724.6112899128,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 2.7096380694757727e-15,
+    "entropy": -8.196105001168546e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.0581813203458523e-15,
+    "entropy": -8.196383526214622e-05
+   },
+   "default_conventions": {
+    "dE": 3.951754479203373e-10,
+    "kB_part": -7.73070496506989e-11,
+    "iterations": 10,
+    "entropy": -8.196188415796171e-05
+   }
+  },
+  {
+   "molecule": "ErF3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1314.822496580197,
+   "iter_program": 12,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 3.2439329000766293e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 21,
+    "iter_program": 21,
+    "dgrad": 1.3047463379538136e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.367795428261161e-11,
+    "kB_part": -2.2737367544323206e-13,
+    "iterations": 12,
+    "entropy": -1.113199470763734e-86
+   }
+  },
+  {
+   "molecule": "ErF3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1314.822496535891,
+   "iter_program": 12,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.7954387976359953e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 1.827617791060423e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 9.345058060716838e-11,
+    "kB_part": 0.0,
+    "iterations": 12,
+    "entropy": -1.6216270729061614e-26
+   }
+  },
+  {
+   "molecule": "ErF3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1314.736435163909,
+   "iter_program": 15,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 7.531989441205189e-13,
+    "entropy": -0.013170390199698942
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "dE": 0.0,
+    "iter_axtb": 29,
+    "iter_program": 31,
+    "dgrad": 6.169515592846508e-11,
+    "entropy": -0.013170390236886338
+   },
+   "default_conventions": {
+    "dE": -1.2043756214552559e-08,
+    "kB_part": -1.338116817350965e-08,
+    "iterations": 15,
+    "entropy": -0.013170402437527292
+   }
+  },
+  {
+   "molecule": "ErF3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1314.709124574665,
+   "iter_program": 30,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "dE": -5.655238055624068e-09,
+    "iter_axtb": 30,
+    "iter_program": 30,
+    "dgrad": 1.7904211396994708e-08,
+    "entropy": -0.035813673280049765
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 78,
+    "iter_program": 79,
+    "dgrad": 1.5941690733016475e-09,
+    "entropy": -0.035813663581743406
+   },
+   "default_conventions": {
+    "dE": -4.382582119433209e-08,
+    "kB_part": -4.360754246590659e-08,
+    "iterations": 30,
+    "entropy": -0.035813691850005824
+   }
+  },
+  {
+   "molecule": "EuCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2090.992532216812,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 4.0245584642661925e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 3.595839632563834e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.1382008930668235e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -5.603192272499821e-55
+   }
+  },
+  {
+   "molecule": "EuCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2090.992532117079,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 6.643990912991171e-16,
+    "entropy": -9.844418635747521e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 4.753142324176451e-16,
+    "entropy": -9.492832255899395e-18
+   },
+   "default_conventions": {
+    "dE": 4.18367562815547e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -2.930217351557848e-17
+   }
+  },
+  {
+   "molecule": "EuCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2090.992532378837,
+   "iter_program": 13,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 5.585809592645319e-16,
+    "entropy": -2.159600744180081e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 3.756324781323289e-16,
+    "entropy": -2.159599324113585e-06
+   },
+   "default_conventions": {
+    "dE": -7.885319064371288e-10,
+    "kB_part": -1.8189894035458565e-12,
+    "iterations": 13,
+    "entropy": -2.1596043865757665e-06
+   }
+  },
+  {
+   "molecule": "EuCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2090.91645485945,
+   "iter_program": 19,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 19,
+    "iter_program": 19,
+    "dgrad": 1.0466667309399967e-12,
+    "entropy": -0.048219604097484325
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "program_fails": true,
+    "axtb_fails": false
+   },
+   "default_conventions": {
+    "dE": -4.5539763959823176e-08,
+    "kB_part": -4.54515429737512e-08,
+    "iterations": 19,
+    "entropy": -0.04821966915085691
+   }
+  },
+  {
+   "molecule": "GdCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2146.349124949252,
+   "iter_program": 14,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.441623292437356e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 2.811807858552966e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.3651303965598345e-11,
+    "kB_part": 0.0,
+    "iterations": 14,
+    "entropy": -1.3578467345164e-57
+   }
+  },
+  {
+   "molecule": "GdCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2146.349124947892,
+   "iter_program": 14,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 8.76902717106276e-16,
+    "entropy": -4.219036558177503e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 3.3133218391157016e-16,
+    "entropy": -4.219036558177503e-18
+   },
+   "default_conventions": {
+    "dE": -3.319655661471188e-11,
+    "kB_part": 0.0,
+    "iterations": 14,
+    "entropy": -8.59559627838656e-18
+   }
+  },
+  {
+   "molecule": "GdCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2146.349125227577,
+   "iter_program": 15,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 15,
+    "iter_program": 15,
+    "dgrad": 3.345696364802047e-16,
+    "entropy": -3.4536598008595173e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 3.8620973778315646e-16,
+    "entropy": -3.456452342576351e-06
+   },
+   "default_conventions": {
+    "dE": -4.4792614062316716e-10,
+    "kB_part": -3.183231456205249e-12,
+    "iterations": 15,
+    "entropy": -3.45369297735048e-06
+   }
+  },
+  {
+   "molecule": "GdCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2146.349214966261,
+   "iter_program": 17,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.061650767297806e-15,
+    "entropy": -0.0008243285150258623
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 25,
+    "iter_program": 25,
+    "dgrad": 3.5258254649228604e-16,
+    "entropy": -0.0008244213018717651
+   },
+   "default_conventions": {
+    "dE": -8.103597792796791e-10,
+    "kB_part": -7.776179700158536e-10,
+    "iterations": 17,
+    "entropy": -0.0008243348773789184
+   }
+  },
+  {
+   "molecule": "GdH3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -767.253167693697,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 4.450107816966753e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 19,
+    "iter_program": 19,
+    "dgrad": 1.5726352511902242e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.4665602066088468e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.348092956254073e-47
+   }
+  },
+  {
+   "molecule": "GdH3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -767.25316769236,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 4.527628272299467e-16,
+    "entropy": -4.901114135083717e-15
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 19,
+    "iter_program": 19,
+    "dgrad": 1.0825758692267762e-16,
+    "entropy": -4.865603910719057e-15
+   },
+   "default_conventions": {
+    "dE": -1.4438228390645236e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -4.591610889763514e-15
+   }
+  },
+  {
+   "molecule": "GdH3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -767.253168817197,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 5.115807950872853e-16,
+    "entropy": -1.36715183339476e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 5.684341886080801e-13,
+    "iter_axtb": 20,
+    "iter_program": 20,
+    "dgrad": 2.0729945537922845e-16,
+    "entropy": -1.3674862331940484e-05
+   },
+   "default_conventions": {
+    "dE": -2.6230964067508467e-09,
+    "kB_part": -1.2846612662542611e-11,
+    "iterations": 10,
+    "entropy": -1.3671705587273501e-05
+   }
+  },
+  {
+   "molecule": "GdH3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -767.253338285556,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8189256484623115e-16,
+    "entropy": -0.001344398790013985
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 19,
+    "iter_program": 19,
+    "dgrad": 2.2518879122523927e-16,
+    "entropy": -0.0013444642813721737
+   },
+   "default_conventions": {
+    "dE": -2.3072743715601973e-09,
+    "kB_part": -1.2672671800828539e-09,
+    "iterations": 11,
+    "entropy": -0.0013444077253042274
+   }
+  },
+  {
+   "molecule": "H2Se",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2402.599865658562,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.5005358067199381e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.8821749714348357e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.1368683772161603e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -4.9409028706050287e-73
+   }
+  },
+  {
+   "molecule": "H2Se",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2402.599865658562,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 4.590511998303626e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.201296007113939e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.1368683772161603e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -1.4727738667258738e-22
+   }
+  },
+  {
+   "molecule": "H2Se",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2402.599865660906,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.0646865333807654e-16,
+    "entropy": -4.1224826747514395e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.94469310047063e-16,
+    "entropy": -4.122653540221398e-08
+   },
+   "default_conventions": {
+    "dE": -1.0459189070388675e-11,
+    "kB_part": -4.547473508864641e-13,
+    "iterations": 7,
+    "entropy": -4.122547466345542e-08
+   }
+  },
+  {
+   "molecule": "H2Se",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2402.599868685314,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.97758476261356e-16,
+    "entropy": -3.335991484760617e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.7798943702528334e-16,
+    "entropy": -3.336031551869544e-05
+   },
+   "default_conventions": {
+    "dE": -4.229150363244116e-11,
+    "kB_part": -3.1377567211166024e-11,
+    "iterations": 7,
+    "entropy": -3.336023376727351e-05
+   }
+  },
+  {
+   "molecule": "HBr",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2574.604731765706,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 3.144186300207963e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.928495022437622e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.9117155615240335e-12,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -2.2281170980370102e-94
+   }
+  },
+  {
+   "molecule": "HBr",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2574.604731765706,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 3.144186300207963e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 8.075241722944021e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.9117155615240335e-12,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -9.277116117259175e-29
+   }
+  },
+  {
+   "molecule": "HBr",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2574.604731765553,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 9.597529540777012e-17,
+    "entropy": -5.440502810523271e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.5872719805187785e-16,
+    "entropy": -5.440409759671092e-10
+   },
+   "default_conventions": {
+    "dE": -1.8189894035458565e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -5.129030893879287e-10
+   }
+  },
+  {
+   "molecule": "HBr",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2574.604731979059,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.5872719805187785e-16,
+    "entropy": -2.979721079343333e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.36599383779918e-17,
+    "entropy": -2.9796888963178207e-06
+   },
+   "default_conventions": {
+    "dE": -1.0913936421275139e-11,
+    "kB_part": -2.7284841053187847e-12,
+    "iterations": 7,
+    "entropy": -2.9797576618919124e-06
+   }
+  },
+  {
+   "molecule": "HgCl2",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1073.846498526171,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.5822039778921066e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.7292721973936535e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.54702933691442e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.5540111902665354e-85
+   }
+  },
+  {
+   "molecule": "HgCl2",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1073.846498526171,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.898999398436583e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.394657595126783e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.54702933691442e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.606242729043668e-26
+   }
+  },
+  {
+   "molecule": "HgCl2",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1073.846498525149,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.2439329000766293e-16,
+    "entropy": -5.352206449359012e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 5.044195682864876e-16,
+    "entropy": -5.352296219932549e-09
+   },
+   "default_conventions": {
+    "dE": -1.3083081285003573e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.247161191667224e-09
+   }
+  },
+  {
+   "molecule": "HgCl2",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1073.846499768821,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.2429122284490396e-16,
+    "entropy": -1.6253909755113364e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 2.4804519186545605e-16,
+    "entropy": -1.6253654265591494e-05
+   },
+   "default_conventions": {
+    "dE": -5.047695594839752e-11,
+    "kB_part": -1.546140993013978e-11,
+    "iterations": 9,
+    "entropy": -1.6254096534202236e-05
+   }
+  },
+  {
+   "molecule": "KCl",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1060.168716699422,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.0061396160665481e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 5.551115123125783e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -7.435119186993688e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.3278006307480806e-59
+   }
+  },
+  {
+   "molecule": "KCl",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1060.168716699422,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 6.938893903907228e-18,
+    "entropy": -7.031727596962505e-19
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.255140518769849e-16,
+    "entropy": -7.031727596962505e-19
+   },
+   "default_conventions": {
+    "dE": -7.435119186993688e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.898115999334532e-18
+   }
+  },
+  {
+   "molecule": "KCl",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1060.168716779524,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.7694179454963432e-16,
+    "entropy": -1.1696154170050897e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.4224732503009818e-16,
+    "entropy": -1.1696093705701875e-06
+   },
+   "default_conventions": {
+    "dE": -9.094947017729282e-11,
+    "kB_part": -1.3642420526593924e-12,
+    "iterations": 10,
+    "entropy": -1.1696301014284437e-06
+   }
+  },
+  {
+   "molecule": "KCl",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1060.168747497545,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.734723475976807e-17,
+    "entropy": -0.0002820060316867479
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.8449465006019636e-16,
+    "entropy": -0.00028200319440364955
+   },
+   "default_conventions": {
+    "dE": -3.3992364478763193e-10,
+    "kB_part": -2.660272002685815e-10,
+    "iterations": 10,
+    "entropy": -0.00028200822705984644
+   }
+  },
+  {
+   "molecule": "LaCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1412.330940839844,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.521786169300654e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.5113778284447932e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.5006662579253316e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.54978974164104e-70
+   }
+  },
+  {
+   "molecule": "LaCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1412.330940839844,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.083117970313019e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 4.122136659789888e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.5006662579253316e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.4100002013179846e-21
+   }
+  },
+  {
+   "molecule": "LaCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1412.330940847763,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 9.267760170406092e-16,
+    "entropy": -1.366620443295488e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.0988323067418e-16,
+    "entropy": -1.3666574714777906e-07
+   },
+   "default_conventions": {
+    "dE": -1.5234036254696548e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.3666326726502406e-07
+   }
+  },
+  {
+   "molecule": "LaCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1412.330949877623,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.804946157337646e-16,
+    "entropy": -9.809139343879191e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.641116492174689e-16,
+    "entropy": -9.809077519909181e-05
+   },
+   "default_conventions": {
+    "dE": -7.776179700158536e-11,
+    "kB_part": -9.231371222995222e-11,
+    "iterations": 9,
+    "entropy": -9.809231561100846e-05
+   }
+  },
+  {
+   "molecule": "LaH3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -33.203145957162,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.126388037344441e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.413434035952733e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 1.240327285323417e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 2.1046275833214168e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.650537632558382e-53
+   }
+  },
+  {
+   "molecule": "LaH3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -33.203145957162,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.126388037344441e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.649994361256461e-15,
+    "entropy": -1.4274407021833938e-16
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 1.0018028073766061e-16,
+    "entropy": -1.4274407021833938e-16
+   },
+   "default_conventions": {
+    "dE": 2.1046275833214168e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.1906831615026386e-16
+   }
+  },
+  {
+   "molecule": "LaH3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -33.203146276754,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.907985046680551e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.051812275112198e-15,
+    "entropy": -4.220814566978097e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.4210854715202004e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 1.1796119636642288e-16,
+    "entropy": -4.220169851133687e-06
+   },
+   "default_conventions": {
+    "dE": -1.4289014416135615e-11,
+    "kB_part": -3.97193389289896e-12,
+    "iterations": 9,
+    "entropy": -4.220862688398881e-06
+   }
+  },
+  {
+   "molecule": "LaH3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -33.203217927303,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.765876499528531e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0473392986209973e-15,
+    "entropy": -0.0006074868196462597
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.618527782440651e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 8.698554559246794e-17,
+    "entropy": -0.0006075341942072187
+   },
+   "default_conventions": {
+    "dE": -5.509690481630969e-10,
+    "kB_part": -5.726406016037799e-10,
+    "iterations": 9,
+    "entropy": -0.000607491182942035
+   }
+  },
+  {
+   "molecule": "LiF",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -107.45516301307,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.5965835304695446e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 5.377642775528102e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -9.876544027065393e-12,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.29128879880084e-82
+   }
+  },
+  {
+   "molecule": "LiF",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -107.45516301307,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.411606051110908e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 3.2916377956659915e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -9.876544027065393e-12,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.485415521658843e-25
+   }
+  },
+  {
+   "molecule": "LiF",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -107.455163008421,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.9895196601282805e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.6253925289033688e-14,
+    "entropy": -9.667670568798324e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.405364961712621e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 8.760353553682876e-17,
+    "entropy": -9.668158899140644e-09
+   },
+   "default_conventions": {
+    "dE": -5.100744715491601e-09,
+    "kB_part": -1.4210854715202004e-14,
+    "iterations": 9,
+    "entropy": -8.746889807813416e-09
+   }
+  },
+  {
+   "molecule": "LiF",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -107.45516437277,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.7000623958883807e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.070800971982095e-16,
+    "entropy": -1.6708472538049685e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 5.551115123125783e-17,
+    "entropy": -1.6709846677429758e-05
+   },
+   "default_conventions": {
+    "dE": -2.965379053421202e-10,
+    "kB_part": -1.5759837879159022e-11,
+    "iterations": 9,
+    "entropy": -1.670864161804542e-05
+   }
+  },
+  {
+   "molecule": "LuCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2616.264275549742,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 3.723054307364166e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 1.8084492237058214e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -2.000888343900442e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.3352734337413727e-69
+   }
+  },
+  {
+   "molecule": "LuCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2616.264275549742,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 6.704706234650359e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 4.718258992779457e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.9554136088117957e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.7007743906496915e-21
+   }
+  },
+  {
+   "molecule": "LuCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2616.26427555797,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 5.814905365503827e-16,
+    "entropy": -1.4593717965478707e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 2.2384438053135725e-15,
+    "entropy": -1.4591913084436532e-07
+   },
+   "default_conventions": {
+    "dE": -2.4556356947869062e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.4593929811270725e-07
+   }
+  },
+  {
+   "molecule": "LuCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2616.264285030967,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 6.442329308908867e-16,
+    "entropy": -0.00010245471325405332
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 7.298849025172416e-16,
+    "entropy": -0.00010245110584068837
+   },
+   "default_conventions": {
+    "dE": -1.1596057447604835e-10,
+    "kB_part": -9.686118573881686e-11,
+    "iterations": 11,
+    "entropy": -0.0001024556722731457
+   }
+  },
+  {
+   "molecule": "NaCl",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -622.542682692335,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.5673907444456745e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 9.020562075079397e-17,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.547917680814862e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.201207162432028e-71
+   }
+  },
+  {
+   "molecule": "NaCl",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -622.542682692335,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.8735013540549517e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 5.967448757360216e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.547917680814862e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.035470973592512e-22
+   }
+  },
+  {
+   "molecule": "NaCl",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -622.542682694472,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3183898417423734e-16,
+    "entropy": -9.374366754810642e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 8.326672684688674e-17,
+    "entropy": -9.374126296953918e-08
+   },
+   "default_conventions": {
+    "dE": -3.332388587296009e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -9.362239063404747e-08
+   }
+  },
+  {
+   "molecule": "NaCl",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -622.542688814256,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0408340855860843e-17,
+    "entropy": -6.603599621677193e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.7755575615628914e-16,
+    "entropy": -6.603082530413503e-05
+   },
+   "default_conventions": {
+    "dE": -1.2450982467271388e-09,
+    "kB_part": -6.218670023372397e-11,
+    "iterations": 9,
+    "entropy": -6.603656060238192e-05
+   }
+  },
+  {
+   "molecule": "NpF6",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1113.755614300635,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.4276774207289122e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.6135546571732646e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.007265382213518e-10,
+    "kB_part": -2.2737367544323206e-13,
+    "iterations": 10,
+    "entropy": -7.863121442832757e-67
+   }
+  },
+  {
+   "molecule": "NpF6",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1113.755614300379,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 2.2817240459537813e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 9.593020822151743e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.0049916454590857e-10,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -1.0031134969849979e-20
+   }
+  },
+  {
+   "molecule": "NpF6",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1113.755614319581,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.2715523078909996e-15,
+    "entropy": -1.7028560916738933e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.4857906571741353e-15,
+    "entropy": -1.7025214596434588e-07
+   },
+   "default_conventions": {
+    "dE": -8.230927051045001e-10,
+    "kB_part": -2.2737367544323206e-13,
+    "iterations": 10,
+    "entropy": -1.7027591661857497e-07
+   }
+  },
+  {
+   "molecule": "NpF6",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1113.755625219516,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 1.0787264305497737e-15,
+    "entropy": -0.00012095064069464844
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.1206313654810174e-15,
+    "entropy": -0.00012095635330327438
+   },
+   "default_conventions": {
+    "dE": -3.0172486731316894e-10,
+    "kB_part": -1.1391421139705926e-10,
+    "iterations": 10,
+    "entropy": -0.00012095181498690667
+   }
+  },
+  {
+   "molecule": "PbH4",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -195.100346256034,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.5579538487363607e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.4224732503009818e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.296202166939254e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 6.338041202980094e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -2.1841715622601096e-85
+   }
+  },
+  {
+   "molecule": "PbH4",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -195.100346256034,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.5579538487363607e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.4224732503009818e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 3.296202166939254e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 6.338041202980094e-11,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -5.271247229163238e-26
+   }
+  },
+  {
+   "molecule": "PbH4",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -195.100346253875,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.694822225952521e-13,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 1.1683362610703796e-15,
+    "entropy": -5.129298669946476e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.842170943040401e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.094699103184469e-16,
+    "entropy": -5.129464497080069e-09
+   },
+   "default_conventions": {
+    "dE": -2.311963953616214e-09,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -4.442234216959197e-09
+   }
+  },
+  {
+   "molecule": "PbH4",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -195.100347148775,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -8.526512829121202e-14,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 5.48172618408671e-16,
+    "entropy": -1.1369485130747834e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.6653345369377348e-16,
+    "entropy": -1.1369697866670013e-05
+   },
+   "default_conventions": {
+    "dE": -3.319371444376884e-10,
+    "kB_part": -1.071498445526231e-11,
+    "iterations": 8,
+    "entropy": -1.1369593225835346e-05
+   }
+  },
+  {
+   "molecule": "PtCl4_2-_",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1960.262414267274,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -6.821210263296962e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.014422459012849e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 7.389922007661198e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.8690116121433675e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -6.147984532007726e-72
+   }
+  },
+  {
+   "molecule": "PtCl4_2-_",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1960.262414267274,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -6.821210263296962e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.487865800153259e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 7.546047120499111e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.8690116121433675e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -3.24046999906979e-22
+   }
+  },
+  {
+   "molecule": "PtCl4_2-_",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1960.262414272061,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.0245584642661925e-16,
+    "entropy": -7.343445347903466e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.707307637138226e-16,
+    "entropy": -7.344586611730819e-08
+   },
+   "default_conventions": {
+    "dE": 4.5702108764089644e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.340466773261498e-08
+   }
+  },
+  {
+   "molecule": "PtCl4_2-_",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1960.262419777892,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.533767888366015e-16,
+    "entropy": -6.0988392116419324e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 4.537494993292131e-16,
+    "entropy": -6.099582677561146e-05
+   },
+   "default_conventions": {
+    "dE": 1.8894752429332584e-10,
+    "kB_part": -5.752553988713771e-11,
+    "iterations": 9,
+    "entropy": -6.0988943858504144e-05
+   }
+  },
+  {
+   "molecule": "PuO2",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -704.321782618499,
+   "iter_program": 12,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.6906135985963469e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 4.346772286371622e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -2.2168933355715126e-11,
+    "kB_part": 0.0,
+    "iterations": 12,
+    "entropy": -4.8988744523422243e-45
+   }
+  },
+  {
+   "molecule": "PuO2",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -704.321782618633,
+   "iter_program": 12,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 5.539643780624655e-15,
+    "entropy": -2.7727508260370278e-14
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 2.8559267088077602e-15,
+    "entropy": -2.7728211433129974e-14
+   },
+   "default_conventions": {
+    "dE": -2.2851054382044822e-11,
+    "kB_part": 0.0,
+    "iterations": 12,
+    "entropy": -2.443926056578777e-14
+   }
+  },
+  {
+   "molecule": "PuO2",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -704.321784129528,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8189256484623115e-16,
+    "entropy": -1.6956040631026645e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 7.173773160828411e-15,
+    "entropy": -1.6965237458630366e-05
+   },
+   "default_conventions": {
+    "dE": -4.149569576838985e-11,
+    "kB_part": -1.602984411874786e-11,
+    "iterations": 11,
+    "entropy": -1.695620617791169e-05
+   }
+  },
+  {
+   "molecule": "PuO2",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -704.321942113882,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.1535911115245767e-15,
+    "entropy": -0.001177893158418859
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 17,
+    "iter_program": 17,
+    "dgrad": 1.3656112268631296e-15,
+    "entropy": -0.0011781626831491939
+   },
+   "default_conventions": {
+    "dE": -1.1330030247336254e-09,
+    "kB_part": -1.1104930308647454e-09,
+    "iterations": 11,
+    "entropy": -0.0011779005309409665
+   }
+  },
+  {
+   "molecule": "SnH4",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -216.597789166633,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.979039320256561e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.1015494072452725e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.942890293094024e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.171862772433087e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -9.771749463414937e-95
+   }
+  },
+  {
+   "molecule": "SnH4",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -216.597789166633,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.979039320256561e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.1015494072452725e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.7053025658242404e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.942890293094024e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.171862772433087e-11,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -8.893473647254043e-29
+   }
+  },
+  {
+   "molecule": "SnH4",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -216.597789166433,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -8.526512829121202e-14,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 2.8176096078531314e-16,
+    "entropy": -6.733579759031736e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -3.694822225952521e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.3096576848799154e-16,
+    "entropy": -6.736696044937448e-10
+   },
+   "default_conventions": {
+    "dE": -1.9457502276054583e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -6.007456003409853e-10
+   }
+  },
+  {
+   "molecule": "SnH4",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -216.59778945757,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -5.684341886080802e-14,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 2.960793809305555e-16,
+    "entropy": -4.162382594520302e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.8421709430404007e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.3935900117213474e-16,
+    "entropy": -4.16312700673984e-06
+   },
+   "default_conventions": {
+    "dE": 2.404476617812179e-11,
+    "kB_part": -3.950617610826157e-12,
+    "iterations": 7,
+    "entropy": -4.162435229596446e-06
+   }
+  },
+  {
+   "molecule": "TbCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2205.176748754508,
+   "iter_program": 22,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 3.7381556183824216e-14,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 28,
+    "iter_program": 28,
+    "dgrad": 4.631711680858075e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -6.502887117676437e-11,
+    "kB_part": -4.547473508864641e-13,
+    "iterations": 22,
+    "entropy": -1.7334875191945623e-68
+   }
+  },
+  {
+   "molecule": "TbCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2205.176748767017,
+   "iter_program": 23,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 23,
+    "iter_program": 23,
+    "dgrad": 1.7477339020466331e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 28,
+    "iter_program": 28,
+    "dgrad": 4.3190260273078018e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -7.412381819449365e-11,
+    "kB_part": 9.094947017729282e-13,
+    "iterations": 23,
+    "entropy": -2.107369242437082e-21
+   }
+  },
+  {
+   "molecule": "TbCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2205.176748737184,
+   "iter_program": 38,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 38,
+    "iter_program": 38,
+    "dgrad": 3.616839206604938e-11,
+    "entropy": -1.0573722532846094e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 44,
+    "iter_program": 44,
+    "dgrad": 6.3499605910039125e-15,
+    "entropy": -1.0573069684178266e-07
+   },
+   "default_conventions": {
+    "dE": -2.987053449032828e-08,
+    "kB_part": -1.0936673788819462e-09,
+    "iterations": 40,
+    "entropy": -1.0558735843054226e-07
+   }
+  },
+  {
+   "molecule": "TbCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2205.176646629427,
+   "iter_program": 27,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 27,
+    "iter_program": 27,
+    "dgrad": 1.0256231627869816e-12,
+    "entropy": -8.554693629579507e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -9.094947017729282e-13,
+    "iter_axtb": 33,
+    "iter_program": 33,
+    "dgrad": 3.0326535942202775e-15,
+    "entropy": -8.58437696751532e-05
+   },
+   "default_conventions": {
+    "dE": -8.803908713161945e-10,
+    "kB_part": -6.589289114344865e-10,
+    "iterations": 27,
+    "entropy": -8.554770005997676e-05
+   }
+  },
+  {
+   "molecule": "ThCl4",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2248.660699276755,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 3.511372472717367e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.59985000535378e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.4551915228366852e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.167937438558017e-68
+   }
+  },
+  {
+   "molecule": "ThCl4",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2248.660699276756,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 7.089359702193371e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 2.303929616531697e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.546140993013978e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -8.428603173344163e-21
+   }
+  },
+  {
+   "molecule": "ThCl4",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2248.660699302618,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.934746188067773e-16,
+    "entropy": -4.310203766261525e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 6.060188309146398e-16,
+    "entropy": -4.306414579893472e-07
+   },
+   "default_conventions": {
+    "dE": 5.111360223963857e-10,
+    "kB_part": -9.094947017729282e-13,
+    "iterations": 9,
+    "entropy": -4.310262424237849e-07
+   }
+  },
+  {
+   "molecule": "ThCl4",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2248.66072595626,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.322348464731341e-16,
+    "entropy": -0.0002875214155859598
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.3807333580772684e-16,
+    "entropy": -0.00028734906010367215
+   },
+   "default_conventions": {
+    "dE": -2.5647750589996576e-10,
+    "kB_part": -2.7057467377744615e-10,
+    "iterations": 9,
+    "entropy": -0.0002875240990147674
+   }
+  },
+  {
+   "molecule": "TiCl4",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2690.441180715568,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.393187202911264e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.034844090751936e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.456079866737127e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -7.527440218101881e-82
+   }
+  },
+  {
+   "molecule": "TiCl4",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2690.441180715568,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.043708506402567e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 4.0158848468863084e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.456079866737127e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -6.896820640222816e-25
+   }
+  },
+  {
+   "molecule": "TiCl4",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2690.441180712368,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.540638698369293e-16,
+    "entropy": -1.5368647279158442e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 4.2283884726934673e-16,
+    "entropy": -1.5374525986374067e-08
+   },
+   "default_conventions": {
+    "dE": -3.923105396097526e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.513930266085781e-08
+   }
+  },
+  {
+   "molecule": "TiCl4",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2690.441183457332,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.759281940243e-16,
+    "entropy": -3.477967467798949e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 8.092485015431805e-16,
+    "entropy": -3.478654416651063e-05
+   },
+   "default_conventions": {
+    "dE": 1.3642420526593924e-12,
+    "kB_part": -3.2741809263825417e-11,
+    "iterations": 9,
+    "entropy": -3.4780062394767036e-05
+   }
+  },
+  {
+   "molecule": "TmH3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1086.807355417525,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.0989473220313073e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "default_conventions": {
+    "dE": 4.501998773775995e-11,
+    "kB_part": -1.8189894035458565e-12,
+    "iterations": 11,
+    "entropy": -1.994724179868417e-57
+   }
+  },
+  {
+   "molecule": "TmH3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1086.807379865666,
+   "iter_program": 16,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 2.6107588313450947e-16,
+    "entropy": -2.4611046589368772e-18
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "default_conventions": {
+    "dE": 8.640199666842818e-12,
+    "kB_part": -3.888089850079268e-11,
+    "iterations": 16,
+    "entropy": -7.711519048558944e-18
+   }
+  },
+  {
+   "molecule": "TmH3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1086.697407220102,
+   "iter_program": 72,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "dE": 1.4035344975127373e-06,
+    "iter_axtb": 75,
+    "iter_program": 72,
+    "dgrad": 2.540584815465584e-05,
+    "entropy": -0.018050442935573615
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "default_conventions": {
+    "dE": 2.569615389802493e-06,
+    "kB_part": 7.296580406546127e-07,
+    "iterations": 58,
+    "entropy": -0.018048147486157816
+   }
+  },
+  {
+   "molecule": "TmH3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1086.807656286505,
+   "iter_program": 158,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "error": "error: SCF not converged in 250 iterations (last energy change 5.054e-7 Eh, residual 3.771e-5)"
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   }
+  },
+  {
+   "molecule": "UF6",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -1076.349447315779,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.8231943732516243e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.1981826516220337e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.0118128557223827e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.4355412695525035e-74
+   }
+  },
+  {
+   "molecule": "UF6",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -1076.349447315779,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.9802549317281546e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 3.3634342305831523e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 1.0118128557223827e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -8.474107119037897e-23
+   }
+  },
+  {
+   "molecule": "UF6",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -1076.349447312634,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.0660556598883772e-15,
+    "entropy": -6.128269060554116e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.2894435196056814e-15,
+    "entropy": -6.129714528154938e-08
+   },
+   "default_conventions": {
+    "dE": -6.346454028971493e-09,
+    "kB_part": -2.2737367544323206e-13,
+    "iterations": 9,
+    "entropy": -6.11136997163521e-08
+   }
+  },
+  {
+   "molecule": "UF6",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -1076.349454146394,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.3600232051658168e-15,
+    "entropy": -8.152030964537864e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 6.821210263296962e-13,
+    "iter_axtb": 14,
+    "iter_program": 14,
+    "dgrad": 1.0373646386341306e-15,
+    "entropy": -8.15298027363494e-05
+   },
+   "default_conventions": {
+    "dE": -5.235278877080418e-09,
+    "kB_part": -7.685230229981244e-11,
+    "iterations": 9,
+    "entropy": -8.152104487523517e-05
+   }
+  },
+  {
+   "molecule": "WF6",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -666.571486404536,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.3271871276092793e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 7.840950111415168e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.670255293603987e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -6.201880056270542e-92
+   }
+  },
+  {
+   "molecule": "WF6",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -666.571486404536,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.522560269672795e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 1.0269562977782698e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 4.670255293603987e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.0539062866483453e-27
+   }
+  },
+  {
+   "molecule": "WF6",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -666.571486402935,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.2064335181083568e-15,
+    "entropy": -2.7694995582009906e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 6.843148919382633e-16,
+    "entropy": -2.770243011519149e-09
+   },
+   "default_conventions": {
+    "dE": -1.249190972885117e-09,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -2.5623126754957066e-09
+   }
+  },
+  {
+   "molecule": "WF6",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -666.571487363415,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.790234627208065e-15,
+    "entropy": -1.3249101805692948e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -1.1368683772161603e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 1.017229660650211e-15,
+    "entropy": -1.3251124626492803e-05
+   },
+   "default_conventions": {
+    "dE": 2.42494024860207e-10,
+    "kB_part": -1.2505552149377763e-11,
+    "iterations": 9,
+    "entropy": -1.3249257129792338e-05
+   }
+  },
+  {
+   "molecule": "XeF2",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -528.95053230296,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.7312540290248535e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.3702609780129652e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.115019353572279e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -4.877878758230999e-80
+   }
+  },
+  {
+   "molecule": "XeF2",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -528.95053230296,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 8.361911827566268e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.100087019371813e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 3.115019353572279e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.7010155895916186e-24
+   }
+  },
+  {
+   "molecule": "XeF2",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -528.950532303069,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.410605131648481e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 5.290906601729262e-16,
+    "entropy": -1.3440775382394093e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 4.3231182457562063e-16,
+    "entropy": -1.3441255918126617e-08
+   },
+   "default_conventions": {
+    "dE": -5.534275260288268e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.3426119991792768e-08
+   }
+  },
+  {
+   "molecule": "XeF2",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -528.950534120702,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 1.0928757898653885e-15,
+    "entropy": -2.1981154155354224e-05
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 2.2737367544323206e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 5.516420653606247e-16,
+    "entropy": -2.1981559238605293e-05
+   },
+   "default_conventions": {
+    "dE": -5.999254426569678e-10,
+    "kB_part": -2.0804691303055733e-11,
+    "iterations": 9,
+    "entropy": -2.1981365161235588e-05
+   }
+  },
+  {
+   "molecule": "YbCl3",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2539.402585065004,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 7.012619651636243e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 4.106957829375091e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.9108272176235914e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -4.709972255833862e-64
+   }
+  },
+  {
+   "molecule": "YbCl3",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2539.402585055193,
+   "iter_program": 10,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 10,
+    "iter_program": 10,
+    "dgrad": 3.43908929112402e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 5.646524914304507e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.956301952712238e-11,
+    "kB_part": 0.0,
+    "iterations": 10,
+    "entropy": -6.424280434737999e-20
+   }
+  },
+  {
+   "molecule": "YbCl3",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2539.402585087149,
+   "iter_program": 11,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 1.947227101783966e-16,
+    "entropy": -3.377592925202121e-07
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.8189894035458565e-12,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 6.951904329977054e-16,
+    "entropy": -3.37707386079658e-07
+   },
+   "default_conventions": {
+    "dE": -2.4492692318744957e-09,
+    "kB_part": -4.547473508864641e-13,
+    "iterations": 11,
+    "entropy": -3.3767366735755256e-07
+   }
+  },
+  {
+   "molecule": "YbCl3",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2539.402600067924,
+   "iter_program": 13,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-13,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 5.247538514829841e-16,
+    "entropy": -0.00015354333460836152
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 18,
+    "iter_program": 18,
+    "dgrad": 1.6653345369377348e-16,
+    "entropy": -0.00015355149278946625
+   },
+   "default_conventions": {
+    "dE": -1.8326318240724504e-10,
+    "kB_part": -1.446096575818956e-10,
+    "iterations": 13,
+    "entropy": -0.00015354469558051032
+   }
+  },
+  {
+   "molecule": "ZnCl2",
+   "group": "elements",
+   "etemp": 300.0,
+   "E_program": -2699.789740741965,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 2.3245294578089215e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 3.433560480985373e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.9108272176235914e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -5.880171221966471e-92
+   }
+  },
+  {
+   "molecule": "ZnCl2",
+   "group": "elements",
+   "etemp": 1000.0,
+   "E_program": -2699.789740741965,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.140921104957897e-16,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.3617579286417936e-16,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -3.9108272176235914e-11,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -6.099270387072629e-28
+   }
+  },
+  {
+   "molecule": "ZnCl2",
+   "group": "elements",
+   "etemp": 3000.0,
+   "E_program": -2699.789740741699,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 0.0,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 4.597017211338539e-16,
+    "entropy": -1.5347017690962265e-09
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 4.073640154646912e-16,
+    "entropy": -1.534264065142249e-09
+   },
+   "default_conventions": {
+    "dE": -3.7334757507778704e-10,
+    "kB_part": 0.0,
+    "iterations": 9,
+    "entropy": -1.5031350161601203e-09
+   }
+  },
+  {
+   "molecule": "ZnCl2",
+   "group": "elements",
+   "etemp": 5000.0,
+   "E_program": -2699.789741317952,
+   "iter_program": 9,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 9,
+    "iter_program": 9,
+    "dgrad": 6.930220286527344e-16,
+    "entropy": -7.989049999165745e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": -4.547473508864641e-13,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.7303511345782223e-16,
+    "entropy": -7.987987837130475e-06
+   },
+   "default_conventions": {
+    "dE": -4.729372449219227e-11,
+    "kB_part": -7.275957614183426e-12,
+    "iterations": 9,
+    "entropy": -7.989147617052743e-06
+   }
+  },
+  {
+   "molecule": "c50h102",
+   "group": "large",
+   "etemp": 300.0,
+   "E_program": -1965.783447916641,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.3642420526593924e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.073929999430902e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.8189894035458565e-12,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.790234627208065e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.196852725930512e-08,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -9.153806760995213e-98
+   }
+  },
+  {
+   "molecule": "c50h102",
+   "group": "large",
+   "etemp": 1000.0,
+   "E_program": -1965.783447916641,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.3642420526593924e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.073929999430902e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.8189894035458565e-12,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.790234627208065e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -5.196852725930512e-08,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -1.1225347993681453e-29
+   }
+  },
+  {
+   "molecule": "c50h102",
+   "group": "large",
+   "etemp": 3000.0,
+   "E_program": -1965.783447916652,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.185751579730777e-15,
+    "entropy": -3.4304344401299634e-10
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.1368683772161603e-12,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.4710455076283324e-15,
+    "entropy": -3.429922143613901e-10
+   },
+   "default_conventions": {
+    "dE": -5.197216523811221e-08,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.429226134118358e-10
+   }
+  },
+  {
+   "molecule": "c50h102",
+   "group": "large",
+   "etemp": 5000.0,
+   "E_program": -1965.783448141823,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.5916157281026244e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.0816681711721685e-15,
+    "entropy": -3.390164743376748e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.3642420526593924e-12,
+    "iter_axtb": 12,
+    "iter_program": 12,
+    "dgrad": 1.7486012637846216e-15,
+    "entropy": -3.3896804190368067e-06
+   },
+   "default_conventions": {
+    "dE": -5.197148311708588e-08,
+    "kB_part": -3.183231456205249e-12,
+    "iterations": 8,
+    "entropy": -3.390210265252336e-06
+   }
+  },
+  {
+   "molecule": "water100",
+   "group": "large",
+   "etemp": 300.0,
+   "E_program": -7643.951824471253,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.9455604622086184e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-12,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.7564756033271465e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.8531518435338512e-06,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.0921362844037524e-106
+   }
+  },
+  {
+   "molecule": "water100",
+   "group": "large",
+   "etemp": 1000.0,
+   "E_program": -7643.951824471253,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.9455604622086184e-15,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 9.094947017729282e-12,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.7564756033271465e-15,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": -1.8531518435338512e-06,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -3.1001971829582484e-32
+   }
+  },
+  {
+   "molecule": "water100",
+   "group": "large",
+   "etemp": 3000.0,
+   "E_program": -7643.951824471244,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 1.0913936421275139e-11,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 3.222248856626919e-15,
+    "entropy": -5.611416927542078e-11
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 8.185452315956354e-12,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.7668839441830073e-15,
+    "entropy": -5.598473134325735e-11
+   },
+   "default_conventions": {
+    "dE": -1.8531618479755707e-06,
+    "kB_part": 0.0,
+    "iterations": 8,
+    "entropy": -4.84787040217221e-11
+   }
+  },
+  {
+   "molecule": "water100",
+   "group": "large",
+   "etemp": 5000.0,
+   "E_program": -7643.951824540125,
+   "iter_program": 8,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 8.185452315956354e-12,
+    "iter_axtb": 8,
+    "iter_program": 8,
+    "dgrad": 2.117230002429693e-15,
+    "entropy": -1.1338396991217455e-06
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 8.185452315956354e-12,
+    "iter_axtb": 13,
+    "iter_program": 13,
+    "dgrad": 2.892651396191326e-15,
+    "entropy": -1.1324452074358157e-06
+   },
+   "default_conventions": {
+    "dE": -1.85321277967887e-06,
+    "kB_part": -9.094947017729282e-13,
+    "iterations": 8,
+    "entropy": -1.1338482691893095e-06
+   }
+  },
+  {
+   "molecule": "Fe4",
+   "group": "extra",
+   "etemp": 300.0,
+   "E_program": null,
+   "iter_program": 250,
+   "program_converged": false,
+   "default": {
+    "rounding_sensitive": true,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   }
+  },
+  {
+   "molecule": "Fe4",
+   "group": "extra",
+   "etemp": 1000.0,
+   "E_program": -5053.974123057755,
+   "iter_program": 16,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "dE": -1.503720341133885e-06,
+    "iter_axtb": 16,
+    "iter_program": 16,
+    "dgrad": 5.26236894675125e-05,
+    "entropy": -0.012094212655326437
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "error": "error: SCF not converged in 250 iterations (last energy change -9.095e-13 Eh, residual 3.014e-9)"
+   },
+   "default_conventions": {
+    "dE": 7.262951839948073e-08,
+    "kB_part": 6.464051693910733e-08,
+    "iterations": 16,
+    "entropy": -0.012094322134342224
+   }
+  },
+  {
+   "molecule": "Fe4",
+   "group": "extra",
+   "etemp": 3000.0,
+   "E_program": -5053.998358456102,
+   "iter_program": 32,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "dE": -2.499887159501668e-06,
+    "iter_axtb": 33,
+    "iter_program": 32,
+    "dgrad": 0.00016840730634565607,
+    "entropy": -0.036642492664632355
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "default_conventions": {
+    "dE": -1.288999555981718e-06,
+    "kB_part": 6.547625162056647e-07,
+    "iterations": 34,
+    "entropy": -0.03664291367701358
+   }
+  },
+  {
+   "molecule": "Fe4",
+   "group": "extra",
+   "etemp": 5000.0,
+   "E_program": -5053.847829803569,
+   "iter_program": 22,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": true,
+    "dE": 4.81655661133118e-07,
+    "iter_axtb": 22,
+    "iter_program": 22,
+    "dgrad": 5.548635357302198e-05,
+    "entropy": -0.13787769288680038
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "program_fails": true,
+    "axtb_fails": true
+   },
+   "default_conventions": {
+    "dE": 1.8563787307357416e-07,
+    "kB_part": -1.894659362733364e-07,
+    "iterations": 22,
+    "entropy": -0.13781470981065463
+   }
+  },
+  {
+   "molecule": "N2_stretched",
+   "group": "extra",
+   "etemp": 300.0,
+   "E_program": -109.239474973441,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.268496584496461e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.0841327835464654e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.8474111129762605e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 4.343525539241e-12,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 6.349267778205103e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -3.552944109492176e-76
+   }
+  },
+  {
+   "molecule": "N2_stretched",
+   "group": "extra",
+   "etemp": 1000.0,
+   "E_program": -109.239474973441,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": 3.268496584496461e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 1.2212453270876722e-13,
+    "entropy": 0.0
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 1.8474111129762605e-13,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 2.8974156407457485e-11,
+    "entropy": 0.0
+   },
+   "default_conventions": {
+    "dE": 6.349267778205103e-10,
+    "kB_part": 0.0,
+    "iterations": 7,
+    "entropy": -2.8194316234997366e-23
+   }
+  },
+  {
+   "molecule": "N2_stretched",
+   "group": "extra",
+   "etemp": 3000.0,
+   "E_program": -109.239474975145,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -2.8421709430404007e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 2.220446049250313e-16,
+    "entropy": -3.9097688182807084e-08
+   },
+   "tight": {
+    "rounding_sensitive": false,
+    "dE": 5.684341886080802e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 6.1935456763251295e-12,
+    "entropy": -3.909827076454522e-08
+   },
+   "default_conventions": {
+    "dE": 2.085016603814438e-10,
+    "kB_part": -5.684341886080802e-14,
+    "iterations": 7,
+    "entropy": -3.909705388213592e-08
+   }
+  },
+  {
+   "molecule": "N2_stretched",
+   "group": "extra",
+   "etemp": 5000.0,
+   "E_program": -109.239478781722,
+   "iter_program": 7,
+   "program_converged": true,
+   "default": {
+    "rounding_sensitive": false,
+    "dE": -1.9895196601282805e-13,
+    "iter_axtb": 7,
+    "iter_program": 7,
+    "dgrad": 7.771561172376096e-16,
+    "entropy": -4.381023162539779e-05
+   },
+   "tight": {
+    "rounding_sensitive": true,
+    "dE": -8.526512829121202e-14,
+    "iter_axtb": 11,
+    "iter_program": 11,
+    "dgrad": 4.924394225724882e-13,
+    "entropy": -4.3806547326044195e-05
+   },
+   "default_conventions": {
+    "dE": 9.409006906935247e-11,
+    "kB_part": -4.129674380237702e-11,
+    "iterations": 7,
+    "entropy": -4.381066729537518e-05
+   }
+  }
+ ],
+ "v1.1": [
+  {
+   "molecule": "acetate",
+   "etemp": 300.0,
+   "E_program": -228.54851555487372,
+   "iter_program": 10,
+   "dE": 2.842170943040401e-14,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "acetate",
+   "etemp": 1000.0,
+   "E_program": -228.54851555490438,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "acetate",
+   "etemp": 3000.0,
+   "E_program": -228.54851555439916,
+   "iter_program": 11,
+   "dE": -2.842170943040401e-14,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "acetate",
+   "etemp": 5000.0,
+   "E_program": -228.5485157476095,
+   "iter_program": 12,
+   "dE": -2.842170943040401e-14,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ammonium",
+   "etemp": 300.0,
+   "E_program": -56.88384083311239,
+   "iter_program": 9,
+   "dE": -7.105427357601002e-15,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ammonium",
+   "etemp": 1000.0,
+   "E_program": -56.88384083311242,
+   "iter_program": 9,
+   "dE": 2.1316282072803006e-14,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ammonium",
+   "etemp": 3000.0,
+   "E_program": -56.88384083311224,
+   "iter_program": 9,
+   "dE": -7.105427357601002e-15,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ammonium",
+   "etemp": 5000.0,
+   "E_program": -56.88384083310772,
+   "iter_program": 10,
+   "dE": 7.105427357601002e-15,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "benzene",
+   "etemp": 300.0,
+   "E_program": -232.22942758817877,
+   "iter_program": 9,
+   "dE": -2.842170943040401e-14,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "benzene",
+   "etemp": 1000.0,
+   "E_program": -232.2294275881751,
+   "iter_program": 9,
+   "dE": -2.842170943040401e-14,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "benzene",
+   "etemp": 3000.0,
+   "E_program": -232.22942758825582,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "benzene",
+   "etemp": 5000.0,
+   "E_program": -232.22942815166377,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "etemp": 300.0,
+   "E_program": -150.3410211592299,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "etemp": 1000.0,
+   "E_program": -150.34102115918495,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "etemp": 3000.0,
+   "E_program": -150.34102115663578,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "dioxygen_triplet",
+   "etemp": 5000.0,
+   "E_program": -150.34102122899804,
+   "iter_program": 9,
+   "dE": 2.842170943040401e-14,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ethanol",
+   "etemp": 300.0,
+   "E_program": -155.03199034358772,
+   "iter_program": 10,
+   "dE": -5.684341886080802e-14,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ethanol",
+   "etemp": 1000.0,
+   "E_program": -155.03199034358775,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ethanol",
+   "etemp": 3000.0,
+   "E_program": -155.03199034382277,
+   "iter_program": 10,
+   "dE": -2.842170943040401e-14,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "ethanol",
+   "etemp": 5000.0,
+   "E_program": -155.03199034372204,
+   "iter_program": 10,
+   "dE": 2.842170943040401e-14,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "glycine",
+   "etemp": 300.0,
+   "E_program": -284.4556514374897,
+   "iter_program": 12,
+   "dE": 5.684341886080802e-14,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "glycine",
+   "etemp": 1000.0,
+   "E_program": -284.455651437489,
+   "iter_program": 12,
+   "dE": -5.684341886080802e-14,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "glycine",
+   "etemp": 3000.0,
+   "E_program": -284.4556514368748,
+   "iter_program": 12,
+   "dE": -5.684341886080802e-14,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "glycine",
+   "etemp": 5000.0,
+   "E_program": -284.45565171583837,
+   "iter_program": 13,
+   "dE": 0.0,
+   "iter_axtb": 13,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "hydroxide",
+   "etemp": 300.0,
+   "E_program": -75.80307101617811,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "hydroxide",
+   "etemp": 1000.0,
+   "E_program": -75.80307101617811,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "hydroxide",
+   "etemp": 3000.0,
+   "E_program": -75.80307101617834,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "hydroxide",
+   "etemp": 5000.0,
+   "E_program": -75.8030710161408,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "iodomethane",
+   "etemp": 300.0,
+   "E_program": -337.58558338480316,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "iodomethane",
+   "etemp": 1000.0,
+   "E_program": -337.58558338484374,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "iodomethane",
+   "etemp": 3000.0,
+   "E_program": -337.58558338581145,
+   "iter_program": 11,
+   "dE": 0.0,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "iodomethane",
+   "etemp": 5000.0,
+   "E_program": -337.58558560899803,
+   "iter_program": 11,
+   "dE": 5.684341886080802e-14,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "etemp": 300.0,
+   "E_program": -1048.7477106587783,
+   "iter_program": 10,
+   "dE": -2.2737367544323206e-13,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "etemp": 1000.0,
+   "E_program": -1048.7477106591934,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "etemp": 3000.0,
+   "E_program": -1048.7477106672804,
+   "iter_program": 12,
+   "dE": -2.2737367544323206e-13,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "mesyl_chloride",
+   "etemp": 5000.0,
+   "E_program": -1048.747712605474,
+   "iter_program": 14,
+   "dE": 0.0,
+   "iter_axtb": 14,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "methane",
+   "etemp": 300.0,
+   "E_program": -40.49423662785688,
+   "iter_program": 8,
+   "dE": 0.0,
+   "iter_axtb": 8,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "methane",
+   "etemp": 1000.0,
+   "E_program": -40.49423662785688,
+   "iter_program": 8,
+   "dE": 0.0,
+   "iter_axtb": 8,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "methane",
+   "etemp": 3000.0,
+   "E_program": -40.49423662785614,
+   "iter_program": 8,
+   "dE": -7.105427357601002e-15,
+   "iter_axtb": 8,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "methane",
+   "etemp": 5000.0,
+   "E_program": -40.49423662782696,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "etemp": 300.0,
+   "E_program": -1961.7135593077985,
+   "iter_program": 11,
+   "dE": -4.547473508864641e-13,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "etemp": 1000.0,
+   "E_program": -1961.71355930868,
+   "iter_program": 11,
+   "dE": 0.0,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "etemp": 3000.0,
+   "E_program": -1961.713559311461,
+   "iter_program": 14,
+   "dE": 1.3642420526593924e-12,
+   "iter_axtb": 14,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "nickel_tetracarbonyl",
+   "etemp": 5000.0,
+   "E_program": -1961.7135636252974,
+   "iter_program": 14,
+   "dE": 1.9554136088117957e-11,
+   "iter_axtb": 14,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "silane_phosphine",
+   "etemp": 300.0,
+   "E_program": -633.7974906990011,
+   "iter_program": 11,
+   "dE": 0.0,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "silane_phosphine",
+   "etemp": 1000.0,
+   "E_program": -633.7974906989607,
+   "iter_program": 11,
+   "dE": -1.1368683772161603e-13,
+   "iter_axtb": 11,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "silane_phosphine",
+   "etemp": 3000.0,
+   "E_program": -633.7974907010671,
+   "iter_program": 12,
+   "dE": 0.0,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "silane_phosphine",
+   "etemp": 5000.0,
+   "E_program": -633.7974949688011,
+   "iter_program": 12,
+   "dE": 0.0,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "etemp": 300.0,
+   "E_program": -3481.408103750689,
+   "iter_program": 10,
+   "dE": -4.547473508864641e-13,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "etemp": 1000.0,
+   "E_program": -3481.40810384413,
+   "iter_program": 13,
+   "dE": 0.0,
+   "iter_axtb": 13,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "etemp": 3000.0,
+   "E_program": -3481.4081038239146,
+   "iter_program": 14,
+   "dE": 0.0,
+   "iter_axtb": 14,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "tetrachlorocuprate",
+   "etemp": 5000.0,
+   "E_program": -3481.408124571049,
+   "iter_program": 12,
+   "dE": 0.0,
+   "iter_axtb": 12,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "water",
+   "etemp": 300.0,
+   "E_program": -76.43737575154154,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "water",
+   "etemp": 1000.0,
+   "E_program": -76.43737575154152,
+   "iter_program": 9,
+   "dE": -1.4210854715202004e-14,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "water",
+   "etemp": 3000.0,
+   "E_program": -76.43737575155421,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "water",
+   "etemp": 5000.0,
+   "E_program": -76.43737575130812,
+   "iter_program": 10,
+   "dE": 0.0,
+   "iter_axtb": 10,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "Fe4",
+   "etemp": 300.0,
+   "E_program": -5053.991154982806,
+   "iter_program": 45,
+   "dE": -9.567816960043274e-06,
+   "iter_axtb": 40,
+   "rounding_sensitive": true
+  },
+  {
+   "molecule": "Fe4",
+   "etemp": 1000.0,
+   "E_program": -5054.154537523148,
+   "iter_program": 941,
+   "dE": 0.017607615796805476,
+   "iter_axtb": 350,
+   "rounding_sensitive": true
+  },
+  {
+   "molecule": "Fe4",
+   "etemp": 3000.0,
+   "E_program": -5054.217863123278,
+   "iter_program": 118,
+   "dE": -1.0267162906529848e-05,
+   "iter_axtb": 80,
+   "rounding_sensitive": true
+  },
+  {
+   "molecule": "Fe4",
+   "etemp": 5000.0,
+   "E_program": null,
+   "iter_program": 1001,
+   "program_fails": true,
+   "axtb_fails": false,
+   "rounding_sensitive": true
+  },
+  {
+   "molecule": "N2_stretched",
+   "etemp": 300.0,
+   "E_program": -109.26522465052689,
+   "iter_program": 8,
+   "dE": 0.0,
+   "iter_axtb": 8,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "N2_stretched",
+   "etemp": 1000.0,
+   "E_program": -109.26522465055164,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "N2_stretched",
+   "etemp": 3000.0,
+   "E_program": -109.2652246657821,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  },
+  {
+   "molecule": "N2_stretched",
+   "etemp": 5000.0,
+   "E_program": -109.26523720246372,
+   "iter_program": 9,
+   "dE": 0.0,
+   "iter_axtb": 9,
+   "rounding_sensitive": false
+  }
+ ]
+}

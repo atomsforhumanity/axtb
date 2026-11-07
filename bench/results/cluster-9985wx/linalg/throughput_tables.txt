@@ -1,0 +1,40 @@
+
+### throughput concurrent128: evd, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 8.84 | 33 | 295 |
+| faer24 | 8.6 (0.97x) | 33 (0.99x) | 305 (1.04x) |
+| faer24v4 | 8.33 (0.94x) | 31 (0.94x) | 244 (0.83x) |
+| openblas | 7.12 (0.81x) | 27 (0.80x) | 262 (0.89x) |
+| mkl | 9.69 (1.10x) | 43 (1.30x) | 418 (1.42x) |
+| aocl | 6.86 (0.78x) | 28 (0.85x) | 340 (1.15x) |
+
+### throughput concurrent128: gen, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 11 | 44 | 306 |
+| faer24 | 11 (0.98x) | 44 (1.00x) | 305 (1.00x) |
+| faer24v4 | 11 (0.99x) | 43 (0.97x) | 284 (0.93x) |
+| openblas | 9.89 (0.92x) | 40 (0.90x) | 333 (1.09x) |
+| mkl | 13 (1.20x) | 60 (1.35x) | 484 (1.58x) |
+| aocl | 8.88 (0.82x) | 38 (0.87x) | 404 (1.32x) |
+
+### throughput concurrent64: evd, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 4.63 | 18 | 120 |
+| faer24 | 4.58 (0.99x) | 18 (0.99x) | 123 (1.02x) |
+| faer24v4 | 4.48 (0.97x) | 17 (0.95x) | 114 (0.94x) |
+| openblas | 3.9 (0.84x) | 14 (0.79x) | 93 (0.78x) |
+| mkl | 5.14 (1.11x) | 22 (1.23x) | 149 (1.23x) |
+| aocl | 3.74 (0.81x) | 15 (0.82x) | 109 (0.90x) |
+
+### throughput concurrent64: gen, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 5.64 | 23 | 163 |
+| faer24 | 5.53 (0.98x) | 23 (1.00x) | 163 (1.00x) |
+| faer24v4 | 5.52 (0.98x) | 22 (0.97x) | 154 (0.94x) |
+| openblas | 5.3 (0.94x) | 21 (0.90x) | 132 (0.81x) |
+| mkl | 6.74 (1.19x) | 30 (1.31x) | 203 (1.25x) |
+| aocl | 4.77 (0.85x) | 19 (0.83x) | 138 (0.85x) |

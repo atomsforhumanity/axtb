@@ -1,0 +1,38 @@
+[
+ {
+  "method": "GFN2-xTB",
+  "reproduces": "xtb 6.8.0 (and 6.7.1), tblite 0.8.0",
+  "energy": "yes",
+  "gradient": "analytic",
+  "hessian": "analytic",
+  "extras": "ALPB/GBSA solvation, electronic temperature, SCF restarts, bond orders, gap and quadrupole, vibrational analysis, Molden",
+  "validation": "991-case test matrix; worst passing \u0394E 4.6e-10 Eh vs xtb, 1.3e-10 Eh vs tblite"
+ },
+ {
+  "method": "g-xTB 2.0.1",
+  "reproduces": "the g-xTB 2.0.1 program",
+  "energy": "yes",
+  "gradient": "analytic",
+  "hessian": "analytic",
+  "extras": "electronic temperature, solvation correction from GFN2-xTB/ALPB, SCF restarts, bond orders, gap and quadrupole, vibrational analysis, Molden",
+  "validation": "84 reference molecules, worst \u0394E 2.2e-11 Eh with the same SCF iterations; every element H\u2013Lr: 155 of 169 molecules agree, the rest rounding-sensitive or a program gradient error"
+ },
+ {
+  "method": "g-xTB v1.1",
+  "reproduces": "the g-xtb 1.1.0 program",
+  "energy": "yes",
+  "gradient": "analytic",
+  "hessian": "numerical",
+  "extras": "electronic temperature, SCF restarts, bond orders and gap, Molden",
+  "validation": "41 reference molecules, worst \u0394E 7.3e-12 Eh; every element H\u2013Lr: 130 of 140 parametrized molecules agree"
+ },
+ {
+  "method": "GFN-FF",
+  "reproduces": "xtb 6.8.0 and 6.7.1 (--gfnff)",
+  "energy": "yes",
+  "gradient": "analytic",
+  "hessian": "analytic",
+  "extras": "fixed or reference topology for whole paths, vibrational analysis",
+  "validation": "268 of 269 structures; worst \u0394E 8.4e-13 Eh"
+ }
+]

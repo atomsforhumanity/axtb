@@ -1,0 +1,55 @@
+{
+ "program": "xtb 6.8.0 (4b8c987)",
+ "xtb_version": "6.8.0",
+ "method": "GFN2-xTB",
+ "molecule": "caffeine (tests/structures, not optimized)",
+ "reference": {
+  "setting": "--acc 1.0",
+  "lowest_freqs": [
+   -16.62,
+   70.42,
+   83.66
+  ],
+  "printed_accuracy": "1.0000000",
+  "max_dH_vs_analytic": 0.0012893360487485905
+ },
+ "rows": [
+  {
+   "setting": "--acc 0.001",
+   "max_dH_vs_acc1": 0.0012595941999999916,
+   "lowest_freqs": [
+    -27.57,
+    68.22,
+    81.52
+   ],
+   "max_dH_vs_analytic": 3.725479711336188e-05
+  },
+  {
+   "setting": "$hess sccacc=0.001 (xcontrol)",
+   "max_dH_vs_acc1": 0.0012594777000000112,
+   "lowest_freqs": [
+    -27.57,
+    68.21,
+    81.52
+   ],
+   "printed_accuracy": "0.2000000",
+   "max_dH_vs_analytic": 3.727279711340792e-05
+  },
+  {
+   "setting": "no accuracy setting",
+   "max_dH_vs_acc1": 0.0011724682000000541,
+   "lowest_freqs": [
+    -26.09,
+    68.76,
+    81.91
+   ],
+   "printed_accuracy": "0.2000000",
+   "max_dH_vs_analytic": 0.0002715776709951989
+  }
+ ],
+ "load_average": [
+  1.72,
+  4.11,
+  3.91
+ ]
+}

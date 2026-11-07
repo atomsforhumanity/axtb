@@ -1,0 +1,25 @@
+{
+ "water": {
+  "max_abs_diff": 8.727735228150971e-08,
+  "gmax": 0.012138084373278,
+  "richardson_max_abs_diff": 1.2517708007295236e-10
+ },
+ "dioxygen_triplet": {
+  "max_abs_diff": 4.1462676951195543e-07,
+  "gmax": 0.016535726050106,
+  "richardson_max_abs_diff": 9.471677608896556e-11
+ },
+ "mesyl_chloride": {
+  "max_abs_diff": 2.3763159974141135e-07,
+  "gmax": 0.031590390985834,
+  "richardson_max_abs_diff": 3.0118716453156336e-08
+ },
+ "nickel_tetracarbonyl": {
+  "max_abs_diff": 2.0030856785757667e-08,
+  "gmax": 0.01767348046735
+ },
+ "tetrachlorocuprate": {
+  "max_abs_diff": 3.530270232740551e-08,
+  "gmax": 0.01325945225134
+ }
+}

@@ -1,0 +1,65 @@
+# Checks on every push and pull request (Linux x86-64; no reference programs needed).
+#
+# - "check.sh fast (Rust 1.86)": scripts/check.sh fast on the minimum supported Rust, the gate:
+#   rustfmt, clippy and rustdoc with warnings as errors, the workspace tests, the LGPL-only build,
+#   a wheel with the Python tests in a fresh venv, the privacy grep, the license-file copies.
+# - "build and test (Rust stable)": the workspace tests, the LGPL-only build and the crates.io
+#   packages on the newest stable Rust. Its clippy run is informational: newer compilers add lints
+#   (stable 1.99 flags the parameter tables' literals near pi), which the pinned gate decides.
+#
+# The privacy grep adds the repository secret AXTB_PRIVATE_PATTERN (a regular expression of the
+# site's host names) to its built-in patterns; without the secret (forks, or not set up) that
+# part is skipped and the built-in patterns still run.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: check.sh fast (Rust 1.86)
+    runs-on: ubuntu-24.04
+    env:
+      AXTB_PRIVATE_PATTERN: ${{ secrets.AXTB_PRIVATE_PATTERN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.86.0"
+          components: rustfmt, clippy
+      - uses: astral-sh/setup-uv@v6
+      - uses: Swatinem/rust-cache@v2
+      - name: scripts/check.sh fast
+        run: scripts/check.sh fast
+
+  stable:
+    name: build and test (Rust stable)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo test --workspace --release
+        run: cargo test --workspace --release
+      - name: LGPL-only build (--no-default-features)
+        run: cargo build -p axtb-cli -p axtb-py --no-default-features
+      - name: cargo package (the crates.io packages, in publishing order)
+        run: >-
+          cargo package -p axtb-d4 -p axtb-solvation -p axtb -p axtb-gfnff -p axtb-gxtb
+          -p axtb-driver -p axtb-cli
+      - name: clippy with this compiler's lints (informational)
+        continue-on-error: true
+        run: cargo clippy --workspace --all-targets -- -D warnings

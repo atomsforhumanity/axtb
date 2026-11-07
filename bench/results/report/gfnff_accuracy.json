@@ -1,0 +1,92 @@
+[
+ {
+  "category": "Elements H\u2013Rn",
+  "cases": 137,
+  "reproduced": 137,
+  "largest": 25,
+  "max_dq": 4.0967229608668276e-14,
+  "max_dE": 5.018208071305708e-13,
+  "max_dG": 2.6272387043668743e-15,
+  "not_reproduced": null
+ },
+ {
+  "category": "Charges",
+  "cases": 47,
+  "reproduced": 47,
+  "largest": 25,
+  "max_dq": 2.2537527399890678e-14,
+  "max_dE": 4.982680934517703e-13,
+  "max_dG": 2.2690183065776637e-15,
+  "not_reproduced": null
+ },
+ {
+  "category": "Mixed-element molecules",
+  "cases": 32,
+  "reproduced": 32,
+  "largest": 16,
+  "max_dq": 2.2524204723595176e-12,
+  "max_dE": 8.446576771348191e-13,
+  "max_dG": 4.334310688136611e-12,
+  "not_reproduced": null
+ },
+ {
+  "category": "Metal complexes",
+  "cases": 24,
+  "reproduced": 23,
+  "largest": 21,
+  "max_dq": 2.6645352591003757e-15,
+  "max_dE": 4.967107454512121e-13,
+  "max_dG": 8.881784197001252e-16,
+  "not_reproduced": "ferrocenium"
+ },
+ {
+  "category": "Test structures",
+  "cases": 13,
+  "reproduced": 13,
+  "largest": 113,
+  "max_dq": 5.867528685143952e-14,
+  "max_dE": 4.955619248292464e-13,
+  "max_dG": 6.059389101586987e-15,
+  "not_reproduced": null
+ },
+ {
+  "category": "Hydrogen- and halogen-bonded dimers",
+  "cases": 10,
+  "reproduced": 10,
+  "largest": 13,
+  "max_dq": 6.661338147750939e-15,
+  "max_dE": 4.944621101454771e-13,
+  "max_dG": 3.68594044175552e-14,
+  "not_reproduced": null
+ },
+ {
+  "category": "Water cluster",
+  "cases": 1,
+  "reproduced": 1,
+  "largest": 60,
+  "max_dq": 3.9968028886505635e-15,
+  "max_dE": 4.661618313583915e-13,
+  "max_dG": 1.0581813203458523e-15,
+  "not_reproduced": null
+ },
+ {
+  "category": "Zwitterion in water",
+  "cases": 1,
+  "reproduced": 1,
+  "largest": 28,
+  "max_dq": 7.105427357601002e-15,
+  "max_dE": 4.725343380473923e-13,
+  "max_dG": 8.673617379884035e-16,
+  "not_reproduced": null
+ },
+ {
+  "category": "Large (alkane, crambin)",
+  "cases": 4,
+  "reproduced": 4,
+  "largest": 640,
+  "max_dq": 1.2401191185062999e-12,
+  "max_dE": 7.389644451905042e-13,
+  "max_dG": 1.0930145677434666e-13,
+  "not_reproduced": null
+ }
+]

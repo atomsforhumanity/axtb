@@ -1,0 +1,1495 @@
+<meta name="dash-one-writer">
+<style>
+  .ax { display: grid; gap: var(--cds-gap-xl); max-width: 76rem; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  .ax h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .ax h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
+  .ax h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .ax p { margin: 0; max-width: 68ch; line-height: 1.5; }
+  .ax .lede { color: var(--color-fg-muted); }
+  .ax .lede b, .ax .tile b, .ax .note b, .ax li b { font-weight: 500; color: var(--color-fg); }
+  .ax .note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .ax section { display: grid; gap: var(--cds-gap-md); scroll-margin-top: var(--cds-gap-xl); }
+  .ax .head { display: grid; gap: var(--cds-gap-sm); }
+  .ax nav { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); }
+  .ax nav button { all: unset; cursor: pointer; color: var(--color-fg-muted); border-bottom: 1px solid var(--color-border-line); }
+  .ax nav button:hover, .ax nav button:focus-visible { color: var(--color-fg); }
+  .ax .tiles { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+  .ax .tile { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); align-content: start; }
+  .ax .tile .lbl { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .ax .tile .big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; }
+  .ax .grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+  .ax .grid.onecol { grid-template-columns: 1fr; }
+  .ax .grid.narrow { grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); }
+  .ax .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+  .ax .chart { position: relative; min-height: 18rem; }
+  .ax .chart.short { min-height: 13rem; }
+  .ax .chart svg { display: block; overflow: visible; }
+  .ax .tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .ax .tip .k { color: var(--cds-text-secondary); }
+  .ax .tip .sw { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 2px; margin-right: 0.35rem; vertical-align: -1px; }
+  .ax .legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .ax .legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .ax .legend i { width: 0.75rem; height: 0.2rem; border-radius: 1px; display: inline-block; }
+  .ax .legend i.dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; }
+  .ax .tablewrap { overflow-x: auto; max-height: 34rem; overflow-y: auto; }
+  .ax table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .ax th, .ax td { padding: 0.4rem 0.6rem; text-align: right; border-bottom: 1px solid var(--color-border-line); vertical-align: top; }
+  .ax th { position: sticky; top: 0; background: var(--color-panel); font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); white-space: nowrap; }
+  .ax th:first-child, .ax td:first-child, .ax table.text td, .ax table.text th, .ax td.l, .ax th.l { text-align: left; }
+  .ax table.text td { min-width: 9rem; line-height: 1.4; }
+  .ax td.bad { color: var(--color-bad); }
+  .ax table:not(.text) td { white-space: nowrap; }
+  .ax table:not(.text) td.l { white-space: normal; min-width: 12rem; }
+  .ax table.text td.n { min-width: 0; text-align: right; white-space: nowrap; }
+  .ax .chart g.axis line, .ax .chart g.axis path { stroke: var(--cds-chart-axis); }
+  .ax .chart g.grid line { stroke: var(--cds-chart-grid); }
+  .ax .chart g.grid path { display: none; }
+  .ax .chart text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+  .ax .chart text.lab { fill: var(--color-fg); }
+  .ax [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  .ax [data-dash-source-state=empty] { color: transparent; }
+  .ax .fail { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .ax .fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+  .ax ul { margin: 0; padding-left: 1.2rem; display: grid; gap: var(--cds-gap-xs); max-width: 74ch; line-height: 1.5; }
+  .ax .pending { border-style: dashed; }
+  .ax .chip { display: inline-block; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); border: 1px solid var(--color-border-line); border-radius: 999px; padding: 0 0.5rem; margin-right: 0.4rem; vertical-align: 1px; white-space: nowrap; }
+</style>
+
+<div class="ax">
+  <header class="head" id="top">
+    <h1>axtb: GFN2-xTB, g-xTB and GFN-FF in Rust, with analytic Hessians up to <span data-draw="h1-gfn2" data-source="ft_head" data-field="max_speedup_20" data-where="id=GFN2-xTB%7CHessian%7C1">—</span>× faster than xtb and <span data-draw="h1-gx" data-source="ft_head" data-field="max_speedup_20" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</span>× faster than the g-xTB program</h1>
+    <p class="lede">axtb is AFH's reimplementation of four semiempirical methods: <b>GFN2-xTB</b>, <b>g-xTB 2.0.1</b>, <b>g-xTB v1.1</b> and the <b>GFN-FF</b> force field. In its program conventions each reproduces the program it replaces to near machine precision, and it adds analytic gradients and analytic Hessians where those programs differentiate numerically. Every chart and table below is tagged with the method it shows.</p>
+    <p class="lede"><b>Analytic Hessians.</b> On a 64-core node with one thread per calculation, taxol's GFN2-xTB Hessian takes <b data-draw="t-gh-a" data-source="ft_head" data-field="taxol_axtb" data-where="id=GFN2-xTB%7CHessian%7C1">—</b> s in axtb against <b data-draw="t-gh-p" data-source="ft_head" data-field="taxol_program" data-where="id=GFN2-xTB%7CHessian%7C1">—</b> s for xtb 6.8.0's <code>--hess --acc 0.001</code> (<b data-draw="t-gh-x" data-source="ft_head" data-field="taxol_speedup" data-where="id=GFN2-xTB%7CHessian%7C1">—</b>× faster), and its g-xTB 2.0.1 Hessian <b data-draw="t-xh-a" data-source="ft_head" data-field="taxol_axtb" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</b> s against <b data-draw="t-xh-p" data-source="ft_head" data-field="taxol_program" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</b> s for the g-xTB program at the same setting (<b data-draw="t-xh-x" data-source="ft_head" data-field="taxol_speedup" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</b>×). The programs' Hessians at their default settings are a little faster but off by up to <b data-draw="t-gh-d" data-source="ft_head" data-field="taxol_dfreq_program_default" data-where="id=GFN2-xTB%7CHessian%7C1">—</b> cm⁻¹ (xtb) and <b data-draw="t-xh-d" data-source="ft_head" data-field="taxol_dfreq_program_default" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</b> cm⁻¹ (g-xTB) for taxol; axtb's agree with tightly converged references to about 1e-5 cm⁻¹. On a quiet Intel laptop the same comparison gives <b data-draw="t-lh-g" data-source="laptop_check" data-field="speedup" data-where="id=Hessian%7CGFN2-xTB%7Ctaxol%7C1">—</b>× for taxol (GFN2-xTB) and <b data-draw="t-lh-x" data-source="laptop_check" data-field="speedup" data-where="id=Hessian%7Cg-xTB%202.0.1%7Ccaffeine%7C1">—</b>× for caffeine (g-xTB 2.0.1).</p>
+    <p class="lede"><b>Energy and gradient: not yet faster everywhere.</b> On the AMD node with one thread, axtb is <b data-draw="t-ge-x" data-source="ft_head" data-field="taxol_speedup" data-where="id=GFN2-xTB%7CE%2BG%7C1">—</b>× faster than xtb 6.8.0 for taxol (GFN2-xTB) and level with the g-xTB program (<b data-draw="t-xe-x" data-source="ft_head" data-field="taxol_speedup" data-where="id=g-xTB%202.0.1%7CE%2BG%7C1">—</b>×). On an Intel laptop, where the programs' Intel-built binaries run relatively faster, the programs are ahead: <b data-draw="t-le-g" data-source="laptop_check" data-field="speedup" data-where="id=E%2BG%7CGFN2-xTB%7Ctaxol%7C1">—</b>× for GFN2-xTB and <b data-draw="t-le-x" data-source="laptop_check" data-field="speedup" data-where="id=E%2BG%7Cg-xTB%202.0.1%7Ctaxol%7C1">—</b>× for g-xTB on taxol, one thread. With 8 threads the programs are faster on both machines, most for g-xTB, whose SCF in axtb does not use its threads yet. Making axtb faster than both programs at 1 to 8 threads on both CPUs is in progress (see "Speed").</p>
+    <p class="lede"><b>Same numbers.</b> GFN2-xTB energies agree with tblite 0.8.0 to <b data-draw="t-dtb" data-source="matrix_summary" data-field="max_dE_tblite">—</b> Eh and with xtb 6.8.0 to <b data-draw="t-dxtb" data-source="matrix_summary" data-field="max_dE_xtb">—</b> Eh across a <b data-draw="t-cases" data-source="matrix_summary" data-field="cases">—</b>-case test matrix; g-xTB reproduces both of its programs for every element H–Lr, and GFN-FF reproduces xtb's. Every Hessian comes with xtb's vibrational analysis and thermochemistry, orbitals can be written as standard Molden files, g-xTB runs at any electronic temperature and in implicit solvent (AFH's correction from GFN2-xTB with ALPB, in one process instead of three program calls), and GFN-FF runs a <b data-draw="t-ff-n" data-source="gfnff_scaling" data-field="atoms" data-where="id=water1700">—</b>-atom system in <b data-draw="t-ff-m" data-source="gfnff_scaling" data-field="axtb_mib" data-where="id=water1700">—</b> MiB, where xtb runs out of memory.</p>
+    <p class="note">Working results from development builds; every number will be re-measured on the final code before publication.</p>
+    <nav aria-label="Sections">
+      <button type="button" data-go="methods">Methods</button>
+      <button type="button" data-go="hessians">Analytic Hessians</button>
+      <button type="button" data-go="speed">Speed</button>
+      <button type="button" data-go="accuracy">Accuracy</button>
+      <button type="button" data-go="conventions">Conventions</button>
+      <button type="button" data-go="math-libraries">Math libraries</button>
+      <button type="button" data-go="gpu">GPU</button>
+      <button type="button" data-go="gxtb">g-xTB</button>
+      <button type="button" data-go="features">Frequencies, orbitals, solvent</button>
+      <button type="button" data-go="gfnff">GFN-FF</button>
+      <button type="button" data-go="scf">SCF convergence</button>
+      <button type="button" data-go="findings">Bugs found</button>
+      <button type="button" data-go="lessons">Lessons</button>
+      <button type="button" data-go="scope">Scope</button>
+      <button type="button" data-go="method">Method</button>
+    </nav>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><span class="lbl">GFN2-xTB · taxol Hessian, one thread</span><span class="big"><span data-draw="k-gh1" data-source="ft_head" data-field="taxol_speedup" data-where="id=GFN2-xTB%7CHessian%7C1">—</span>×</span><span class="note">faster than <code>xtb --hess --acc 0.001</code> (6.8.0), 64-core node</span></div>
+    <div class="tile"><span class="lbl">GFN2-xTB · taxol Hessian, 8 threads</span><span class="big"><span data-draw="k-gh8" data-source="ft_head" data-field="taxol_speedup" data-where="id=GFN2-xTB%7CHessian%7C8">—</span>×</span><span class="note">faster than <code>xtb --hess --acc 0.001</code> on 8 threads</span></div>
+    <div class="tile"><span class="lbl">g-xTB 2.0.1 · taxol Hessian, one thread</span><span class="big"><span data-draw="k-xh1" data-source="ft_head" data-field="taxol_speedup" data-where="id=g-xTB%202.0.1%7CHessian%7C1">—</span>×</span><span class="note">faster than the g-xTB program's <code>--hess --acc 0.001</code></span></div>
+    <div class="tile"><span class="lbl">g-xTB 2.0.1 · taxol Hessian, 8 threads</span><span class="big"><span data-draw="k-xh8" data-source="ft_head" data-field="taxol_speedup" data-where="id=g-xTB%202.0.1%7CHessian%7C8">—</span>×</span><span class="note">faster than the g-xTB program on 8 threads</span></div>
+    <div class="tile"><span class="lbl">GFN2-xTB · test cases against xtb and tblite</span><span class="big" data-draw="k-cases" data-source="matrix_summary" data-field="cases">—</span><span class="note"><b data-draw="k-failing" data-source="matrix_summary" data-field="failing">—</b> with an unexplained difference</span></div>
+    <div class="tile"><span class="lbl">g-xTB 2.0.1 · every element H–Lr</span><span class="big"><span data-draw="k-gel" data-source="gxtb_elements_summary" data-field="agree" data-where="version=g-xTB%202.0.1">—</span> of <span data-draw="k-gel-n" data-source="gxtb_elements_summary" data-field="molecules" data-where="version=g-xTB%202.0.1">—</span></span><span class="note">molecules agree with the program; the rest are rounding-sensitive or a program error</span></div>
+    <div class="tile"><span class="lbl">g-xTB 2.0.1 · taxol Hessian memory</span><span class="big"><span data-draw="k-mem" data-source="gxtb2_hess_memory" data-field="rss_after_mb" data-where="id=taxol%201t">—</span> MB</span><span class="note">peak, one thread; <b data-draw="k-mem0" data-source="gxtb2_hess_memory" data-field="rss_before_mb" data-where="id=taxol%201t">—</b> MB before the rewrite</span></div>
+    <div class="tile"><span class="lbl">GFN-FF · memory at <span data-draw="k-ff-n" data-source="gfnff_scaling" data-field="atoms" data-where="id=water1000">—</span> atoms</span><span class="big"><span data-draw="k-ff-a" data-source="gfnff_scaling" data-field="axtb_mib" data-where="id=water1000">—</span> MiB</span><span class="note">energy + gradient; xtb needs <b data-draw="k-ff-x" data-source="gfnff_scaling" data-field="xtb_mib" data-where="id=water1000">—</b> GiB</span></div>
+  </div>
+
+  <section id="methods">
+    <h2>What axtb implements</h2>
+    <p class="lede">Four methods, each checked against the program it replaces. A method's program conventions reproduce that program's numbers, quirks included; the default conventions use current constants and fix the bugs found along the way (see "Bugs and differences").</p>
+    <div class="card">
+      <div class="tablewrap">
+        <table class="text" data-source="methods" data-row-key="method">
+          <thead><tr><th data-field="method">Method</th><th data-field="reproduces">Reproduces</th><th data-field="gradient">Gradient</th><th data-field="hessian">Hessian</th><th data-field="extras">Also</th><th data-field="validation">Validation</th></tr></thead>
+          <tbody data-draw="tb-methods"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="hessians">
+    <h2>Analytic Hessians: GFN2-xTB and g-xTB against the programs</h2>
+    <p class="lede">xtb and the g-xTB programs compute Hessians by finite differences: two SCF calculations and gradients per coordinate, each converged only as far as the accuracy setting asks. axtb differentiates the energy twice analytically for GFN2-xTB (including ALPB/GBSA solvation) and g-xTB 2.0.1; the SCF's response to every displacement comes from one coupled-perturbed solve. g-xTB v1.1 stays numerical in axtb. AFH runs the programs' Hessians at <code>--acc 0.001</code>, the setting that makes them accurate, so that is the main comparison; their defaults are shown too.</p>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span>Hessian time against molecule size, 64-core node</h3>
+      <p class="note">Seconds on log scales, whole process, median of three interleaved rounds per program; one calculation at a time, in a pod with twice as many CPUs as threads. Each panel has its own scale. Other users' jobs kept about a quarter of the node's 128 hardware threads busy, so absolute times carry some noise; compare within a panel.</p>
+      <div class="legend"><span><i class="dot" style="background: var(--ax-c2)"></i>axtb analytic</span><span><i class="dot" style="background: var(--ax-c0)"></i>program <code>--hess --acc 0.001</code> (xtb 6.8.0 / the g-xTB program)</span><span><i class="dot" style="background: var(--ax-c4)"></i>program <code>--hess</code> at its default</span></div>
+      <div class="grid" data-draw="c-ft-hess" data-source="ft_hess"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Hessian timings, speed-ups and accuracy</h3>
+      <p class="note">Seconds (median), speed-up = program time / axtb time, and the largest harmonic-frequency error (cm⁻¹) of each Hessian against a tightly converged analytic reference, projected as each program projects its output. For g-xTB v1.1 axtb's Hessian is numerical and only small molecules were run against the program.</p>
+      <div class="tablewrap">
+        <table data-source="ft_hess" data-row-key="id">
+          <thead><tr><th data-field="method">Method</th><th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="threads">Threads</th><th data-field="program_default">Program default</th><th data-field="program">Program --acc 0.001</th><th data-field="axtb">axtb</th><th data-field="speedup">Speed-up vs --acc 0.001</th><th data-field="speedup_default">vs default</th><th data-field="dfreq_program_default">Δν default</th><th data-field="dfreq_program">Δν --acc 0.001</th><th data-field="dfreq_axtb">Δν axtb</th></tr></thead>
+          <tbody data-draw="tb-ft-hess"></tbody>
+        </table>
+      </div>
+    </div>
+<div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Accuracy against a tightly converged reference</h3>
+      <p class="note">Largest Hessian element difference (Eh/bohr²) and largest harmonic frequency difference (cm⁻¹) from a reference converged far beyond default settings: Richardson-extrapolated finite differences in the gas phase, and a fine-step response Hessian with implicit solvent, whose surface term is not twice differentiable everywhere, so finite differences there depend on the step. Asymmetry: largest |H − Hᵀ| before symmetrizing.</p>
+      <div class="tablewrap">
+        <table data-source="hess_accuracy" data-row-key="id">
+          <thead><tr><th data-field="case">System</th><th data-field="atoms">Atoms</th><th data-field="method" class="l">Method</th><th data-field="max_dH">max |ΔH|</th><th data-field="max_dfreq">max |Δν| cm⁻¹</th><th data-field="asymmetry">Asymmetry</th></tr></thead>
+          <tbody data-draw="tb-hacc"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span>Hessian accuracy</h3>
+      <p class="note">Largest and mean harmonic-frequency error (cm⁻¹), against a tightly converged reference or against axtb's analytic Hessian, which agrees with that reference to about 1e-4 cm⁻¹. At its default <code>--acc 1</code> the program's frequencies are off by up to about 150 cm⁻¹; <code>$hess sccacc</code> does not reach the g-xTB calculator, only <code>--acc</code> does.</p>
+      <div class="tablewrap">
+        <table data-source="gxtb2_hess_freq" data-row-key="id">
+          <thead><tr><th data-field="molecule">Molecule</th><th data-field="method" class="l">Method</th><th data-field="max_dfreq">max |Δν|</th><th data-field="mean_dfreq">mean |Δν|</th><th data-field="against" class="l">Against</th></tr></thead>
+          <tbody data-draw="tb-g2hf"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid onecol">
+      <div class="card">
+        <h3><span class="chip">g-xTB 2.0.1</span>Hessian memory</h3>
+        <p class="note">Peak resident memory (MB) of one analytic Hessian before and after the rewrite that contracts each displacement's response as soon as it is made, so memory grows as N² instead of N³. Single point: the same calculator's energy and gradient, for scale. Laptop, except the largest water cluster, which ran as an 8-CPU job on the 64-core node.</p>
+        <div class="tablewrap">
+          <table data-source="gxtb2_hess_memory" data-row-key="id">
+            <thead><tr><th data-field="system">System</th><th data-field="atoms">Atoms</th><th data-field="threads">Threads</th><th data-field="rss_before_mb">Before</th><th data-field="rss_after_mb">After</th><th data-field="rss_single_point_mb">Single point</th><th data-field="seconds">Hessian time</th></tr></thead>
+            <tbody data-draw="tb-g2mem"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3><span class="chip">g-xTB 2.0.1</span>Hessian: what each speed change gave</h3>
+        <p class="note">Taxol, one thread, best of three interleaved rounds. Node: one build with switches for each change, so only the change differs. A change was kept if it saved at least <b data-draw="k-keep">—</b> of the time and left the results unchanged. Analytic integral pair blocks would be a little faster still, but they move heavy-element Hessians by the integral screening noise, so they were left out.</p>
+        <div class="tablewrap">
+          <table data-source="gxtb2_hess_steps" data-row-key="id">
+            <thead><tr><th data-field="machine">Machine</th><th data-field="step" class="l">Build</th><th data-field="seconds">Seconds</th><th data-field="speedup">vs first row</th><th data-field="decision" class="l">Decision</th></tr></thead>
+            <tbody data-draw="tb-g2steps"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="speed">
+    <h2>Speed: energy and gradient against the programs</h2>
+    <p class="lede">One energy and analytic gradient, whole process, on the same node and under the same conditions as the Hessians: axtb's command line against xtb 6.8.0 and tblite 0.8.0 (GFN2-xTB) and the g-xTB programs. A speed-up above 1 means axtb is faster.</p>
+    <ul>
+      <li><b>GFN2-xTB:</b> on the AMD node with one thread axtb is faster than xtb 6.8.0 at every size, by a wide margin for small molecules (process start-up) and narrowing to about the same for hundreds of atoms; with 8 threads xtb is level or faster from a few hundred atoms. On the Intel laptop xtb 6.8.0 is faster on one thread as well (table below). tblite is several times slower than both for larger molecules.</li>
+      <li><b>g-xTB 2.0.1:</b> on one thread axtb is faster than the program for small molecules and level up to about 150 atoms on the node, then slower, and slower already at taxol's size on the laptop. With 8 threads the program is faster for anything but small molecules, down to <b data-draw="t-xe8-min" data-source="ft_head" data-field="min_speedup" data-where="id=g-xTB%202.0.1%7CE%2BG%7C8">—</b>× axtb's time: axtb's g-xTB SCF and gradient use barely more than one of their threads (only the dense linear algebra is parallel).</li>
+      <li><b>Why the two machines differ:</b> the official xtb and g-xTB binaries are built with Intel's compiler and math library, which run their fastest code paths on Intel CPUs; axtb is the same code on both. Both comparisons are against the binaries users actually download.</li>
+      <li><b>g-xTB v1.1:</b> the 1.1.0 program's gradient is numerical, so axtb's analytic gradient is one to two orders of magnitude faster.</li>
+      <li><b>In progress:</b> making axtb faster than both programs for 1 to 8 threads on both CPUs, for GFN2-xTB and g-xTB; these numbers will be replaced by the final run.</li>
+    </ul>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Energy + gradient time against molecule size, 64-core node</h3>
+      <p class="note">Seconds on log scales, whole process, median of five interleaved rounds (three for g-xTB v1.1); each panel has its own scale.</p>
+      <div class="legend"><span><i class="dot" style="background: var(--ax-c2)"></i>axtb</span><span><i class="dot" style="background: var(--ax-c0)"></i>the method's program (xtb 6.8.0 / the g-xTB program)</span><span><i class="dot" style="background: var(--ax-c1)"></i>tblite 0.8.0</span></div>
+      <div class="grid" data-draw="c-ft-eg" data-source="ft_eg"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Energy + gradient timings</h3>
+      <p class="note">Seconds (median); speed-up = program time / axtb time. Other busy threads: other users' work on the node during the run, of 128 hardware threads.</p>
+      <div class="tablewrap">
+        <table data-source="ft_eg" data-row-key="id">
+          <thead><tr><th data-field="method">Method</th><th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="threads">Threads</th><th data-field="program">Program</th><th data-field="tblite">tblite</th><th data-field="axtb">axtb</th><th data-field="speedup">Speed-up</th><th data-field="other_busy">Other busy threads</th></tr></thead>
+          <tbody data-draw="tb-ft-eg"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span>The same comparison on a quiet Intel laptop</h3>
+      <p class="note">Intel Core i9-11900H, otherwise idle, same axtb commit and program binaries as on the node. Energy + gradient: median of three interleaved runs after a warm-up; Hessians (programs at <code>--acc 0.001</code>): one run each. Cores: CPU time divided by wall time, which shows how many of its threads each program keeps busy. Speed-up above 1 means axtb is faster.</p>
+      <div class="tablewrap">
+        <table data-source="laptop_check" data-row-key="id">
+          <thead><tr><th data-field="kind">Calculation</th><th data-field="method">Method</th><th data-field="molecule">Molecule</th><th data-field="threads">Threads</th><th data-field="program">Program</th><th data-field="axtb">axtb</th><th data-field="speedup">Speed-up</th><th data-field="program_cores">Cores, program</th><th data-field="axtb_cores">Cores, axtb</th><th data-field="load">Load</th></tr></thead>
+          <tbody data-draw="tb-laptop"></tbody>
+        </table>
+      </div>
+    </div>
+    <h3>GFN2-xTB: threads, many jobs at once and start-up (earlier runs against xtb 6.7.1)</h3>
+    <p class="note">These earlier runs on the laptop and a dedicated node show how axtb behaves with threads, in many-job batches and at process start-up; the single-calculation timings above supersede their per-molecule numbers.</p>
+<div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Energy + gradient thread scaling for the largest molecules</h3>
+      <p class="note">Seconds against threads per calculation; each panel has its own scale.</p>
+      <div class="legend"><span><i style="background: var(--ax-c0)"></i>xtb 6.7.1</span><span><i style="background: var(--ax-c1)"></i>tblite 0.8.0</span><span><i style="background: var(--ax-c2)"></i>axtb (Python, in-process)</span><span><i style="background: var(--ax-c3)"></i>axtb CLI</span></div>
+      <div class="grid narrow" data-draw="c-threads" data-source="timing machines"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Many small jobs at once (caffeine energy + gradient)</h3>
+      <p class="note">Wall time for a batch of independent caffeine gradients on concurrent workers, as AFH runs conformer and path batches. With xtb's default threading every process starts a full set of OpenMP threads (red). On the node the axtb CLI rows include the two start-up fixes of the next card; the laptop barely needs them.</p>
+      <div class="grid" data-draw="c-tp" data-source="throughput machines"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>axtb CLI start-up on the 64-core node</h3>
+      <p class="note">The same caffeine batches, re-measured: as benchmarked, with axtb's thread-pool fix, and with a patch that makes faer's matrix-multiply dependencies read one CPU's cache sizes instead of every CPU's. Median wall seconds over repeats.</p>
+      <div class="tablewrap">
+        <table data-source="cli_fix" data-row-key="id">
+          <thead><tr><th data-field="batch">Batch</th><th data-field="setup" class="l">Setup</th><th data-field="repeats">Repeats</th><th data-field="wall">Wall</th></tr></thead>
+          <tbody data-draw="tb-cli"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Where axtb's time goes</h3>
+      <p class="note">Share of one energy + gradient spent in each phase, on the 64-core node; the total is at the end of each bar. Small molecules are dominated by setup; large ones by the eigensolver, whose share grows with the thread count because faer's eigensolver stops scaling.</p>
+      <div class="legend"><span><i style="background: var(--ax-c7)"></i>Setup</span><span><i style="background: var(--ax-c1)"></i>Fock build</span><span><i style="background: var(--ax-c5)"></i>Eigensolver</span><span><i style="background: var(--ax-c4)"></i>Other SCF</span><span><i style="background: var(--ax-c6)"></i>Gradient</span></div>
+      <div class="chart" data-draw="c-phases" data-source="phases"></div>
+    </div>
+  </section>
+
+  <section id="accuracy">
+    <h2>GFN2-xTB: the same numbers as xtb and tblite</h2>
+    <p class="lede">axtb has two reference modes because xtb 6.7.1 and tblite disagreed slightly (older bohr constant in xtb's radius tables, different dispersion cutoffs); xtb 6.8.0 now follows tblite closely, but each keeps details of its own. axtb's xtb mode is compared with the xtb program and its tblite mode with tblite. Its default mode is compared with its own xtb mode, which isolates what the default conventions change.</p>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Reference matrix: worst energy difference that passed, by category</h3>
+      <p class="note">Every user-facing option of axtb, against xtb 6.8.0 and tblite 0.8.0 at tight SCF accuracy (axtb's xtb 6.7.1 conventions, kept for mepd's solvation correction, pass the same matrix against xtb 6.7.1). A comparison passes within <b data-draw="tol-xtb">—</b> Eh of xtb and <b data-draw="tol-tb">—</b> Eh of tblite (gradients, charges and dipoles have their own limits). Comparisons that did not pass are all explained below: another SCF solution of the same equations, a documented fix in the default conventions, a failure in every program, or a chaotic SCF that xtb fails and axtb converges: their iterations agree at first, then diverge. Log scale; zero is drawn at the left edge.</p>
+      <div class="legend"><span><i class="dot" style="background: var(--ax-c0)"></i>xtb mode vs xtb</span><span><i class="dot" style="background: var(--ax-c1)"></i>tblite mode vs tblite</span><span><i class="dot" style="background: var(--ax-c2)"></i>default vs xtb mode</span></div>
+      <div class="chart" data-draw="c-matrix" data-source="matrix"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Reference matrix by category and check</h3>
+      <p class="note">Worst differences are over passing comparisons: Eh, Eh/bohr and electrons.</p>
+      <div class="tablewrap">
+        <table data-source="matrix" data-row-key="id">
+          <thead><tr>
+            <th data-field="category">Category</th>
+            <th data-field="check" class="l">Check</th>
+            <th data-field="cases">Cases</th>
+            <th data-field="pass">Pass</th>
+            <th data-field="fail">Fail</th>
+            <th data-field="different_solution">Other SCF solution</th>
+            <th data-field="expected_difference">Documented fix</th>
+            <th data-field="both_failed">All programs fail</th>
+            <th data-field="ref_failed">Reference fails, axtb converges</th>
+            <th data-field="max_dE">max |ΔE|</th>
+            <th data-field="max_dG">max |ΔG|</th>
+            <th data-field="max_dq">max |Δq|</th>
+          </tr></thead>
+          <tbody data-draw="tb-matrix"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="chip">GFN2-xTB</span>Documented differences of the default conventions</h3>
+        <p class="note">Where axtb's default deliberately differs from its xtb mode.</p>
+        <div class="tablewrap">
+          <table class="text" data-source="matrix_expected" data-row-key="reason">
+            <thead><tr><th data-field="reason">Reason</th><th data-field="cases">Cases</th><th data-field="min_dE">min |ΔE|</th><th data-field="max_dE">max |ΔE|</th></tr></thead>
+            <tbody data-draw="tb-expected"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3><span class="chip">GFN2-xTB</span>Several SCF solutions</h3>
+        <p class="note">Each program, restarted from the other's converged charges and multipoles, lands on the other's solution: two solutions of the same equations, not an implementation error. "Lower" names the program whose own run found the lower energy.</p>
+        <div class="tablewrap">
+          <table class="text" data-source="matrix_solutions" data-row-key="id">
+            <thead><tr><th data-field="case">Case</th><th data-field="check">Comparison</th><th data-field="dE">ΔE (Eh)</th><th data-field="lower">Lower</th></tr></thead>
+            <tbody data-draw="tb-solutions"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Energy difference per molecule</h3>
+      <p class="note">The benchmark molecules, with energies from every program. Absolute difference in Hartree on a log scale; differences of exactly zero are drawn at the left edge.</p>
+      <div class="legend"><span><i class="dot" style="background: var(--ax-c0)"></i>axtb (xtb mode) vs xtb</span><span><i class="dot" style="background: var(--ax-c1)"></i>axtb (tblite mode) vs tblite</span></div>
+      <div class="chart" data-draw="c-acc" data-source="acc_deltas"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Energies and gradients from every program</h3>
+      <p class="note">Total energies in Hartree; gradient differences are the largest absolute component difference in Eh/bohr.</p>
+      <div class="tablewrap">
+        <table data-source="accuracy" data-row-key="molecule">
+          <thead><tr>
+            <th data-field="molecule">Molecule</th>
+            <th data-field="atoms">Atoms</th>
+            <th data-field="E_xtb">E xtb</th>
+            <th data-field="E_axtb_xtbref">E axtb (xtb mode)</th>
+            <th data-source="acc_deltas" data-field="dE_xtb">|ΔE| vs xtb</th>
+            <th data-field="dG_vs_xtb">max |ΔG| vs xtb</th>
+            <th data-field="E_tblite">E tblite</th>
+            <th data-field="E_axtb_tbliteref">E axtb (tblite mode)</th>
+            <th data-source="acc_deltas" data-field="dE_tblite">|ΔE| vs tblite</th>
+            <th data-field="dG_vs_tblite">max |ΔG| vs tblite</th>
+          </tr></thead>
+          <tbody data-draw="tb-acc"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Implicit solvation (ALPB and GBSA)</h3>
+      <p class="note">GFN2-xTB with xtb's solvation models, full self-consistent runs: xtb with <code>--alpb</code> or <code>--gbsa</code>, axtb in xtb mode with the same solvent.</p>
+      <div class="tablewrap">
+        <table data-source="solvation" data-row-key="case">
+          <thead><tr>
+            <th data-field="case">Case</th>
+            <th data-field="E_xtb">E xtb</th>
+            <th data-field="E_axtb">E axtb</th>
+            <th data-source="solv_deltas" data-field="dE">|ΔE|</th>
+            <th data-field="dG">max |ΔG|</th>
+            <th data-field="t_xtb">xtb s</th>
+            <th data-field="t_axtb">axtb s</th>
+          </tr></thead>
+          <tbody data-draw="tb-solv"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="conventions">
+    <h2>Three sets of conventions</h2>
+    <p class="lede">By default axtb uses current constants and fixes the bugs it found; on request it reproduces either reference program exactly, quirks included. xtb mode follows xtb 6.8.0; the 6.7.1 behaviour stays available as its own conventions, because the g-xTB 2.0.1 program that AFH's solvation correction runs is built on xtb 6.7.1. The default is meant for new work; the two reference modes are for comparing with results from those programs.</p>
+    <div class="card">
+      <div class="tablewrap">
+        <table class="text" data-source="conventions" data-row-key="aspect">
+          <thead><tr>
+            <th data-field="aspect">Aspect</th>
+            <th data-field="axtb">Default (<code>conventions="axtb"</code>)</th>
+            <th data-field="xtb">xtb mode</th>
+            <th data-field="tblite">tblite mode</th>
+          </tr></thead>
+          <tbody data-draw="tb-conv"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="math-libraries">
+    <h2>Math libraries: what axtb uses and why</h2>
+    <p class="lede">axtb writes its own chemistry kernels (integrals, Fock build, electrostatics, dispersion) and takes dense linear algebra from a library. For larger molecules most of the run time is one operation: the generalized symmetric eigenproblem of each SCF iteration.</p>
+    <ul>
+      <li><b>Default: faer, a pure-Rust BLAS/LAPACK equivalent.</b> Its matrix multiply and triangular solves match OpenBLAS and MKL; nothing has to be installed, packaged or configured, and its thread count is set per call on axtb's own pool, which is what keeps nested threading out.</li>
+      <li><b>Its eigensolver is the gap.</b> faer's eigendecomposition is slower than the best LAPACK on each CPU, mostly in tridiagonal divide-and-conquer and its multithreaded tridiagonalization. In throughput mode (one thread per calculation) the difference is small; for one large molecule on many threads it is larger.</li>
+      <li><b>The best library depends on the CPU.</b> Intel MKL is fastest on the Intel laptop and slowest in throughput mode on the AMD Zen 5 node, where AMD AOCL and OpenBLAS lead. AOCL was built from its open sources, since AMD's prebuilt package restricts use.</li>
+      <li><b>Decision so far: keep faer as the default.</b> A run-time-loaded LAPACK would become the cluster default only if it beat faer by a quarter in throughput mode, and none does on the node. An optional backend (OpenBLAS for single large multithreaded runs on AMD, MKL on Intel) can come later, with per-call thread control through each library's thread-local API, never environment variables. MKL is never linked into the LGPL build.</li>
+      <li><b>Already applied:</b> small systems keep the linear algebra sequential even when threads are allowed, because faer's parallel kernels are slower than sequential ones at that size.</li>
+    </ul>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Generalized eigenproblem time against matrix size (GFN2-xTB matrices)</h3>
+      <p class="note">Milliseconds on log scales, the Cholesky factor of S reused as in the SCF; real GFN2 matrices from axtb (taxol copies). Median of three interleaved rounds, each the median of repeated calls. On the node, 1 and 8 threads are pinned to physical cores; 32 and 64 threads run unpinned, because pinned to exactly that many CPUs faer's thread pool starves.</p>
+      <div class="legend"><span><i style="background: var(--ax-c2)"></i>faer 0.22 (axtb today)</span><span><i style="background: var(--ax-c7)"></i>faer 0.24 (AVX-512)</span><span><i style="background: var(--ax-c4)"></i>OpenBLAS</span><span><i style="background: var(--ax-c5)"></i>Intel MKL</span><span><i style="background: var(--ax-c6)"></i>AMD AOCL</span></div>
+      <div class="grid narrow" data-draw="c-linalg" data-source="linalg machines"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Time relative to faer 0.22, measured alongside it</h3>
+      <p class="note">Below the line is faster than axtb's current library. Each library is divided by faer 0.22 timed in the same session, so runs from different sessions compare fairly. Thread panels: one calculation using that many threads. Process panels: that many single-thread calculations at once, the throughput setting.</p>
+      <div class="legend"><span><i style="background: var(--ax-c7)"></i>faer 0.24 (AVX-512)</span><span><i style="background: var(--ax-c4)"></i>OpenBLAS</span><span><i style="background: var(--ax-c5)"></i>Intel MKL</span><span><i style="background: var(--ax-c6)"></i>AMD AOCL</span></div>
+      <div class="grid narrow" data-draw="c-linalg-rel" data-source="linalg_rel linalg_tp_rel machines"></div>
+    </div>
+    <div class="card">
+      <h3>Libraries considered</h3>
+      <div class="tablewrap">
+        <table class="text" data-source="libraries" data-row-key="library">
+          <thead><tr>
+            <th data-field="library">Library</th>
+            <th data-field="license">License</th>
+            <th data-field="packaging">Packaging</th>
+            <th data-field="threads">Thread control</th>
+            <th data-field="verdict">Decision</th>
+          </tr></thead>
+          <tbody data-draw="tb-lib"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="gpu">
+    <h2>GPU backend</h2>
+    <p class="lede">An optional GPU eigensolver (cuSOLVER through runtime-loaded CUDA, behind a build feature) replaces the CPU eigensolver in each SCF iteration; everything else stays on the CPU threads. It is kept on a separate branch of the code, not in the main version: AFH runs many small calculations, where the CPU is faster, so it is parked until a workload needs it. Measured on the node's RTX PRO 6000 Blackwell Max-Q and the laptop's RTX 3050 Ti. Both cards run FP64 at a small fraction of their FP32 rate, which is why mixed precision was tried.</p>
+    <ul>
+      <li><b>FP64</b> uses the same algorithm as the CPU and reproduces it to round-off.</li>
+      <li><b>Mixed</b> solves in FP32, then refines the occupied orbitals with FP64 steps; with enough steps it matches the CPU to well below SCF convergence. It gains less than hoped because the FP64 matrix multiplies of the refinement are themselves slow on these cards.</li>
+      <li><b>Adaptive</b> runs FP32 while the SCF is far from converged and refines only at the end: the fastest, but it reaches the same answer by a different SCF path, so it agrees with the CPU only to SCF tolerance.</li>
+      <li><b>Small molecules stay on the CPU.</b> Many small calculations at once serialize on one GPU; many CPU cores are far faster.</li>
+    </ul>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Energy + gradient time against basis size, 64-core node</h3>
+      <p class="note">Seconds on log scales; water clusters and taxol. GPU runs use 32 CPU threads for the rest of the SCF (64 were slower). Times include each process's one-time CUDA start-up, which a long-running process pays once.</p>
+      <div class="legend"><span><i style="background: var(--ax-c3)"></i>CPU, 1 thread</span><span><i style="background: var(--ax-c2)"></i>CPU, 32 threads</span><span><i style="background: var(--ax-c4)"></i>GPU FP64</span><span><i style="background: var(--ax-c5)"></i>GPU mixed</span><span><i style="background: var(--ax-c6)"></i>GPU adaptive</span></div>
+      <div class="chart" data-draw="c-gpu" data-source="gpu_speed"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="chip">GFN2-xTB</span>Agreement with the CPU eigensolver</h3>
+        <p class="note">Largest differences from the CPU result of the same run, over all systems up to the largest basis listed; Eh and Eh/bohr.</p>
+        <div class="tablewrap">
+          <table data-source="gpu_accuracy" data-row-key="variant">
+            <thead><tr><th data-field="variant">Variant</th><th data-field="runs">Runs</th><th data-field="largest_n_ao">Largest basis</th><th data-field="max_dE">max |ΔE|</th><th data-field="max_dG">max |ΔG|</th></tr></thead>
+            <tbody data-draw="tb-gpu-acc"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3><span class="chip">GFN2-xTB</span>Many small calculations at once, 64-core node</h3>
+        <p class="note">Independent single points, one CPU thread each; calculations per second and time per calculation.</p>
+        <div class="tablewrap">
+          <table data-source="gpu_throughput" data-row-key="id">
+            <thead><tr><th data-field="molecule">Molecule</th><th data-field="variant" class="l">Eigensolver</th><th data-field="workers">Workers</th><th data-field="per_second">per second</th><th data-field="latency_ms">ms each</th></tr></thead>
+            <tbody data-draw="tb-gpu-tp"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>All GPU timings</h3>
+      <div class="tablewrap">
+        <table data-source="gpu_speed" data-row-key="id">
+          <thead><tr>
+            <th data-field="machine">Machine</th><th data-field="system" class="l">System</th><th data-field="n_ao">Basis functions</th>
+            <th data-field="variant" class="l">Eigensolver</th><th data-field="threads">CPU threads</th><th data-field="seconds">Seconds</th>
+            <th data-source="gpu_vs_cpu" data-field="vs_best_cpu">vs best CPU run</th>
+          </tr></thead>
+          <tbody data-draw="tb-gpu"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="gxtb">
+    <h2>g-xTB v1.1 and 2.0.1</h2>
+    <p class="lede">g-xTB is the Grimme group's newer general-purpose tight-binding method. Its source is not public, so axtb reconstructs it from the paper and its supporting information, the published parameters and the GPL-licensed programs, and checks every term against those programs. Both versions are available: <code>method="gxtb-v1.1"</code> and <code>method="gxtb-v2.0.1"</code> in Python, the command line and qccompute. Version 2.0.1 is a full refit of v1.1 with new terms (an anisotropic Hamiltonian correction, a bond-order exchange correction, charge-dependent onsite exchange, self-consistent repulsion) and covers all elements H–Lr.</p>
+    <ul>
+      <li><b>Energies, analytic gradients and Hessians are done.</b> Energies, charges and orbital energies follow the program's SCF iteration by iteration, including its undocumented details: a three-body dispersion term that is in the total energy but not printed, a doubled Fock matrix in its third iteration, and two Fock-matrix terms that are not the exact derivative of its energy.</li>
+      <li><b>Two conventions, as for GFN2-xTB.</b> <code>conventions="gxtb"</code> reproduces the v1.1 program exactly; its gradient includes a response (Z-vector) term because the program's SCF is not stationary for its own energy. The corrected default uses the exact derivative of the energy as the Fock matrix, so the converged SCF is stationary and the gradient needs no response term. The correction lowers total energies slightly and often saves an SCF iteration (table), and it is the default: it moved every energy difference we checked by far less than the method's own accuracy, in exchange for exact and cheaper gradients.</li>
+      <li><b>Gradients</b> are analytic in both conventions, through every term including the charge- and coordination-number-dependent basis set, and agree with finite differences of tightly converged energies. The program's own gradient is numerical and carries noise from its step size and its non-stationary SCF.</li>
+    </ul>
+    <div class="card">
+      <h3><span class="chip">g-xTB v1.1</span>axtb vs the g-xtb 1.1.0 program</h3>
+      <p class="note">Total energies in Hartree and SCF iterations for the reference molecules; same geometry, charge and unpaired electrons in both. "ΔE" is axtb in program conventions minus the program; "corrected − program" is axtb's corrected convention minus the program.</p>
+      <div class="tablewrap">
+        <table data-source="gxtb" data-row-key="molecule">
+          <thead><tr>
+            <th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="charge">Charge</th><th data-field="unpaired">Unpaired</th>
+            <th data-field="E_program">E program</th><th data-field="E_axtb">E axtb</th><th data-field="dE">ΔE</th>
+            <th data-field="dE_corrected">corrected − program</th>
+            <th data-field="iter_program">Iterations, program</th><th data-field="iter_axtb">Iterations, axtb</th><th data-field="iter_corrected">Iterations, corrected</th>
+          </tr></thead>
+          <tbody data-draw="tb-gxtb"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span>axtb vs the g-xTB 2.0.1 program</h3>
+      <p class="note">Program conventions: total energy difference (Eh), SCF iterations, largest per-term energy difference after the SCF (Eh) and largest analytic-gradient difference against the program's own analytic gradient at tight thresholds (Eh/bohr). "Default − program" is axtb's default conventions (current constants, whole-number electron count, smooth long-range cutoffs) minus the program. In a few molecules with near-degenerate highest orbitals, individual terms differ more than the totals because the program places a tiny fractional electron on one of the degenerate orbitals.</p>
+      <div class="tablewrap">
+        <table data-source="gxtb2" data-row-key="molecule">
+          <thead><tr>
+            <th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="charge">Charge</th><th data-field="unpaired">Unpaired</th>
+            <th data-field="E_program">E program</th><th data-field="dE">ΔE</th><th data-field="iter_program">Iterations, program</th><th data-field="iter_axtb">Iterations, axtb</th>
+            <th data-field="max_dterm">max term ΔE</th><th data-field="max_dgrad">max ΔG</th><th data-field="dE_default">default − program</th>
+          </tr></thead>
+          <tbody data-draw="tb-gxtb2"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Every element H–Lr against both programs</h3>
+      <p class="note">Generated molecules for each element: hydrides, halides, oxides, aqua and ammine ions, radicals and high-spin f shells. axtb in program conventions against each program. A mismatch is classified by rerunning both programs on a translated copy with the atoms in reverse order, which changes only round-off. Rounding-sensitive: open or partly filled degenerate shells at symmetric geometries, where round-off decides how the SCF breaks the symmetry, in either program. Gradients (Eh/bohr): for 2.0.1 against the program's analytic gradient; for v1.1, whose program differentiates numerically, against finite differences of tightly converged axtb energies. ΔE (Eh) is the worst over the molecules that agree.</p>
+      <div class="tablewrap">
+        <table data-source="gxtb_elements_summary" data-row-key="version">
+          <thead><tr><th data-field="version">Version</th><th data-field="molecules">Molecules</th><th data-field="elements">Elements</th><th data-field="agree">Agree</th><th data-field="rounding">Rounding-sensitive</th><th data-field="program_wrong">Program's gradient wrong</th><th data-field="real">Small real difference</th><th data-field="unparametrized">No parameters in the program</th><th data-field="max_dE_ok">max |ΔE|</th><th data-field="max_dG">max |ΔG|</th></tr></thead>
+          <tbody data-draw="tb-gel-sum"></tbody>
+        </table>
+      </div>
+      <p class="note">Where the 2.0.1 program's gradient is wrong, the molecules are aqua ions whose waters lie exactly on the coordinate axes: finite differences of the program's own energies agree with axtb, and so does the program once the molecule is rotated. The small v1.1 differences are in the printed exchange term only, with total energies within the tolerance, and come from Fock elements between far-apart atoms. For elements it has no parameters for, the 1.1.0 program stops without an energy but with exit code 0.</p>
+      <div class="tablewrap">
+        <table class="text" data-source="gxtb_elements" data-row-key="id">
+          <thead><tr><th data-field="version">Version</th><th data-field="element">Element</th><th data-field="molecule">Molecule</th><th data-field="charge">Charge</th><th data-field="unpaired">Unpaired</th><th data-field="dE">ΔE</th><th data-field="dG">ΔG</th><th data-field="iterations">Iterations, axtb / program</th><th data-field="status">Status</th><th data-field="note">Note</th></tr></thead>
+          <tbody data-draw="tb-gel"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Energy differences under program and default conventions</h3>
+      <p class="note">Each quantity in program conventions (kcal/mol) and how much axtb's default conventions change it (Eh). Minima optimized with axtb on each version's own surface; transition states with Sella from axtb's analytic Hessian, each with one imaginary mode and connected to its minima. For v1.1 the default replaces the program's Fock matrix with the exact derivative of its energy; for 2.0.1, whose Fock matrix is already exact, it changes only constants, the electron count and cutoffs.</p>
+      <div class="tablewrap">
+        <table class="text" data-source="gxtb_ediff" data-row-key="quantity">
+          <thead><tr><th data-field="quantity">Quantity</th><th data-field="v2_kcal">2.0.1 (kcal/mol)</th><th data-field="v2_delta">2.0.1 default − program (Eh)</th><th data-field="v1_kcal">v1.1 (kcal/mol)</th><th data-field="v1_delta">v1.1 default − program (Eh)</th></tr></thead>
+          <tbody data-draw="tb-gediff"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <h2>Frequencies, orbitals, solvent and temperature</h2>
+    <p class="lede">Beyond energies, gradients and Hessians, axtb covers what AFH uses the xtb programs for: frequencies and thermochemistry, orbitals for viewing, g-xTB in implicit solvent and g-xTB at a finite electronic temperature, restarting the SCF along a path, and bond orders, orbital gaps and quadrupoles. Each is checked against the program it replaces, in the conventions that reproduce that program.</p>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span>Vibrational analysis and thermochemistry</h3>
+      <p class="note">Same Hessian: the program's own Hessian file analysed by axtb against the program's printout; frequencies in cm⁻¹, thermochemistry (ZPVE, H, T·S, G(RRHO), G) in Eh. Own Hessian: axtb's analytic Hessian against the program's finite-difference one (xtb --hess; the g-xTB program at --acc 1e-4), so the differences are those of the Hessians. Point groups and symmetry numbers come from an independent implementation, not a port of xtb's GPL-licensed code.</p>
+      <div class="tablewrap">
+        <table data-source="vibrational" data-row-key="id">
+          <thead><tr><th data-field="method" class="l">Method</th><th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="point_group">Point group</th><th data-field="symmetry_number">σ</th><th data-field="dfreq_same">Same Hessian: max |Δν|</th><th data-field="dthermo_same">max |Δ thermo|</th><th data-field="dfreq_own">Own Hessian: max |Δν|</th><th data-field="dG_own">|ΔG(RRHO)|</th></tr></thead>
+          <tbody data-draw="tb-vib"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>g-xTB at a finite electronic temperature</h3>
+      <p class="note">axtb in program conventions against <code>xtb --gxtb --etemp T</code> (2.0.1) and <code>gxtb -tel T</code> (1.1.0), at each temperature for every molecule; mepd's SCF retry ladder uses 1000 and 3000 K. Compared: runs where both converge and the last digits are not decided by rounding. Rounding-sensitive: slowly converging SCFs of metal clusters and lanthanide compounds at high temperature, where a one-ulp change of kT moves the result as much as the difference to the program. Energies in Eh, gradients in Eh/bohr.</p>
+      <div class="tablewrap">
+        <table data-source="gxtb_etemp" data-row-key="id">
+          <thead><tr><th data-field="setting">Comparison</th><th data-field="molecules">Molecules</th><th data-field="temperatures">T (K)</th><th data-field="runs">Runs</th><th data-field="compared">Compared</th><th data-field="both_fail">Both fail</th><th data-field="rounding_sensitive">Rounding-sensitive</th><th data-field="max_dE">max |ΔE|</th><th data-field="max_dgrad">max |ΔG|</th><th data-field="iteration_mismatches">Iteration mismatches</th></tr></thead>
+          <tbody data-draw="tb-etemp"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">g-xTB 2.0.1</span><span class="chip">GFN2-xTB</span>g-xTB in implicit solvent: one process instead of three programs</h3>
+      <p class="note">g-xTB 2.0.1 has no implicit solvent of its own, so AFH adds GFN2-xTB's ALPB solvation energy: E = E(g-xTB) + E(GFN2-xTB, ALPB water) − E(GFN2-xTB). mepd runs three xtb processes per geometry, with a retry ladder at raised electronic temperatures; axtb computes all three parts in one call, and the Hessian analytically. ΔE, ΔG: axtb in program conventions against the three programs; mepd: mepd's own implementation against them. Hessian: largest frequency difference of the analytic composite Hessian from central differences of the composite gradient. Times: one energy and gradient, one thread, best of three; programs include process start-up and retries. Default − programs: axtb's default conventions, where the GFN2 parts use its corrected constants and converger.</p>
+      <div class="tablewrap">
+        <table data-source="composite" data-row-key="id">
+          <thead><tr><th data-field="case">Structure</th><th data-field="atoms">Atoms</th><th data-field="retry" class="l">mepd retry</th><th data-field="dG_solv">ΔG_solv (Eh)</th><th data-field="dE">ΔE</th><th data-field="dgrad">ΔG</th><th data-field="dE_mepd">mepd ΔE</th><th data-field="dfreq_hess">Hessian max |Δν|</th><th data-field="t_programs">3 programs</th><th data-field="t_mepd">mepd</th><th data-field="t_program_mode">axtb, program mode</th><th data-field="t_axtb">axtb default</th><th data-field="dE_default">Default − programs (Eh)</th></tr></thead>
+          <tbody data-draw="tb-comp"></tbody>
+        </table>
+      </div>
+      <p class="note">Stretched HF converges in mepd's GFN2 pair only at the last rung of its ladder, after failing attempts with a thousand iterations each: xtb's Broyden mixer keeps every iteration, so the programs take <b data-draw="c-hf-t" data-source="composite" data-field="t_programs" data-where="id=hf-stretched">—</b> s even for two atoms, and axtb's exact reproduction of xtb's loop as long. axtb's default converger finishes the same pair at GFN2-xTB's usual electronic temperature, but that is a different temperature from the rung mepd's ladder reached, and the solvation correction differs by <b data-draw="c-hf-d" data-source="composite" data-field="dE_default" data-where="id=hf-stretched">—</b> Eh.</p>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Molden orbital files</h3>
+      <p class="note">axtb's spherical Molden file against the program's own file, both read by an independent reader and compared through the overlap of the two bases: 1 − |⟨i|i⟩| for the worst non-degenerate orbital and for the worst degenerate set, 1 − the smallest singular value for the occupied space, and orbital energies (Eh). Functions: spherical / Cartesian. Orthonormality: largest |CᵀSC − 1| in axtb's file. mepd HOMO: relative difference of the HOMO density on mepd's grid, read from axtb's Cartesian file and from the program's; "—" where mepd cannot read the program's file. g-xTB 1.1.0's UF₆ differs more because the program's SCF and axtb's take different numbers of iterations.</p>
+      <div class="tablewrap">
+        <table data-source="molden" data-row-key="id">
+          <thead><tr><th data-field="program" class="l">Program</th><th data-field="molecule">Molecule</th><th data-field="atoms">Atoms</th><th data-field="functions">Functions</th><th data-field="max_l">Up to</th><th data-field="spin_sets">Spin sets</th><th data-field="orbital">Orbital</th><th data-field="degenerate">Degenerate set</th><th data-field="occupied">Occupied space</th><th data-field="energy">Orbital energy</th><th data-field="orthonormal">Orthonormality</th><th data-field="mepd_homo">mepd HOMO</th></tr></thead>
+          <tbody data-draw="tb-molden"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Restarting the SCF from the previous geometry</h3>
+      <p class="note">SCF iterations per point when every calculation starts fresh, and when each starts from the previous geometry's solution, as the programs' restart files do. In-process random walks of small displacements, and optimizations, a transition-state search and an IRC driven through qccompute. Times (s) are for the in-process random walks; through qccompute the drivers' own overhead dominates. Restarts are the default in axtb's own conventions; the program conventions start fresh unless asked, and then reproduce each program's restart. A g-xTB step gains less time than iterations, because its SCF is a smaller share of each energy and gradient than GFN2-xTB's.</p>
+      <div class="tablewrap">
+        <table data-source="guess_reuse" data-row-key="id">
+          <thead><tr><th data-field="method">Method</th><th data-field="sequence" class="l">Sequence</th><th data-field="points">Points</th><th data-field="iter_fresh">Iterations, fresh</th><th data-field="iter_reuse">Iterations, restart</th><th data-field="time_fresh">Time, fresh</th><th data-field="time_reuse">Time, restart</th></tr></thead>
+          <tbody data-draw="tb-guess"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span><span class="chip">g-xTB 2.0.1</span><span class="chip">g-xTB v1.1</span>Bond orders, HOMO–LUMO gap and quadrupole against the programs</h3>
+      <p class="note">Largest differences from each program's own output over the test molecules (closed and open shells, ions, metal complexes), in the conventions that reproduce it: Mayer–Wiberg bond orders, the HOMO–LUMO gap (eV) and the printed molecular quadrupole (a.u.), next to the precision the program prints it with. g-xtb 1.1.0 prints bond orders with three decimals and no quadrupole. xtb 6.7.1 prints the charges and moments it mixes once more after the last iteration, so its quadrupole differs by more than its print precision at the default accuracy.</p>
+      <div class="tablewrap">
+        <table data-source="parity_props" data-row-key="id">
+          <thead><tr><th data-field="method">Method</th><th data-field="program" class="l">Program</th><th data-field="molecules">Molecules</th><th data-field="bond_orders">Bond orders</th><th data-field="gap_eV">Gap (eV)</th><th data-field="quadrupole">Quadrupole</th><th data-field="quadrupole_printed">Printed to</th></tr></thead>
+          <tbody data-draw="tb-props"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="gfnff">
+    <h2>GFN-FF force field</h2>
+    <p class="lede">GFN-FF is the Grimme group's general force field, set up automatically from a structure; mepd uses it for the environment in QM/MM and for large boxes. axtb's GFN-FF is a port of xtb's (LGPL) and follows xtb 6.8.0 (6.7.1's, which the g-xTB 2.0.1 build runs, as conventions <code>xtb-6.7.1</code>), with the topology (bonds, hybridization, π bond orders, fragments, topology charges) found the same way, then kept fixed or taken from another structure, so a whole reaction path can share one topology. It has analytic gradients and an analytic Hessian with dipole derivatives, and runs from Rust, the command line, Python and qccompute as <code>method="gfnff"</code>.</p>
+    <div class="card">
+      <h3><span class="chip">GFN-FF</span>Against xtb 6.8.0 and 6.7.1 --gfnff</h3>
+      <p class="note">Same coordinates in both programs. Reproduced: every topology list identical and charges, energies and gradients within the test's tolerances (charges <b data-draw="ff-tq">—</b> e, energies <b data-draw="ff-te">—</b> Eh, gradients <b data-draw="ff-tg">—</b> Eh/bohr); differences are the largest over reproduced structures, in e, Eh (total and each energy term) and Eh/bohr. The one structure not reproduced, D5h ferrocenium, has an exactly degenerate Hückel pair at the Fermi level, so its π bond orders depend on which eigenvectors the eigensolver returns, in xtb as well. The two xtb versions differ slightly in GFN-FF (a newer bohr constant, the π-bond threshold, the Hückel Fermi level, and the compiler's rounding of vector norms, which decides ties between equidistant neighbours); each has its own conventions in axtb. The per-category table is against 6.8.0.</p>
+      <div class="tablewrap">
+        <table data-source="gfnff_versions" data-row-key="version">
+          <thead><tr><th data-field="version">Reference</th><th data-field="structures">Structures</th><th data-field="reproduced">Reproduced</th><th data-field="max_dq">max |Δq|</th><th data-field="max_dE">max |ΔE|</th><th data-field="max_dG">max |ΔG|</th><th data-field="not_reproduced" class="l">Not reproduced</th></tr></thead>
+          <tbody data-draw="tb-ffvers"></tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table data-source="gfnff_accuracy" data-row-key="category">
+          <thead><tr><th data-field="category">Category</th><th data-field="cases">Structures</th><th data-field="reproduced">Reproduced</th><th data-field="largest">Largest (atoms)</th><th data-field="max_dq">max |Δq|</th><th data-field="max_dE">max |ΔE|</th><th data-field="max_dG">max |ΔG|</th><th data-field="not_reproduced" class="l">Not reproduced</th></tr></thead>
+          <tbody data-draw="tb-ffacc"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN-FF</span>Time and memory against size</h3>
+      <p class="note">Laptop, one energy and gradient (one or eight threads), the analytic Hessian, and <code>xtb --gfnff --hess</code> where it was run; peak memory of the one-thread run. xtb 6.7.1 ran on one thread with a <b data-draw="ff-cap">—</b> GiB memory limit (6.8.0 keeps the same hydrogen-bond array) and stops with "insufficient virtual memory" above it; its hydrogen-bond array alone is listed. The laptop was shared during these runs, so times carry some noise. Wherever both programs finish, energies agree to <b data-draw="ff-se" data-source="gfnff_scaling_max" data-field="dE">—</b> Eh and gradients to <b data-draw="ff-sg" data-source="gfnff_scaling_max" data-field="dG">—</b> Eh/bohr.</p>
+      <div class="tablewrap">
+        <table data-source="gfnff_scaling" data-row-key="id">
+          <thead><tr><th data-field="system">System</th><th data-field="atoms">Atoms</th><th data-field="xtb_s">xtb E+G</th><th data-field="xtb_mib">xtb memory</th><th data-field="xtb_hb_array_gib">xtb hydrogen-bond array</th><th data-field="axtb_s">axtb E+G, 1 / 8 threads</th><th data-field="axtb_mib">axtb memory</th><th data-field="hess_s">axtb Hessian, 1 / 8 threads</th><th data-field="hess_mib">Hessian memory</th><th data-field="xtb_hess_s">xtb --hess</th></tr></thead>
+          <tbody data-draw="tb-ffscale"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN-FF</span>Hessians against xtb 6.8.0 --gfnff --hess</h3>
+      <p class="note">xtb's Hessian is central differences of its analytic gradient (step 0.005 bohr). axtb's numerical Hessian with the same step reproduces it; the analytic Hessian is the exact derivative and differs from xtb's by xtb's finite-difference error. Frequencies in cm⁻¹ (xtb prints two decimals), free energies (G, with xtb's GFN-FF frequency scale of 1.03) in Eh. The analytic Hessian is checked against tightly converged finite differences of axtb's gradient in the test suite, including exactly linear and planar molecules.</p>
+      <div class="tablewrap">
+        <table data-source="gfnff_hessian" data-row-key="case">
+          <thead><tr><th data-field="case">Structure</th><th data-field="atoms">Atoms</th><th data-field="num_dfreq">Numerical: max |Δν|</th><th data-field="num_dG">|ΔG|</th><th data-field="ana_dfreq">Analytic: max |Δν|</th><th data-field="ana_dG">|ΔG|</th><th data-field="note" class="l">Note</th></tr></thead>
+          <tbody data-draw="tb-ffhess"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="scf">
+    <h2>SCF convergence</h2>
+    <p class="lede">axtb's SCF originally used the same Broyden mixing as tblite, so it takes the same path as the reference programs and lands on the same solution where there are several. To find out whether a better converger helps, we built a set of hard cases (bond breaking, reaction-path images, metal clusters, small gaps, open shells) and compared Broyden, a Pulay/DIIS mixer, xtb and tblite on it.</p>
+    <ul>
+      <li><b>DIIS rescues most room-temperature failures</b>, the kind that make reaction-path workflows retry at a raised electronic temperature, which also shifts the energy.</li>
+      <li><b>It is not a free win.</b> In systems with several SCF solutions it sometimes converges to a different one than Broyden, once with an implausible −3 charge on an atom, and it fails one structure Broyden converges. The 0 K failures have no stable whole-electron solution, and every program fails them.</li>
+      <li><b>So the default keeps Broyden and uses DIIS only as a fallback</b> when Broyden fails. Everything that converged before gives exactly the same result, rescued results say which mixer produced them, and the xtb and tblite modes keep pure Broyden so they still reproduce those programs, failures included.</li>
+    </ul>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Hard-SCF test set, by method</h3>
+      <p class="note">Code-generated structures, each at 300 K and some also at 0 K; at most 250 iterations, SCF accuracy 1e-4 in every program. Median iterations over the cases each method converged.</p>
+      <div class="tablewrap">
+        <table data-source="scf_summary" data-row-key="method">
+          <thead><tr><th data-field="method">Method</th><th data-field="cases">Cases</th><th data-field="converged">Converged</th><th data-field="failed_300K">Failed at 300 K</th><th data-field="failed_0K">Failed at 0 K</th><th data-field="median_iterations">Median iterations</th></tr></thead>
+          <tbody data-draw="tb-scfsum"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Cases where a method fails or the methods disagree</h3>
+      <p class="note">Iterations to convergence, or "fails". Energy spread: largest difference between converged results (Eh); a large spread means the methods found different SCF solutions.</p>
+      <div class="tablewrap">
+        <table data-source="scf_cases" data-row-key="id">
+          <thead><tr><th data-field="case">Case</th><th data-field="category" class="l">Kind</th><th data-field="etemp">T (K)</th><th data-field="broyden">Broyden</th><th data-field="diis">DIIS</th><th data-field="auto">axtb default</th><th data-field="xtb">xtb</th><th data-field="tblite">tblite</th><th data-field="energy_spread">Energy spread</th></tr></thead>
+          <tbody data-draw="tb-scfcases"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="findings">
+    <h2>Bugs and differences in xtb, tblite and g-xTB</h2>
+    <p class="lede">Reproducing xtb and tblite to the last digits meant reading every term, which surfaced bugs in both and showed where the two programs, which implement the same GFN2-xTB method, give different numbers. Where xtb's own numbers depend on a quirk, axtb reproduces it in xtb mode so results stay identical; its default fixes it.</p>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>xtb 6.7.1 and tblite 0.8.0 disagreed with each other</h3>
+      <p class="note">Same molecule, same coordinates, tight SCF: xtb 6.7.1's energy minus tblite 0.8.0's. xtb 6.8.0 adopted tblite's numerics and now agrees with it to about 1e-10 Eh (see "What xtb 6.8.0 changed"). Small molecules differ by about the size of the constants they disagree on; the difference grows with size, mainly from the different dispersion cutoffs (see Conventions). Absolute value on a log scale.</p>
+      <div class="chart" data-draw="c-xt" data-source="xtb_vs_tblite"></div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>Measured effects of the bugs and differences</h3>
+      <p class="note">Each row is a direct measurement with xtb 6.7.1, tblite and axtb's default conventions. Energies in Hartree. xtb 6.8.0 fixed the solvation and constants rows; see the next table and the status column below.</p>
+      <div class="tablewrap">
+        <table class="text" data-source="program_diffs" data-row-key="id">
+          <thead><tr>
+            <th data-field="topic">Topic</th>
+            <th data-field="case">Case</th>
+            <th data-field="quantity">Quantity</th>
+            <th data-field="xtb">xtb 6.7.1</th>
+            <th data-field="tblite">tblite 0.8.0</th>
+            <th data-field="axtb">axtb default</th>
+          </tr></thead>
+          <tbody data-draw="tb-pdiff"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>What xtb 6.8.0 changed</h3>
+      <p class="note">xtb 6.8.0, released while this work was under way, adopted tblite's numerics for GFN2-xTB almost entirely: constants, cutoffs, integral screening and most of its SCF loop. It keeps xtb's own charge start, integer occupations at very low temperature, solvation constants and a gradient of its own. Each row puts one xtb 6.7.1 behaviour back into axtb's 6.8.0 conventions and compares with the xtb 6.8.0 program over the same test set: water, caffeine, ferrocene, a copper complex, taxol, caffeine in implicit water in each reference state, and compressed CsOH in both atom orders. Largest |ΔE| (Eh) and |ΔG| (Eh/bohr) at SCF accuracy 1e-4 and 1; the last column counts the cases whose SCF iteration count changes. The first row is axtb's 6.8.0 conventions as they are.</p>
+      <div class="tablewrap">
+        <table class="text" data-source="xtb680_changes" data-row-key="id">
+          <thead><tr><th data-field="setting">xtb 6.7.1 behaviour put back</th><th data-field="dE_tight">max |ΔE|, acc 1e-4</th><th data-field="dG_tight">max |ΔG|, acc 1e-4</th><th data-field="dE_default">max |ΔE|, acc 1</th><th data-field="dG_default">max |ΔG|, acc 1</th><th data-field="iterations_differ">Iteration counts changed</th></tr></thead>
+          <tbody data-draw="tb-x680"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Bugs and quirks</h3>
+      <div class="tablewrap">
+        <table class="text" data-source="issues" data-row-key="finding">
+          <thead><tr>
+            <th data-field="program">Program</th>
+            <th data-field="finding">Finding</th>
+            <th data-field="consequence">Consequence</th>
+            <th data-field="in_axtb">In axtb</th>
+            <th data-field="status">Status</th>
+          </tr></thead>
+          <tbody data-draw="tb-issues"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="chip">GFN2-xTB</span>What each program does with invalid or hard input</h3>
+      <p class="note">"Returns an energy" with charges that do not sum to the molecule's charge means the result is wrong and nothing says so.</p>
+      <div class="tablewrap">
+        <table class="text" data-source="matrix_failures" data-row-key="case">
+          <thead><tr>
+            <th data-field="case">Input</th>
+            <th data-field="expected">Should give</th>
+            <th data-field="xtb">xtb 6.8.0</th>
+            <th data-field="tblite">tblite 0.8.0</th>
+            <th data-field="axtb">axtb</th>
+          </tr></thead>
+          <tbody data-draw="tb-fail"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="lessons">
+    <h2>What we learned</h2>
+    <div class="card">
+      <ul data-draw="ul-learn" data-source="learnings"></ul>
+    </div>
+  </section>
+
+  <section id="scope">
+    <h2>What this covers and what it doesn't</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Tested</h3>
+        <ul data-draw="ul-tested" data-source="scope"></ul>
+      </div>
+      <div class="card">
+        <h3>Not tested</h3>
+        <ul data-draw="ul-untested" data-source="scope"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="method">
+    <h2>How this was measured</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Machines</h3>
+        <div class="tablewrap">
+          <table class="text" data-source="machines" data-row-key="machine">
+            <thead><tr><th data-field="label">Machine</th><th data-field="cpu">CPU</th><th data-field="date">Measured</th></tr></thead>
+            <tbody data-draw="tb-machines"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Programs and references</h3>
+        <div class="tablewrap">
+          <table class="text" data-source="versions" data-row-key="item">
+            <thead><tr><th data-field="item">Item</th><th data-field="value">Version</th><th data-field="reference">Reference</th><th data-field="license">License</th></tr></thead>
+            <tbody data-draw="tb-versions"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Notes</h3>
+      <ul>
+        <li>Single-calculation timings (Hessians, energy and gradient) were measured on two nodes of the AFH cluster (AMD Threadripper PRO 9985WX, 64 cores, 2 hardware threads per core) at one axtb commit, with each program and axtb interleaved and the order rotated every round; medians of five rounds (three for Hessians), whole-process wall time. Each calculation ran alone in a pod with twice as many CPUs as threads, so its own threads never shared a core. Another user's jobs kept about a quarter of each node's hardware threads busy (recorded per run), so absolute times move a little; ratios within a row are the reliable part. The earlier GFN2-xTB runs on threads, batches, start-up and phases used xtb 6.7.1 on a laptop and a dedicated node. A check on the otherwise idle Intel laptop (same commit and binaries) confirmed the node's picture for Hessians and for the g-xTB threading gap, and showed the programs relatively faster on the Intel CPU.</li>
+        <li>Timing runs use each program's default SCF accuracy; accuracy runs use a tight one so convergence noise does not hide differences.</li>
+        <li>Every program got identical coordinates in bohr, charge and number of unpaired electrons.</li>
+        <li>Hand-built transition-metal complexes and generated water clusters are not optimized geometries; they test the code, not chemistry.</li>
+        <li>The remaining differences to xtb are summation order and, at loose SCF accuracy, the path of the SCF; tblite agrees to the last digits.</li>
+        <li>The reference matrix covers GFN2-xTB. g-xTB 2.0.1, g-xTB v1.1 and GFN-FF are compared with their own programs in their sections.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  // series colors follow the program or library (never its rank)
+  const root = document.querySelector('.ax');
+  if (root) dash.colors.forEach((c, i) => root.style.setProperty(`--ax-c${i}`, c));
+  window.AX = {
+    col: (i) => `var(--ax-c${i})`,
+    sci: (v) => (v == null ? '—' : v === 0 ? '0' : d3.format('.1e')(v)),
+    sec: (v) => (v == null ? '—' : v === 0 ? '0' : v < 0.01 ? d3.format('.2f')(v * 1000) + ' ms' : d3.format('.3~f')(v) + ' s'),
+    ms: (v) => (v >= 1000 ? d3.format('.2~f')(v / 1000) + ' s' : d3.format('~g')(v) + ' ms'),
+    eh: d3.format('.10f'),
+    times: (v) => d3.format('.1f')(v) + '×',
+    mb: (v) => (v == null ? '—' : v >= 1000 ? d3.format(',.2~f')(v / 1000) + ' GB' : d3.format(',.0f')(v) + ' MB'),
+    mib: (v) => (v == null ? '—' : v >= 1024 ? d3.format(',.2~f')(v / 1024) + ' GiB' : d3.format(',.0f')(v) + ' MiB'),
+    int: d3.format(','),
+    // settings used by bench/run_benchmarks.py and tests/reference_matrix/run.py
+    HESS_STEP: 0.005, HESS_ACC: 0.01, TOL_XTB: 1e-7, TOL_TBLITE: 1e-9,
+    // the bar a speed change of the g-xTB Hessian had to clear to be kept
+    KEEP_GAIN: 0.10,
+    // tests/gfnff_reproduction.py: pass tolerances and xtb's address-space limit in the scaling runs
+    FF_TOL_Q: 1e-10, FF_TOL_E: 1e-10, FF_TOL_G: 1e-9, FF_XTB_CAP_GIB: 10,
+    decades: (lo, hi) => d3.range(Math.floor(Math.log10(lo)), Math.ceil(Math.log10(hi)) + 1).map((k) => 10 ** k).filter((v) => v >= lo && v <= hi),
+    LIBCOL: { 'faer 0.22': 2, 'faer 0.24 (AVX-512)': 7, 'OpenBLAS': 4, 'Intel MKL': 5, 'AMD AOCL': 6 },
+    PHASECOL: { 'Setup (classical terms, integrals, Cholesky)': 7, 'Fock build': 1, 'Eigensolver': 5, 'Other SCF (density, charges, energy, mixing)': 4, 'Gradient': 6 },
+    PROGS: [['xtb', 'xtb 6.7.1', 0], ['tblite', 'tblite 0.8.0', 1], ['axtb', 'axtb (in-process)', 2], ['axtb_cli', 'axtb CLI', 3]],
+  };
+  const go = (id) => { const el = document.getElementById(id); if (el) { el.scrollIntoView({ behavior: 'smooth' }); dash.setLink(id); } };
+  document.querySelectorAll('.ax nav button[data-go]').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
+  const named = location.hash.slice(1);
+  if (named) setTimeout(() => go(named), 300);
+})();
+
+// ---- calculations
+dash.calc('matrix_summary', {
+  title: 'Reference matrix totals',
+  description: 'Number of test cases, comparisons with an unexplained difference, and the worst passing energy differences to xtb and tblite.',
+  inputs: ['matrix'],
+  fn: (matrix) => {
+    const cats = new Map(matrix.map((r) => [r.id.split('|')[0], r.category_cases]));
+    const worst = (check) => Math.max(...matrix.filter((r) => r.check === check && r.max_dE != null).map((r) => r.max_dE));
+    return [{
+      cases: [...cats.values()].reduce((a, b) => a + b, 0),
+      failing: matrix.reduce((a, r) => a + r.fail, 0),
+      max_dE_xtb: worst('axtb (xtb mode) vs xtb'),
+      max_dE_tblite: worst('axtb (tblite mode) vs tblite'),
+    }];
+  },
+});
+dash.calc('hess_speed', {
+  title: 'Analytic Hessian speed-up',
+  description: 'Per system and thread count: axtb analytic Hessian time, xtb --hess time, and xtb or axtb finite-difference time divided by the analytic time.',
+  inputs: ['hess_time'],
+  fn: (hess_time) => {
+    const t = (c, m, th) => (hess_time.find((r) => r.case === c && r.method === m && r.threads === th) || {}).seconds;
+    const out = [];
+    for (const k of new Set(hess_time.map((r) => `${r.case}|${r.threads}`))) {
+      const [c, th] = [k.slice(0, k.lastIndexOf('|')), Number(k.slice(k.lastIndexOf('|') + 1))];
+      const a = t(c, 'axtb analytic', th), x = t(c, 'xtb --hess', th), f = t(c, 'axtb finite differences', th);
+      if (a) out.push({ case: c, threads: th, analytic_s: a, xtb_s: x ?? null, vs_xtb: x ? x / a : null, vs_fd: f ? f / a : null });
+    }
+    return out;
+  },
+});
+dash.calc('hess_best', {
+  title: 'Analytic Hessian headline',
+  description: 'Largest speed-up of the analytic Hessian over xtb --hess at one thread, and its largest frequency error over all systems.',
+  inputs: ['hess_time', 'hess_accuracy'],
+  fn: (hess_time, hess_accuracy) => {
+    const t = (c, m) => (hess_time.find((r) => r.case === c && r.method === m && r.threads === 1) || {}).seconds;
+    const ratios = [...new Set(hess_time.map((r) => r.case))].map((c) => t(c, 'xtb --hess') / t(c, 'axtb analytic')).filter((v) => Number.isFinite(v));
+    const an = hess_accuracy.filter((r) => r.method === 'axtb analytic').map((r) => r.max_dfreq);
+    return [{ vs_xtb: Math.max(...ratios), max_dfreq_analytic: Math.max(...an) }];
+  },
+});
+dash.calc('gxtb2_hess_speed', {
+  title: 'g-xTB 2.0.1 Hessian speed-up',
+  description: 'Per molecule and thread count: axtb analytic Hessian time and the g-xTB 2.0.1 program at --acc 0.001 divided by it, from the same interleaved window.',
+  inputs: ['gxtb2_hess_time'],
+  fn: (gxtb2_hess_time) => {
+    const w = gxtb2_hess_time.filter((r) => r.window === 'acc');
+    const out = [];
+    for (const k of new Set(w.map((r) => `${r.molecule}|${r.threads}`))) {
+      const [m, th] = [k.split('|')[0], Number(k.split('|')[1])];
+      const a = w.find((r) => r.molecule === m && r.threads === th && r.method === 'axtb analytic');
+      const p = w.find((r) => r.molecule === m && r.threads === th && r.method === 'program --hess --acc 0.001');
+      if (a && p) out.push({ molecule: m, threads: th, axtb_s: a.seconds, program_s: p.seconds, vs_program: p.seconds / a.seconds });
+    }
+    return out;
+  },
+});
+dash.calc('acc_deltas', {
+  title: 'Energy differences per molecule',
+  description: 'Absolute energy difference of axtb to xtb (xtb mode) and to tblite (tblite mode), per benchmark molecule.',
+  inputs: ['accuracy'],
+  fn: (accuracy) => accuracy.map((r) => ({
+    molecule: r.molecule,
+    dE_xtb: Math.abs(r.E_axtb_xtbref - r.E_xtb),
+    dE_tblite: Math.abs(r.E_axtb_tbliteref - r.E_tblite),
+  })),
+});
+dash.calc('speedup', {
+  title: 'axtb speed-up over xtb',
+  description: 'xtb wall time divided by axtb in-process wall time, per machine, molecule and thread count.',
+  inputs: ['timing'],
+  fn: (timing) => timing.map((r) => ({ id: r.id, machine: r.machine, molecule: r.molecule, threads: r.threads, vs_xtb: r.xtb / r.axtb })),
+});
+dash.calc('speed_1t', {
+  title: 'Single-thread speed-up',
+  description: 'xtb and tblite wall time divided by axtb in-process wall time at one thread, per machine.',
+  inputs: ['timing'],
+  fn: (timing) => timing.filter((r) => r.threads === 1).map((r) => ({ machine: r.machine, molecule: r.molecule, vs_xtb: r.xtb / r.axtb, vs_tblite: r.tblite / r.axtb })),
+});
+dash.calc('throughput_ratio', {
+  title: 'Batch throughput gain',
+  description: 'For each machine and batch: xtb wall time (default threading, and one thread per job) divided by axtb in-process wall time.',
+  inputs: ['throughput'],
+  fn: (throughput) => {
+    const out = [];
+    for (const key of new Set(throughput.map((r) => `${r.machine}|${r.batch}`))) {
+      const rows = throughput.filter((r) => `${r.machine}|${r.batch}` === key);
+      const get = (p) => rows.find((r) => r.setup.startsWith(p));
+      const ax = get('axtb in-process'), x0 = get('xtb, OMP_NUM_THREADS unset'), x1 = get('xtb, OMP_NUM_THREADS=1');
+      if (ax) out.push({ machine: rows[0].machine, batch: rows[0].batch, vs_xtb_default: x0 ? x0.wall / ax.wall : null, vs_xtb1: x1 ? x1.wall / ax.wall : null });
+    }
+    return out;
+  },
+});
+dash.calc('xtb_vs_tblite', {
+  title: 'xtb minus tblite',
+  description: 'Energy from the xtb program minus energy from tblite for the same molecule, per benchmark molecule.',
+  inputs: ['accuracy'],
+  fn: (accuracy) => accuracy.map((r) => ({ molecule: r.molecule, atoms: r.atoms, d: r.E_xtb - r.E_tblite })),
+});
+dash.calc('gpu_vs_cpu', {
+  title: 'GPU speed-up over the best CPU run',
+  description: 'Fastest CPU-only time for the same machine and system (any thread count) divided by each run\'s time.',
+  inputs: ['gpu_speed'],
+  fn: (gpu_speed) => {
+    const best = new Map();
+    for (const r of gpu_speed.filter((q) => q.variant === 'CPU (faer)')) {
+      const k = `${r.machine}|${r.system}`;
+      best.set(k, Math.min(best.get(k) ?? Infinity, r.seconds));
+    }
+    return gpu_speed.map((r) => ({ id: r.id, vs_best_cpu: best.has(`${r.machine}|${r.system}`) ? best.get(`${r.machine}|${r.system}`) / r.seconds : null }));
+  },
+});
+dash.calc('solv_deltas', {
+  title: 'Solvation energy differences',
+  description: 'Absolute energy difference of axtb (xtb mode) to xtb with the same implicit solvent.',
+  inputs: ['solvation'],
+  fn: (solvation) => solvation.map((r) => ({ case: r.case, dE: Math.abs(r.E_axtb - r.E_xtb) })),
+});
+dash.calc('linalg_rel', {
+  title: 'Eigensolver time relative to faer',
+  description: 'Each library divided by faer 0.22 timed in the same session, machine, thread count and size; generalized eigenproblem.',
+  inputs: ['linalg'],
+  fn: (linalg) => {
+    const gen = linalg.filter((r) => r.op === 'generalized eigenproblem');
+    const base = new Map(gen.filter((r) => r.library === 'faer 0.22').map((r) => [`${r.machine}|${r.session}|${r.threads}|${r.n}`, r.ms]));
+    return gen.filter((r) => r.library !== 'faer 0.22' && base.has(`${r.machine}|${r.session}|${r.threads}|${r.n}`))
+      .map((r) => ({ machine: r.machine, threads: r.threads, library: r.library, n: r.n, ratio: r.ms / base.get(`${r.machine}|${r.session}|${r.threads}|${r.n}`) }));
+  },
+});
+dash.calc('linalg_tp_rel', {
+  title: 'Throughput-mode eigensolver time relative to faer',
+  description: 'Median single-thread time with many concurrent processes, divided by faer 0.22 measured in the same session under the same load; generalized eigenproblem.',
+  inputs: ['linalg_tp'],
+  fn: (linalg_tp) => {
+    const gen = linalg_tp.filter((r) => r.op === 'generalized eigenproblem');
+    const key = (r) => `${r.machine}|${r.session}|${r.processes}|${r.n}`;
+    const base = new Map(gen.filter((r) => r.library === 'faer 0.22').map((r) => [key(r), r.ms]));
+    return gen.filter((r) => r.library !== 'faer 0.22' && base.has(key(r)))
+      .map((r) => ({ machine: r.machine, processes: r.processes, library: r.library, n: r.n, ratio: r.ms / base.get(key(r)) }));
+  },
+});
+
+// ---- single values
+const one = (name, id, field, fmt, where) => dash.draw(name, (el) => {
+  const d = dash.data(id);
+  const rows = d.status === 'ok' ? d.data : [];
+  const row = where ? rows.find((r) => Object.entries(where).every(([k, v]) => r[k] === v)) : rows[0];
+  el.textContent = row && row[field] != null ? fmt(row[field]) : '—';
+});
+one('t-dxtb', 'matrix_summary', 'max_dE_xtb', AX.sci);
+one('t-dtb', 'matrix_summary', 'max_dE_tblite', AX.sci);
+one('t-cases', 'matrix_summary', 'cases', AX.int);
+one('k-cases', 'matrix_summary', 'cases', AX.int);
+one('k-failing', 'matrix_summary', 'failing', AX.int);
+one('k-mem', 'gxtb2_hess_memory', 'rss_after_mb', (v) => d3.format(',.0f')(v), { id: 'taxol 1t' });
+one('k-mem0', 'gxtb2_hess_memory', 'rss_before_mb', (v) => d3.format(',.0f')(v), { id: 'taxol 1t' });
+one('t-ff-n', 'gfnff_scaling', 'atoms', AX.int, { id: 'water1700' });
+one('t-ff-m', 'gfnff_scaling', 'axtb_mib', (v) => d3.format(',.0f')(v), { id: 'water1700' });
+one('k-ff-n', 'gfnff_scaling', 'atoms', AX.int, { id: 'water1000' });
+one('k-ff-a', 'gfnff_scaling', 'axtb_mib', (v) => d3.format(',.0f')(v), { id: 'water1000' });
+one('k-ff-x', 'gfnff_scaling', 'xtb_mib', (v) => d3.format('.1f')(v / 1024), { id: 'water1000' });
+dash.draw('k-keep', (el) => { el.textContent = d3.format('.0%')(AX.KEEP_GAIN); });
+dash.draw('ff-tq', (el) => { el.textContent = d3.format('.0e')(AX.FF_TOL_Q); });
+dash.draw('ff-te', (el) => { el.textContent = d3.format('.0e')(AX.FF_TOL_E); });
+dash.draw('ff-tg', (el) => { el.textContent = d3.format('.0e')(AX.FF_TOL_G); });
+dash.draw('ff-cap', (el) => { el.textContent = String(AX.FF_XTB_CAP_GIB); });
+one('ff-se', 'gfnff_scaling_max', 'dE', AX.sci);
+one('ff-sg', 'gfnff_scaling_max', 'dG', AX.sci);
+one('c-hf-t', 'composite', 't_programs', (v) => d3.format('.0f')(v), { id: 'hf-stretched' });
+one('c-hf-d', 'composite', 'dE_default', (v) => d3.format('.3f')(Math.abs(v)), { id: 'hf-stretched' });
+dash.draw('tol-xtb', (el) => { el.textContent = d3.format('.0e')(AX.TOL_XTB); });
+dash.draw('tol-tb', (el) => { el.textContent = d3.format('.0e')(AX.TOL_TBLITE); });
+
+// ---- tables
+const lookup = (id, keyFn) => {
+  const d = dash.data(id);
+  return new Map((d.status === 'ok' ? d.data : []).map((r) => [keyFn(r), r]));
+};
+const fillRows = (tbody, rows, cells, key) => {
+  tbody.replaceChildren();
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    if (key) tr.dataset.key = key(r);
+    for (const c of cells(r)) {
+      const td = document.createElement('td');
+      const [text, cls] = Array.isArray(c) ? c : [c];
+      td.textContent = text == null ? '—' : String(text);
+      if (cls) td.className = cls;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+};
+const table = (name, id, cells, key) => dash.draw(name, (tbody) => {
+  const d = dash.data(id);
+  if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+  fillRows(tbody, d.data, cells, key);
+});
+const mlabel = () => lookup('machines', (r) => r.machine);
+table('tb-matrix', 'matrix', (r) => [r.category, [r.check, 'l'], AX.int(r.cases), AX.int(r.pass), [AX.int(r.fail), r.fail ? 'bad' : ''],
+  r.different_solution || '', r.expected_difference || '', r.both_failed || '', r.ref_failed || '', AX.sci(r.max_dE), AX.sci(r.max_dG), AX.sci(r.max_dq)], (r) => r.id);
+table('tb-expected', 'matrix_expected', (r) => [r.reason, AX.int(r.cases), AX.sci(r.min_dE), AX.sci(r.max_dE)]);
+table('tb-solutions', 'matrix_solutions', (r) => [r.case, r.check, AX.sci(r.dE), r.lower || '—'], (r) => r.id);
+table('tb-conv', 'conventions', (r) => [r.aspect, r.axtb, r.xtb, r.tblite]);
+table('tb-lib', 'libraries', (r) => [r.library, r.license, r.packaging, r.threads, r.verdict]);
+table('tb-issues', 'issues', (r) => [r.program, r.finding, r.consequence, r.in_axtb, r.status], (r) => r.finding);
+table('tb-fail', 'matrix_failures', (r) => [r.case, r.expected, r.xtb, r.tblite, r.axtb]);
+table('tb-gpu-acc', 'gpu_accuracy', (r) => [r.variant, AX.int(r.runs), AX.int(r.largest_n_ao), AX.sci(r.max_dE), AX.sci(r.max_dG)]);
+table('tb-gpu-tp', 'gpu_throughput', (r) => [r.molecule, [r.variant, 'l'], AX.int(r.workers), d3.format(',.0f')(r.per_second), d3.format(',.1f')(r.latency_ms)], (r) => r.id);
+dash.draw('tb-gpu', (tbody) => {
+  const d = dash.data('gpu_speed');
+  const sp = lookup('gpu_vs_cpu', (r) => r.id);
+  const ml = mlabel();
+  if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+  fillRows(tbody, d.data, (r) => {
+    const v = (sp.get(r.id) || {}).vs_best_cpu;
+    return [(ml.get(r.machine) || {}).label || r.machine, [r.system, 'l'], AX.int(r.n_ao), [r.variant, 'l'], String(r.threads), AX.sec(r.seconds), v != null ? AX.times(v) : '—'];
+  }, (r) => r.id);
+});
+table('tb-gxtb', 'gxtb', (r) => [r.molecule, AX.int(r.atoms), String(r.charge), String(r.unpaired), AX.eh(r.E_program), AX.eh(r.E_axtb), AX.sci(r.dE), AX.sci(r.dE_corrected), String(r.iter_program), r.iter_axtb == null ? '—' : String(r.iter_axtb), r.iter_corrected == null ? '—' : String(r.iter_corrected)]);
+table('tb-gxtb2', 'gxtb2', (r) => [r.molecule, AX.int(r.atoms), String(r.charge), String(r.unpaired), AX.eh(r.E_program), AX.sci(r.dE), String(r.iter_program), r.iter_axtb == null ? '—' : String(r.iter_axtb), AX.sci(r.max_dterm), AX.sci(r.max_dgrad), AX.sci(r.dE_default)]);
+table('tb-gel-sum', 'gxtb_elements_summary', (r) => [r.version, AX.int(r.molecules), AX.int(r.elements), AX.int(r.agree), String(r.rounding), String(r.program_wrong), String(r.real), String(r.unparametrized), AX.sci(r.max_dE_ok), AX.sci(r.max_dG)], (r) => r.version);
+table('tb-gel', 'gxtb_elements', (r) => [r.version, r.element, r.molecule, [String(r.charge), 'n'], [String(r.unpaired), 'n'], [AX.sci(r.dE), 'n'], [AX.sci(r.dG), 'n'], [r.iterations || '—', 'n'], r.status, r.note || ''], (r) => r.id);
+table('tb-gediff', 'gxtb_ediff', (r) => [r.quantity, [r.v2_kcal == null ? '—' : d3.format('.4f')(r.v2_kcal), 'n'], [AX.sci(r.v2_delta), 'n'], [r.v1_kcal == null ? '—' : d3.format('.4f')(r.v1_kcal), 'n'], [AX.sci(r.v1_delta), 'n']], (r) => r.quantity);
+table('tb-g2hf', 'gxtb2_hess_freq', (r) => [r.molecule, [r.method, 'l'], d3.format('.2~g')(r.max_dfreq), d3.format('.2~g')(r.mean_dfreq), [r.against, 'l']], (r) => r.id);
+dash.calc('gfnff_scaling_max', {
+  title: 'GFN-FF scaling agreement',
+  description: 'Largest energy and gradient differences between axtb and xtb over the scaling systems both programs finish.',
+  inputs: ['gfnff_scaling'],
+  fn: (rows) => {
+    const both = rows.filter((r) => r.dE != null);
+    return [{ dE: d3.max(both, (r) => Math.abs(r.dE)), dG: d3.max(both, (r) => Math.abs(r.dG)) }];
+  },
+});
+dash.calc('composite_speed', {
+  title: 'Composite speed-up',
+  description: 'Time of the three xtb programs divided by the time of axtb\u2019s default composite (new calculator), per structure.',
+  inputs: ['composite'],
+  fn: (rows) => rows.map((r) => ({ id: r.id, vs_programs: r.t_programs / r.t_axtb })),
+});
+table('tb-g2mem', 'gxtb2_hess_memory', (r) => [r.system, AX.int(r.atoms), String(r.threads), r.rss_before_mb == null ? (r.before_note || '—') : AX.mb(r.rss_before_mb), AX.mb(r.rss_after_mb), AX.mb(r.rss_single_point_mb), AX.sec(r.seconds)], (r) => r.id);
+table('tb-g2steps', 'gxtb2_hess_steps', (r) => [r.machine, [r.step, 'l'], AX.sec(r.seconds), AX.times(r.speedup), [r.decision, 'l']], (r) => r.id);
+table('tb-vib', 'vibrational', (r) => [[r.method, 'l'], r.molecule, AX.int(r.atoms), r.point_group, String(r.symmetry_number), AX.sci(r.dfreq_same), AX.sci(r.dthermo_same), d3.format('.2~f')(r.dfreq_own), AX.sci(r.dG_own)], (r) => r.id);
+table('tb-etemp', 'gxtb_etemp', (r) => [r.setting, AX.int(r.molecules), r.temperatures, AX.int(r.runs), AX.int(r.compared), String(r.both_fail), String(r.rounding_sensitive), AX.sci(r.max_dE), AX.sci(r.max_dgrad), String(r.iteration_mismatches)], (r) => r.id);
+table('tb-comp', 'composite', (r) => [r.case, AX.int(r.atoms), [r.retry || '—', 'l'], d3.format('.4f')(r.dG_solv), AX.sci(r.dE), AX.sci(r.dgrad), AX.sci(r.dE_mepd), AX.sci(r.dfreq_hess), AX.sec(r.t_programs), AX.sec(r.t_mepd), AX.sec(r.t_program_mode), AX.sec(r.t_axtb), AX.sci(r.dE_default)], (r) => r.id);
+table('tb-molden', 'molden', (r) => [[r.program, 'l'], r.molecule, AX.int(r.atoms), r.functions, r.max_l, String(r.spin_sets), AX.sci(r.orbital), AX.sci(r.degenerate), AX.sci(r.occupied), AX.sci(r.energy), AX.sci(r.orthonormal), AX.sci(r.mepd_homo)], (r) => r.id);
+table('tb-guess', 'guess_reuse', (r) => [r.method, [r.sequence, 'l'], AX.int(r.points), d3.format('.1f')(r.iter_fresh), d3.format('.1f')(r.iter_reuse), r.time_fresh == null ? '—' : AX.sec(r.time_fresh), r.time_reuse == null ? '—' : AX.sec(r.time_reuse)], (r) => r.id);
+table('tb-props', 'parity_props', (r) => [r.method, [r.program, 'l'], AX.int(r.molecules), AX.sci(r.bond_orders), AX.sci(r.gap_eV), AX.sci(r.quadrupole), r.quadrupole_printed == null ? '—' : d3.format('.0e')(r.quadrupole_printed)], (r) => r.id);
+const pair = (a, b, fmt) => (a == null ? '—' : fmt(a) + (b == null ? '' : ' / ' + fmt(b)));
+table('tb-ffvers', 'gfnff_versions', (r) => [r.version, AX.int(r.structures), AX.int(r.reproduced), AX.sci(r.max_dq), AX.sci(r.max_dE), AX.sci(r.max_dG), [r.not_reproduced || '—', 'l']], (r) => r.version);
+table('tb-ffacc', 'gfnff_accuracy', (r) => [r.category, AX.int(r.cases), AX.int(r.reproduced), AX.int(r.largest), AX.sci(r.max_dq), AX.sci(r.max_dE), AX.sci(r.max_dG), [r.not_reproduced || '—', 'l']], (r) => r.category);
+table('tb-ffscale', 'gfnff_scaling', (r) => [r.system, AX.int(r.atoms), r.xtb_s == null ? (r.xtb_failed || '—') : AX.sec(r.xtb_s), AX.mib(r.xtb_mib), r.xtb_hb_array_gib == null ? '—' : d3.format(',.2~f')(r.xtb_hb_array_gib) + ' GiB',
+  pair(r.axtb_s, r.axtb_s8, AX.sec), AX.mib(r.axtb_mib), pair(r.hess_s, r.hess_s8, AX.sec), AX.mib(r.hess_mib), r.xtb_hess_s == null ? '—' : AX.sec(r.xtb_hess_s)], (r) => r.id);
+table('tb-ffhess', 'gfnff_hessian', (r) => [r.case, AX.int(r.atoms), AX.sci(r.num_dfreq), AX.sci(r.num_dG), r.ana_dfreq == null ? '—' : d3.format('.2f')(r.ana_dfreq), AX.sci(r.ana_dG), [r.note || '', 'l']], (r) => r.case);
+table('tb-x680', 'xtb680_changes', (r) => [r.setting, [AX.sci(r.dE_tight), 'n'], [AX.sci(r.dG_tight), 'n'], [AX.sci(r.dE_default), 'n'], [AX.sci(r.dG_default), 'n'], [`${r.iterations_differ} of ${r.cases}`, 'n']], (r) => r.id);
+
+table('tb-scfsum', 'scf_summary', (r) => [r.method, AX.int(r.cases), AX.int(r.converged), AX.int(r.failed_300K), AX.int(r.failed_0K), r.median_iterations == null ? '—' : String(r.median_iterations)]);
+table('tb-scfcases', 'scf_cases', (r) => [r.case, [r.category, 'l'], String(r.etemp), r.broyden ?? '—', r.diis ?? '—', r.auto ?? '—', r.xtb ?? '—', r.tblite ?? '—', r.energy_spread ? AX.sci(r.energy_spread) : '0'], (r) => r.id);
+table('tb-hacc', 'hess_accuracy', (r) => [r.case, AX.int(r.atoms), [r.method, 'l'], AX.sci(r.max_dH), AX.sci(r.max_dfreq), AX.sci(r.asymmetry)], (r) => r.id);
+table('tb-cli', 'cli_fix', (r) => [r.batch, [r.setup, 'l'], AX.int(r.repeats), AX.sec(r.wall)], (r) => r.id);
+table('tb-pdiff', 'program_diffs', (r) => [r.topic, r.case, r.quantity, [AX.sci(r.xtb), 'n'], [AX.sci(r.tblite), 'n'], [AX.sci(r.axtb), 'n']], (r) => r.id);
+// ---- final timings on the 64-core node: one panel per method and thread count
+const FT_PANELS = [['GFN2-xTB', 1], ['GFN2-xTB', 8], ['g-xTB 2.0.1', 1], ['g-xTB 2.0.1', 8], ['g-xTB v1.1', 1], ['g-xTB v1.1', 8]];
+const ftLines = (el, id, seriesOf) => {
+  if (!ready(el, [id])) return;
+  const all = dash.data(id).data;
+  for (const [meth, th] of FT_PANELS) {
+    const rows = all.filter((r) => r.method === meth && r.threads === th).sort((a, b) => a.atoms - b.atoms);
+    const series = seriesOf(meth).map(([k, lab, ci]) => [lab, ci, rows.filter((r) => r[k] != null).map((r) => [r.atoms, r[k]])]).filter(([, , pts]) => pts.length);
+    if (!series.length) continue;
+    const xs = series.flatMap(([, , pts]) => pts.map((q) => q[0])), ys = series.flatMap(([, , pts]) => pts.map((q) => q[1]));
+    const x = d3.scaleLog([d3.min(xs) * 0.8, d3.max(xs) * 1.25], [0, 1]);
+    const y = d3.scaleLog(logDomain(ys), [0, 1]);
+    const xt = AX.decades(...x.domain()).flatMap((v) => [v, 3 * v]).filter((v) => v >= x.domain()[0] && v <= x.domain()[1]);
+    const byAtoms = new Map(rows.map((r) => [r.atoms, r]));
+    lines(panel(el, 'chart short'), {
+      title: `${meth} · ${th} thread${th > 1 ? 's' : ''}`, x, y, xTicks: xt, xFmt: d3.format(',d'), yTicks: AX.decades(...y.domain()), yFmt: AX.sec, series,
+      tipHead: (a) => `${byAtoms.get(a).molecule} · ${AX.int(a)} atoms`, tipVal: AX.sec,
+    });
+  }
+};
+dash.draw('c-ft-hess', (el) => ftLines(el, 'ft_hess', (meth) => {
+  const prog = meth === 'GFN2-xTB' ? 'xtb 6.8.0' : meth === 'g-xTB v1.1' ? 'g-xtb 1.1.0' : 'g-xTB program';
+  return [['axtb', meth === 'g-xTB v1.1' ? 'axtb numerical' : 'axtb analytic', 2], ['program', `${prog} --hess --acc 0.001`, 0], ['program_default', `${prog} --hess`, 4]];
+}));
+dash.draw('c-ft-eg', (el) => ftLines(el, 'ft_eg', (meth) => {
+  const prog = meth === 'GFN2-xTB' ? 'xtb 6.8.0' : meth === 'g-xTB v1.1' ? 'g-xtb 1.1.0' : 'g-xTB 2.0.1 program';
+  return [['axtb', 'axtb', 2], ['program', prog, 0], ['tblite', 'tblite 0.8.0', 1]];
+}));
+const xfmt = (v) => (v == null ? '—' : v >= 10 ? d3.format('.0f')(v) + '×' : d3.format('.1f')(v) + '×');
+const dfmt = (v) => (v == null ? '—' : v >= 0.01 ? d3.format('.2~f')(v) : AX.sci(v));
+table('tb-ft-hess', 'ft_hess', (r) => [r.method, r.molecule, AX.int(r.atoms), String(r.threads), AX.sec(r.program_default), AX.sec(r.program), AX.sec(r.axtb), xfmt(r.speedup && r.program ? r.speedup : null), xfmt(r.speedup_default), dfmt(r.dfreq_program_default), dfmt(r.dfreq_program), dfmt(r.dfreq_axtb)], (r) => r.id);
+table('tb-ft-eg', 'ft_eg', (r) => [r.method, r.molecule, AX.int(r.atoms), String(r.threads), AX.sec(r.program), AX.sec(r.tblite), AX.sec(r.axtb), [xfmt(r.speedup), r.speedup != null && r.speedup < 1 ? 'bad' : ''], String(r.other_busy)], (r) => r.id);
+table('tb-laptop', 'laptop_check', (r) => [r.kind, r.method, r.molecule, String(r.threads), AX.sec(r.program), AX.sec(r.axtb), [xfmt(r.speedup), r.speedup < 1 ? 'bad' : ''], d3.format('.1f')(r.program_cores), d3.format('.1f')(r.axtb_cores), d3.format('.1f')(r.load)], (r) => r.id);
+one('t-lh-g', 'laptop_check', 'speedup', (v) => d3.format('.0f')(v), { id: 'Hessian|GFN2-xTB|taxol|1' });
+one('t-lh-x', 'laptop_check', 'speedup', (v) => d3.format('.1f')(v), { id: 'Hessian|g-xTB 2.0.1|caffeine|1' });
+one('t-le-g', 'laptop_check', 'speedup', (v) => d3.format('.2f')(v), { id: 'E+G|GFN2-xTB|taxol|1' });
+one('t-le-x', 'laptop_check', 'speedup', (v) => d3.format('.2f')(v), { id: 'E+G|g-xTB 2.0.1|taxol|1' });
+const hd = (name, field, id, fmt) => one(name, 'ft_head', field, fmt, { id });
+hd('h1-gfn2', 'max_speedup_20', 'GFN2-xTB|Hessian|1', (v) => d3.format('.0f')(v));
+hd('h1-gx', 'max_speedup_20', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.1f')(v));
+hd('t-gh-a', 'taxol_axtb', 'GFN2-xTB|Hessian|1', (v) => d3.format('.2~f')(v));
+hd('t-gh-p', 'taxol_program', 'GFN2-xTB|Hessian|1', (v) => d3.format('.0f')(v));
+hd('t-gh-x', 'taxol_speedup', 'GFN2-xTB|Hessian|1', (v) => d3.format('.0f')(v));
+hd('t-gh-d', 'taxol_dfreq_program_default', 'GFN2-xTB|Hessian|1', (v) => d3.format('.1f')(v));
+hd('t-xh-a', 'taxol_axtb', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.0f')(v));
+hd('t-xh-p', 'taxol_program', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.0f')(v));
+hd('t-xh-x', 'taxol_speedup', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.1f')(v));
+hd('t-xh-d', 'taxol_dfreq_program_default', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.0f')(v));
+hd('t-ge-x', 'taxol_speedup', 'GFN2-xTB|E+G|1', (v) => d3.format('.1f')(v));
+hd('t-xe-x', 'taxol_speedup', 'g-xTB 2.0.1|E+G|1', (v) => d3.format('.2f')(v));
+hd('t-xe8-min', 'min_speedup', 'g-xTB 2.0.1|E+G|8', (v) => d3.format('.1f')(v));
+hd('k-gh1', 'taxol_speedup', 'GFN2-xTB|Hessian|1', (v) => d3.format('.0f')(v));
+hd('k-gh8', 'taxol_speedup', 'GFN2-xTB|Hessian|8', (v) => d3.format('.0f')(v));
+hd('k-xh1', 'taxol_speedup', 'g-xTB 2.0.1|Hessian|1', (v) => d3.format('.1f')(v));
+hd('k-xh8', 'taxol_speedup', 'g-xTB 2.0.1|Hessian|8', (v) => d3.format('.1f')(v));
+one('k-gel', 'gxtb_elements_summary', 'agree', AX.int, { version: 'g-xTB 2.0.1' });
+one('k-gel-n', 'gxtb_elements_summary', 'molecules', AX.int, { version: 'g-xTB 2.0.1' });
+table('tb-methods', 'methods', (r) => [r.method, r.reproduces, r.gradient, r.hessian, r.extras, r.validation], (r) => r.method);
+table('tb-machines', 'machines', (r) => [r.label, r.cpu, r.date], (r) => r.machine);
+table('tb-versions', 'versions', (r) => [r.item, r.value, r.reference, r.license]);
+dash.draw('tb-acc', (tbody) => {
+  const d = dash.data('accuracy');
+  const del = lookup('acc_deltas', (r) => r.molecule);
+  if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+  fillRows(tbody, d.data, (r) => {
+    const x = del.get(r.molecule) || {};
+    return [r.molecule, AX.int(r.atoms), AX.eh(r.E_xtb), AX.eh(r.E_axtb_xtbref), AX.sci(x.dE_xtb), AX.sci(r.dG_vs_xtb),
+      AX.eh(r.E_tblite), AX.eh(r.E_axtb_tbliteref), AX.sci(x.dE_tblite), AX.sci(r.dG_vs_tblite)];
+  });
+});
+dash.draw('tb-solv', (tbody) => {
+  const d = dash.data('solvation');
+  const del = lookup('solv_deltas', (r) => r.case);
+  if (d.status !== 'ok') { tbody.replaceChildren(); return; }
+  fillRows(tbody, d.data, (r) => [r.case, AX.eh(r.E_xtb), AX.eh(r.E_axtb), AX.sci((del.get(r.case) || {}).dE), AX.sci(r.dG), AX.sec(r.t_xtb), AX.sec(r.t_axtb)]);
+});
+const listDraw = (name, id, filter, item) => dash.draw(name, (ul) => {
+  const d = dash.data(id);
+  ul.replaceChildren();
+  if (d.status !== 'ok') return;
+  for (const r of d.data.filter(filter)) {
+    const li = document.createElement('li');
+    item(li, r);
+    ul.appendChild(li);
+  }
+});
+listDraw('ul-learn', 'learnings', () => true, (li, r) => {
+  const b = document.createElement('b'); b.textContent = `${r.topic}. `;
+  li.append(b, document.createTextNode(r.lesson));
+});
+listDraw('ul-tested', 'scope', (r) => r.kind === 'Tested', (li, r) => { li.textContent = r.item; });
+listDraw('ul-untested', 'scope', (r) => r.kind === 'Not tested', (li, r) => { li.textContent = r.item; });
+
+// ---- chart helpers
+const failLine = (el, ids) => {
+  if (ids.some((id) => dash.data(id).status === 'error')) { const f = document.createElement('div'); f.className = 'fail'; f.textContent = 'Failed to load'; el.appendChild(f); }
+};
+const tipFor = (el) => { const t = document.createElement('div'); t.className = 'tip'; t.hidden = true; el.appendChild(t); return t; };
+const showTip = (tip, el, ev, head, lines) => {
+  tip.replaceChildren();
+  const h = document.createElement('div'); h.className = 'k'; h.textContent = head; tip.appendChild(h);
+  for (const [color, label, value] of lines) {
+    const line = document.createElement('div');
+    if (color) { const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = color; line.appendChild(sw); }
+    line.appendChild(document.createTextNode(`${label}: ${value}`));
+    tip.appendChild(line);
+  }
+  tip.hidden = false;
+  const box = el.getBoundingClientRect();
+  const x = ev.clientX - box.left, y = ev.clientY - box.top;
+  const w = tip.offsetWidth, hgt = tip.offsetHeight;
+  tip.style.left = `${Math.max(0, Math.min(box.width - w, x + 12))}px`;
+  tip.style.top = `${Math.max(0, y - hgt - 8)}px`;
+};
+const measure = (svg, texts) => {
+  const t = svg.append('text').attr('visibility', 'hidden');
+  let m = 0;
+  for (const s of texts) { t.text(s); m = Math.max(m, t.node().getComputedTextLength()); }
+  t.remove();
+  return m;
+};
+const axisStyle = (g) => g.attr('font-size', null).attr('font-family', null);
+const panel = (el, cls) => { const box = document.createElement('div'); box.className = cls || 'chart short'; el.appendChild(box); return box; };
+// draw a panel on the next frame, after every panel of its grid exists, so it measures its final width
+const later = (box, fn) => requestAnimationFrame(() => { if (box.isConnected) fn(); });
+const ready = (el, ids) => {
+  el.replaceChildren();
+  if (ids.every((id) => dash.data(id).status === 'ok')) return true;
+  failLine(el, ids);
+  return false;
+};
+// a small line chart: x and y scales given, series = [[label, colorIndex, points [[x, y, row]]]]
+const lines = (box, opts) => later(box, () => linesNow(box, opts));
+const linesNow = (box, { title, x, y, xTicks, xFmt, yTicks, yFmt, series, tipHead, tipVal, refY }) => {
+  const W = box.clientWidth || 320, H = 220, top = title ? 26 : 10, bottom = 30;
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  if (title) svg.append('text').attr('class', 'lab').attr('x', 0).attr('y', 14).text(title);
+  const left = measure(svg, yTicks.map(yFmt)) + 10, right = 12;
+  x.range([left, W - right]); y.range([H - bottom, top]);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).tickValues(yTicks).tickSize(-(W - left - right)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(${left},0)`).call(d3.axisLeft(y).tickValues(yTicks).tickFormat(yFmt)).call(axisStyle);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xTicks).tickFormat(xFmt)).call(axisStyle);
+  if (refY != null) svg.append('line').attr('x1', left).attr('x2', W - right).attr('y1', y(refY)).attr('y2', y(refY)).style('stroke', 'var(--cds-chart-reference)').style('stroke-width', 1.5).style('stroke-dasharray', '4 3');
+  for (const [, ci, pts] of series) {
+    svg.append('path').attr('d', d3.line()(pts.map(([a, b]) => [x(a), y(b)]))).style('fill', 'none').style('stroke', AX.col(ci)).style('stroke-width', 2).style('stroke-linejoin', 'round').style('stroke-linecap', 'round');
+    svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (p) => x(p[0])).attr('cy', (p) => y(p[1])).attr('r', 3).style('fill', AX.col(ci)).style('stroke', 'var(--color-panel)').style('stroke-width', 1);
+  }
+  const xs = [...new Set(series.flatMap(([, , pts]) => pts.map((p) => p[0])))].sort((a, b) => a - b);
+  const tip = tipFor(box);
+  svg.append('rect').attr('x', left).attr('y', top).attr('width', W - left - right).attr('height', H - top - bottom).style('fill', 'transparent')
+    .on('mousemove', (ev) => {
+      const px = d3.pointer(ev)[0];
+      const xv = xs[d3.leastIndex(xs, (v) => Math.abs(x(v) - px))];
+      showTip(tip, box, ev, tipHead(xv), series.map(([lab, ci, pts]) => { const p = pts.find((q) => q[0] === xv); return [AX.col(ci), lab, p ? tipVal(p[1]) : '—']; }));
+    })
+    .on('mouseleave', () => { tip.hidden = true; });
+};
+const logDomain = (vals, lo = 0.7, hi = 1.4) => [d3.min(vals) * lo, d3.max(vals) * hi];
+
+// ---- reference matrix: worst passing |ΔE| per category, three checks
+dash.draw('c-matrix', (el) => {
+  if (!ready(el, ['matrix'])) return;
+  const checks = [['axtb (xtb mode) vs xtb', 0, 'xtb mode vs xtb', -4], ['axtb (tblite mode) vs tblite', 1, 'tblite mode vs tblite', 0], ['axtb default vs its xtb mode', 2, 'default vs xtb mode', 4]];
+  const rows = dash.data('matrix').data;
+  const cats = [...new Set(rows.filter((r) => checks.some(([c]) => c === r.check) && r.max_dE != null).map((r) => r.category))];
+  const floor = 1e-16;
+  const W = el.clientWidth || 600, rowH = 26, top = 8, bottom = 30;
+  const svg = d3.select(el).append('svg').attr('width', '100%');
+  const left = measure(svg, cats) + 12, right = 16;
+  const H = top + bottom + rowH * cats.length;
+  svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  const x = d3.scaleLog([floor, 1e-6], [left, W - right]).clamp(true);
+  const y = d3.scaleBand(cats, [top, H - bottom]).padding(0.3);
+  const xt = AX.decades(floor, 1e-6).filter((v) => Math.round(Math.log10(v)) % 2 === 0);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickSize(-(H - top - bottom)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickFormat(d3.format('.0e'))).call(axisStyle);
+  svg.append('g').selectAll('text').data(cats).join('text').attr('class', 'lab').attr('x', left - 8).attr('y', (c) => y(c) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((c) => c);
+  for (const [check, ci, , dy] of checks) {
+    const pts = rows.filter((r) => r.check === check && r.max_dE != null);
+    svg.append('g').selectAll('circle').data(pts).join('circle')
+      .attr('cx', (r) => x(Math.max(r.max_dE, floor))).attr('cy', (r) => y(r.category) + y.bandwidth() / 2 + dy).attr('r', 4.5)
+      .style('fill', AX.col(ci)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+  }
+  const tip = tipFor(el);
+  svg.append('g').selectAll('rect').data(cats).join('rect').attr('x', left).attr('width', W - left - right)
+    .attr('y', (c) => y(c) - 3).attr('height', y.bandwidth() + 6).style('fill', 'transparent')
+    .on('mousemove', (ev, c) => showTip(tip, el, ev, c, checks.map(([check, ci, lab]) => {
+      const r = rows.find((q) => q.category === c && q.check === check);
+      return [AX.col(ci), lab, r ? `${AX.sci(r.max_dE)} Eh (${AX.int(r.pass)} of ${AX.int(r.cases)} pass)` : 'not checked'];
+    })))
+    .on('mouseleave', () => { tip.hidden = true; });
+});
+
+// ---- per-molecule accuracy dot plot
+dash.draw('c-acc', (el) => {
+  if (!ready(el, ['acc_deltas'])) return;
+  const rows = dash.data('acc_deltas').data, floor = 1e-16;
+  const W = el.clientWidth || 600, rowH = 24, top = 8, bottom = 30;
+  const svg = d3.select(el).append('svg').attr('width', '100%');
+  const left = measure(svg, rows.map((r) => r.molecule)) + 12, right = 16;
+  const H = top + bottom + rowH * rows.length;
+  svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  const x = d3.scaleLog([floor, 1e-5], [left, W - right]).clamp(true);
+  const y = d3.scaleBand(rows.map((r) => r.molecule), [top, H - bottom]).padding(0.3);
+  const xt = AX.decades(floor, 1e-5).filter((v) => Math.round(Math.log10(v)) % 2 === 0);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickSize(-(H - top - bottom)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickFormat(d3.format('.0e'))).call(axisStyle);
+  svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'lab').attr('x', left - 8).attr('y', (r) => y(r.molecule) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.molecule);
+  const series = [['dE_xtb', 0, 'vs xtb', -3], ['dE_tblite', 1, 'vs tblite', 3]];
+  for (const [key, ci, , dy] of series) {
+    svg.append('g').selectAll('circle').data(rows).join('circle')
+      .attr('cx', (r) => x(Math.max(r[key], floor))).attr('cy', (r) => y(r.molecule) + y.bandwidth() / 2 + dy).attr('r', 4.5)
+      .style('fill', AX.col(ci)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+  }
+  const tip = tipFor(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', left).attr('width', W - left - right)
+    .attr('y', (r) => y(r.molecule) - 3).attr('height', y.bandwidth() + 6).style('fill', 'transparent')
+    .on('mousemove', (ev, r) => showTip(tip, el, ev, r.molecule, series.map(([k, ci, lab]) => [AX.col(ci), lab, `${AX.sci(r[k])} Eh`])))
+    .on('mouseleave', () => { tip.hidden = true; });
+});
+
+// ---- xtb vs tblite, per molecule sorted by size
+dash.draw('c-xt', (el) => {
+  if (!ready(el, ['xtb_vs_tblite'])) return;
+  const rows = [...dash.data('xtb_vs_tblite').data].sort((a, b) => a.atoms - b.atoms);
+  const W = el.clientWidth || 600, rowH = 22, top = 8, bottom = 30;
+  const svg = d3.select(el).append('svg').attr('width', '100%');
+  const lab = (r) => `${r.molecule} · ${AX.int(r.atoms)}`;
+  const left = measure(svg, rows.map(lab)) + 12, right = measure(svg, rows.map((r) => AX.sci(Math.abs(r.d)))) + 16;
+  const H = top + bottom + rowH * rows.length;
+  svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  const lo = 1e-10, hi = 1e-2;
+  const x = d3.scaleLog([lo, hi], [left, W - right]).clamp(true);
+  const y = d3.scaleBand(rows.map(lab), [top, H - bottom]).padding(0.3);
+  const xt = AX.decades(lo, hi).filter((v) => Math.round(Math.log10(v)) % 2 === 0);
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickSize(-(H - top - bottom)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).tickValues(xt).tickFormat(d3.format('.0e'))).call(axisStyle);
+  svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'lab').attr('x', left - 8).attr('y', (r) => y(lab(r)) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text(lab);
+  svg.append('g').selectAll('line').data(rows).join('line').attr('x1', left).attr('x2', (r) => x(Math.max(Math.abs(r.d), lo)))
+    .attr('y1', (r) => y(lab(r)) + y.bandwidth() / 2).attr('y2', (r) => y(lab(r)) + y.bandwidth() / 2).style('stroke', AX.col(0)).style('stroke-width', 2).style('stroke-linecap', 'round').style('opacity', 0.35);
+  svg.append('g').selectAll('circle').data(rows).join('circle').attr('cx', (r) => x(Math.max(Math.abs(r.d), lo))).attr('cy', (r) => y(lab(r)) + y.bandwidth() / 2).attr('r', 4.5)
+    .style('fill', AX.col(0)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+  svg.append('g').selectAll('text.v').data(rows).join('text').attr('class', 'v').attr('x', (r) => x(Math.max(Math.abs(r.d), lo)) + 8).attr('y', (r) => y(lab(r)) + y.bandwidth() / 2).attr('dy', '0.35em').text((r) => AX.sci(Math.abs(r.d)));
+  const tip = tipFor(el);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', left).attr('width', W - left - right)
+    .attr('y', (r) => y(lab(r)) - 2).attr('height', y.bandwidth() + 4).style('fill', 'transparent')
+    .on('mousemove', (ev, r) => showTip(tip, el, ev, `${r.molecule} · ${AX.int(r.atoms)} atoms`, [[null, 'E(xtb) − E(tblite)', `${AX.sci(r.d)} Eh`]]))
+    .on('mouseleave', () => { tip.hidden = true; });
+});
+
+// ---- GPU: time against basis size on the node
+dash.draw('c-gpu', (el) => {
+  if (!ready(el, ['gpu_speed'])) return;
+  const rows = dash.data('gpu_speed').data.filter((r) => r.machine === 'node' && r.n_ao);
+  const series = [['CPU (faer)', 1, 3, 'CPU, 1 thread'], ['CPU (faer)', 32, 2, 'CPU, 32 threads'], ['GPU FP64', 32, 4, 'GPU FP64'],
+    ['GPU mixed (auto steps)', 32, 5, 'GPU mixed'], ['GPU adaptive', 32, 6, 'GPU adaptive']]
+    .map(([v, t, ci, lab]) => [lab, ci, rows.filter((r) => r.variant === v && r.threads === t).sort((a, b) => a.n_ao - b.n_ao).map((r) => [r.n_ao, r.seconds])])
+    .filter(([, , pts]) => pts.length);
+  if (!series.length) return;
+  const xs = series.flatMap(([, , pts]) => pts.map((p) => p[0])), ys = series.flatMap(([, , pts]) => pts.map((p) => p[1]));
+  const box = panel(el, 'chart');
+  const x = d3.scaleLog([d3.min(xs) * 0.85, d3.max(xs) * 1.15], [0, 1]);
+  const y = d3.scaleLog(logDomain(ys), [0, 1]);
+  const sys = new Map(rows.map((r) => [r.n_ao, r.system]));
+  lines(box, { x, y, xTicks: [...new Set(xs)].sort((a, b) => a - b), xFmt: d3.format(',d'), yTicks: AX.decades(...y.domain()), yFmt: AX.sec,
+    series, tipHead: (n) => `${sys.get(n)} · ${AX.int(n)} basis functions`, tipVal: AX.sec });
+});
+
+// ---- analytic Hessian timings: one dot plot per thread count
+
+// ---- phases: 100% stacked bars per molecule and thread count (node)
+dash.draw('c-phases', (el) => {
+  if (!ready(el, ['phases'])) return;
+  const all = dash.data('phases').data.filter((r) => r.machine === 'node');
+  const keys = [...new Map(all.map((r) => [`${r.molecule}|${r.threads}`, { molecule: r.molecule, atoms: r.atoms, threads: r.threads }])).values()]
+    .sort((a, b) => a.atoms - b.atoms || a.threads - b.threads);
+  if (!keys.length) return;
+  const phasesOrder = Object.keys(AX.PHASECOL);
+  const rows = keys.map((k) => {
+    const parts = phasesOrder.map((ph) => (all.find((r) => r.molecule === k.molecule && r.threads === k.threads && r.phase === ph) || {}).seconds || 0);
+    return { ...k, parts, total: d3.sum(parts), label: `${k.molecule} · ${k.threads} thr` };
+  });
+  const W = el.clientWidth || 600, rowH = 22, top = 6, bottom = 26;
+  const svg = d3.select(el).append('svg').attr('width', '100%');
+  const left = measure(svg, rows.map((r) => r.label)) + 12, right = measure(svg, rows.map((r) => AX.sec(r.total))) + 14;
+  const H = top + bottom + rowH * rows.length;
+  svg.attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  const x = d3.scaleLinear([0, 1], [left, W - right]);
+  const y = d3.scaleBand(rows.map((r) => r.label), [top, H - bottom]).padding(0.25);
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.format('.0%'))).call(axisStyle);
+  svg.append('g').selectAll('text').data(rows).join('text').attr('class', 'lab').attr('x', left - 8).attr('y', (r) => y(r.label) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.label);
+  for (const r of rows) {
+    let acc = 0;
+    r.parts.forEach((v, i) => {
+      const w = r.total ? v / r.total : 0;
+      svg.append('rect').attr('x', x(acc)).attr('y', y(r.label)).attr('width', Math.max(0, x(acc + w) - x(acc) - (w > 0.004 ? 1 : 0))).attr('height', y.bandwidth())
+        .style('fill', AX.col(AX.PHASECOL[phasesOrder[i]]));
+      acc += w;
+    });
+    svg.append('text').attr('x', W - right + 6).attr('y', y(r.label) + y.bandwidth() / 2).attr('dy', '0.35em').text(AX.sec(r.total));
+  }
+  const tip = tipFor(el);
+  svg.append('g').selectAll('rect.hit').data(rows).join('rect').attr('class', 'hit').attr('x', left).attr('width', W - left - right)
+    .attr('y', (r) => y(r.label)).attr('height', y.bandwidth()).style('fill', 'transparent')
+    .on('mousemove', (ev, r) => showTip(tip, el, ev, `${r.molecule} · ${AX.int(r.atoms)} atoms · ${r.threads} thread${r.threads > 1 ? 's' : ''}`,
+      phasesOrder.map((ph, i) => [AX.col(AX.PHASECOL[ph]), ph, `${AX.sec(r.parts[i])} (${d3.format('.0%')(r.total ? r.parts[i] / r.total : 0)})`])))
+    .on('mouseleave', () => { tip.hidden = true; });
+});
+
+// ---- time vs size, one panel per machine
+
+// ---- thread scaling: three largest molecules per machine
+dash.draw('c-threads', (el) => {
+  if (!ready(el, ['timing', 'machines'])) return;
+  const t = dash.data('timing').data;
+  for (const m of dash.data('machines').data) {
+    const mine = t.filter((r) => r.machine === m.machine);
+    const mols = [...new Set(mine.map((r) => r.molecule))].map((mol) => ({ mol, atoms: mine.find((r) => r.molecule === mol).atoms }))
+      .sort((a, b) => b.atoms - a.atoms).slice(0, 3);
+    for (const { mol, atoms } of mols) {
+      const rows = mine.filter((r) => r.molecule === mol).sort((a, b) => a.threads - b.threads);
+      const all = rows.flatMap((r) => AX.PROGS.map(([k]) => r[k]));
+      const y = d3.scaleLinear([0, d3.max(all) * 1.08], [0, 1]).nice();
+      const x = d3.scalePoint(rows.map((r) => r.threads), [0, 1]).padding(0.3);
+      lines(panel(el), {
+        title: `${m.label} · ${mol} · ${AX.int(atoms)} atoms`, x, y, xTicks: rows.map((r) => r.threads), xFmt: (v) => `${v} thr`,
+        yTicks: y.ticks(4), yFmt: AX.sec,
+        series: AX.PROGS.map(([k, lab, ci]) => [lab, ci, rows.map((r) => [r.threads, r[k]])]),
+        tipHead: (v) => `${mol} · ${v} thread${v > 1 ? 's' : ''}`, tipVal: AX.sec,
+      });
+    }
+  }
+});
+
+// ---- horizontal bars
+const hbars = (...args) => later(args[0], () => hbarsNow(...args));
+const hbarsNow = (box, title, rows, label, series, fmt, critical) => {
+  const W = box.clientWidth || 360, barH = 16, gap = 4, groupGap = 12, top = title ? 26 : 6, bottom = 26;
+  const H = top + bottom + rows.length * (series.length * (barH + gap) + groupGap);
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('height', H);
+  if (title) svg.append('text').attr('class', 'lab').attr('x', 0).attr('y', 14).text(title);
+  const left = Math.min(W * 0.5, measure(svg, rows.map(label)) + 12), right = measure(svg, rows.flatMap((r) => series.map(([k]) => fmt(r[k])))) + 14;
+  const x = d3.scaleLinear([0, d3.max(rows, (r) => d3.max(series, ([k]) => r[k]))], [left, W - right]).nice();
+  svg.append('g').attr('class', 'grid').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).ticks(4).tickSize(-(H - top - bottom)).tickFormat(''));
+  svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${H - bottom})`).call(d3.axisBottom(x).ticks(4).tickFormat(fmt)).call(axisStyle);
+  let yy = top;
+  rows.forEach((r) => {
+    const gy = yy;
+    svg.append('text').attr('class', 'lab').attr('x', left - 8).attr('y', gy + (series.length * (barH + gap) - gap) / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text(label(r));
+    series.forEach(([k, ci]) => {
+      const color = critical && critical(r) ? 'var(--cds-chart-status-critical)' : AX.col(typeof ci === 'function' ? ci(r) : ci);
+      svg.append('rect').attr('x', left).attr('y', yy).attr('width', Math.max(1, x(r[k]) - left)).attr('height', barH).attr('rx', 3).style('fill', color);
+      svg.append('text').attr('x', x(r[k]) + 6).attr('y', yy + barH / 2).attr('dy', '0.35em').text(fmt(r[k]));
+      yy += barH + gap;
+    });
+    yy += groupGap;
+  });
+};
+dash.draw('c-tp', (el) => {
+  if (!ready(el, ['throughput', 'machines'])) return;
+  const t = dash.data('throughput').data;
+  for (const m of dash.data('machines').data) {
+    const mine = t.filter((r) => r.machine === m.machine);
+    for (const batch of [...new Set(mine.map((r) => r.batch))]) {
+      const rows = mine.filter((r) => r.batch === batch);
+      hbars(panel(el, 'chart short'), `${m.label} · ${batch}`, rows, (r) => r.setup, [['wall', (r) => (r.setup.startsWith('xtb') ? 0 : 2)]], AX.sec,
+        (r) => r.setup.includes('unset'));
+    }
+  }
+});
+
+// ---- linear algebra: absolute times, one panel per machine and thread count
+dash.draw('c-linalg', (el) => {
+  if (!ready(el, ['linalg', 'machines'])) return;
+  const la = dash.data('linalg').data.filter((r) => r.op === 'generalized eigenproblem' && r.session === 'main' && r.library in AX.LIBCOL);
+  for (const m of dash.data('machines').data) {
+    const mine = la.filter((r) => r.machine === m.machine);
+    for (const th of [...new Set(mine.map((r) => r.threads))].sort((a, b) => a - b)) {
+      const sub = mine.filter((r) => r.threads === th);
+      const ns = [...new Set(sub.map((r) => r.n))].sort((a, b) => a - b);
+      const y = d3.scaleLog(logDomain(sub.map((r) => r.ms)), [0, 1]);
+      const x = d3.scaleLog([ns[0] * 0.85, ns[ns.length - 1] * 1.15], [0, 1]);
+      const libs = Object.keys(AX.LIBCOL).filter((l) => sub.some((r) => r.library === l));
+      lines(panel(el), {
+        title: `${m.label} · ${th} thread${th > 1 ? 's' : ''}`, x, y, xTicks: ns.filter((v, i) => i % 2 === 0 || ns.length < 5), xFmt: d3.format(',d'),
+        yTicks: AX.decades(...y.domain()), yFmt: AX.ms,
+        series: libs.map((l) => [l, AX.LIBCOL[l], sub.filter((r) => r.library === l).sort((a, b) => a.n - b.n).map((r) => [r.n, r.ms])]),
+        tipHead: (n) => `n = ${AX.int(n)}`, tipVal: AX.ms,
+      });
+    }
+  }
+});
+
+// ---- linear algebra: relative to faer 0.22 in the same session or under the same load
+dash.draw('c-linalg-rel', (el) => {
+  if (!ready(el, ['linalg_rel', 'linalg_tp_rel', 'machines'])) return;
+  const rel = dash.data('linalg_rel').data, tp = dash.data('linalg_tp_rel').data;
+  const panels = [];
+  for (const m of dash.data('machines').data) {
+    for (const th of [...new Set(rel.filter((r) => r.machine === m.machine).map((r) => r.threads))].sort((a, b) => a - b)) {
+      panels.push([`${m.label} · ${th} thread${th > 1 ? 's' : ''}`, rel.filter((r) => r.machine === m.machine && r.threads === th)]);
+    }
+    for (const p of [...new Set(tp.filter((r) => r.machine === m.machine).map((r) => r.processes))].sort((a, b) => a - b)) {
+      panels.push([`${m.label} · ${p} processes`, tp.filter((r) => r.machine === m.machine && r.processes === p)]);
+    }
+  }
+  const all = [...rel, ...tp].filter((r) => r.library in AX.LIBCOL).map((r) => r.ratio);
+  const lo = Math.min(0.25, d3.min(all) * 0.9), hi = Math.max(2, d3.max(all) * 1.1);
+  for (const [title, sub0] of panels) {
+    const sub = sub0.filter((r) => r.library in AX.LIBCOL);
+    if (!sub.length) continue;
+    const ns = [...new Set(sub.map((r) => r.n))].sort((a, b) => a - b);
+    const x = ns.length > 1 ? d3.scaleLog([ns[0] * 0.85, ns[ns.length - 1] * 1.15], [0, 1]) : d3.scalePoint(ns, [0, 1]).padding(0.5);
+    const y = d3.scaleLog([lo, hi], [0, 1]);
+    const libs = Object.keys(AX.LIBCOL).filter((l) => sub.some((r) => r.library === l));
+    lines(panel(el), {
+      title, x, y, xTicks: ns.filter((v, i) => i % 2 === 0 || ns.length < 5), xFmt: d3.format(',d'),
+      yTicks: [0.25, 0.5, 1, 2].filter((v) => v >= lo && v <= hi), yFmt: (v) => `${v}×`, refY: 1,
+      series: libs.map((l) => [l, AX.LIBCOL[l], sub.filter((r) => r.library === l).sort((a, b) => a.n - b.n).map((r) => [r.n, r.ratio])]),
+      tipHead: (n) => `n = ${AX.int(n)}`, tipVal: (v) => `${d3.format('.2f')(v)}× faer 0.22`,
+    });
+  }
+});
+</script>

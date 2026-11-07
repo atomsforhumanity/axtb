@@ -1,0 +1,14 @@
+# axtb benchmarks on whole cluster nodes (AMD Threadripper PRO 9985WX, 64 cores / 128 threads): the
+# job runner's settings of the recorded run (one pod per task, image built from bench/cluster/Dockerfile).
+# One task per node: each pod reserves the node so the timings see no neighbours.
+# Run dir = this file + tasks.jsonl + bench_task.sh + mats/ (h0.bin, s.bin, dim.txt from
+# bench/linalg/dump: GFN2 H0/S of 11 taxol copies, n = 3289). See bench/README.md.
+description: axtb benchmarks on a whole 9985WX node - linalg backends (faer, OpenBLAS, MKL, AOCL 5.3) at 1/8/32/64 threads + throughput, and axtb vs xtb 6.7.1 vs tblite 0.8.0
+image: <registry>/axtb-bench:2026-11-04c   # <registry>: the cluster's image registry
+command: bash $RUN_DIR/bench_task.sh
+threads_per_task: 126     # whole node (max per pod); scripts use explicit 1/8/32/64 threads
+cpus_per_pod: 126
+memory_per_pod: 16Gi      # measured peak 10.2 GiB (linalg-tp, 128 processes); 126 CPUs keep other pods (>2 CPUs) off the node
+shards: 3                 # one pod (node) per task, all three at once
+task_timeout: 14400       # linalg rounds ~1.5 h expected
+max_attempts: 1

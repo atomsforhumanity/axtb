@@ -1,0 +1,1860 @@
+{
+ "description": "g-xTB 2.0.1 in ALPB water: axtb's in-process composite E_gxtb + [E_GFN2+ALPB - E_GFN2] vs mepd's three xtb programs (tests/solvation_composite.py)",
+ "date": "2026-11-05",
+ "machine": {
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "threads": 1
+ },
+ "versions": {
+  "axtb": "0.1.0",
+  "axtb_commit": "fc1e1c5",
+  "xtb": "6.7.1 (26dd68d)",
+  "mepd": true
+ },
+ "settings": {
+  "method": "gxtb-v2.0.1",
+  "solvent": "water",
+  "model": "alpb",
+  "state": "gsolv",
+  "program_mode": "conventions='gxtb' (g-xTB: 2.0.1 program; GFN2 halves: xtb 6.7.1, conventions 'xtb-6.7.1')",
+  "timing": "wall seconds, best of 3, one thread; programs: sum of the calls incl. retries; axtb: one composite gradient with a new calculator, and the next geometry on a reused one, in program mode (t gxtb, conventions='gxtb') and default conventions (t axtb)",
+  "load_average": 5.66552734375
+ },
+ "cases": [
+  {
+   "id": "water",
+   "label": "water",
+   "natoms": 3,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -76.45200477990801,
+    "gxtb": -76.43738742646,
+    "gfn2_solvated": -5.08479331464,
+    "gfn2_gas": -5.070175961192,
+    "solvation_correction": -0.014617353448000081,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.03899245709180832
+   },
+   "axtb_program_mode": {
+    "energy": -76.45200477990558,
+    "dE": 2.4300561562995426e-12,
+    "max_abs_dgrad": 1.2191150866591727e-12,
+    "components_dE": {
+     "gxtb": -1.4210854715202004e-14,
+     "gfn2_solvated": -6.10178574333986e-13,
+     "gfn2_gas": -3.0482283364108298e-12,
+     "solvation_correction": 2.4380497620768438e-12
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -76.43738742646002,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000529694
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -5.08479331464061,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000316084
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -5.070175961195048,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000297627
+     }
+    },
+    "seconds_new_calculator": 0.0013229011092334986,
+    "seconds_next_geometry": 0.0012189270928502083
+   },
+   "axtb_default": {
+    "energy": -76.45200477639885,
+    "dE_vs_program_mode": 3.5067273529421072e-09,
+    "max_abs_dgrad_vs_program_mode": 5.990923951197658e-08,
+    "solvation_correction": -0.014617349954738401,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -76.43738742644412,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000521699
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -5.084793313751646,
+      "iterations": 8,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 8,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000255156
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -5.070175963796908,
+      "iterations": 8,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 8,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.00025197
+     }
+    },
+    "seconds_new_calculator": 0.0011733451392501593,
+    "seconds_next_geometry": 0.0009846650063991547
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -76.45200477991,
+    "dE_vs_programs": -1.9895196601282805e-12,
+    "dE_vs_axtb": -4.419575816427823e-12,
+    "max_abs_dgrad_vs_axtb": 1.2191150866591727e-12,
+    "fallbacks": [],
+    "seconds": 0.04369159392081201
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 1.6031714679745623e-09,
+     "max_dfreq_cm": 3.8211396713450085e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 7.606503593660108e-09,
+       "max_dfreq_cm": 2.6706142307375558e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 1.6031714679745623e-09,
+       "max_dfreq_cm": 3.8211396713450085e-06
+      }
+     },
+     "max_abs_H": 0.5075444151779527,
+     "seconds": 0.012096872087568045,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 1.295377582977153e-09,
+     "max_dfreq_cm": 2.8621457204280887e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 7.526293421822317e-09,
+       "max_dfreq_cm": 2.7758036594605073e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 1.295377582977153e-09,
+       "max_dfreq_cm": 2.8621457204280887e-06
+      }
+     },
+     "max_abs_H": 0.507544415065204,
+     "seconds": 0.0061445171013474464,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "caffeine",
+   "label": "caffeine",
+   "natoms": 24,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -680.435970891534,
+    "gxtb": -680.419231527755,
+    "gfn2_solvated": -42.171161346109,
+    "gfn2_gas": -42.15442198233,
+    "solvation_correction": -0.01673936377900276,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.13340319227427244
+   },
+   "axtb_program_mode": {
+    "energy": -680.4359708915301,
+    "dE": 3.865352482534945e-12,
+    "max_abs_dgrad": 2.3613500044206148e-11,
+    "components_dE": {
+     "gxtb": -1.1368683772161603e-13,
+     "gfn2_solvated": -5.411138204181043e-10,
+     "gfn2_gas": -5.451141760204337e-10,
+     "solvation_correction": 4.000355602329364e-12
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -680.4192315277551,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.042856342
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -42.171161346650116,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.011002483
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -42.154421982875114,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.010576588
+     }
+    },
+    "seconds_new_calculator": 0.06675330316647887,
+    "seconds_next_geometry": 0.06754034897312522
+   },
+   "axtb_default": {
+    "energy": -680.4359708861915,
+    "dE_vs_program_mode": 5.338620212569367e-09,
+    "max_abs_dgrad_vs_program_mode": 1.3016441244174254e-05,
+    "solvation_correction": -0.016739358528433,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -680.4192315276631,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.042346353
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -42.171161372322224,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.010104999
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -42.15442201379379,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.009555512
+     }
+    },
+    "seconds_new_calculator": 0.06440742895938456,
+    "seconds_next_geometry": 0.05778214801102877
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -680.4359708915299,
+    "dE_vs_programs": 4.092726157978177e-12,
+    "dE_vs_axtb": 2.2737367544323206e-13,
+    "max_abs_dgrad_vs_axtb": 2.361275758255843e-11,
+    "fallbacks": [],
+    "seconds": 0.1355197560042143
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 2.046395971566639e-07,
+     "max_dfreq_cm": 9.987869157157547e-05,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 3.1695558938490964e-06,
+       "max_dfreq_cm": 0.02690905750313277
+      },
+      "2e-05": {
+       "max_abs_dH": 2.046395971566639e-07,
+       "max_dfreq_cm": 9.987869157157547e-05
+      }
+     },
+     "max_abs_H": 0.9227144904862632,
+     "seconds": 1.9953445768915117,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 1.1326357521193944e-07,
+     "max_dfreq_cm": 0.00013076688196633768,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 3.137313620019122e-06,
+       "max_dfreq_cm": 0.026632225427306366
+      },
+      "2e-05": {
+       "max_abs_dH": 1.1326357521193944e-07,
+       "max_dfreq_cm": 0.00013076688196633768
+      }
+     },
+     "max_abs_H": 0.9227144796126691,
+     "seconds": 2.222321873996407,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "acetate",
+   "label": "acetate (anion)",
+   "natoms": 7,
+   "charge": -1,
+   "uhf": 0,
+   "programs": {
+    "energy": -228.65933735309102,
+    "gxtb": -228.551501119084,
+    "gfn2_solvated": -14.271170018532,
+    "gfn2_gas": -14.163333784525,
+    "solvation_correction": -0.10783623400700115,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.16010775696486235
+   },
+   "axtb_program_mode": {
+    "energy": -228.65933735304438,
+    "dE": 4.6640025175292976e-11,
+    "max_abs_dgrad": 6.666689075784937e-11,
+    "components_dE": {
+     "gxtb": 8.526512829121202e-14,
+     "gfn2_solvated": -3.8131275914565776e-11,
+     "gfn2_gas": -8.467360146369174e-11,
+     "solvation_correction": 4.654232554912596e-11
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -228.55150111908392,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.005726311
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -14.271170018570132,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001890618
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -14.163333784609673,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001778785
+     }
+    },
+    "seconds_new_calculator": 0.01044844789430499,
+    "seconds_next_geometry": 0.010205456055700779
+   },
+   "axtb_default": {
+    "energy": -228.6593373421753,
+    "dE_vs_program_mode": 1.0869086963793961e-08,
+    "max_abs_dgrad_vs_program_mode": 1.4451579295545088e-06,
+    "solvation_correction": -0.1078362231385519,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -228.55150111903674,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.005575517
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -14.271170013746522,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001729157
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -14.16333379060797,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001656594
+     }
+    },
+    "seconds_new_calculator": 0.010103221982717514,
+    "seconds_next_geometry": 0.009068829007446766
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -228.65933735309,
+    "dE_vs_programs": 1.0231815394945443e-12,
+    "dE_vs_axtb": -4.561684363579843e-11,
+    "max_abs_dgrad_vs_axtb": 6.666639462693524e-11,
+    "fallbacks": [],
+    "seconds": 0.051929535111412406
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 1.0336645983599624e-08,
+     "max_dfreq_cm": 4.0298082325307405e-05,
+     "step": 0.0001,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 1.0336645983599624e-08,
+       "max_dfreq_cm": 4.0298082325307405e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 1.4279236737468892e-08,
+       "max_dfreq_cm": 9.958615220284628e-05
+      }
+     },
+     "max_abs_H": 0.6811220160387766,
+     "seconds": 0.18765682191587985,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 6.471203684021987e-09,
+     "max_dfreq_cm": 4.068297823778266e-05,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 8.345802771092536e-09,
+       "max_dfreq_cm": 4.804105640232592e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 6.471203684021987e-09,
+       "max_dfreq_cm": 4.068297823778266e-05
+      }
+     },
+     "max_abs_H": 0.6811220073961209,
+     "seconds": 0.14666275307536125,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "water-cation",
+   "label": "water radical cation (doublet)",
+   "natoms": 3,
+   "charge": 1,
+   "uhf": 1,
+   "programs": {
+    "energy": -76.129836077077,
+    "gxtb": -75.962912048306,
+    "gfn2_solvated": -4.565699273745,
+    "gfn2_gas": -4.398775244974,
+    "solvation_correction": -0.16692402877100054,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.07861626497469842
+   },
+   "axtb_program_mode": {
+    "energy": -76.12983607707537,
+    "dE": 1.6342482922482304e-12,
+    "max_abs_dgrad": 9.74206826320767e-13,
+    "components_dE": {
+     "gxtb": -4.121147867408581e-13,
+     "gfn2_solvated": -4.357403327048814e-12,
+     "gfn2_gas": -6.3939964434212015e-12,
+     "solvation_correction": 2.036593116372387e-12
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -75.9629120483064,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000750832
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -4.565699273749358,
+      "iterations": 7,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 7,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000316642
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -4.398775244980394,
+      "iterations": 7,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 7,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000324468
+     }
+    },
+    "seconds_new_calculator": 0.0016671069897711277,
+    "seconds_next_geometry": 0.0015630859415978193
+   },
+   "axtb_default": {
+    "energy": -76.12983606409804,
+    "dE_vs_program_mode": 1.297732410421304e-08,
+    "max_abs_dgrad_vs_program_mode": 1.2164676112050299e-06,
+    "solvation_correction": -0.16692401579643157,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -75.96291204830162,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000772693
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -4.565699263664758,
+      "iterations": 6,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 6,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000308226
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -4.398775247868326,
+      "iterations": 6,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 6,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000303777
+     }
+    },
+    "seconds_new_calculator": 0.0016341479495167732,
+    "seconds_next_geometry": 0.0014164859894663095
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -76.12983607708,
+    "dE_vs_programs": -2.9984903449076228e-12,
+    "dE_vs_axtb": -4.632738637155853e-12,
+    "max_abs_dgrad_vs_axtb": 9.74206826320767e-13,
+    "fallbacks": [],
+    "seconds": 0.044883476104587317
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 1.709377139835766e-09,
+     "max_dfreq_cm": 6.146808345874888e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 9.157983149599147e-09,
+       "max_dfreq_cm": 3.086918513872661e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 1.709377139835766e-09,
+       "max_dfreq_cm": 6.146808345874888e-06
+      }
+     },
+     "max_abs_H": 0.5360812411296216,
+     "seconds": 0.014374990947544575,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 6.135161267906142e-10,
+     "max_dfreq_cm": 2.5093140720855445e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 8.860422506806742e-09,
+       "max_dfreq_cm": 2.8380940420902334e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 6.135161267906142e-10,
+       "max_dfreq_cm": 2.5093140720855445e-06
+      }
+     },
+     "max_abs_H": 0.5360812432821243,
+     "seconds": 0.015129206934943795,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "na-acetate",
+   "label": "Na+ acetate- contact ion pair",
+   "natoms": 8,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -390.875463988956,
+    "gxtb": -390.848342713262,
+    "gfn2_solvated": -14.252118404913,
+    "gfn2_gas": -14.224997129219,
+    "solvation_correction": -0.027121275694000246,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.09956136019900441
+   },
+   "axtb_program_mode": {
+    "energy": -390.87546398895677,
+    "dE": -7.389644451905042e-13,
+    "max_abs_dgrad": 4.957585036935441e-11,
+    "components_dE": {
+     "gxtb": -1.7053025658242404e-13,
+     "gfn2_solvated": -2.5485569210559333e-10,
+     "gfn2_gas": -2.5429258698750346e-10,
+     "solvation_correction": -5.631051180898794e-13
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -390.8483427132622,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.004514346
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -14.252118405167856,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001691787
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -14.224997129473293,
+      "iterations": 10,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 10,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001471938
+     }
+    },
+    "seconds_new_calculator": 0.00833527510985732,
+    "seconds_next_geometry": 0.00841924687847495
+   },
+   "axtb_default": {
+    "energy": -390.8754639834326,
+    "dE_vs_program_mode": 5.5241571317310445e-09,
+    "max_abs_dgrad_vs_program_mode": 3.545261502767988e-06,
+    "solvation_correction": -0.027121270163686262,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -390.84834271326895,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.004992476
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -14.252118406480482,
+      "iterations": 10,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 10,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001608082
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -14.224997136316796,
+      "iterations": 9,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 9,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001420184
+     }
+    },
+    "seconds_new_calculator": 0.008400025079026818,
+    "seconds_next_geometry": 0.007557727862149477
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -390.87546398895,
+    "dE_vs_programs": 6.0254023992456496e-12,
+    "dE_vs_axtb": 6.764366844436154e-12,
+    "max_abs_dgrad_vs_axtb": 4.9575926697187356e-11,
+    "fallbacks": [],
+    "seconds": 0.05546577298082411
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 4.564817801533394e-09,
+     "max_dfreq_cm": 2.3664822521141105e-05,
+     "step": 0.0001,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 4.564817801533394e-09,
+       "max_dfreq_cm": 2.3664822521141105e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 5.721058626839692e-09,
+       "max_dfreq_cm": 1.773611620592419e-05
+      }
+     },
+     "max_abs_H": 0.6764684394147075,
+     "seconds": 0.1907727918587625,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 8.776460669324138e-10,
+     "max_dfreq_cm": 2.1440641546632833e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 3.881791166282511e-09,
+       "max_dfreq_cm": 2.2260322140255084e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 8.776460669324138e-10,
+       "max_dfreq_cm": 2.1440641546632833e-06
+      }
+     },
+     "max_abs_H": 0.6764684301762253,
+     "seconds": 0.17953708209097385,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "sn2-image",
+   "label": "SN2 Cl- + CH3Cl path image (bench/ts_example.py guess)",
+   "natoms": 6,
+   "charge": -1,
+   "uhf": 0,
+   "programs": {
+    "energy": -960.426429483118,
+    "gxtb": -960.340566669896,
+    "gfn2_solvated": -13.071925854027,
+    "gfn2_gas": -12.986063040805,
+    "solvation_correction": -0.08586281322200051,
+    "retry": null,
+    "calls": 3,
+    "seconds": 0.05470977793447673
+   },
+   "axtb_program_mode": {
+    "energy": -960.4264294830848,
+    "dE": 3.319655661471188e-11,
+    "max_abs_dgrad": 1.6564630743454156e-11,
+    "components_dE": {
+     "gxtb": 4.547473508864641e-13,
+     "gfn2_solvated": -2.7888802378583932e-11,
+     "gfn2_gas": -6.061284807401535e-11,
+     "solvation_correction": 3.2724045695431414e-11
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -960.3405666698956,
+      "iterations": 8,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.003706441
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -13.07192585405489,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.00177335
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -12.986063040865613,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001626368
+     }
+    },
+    "seconds_new_calculator": 0.0075215131510049105,
+    "seconds_next_geometry": 0.007391882827505469
+   },
+   "axtb_default": {
+    "energy": -960.4264294736877,
+    "dE_vs_program_mode": 9.397126632393338e-09,
+    "max_abs_dgrad_vs_program_mode": 1.1536078002713154e-05,
+    "solvation_correction": -0.08586280381284261,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -960.3405666698749,
+      "iterations": 8,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.003260267
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -13.071925845703458,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.00138565
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -12.986063041890615,
+      "iterations": 11,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 11,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.001246526
+     }
+    },
+    "seconds_new_calculator": 0.006308573996648192,
+    "seconds_next_geometry": 0.005204170010983944
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -960.42642948312,
+    "dE_vs_programs": -2.0463630789890885e-12,
+    "dE_vs_axtb": -3.524291969370097e-11,
+    "max_abs_dgrad_vs_axtb": 1.6564630743454156e-11,
+    "fallbacks": [],
+    "seconds": 0.052762696985155344
+   },
+   "hessian": [
+    {
+     "conventions": "axtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 7.15733489142778e-09,
+     "max_dfreq_cm": 2.5755149181350134e-05,
+     "step": 0.0001,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 7.15733489142778e-09,
+       "max_dfreq_cm": 2.5755149181350134e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 8.088761521696242e-09,
+       "max_dfreq_cm": 1.2637324857678323e-05
+      }
+     },
+     "max_abs_H": 0.636277044614229,
+     "seconds": 0.10978464502841234,
+     "pass": true
+    },
+    {
+     "conventions": "gxtb",
+     "methods": {
+      "gxtb": "analytic",
+      "gfn2_solvated": "analytic",
+      "gfn2_gas": "analytic"
+     },
+     "max_abs_dH": 5.377109452142648e-10,
+     "max_dfreq_cm": 1.0451531124999747e-06,
+     "step": 2e-05,
+     "by_step": {
+      "0.0001": {
+       "max_abs_dH": 7.055034334513266e-09,
+       "max_dfreq_cm": 2.5786353035073262e-05
+      },
+      "2e-05": {
+       "max_abs_dH": 5.377109452142648e-10,
+       "max_dfreq_cm": 1.0451531124999747e-06
+      }
+     },
+     "max_abs_H": 0.6362770441302493,
+     "seconds": 0.12030422990210354,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "id": "f2-stretched",
+   "label": "F2 at 3.0 A (GFN2 pair needs mepd's 1000 K retry)",
+   "natoms": 2,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -199.375898332118,
+    "gxtb": -199.381904325778,
+    "gfn2_solvated": -9.246318312616,
+    "gfn2_gas": -9.252324306276,
+    "solvation_correction": 0.0060059936600005415,
+    "retry": "--iterations 1000 --etemp 1000",
+    "calls": 4,
+    "seconds": 0.15973940677940845
+   },
+   "axtb_program_mode": {
+    "energy": -199.3758983321184,
+    "dE": -3.979039320256561e-13,
+    "max_abs_dgrad": 6.680662620328626e-11,
+    "components_dE": {
+     "gxtb": 3.410605131648481e-13,
+     "gfn2_solvated": -3.4283687000424834e-13,
+     "gfn2_gas": 3.836930773104541e-13,
+     "solvation_correction": -7.265299473147024e-13
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -199.38190432577767,
+      "iterations": 7,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.00030401
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -9.246318312616342,
+      "iterations": 4,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 4,
+        "converged": true
+       }
+      ],
+      "etemp": 1000.0,
+      "max_iter": 1000,
+      "retry": "etemp 1000 K, 1000 iterations",
+      "seconds": 0.002161886
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -9.252324306275616,
+      "iterations": 4,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 4,
+        "converged": true
+       }
+      ],
+      "etemp": 1000.0,
+      "max_iter": 1000,
+      "retry": "etemp 1000 K, 1000 iterations",
+      "seconds": 0.002576565
+     }
+    },
+    "seconds_new_calculator": 0.005240184022113681,
+    "seconds_next_geometry": 0.005198543891310692
+   },
+   "axtb_default": {
+    "energy": -199.37589819110116,
+    "dE_vs_program_mode": 1.4101723877502081e-07,
+    "max_abs_dgrad_vs_program_mode": 3.9578584868152356e-07,
+    "solvation_correction": 0.00600599472936203,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -199.3819041858305,
+      "iterations": 7,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000299502
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -9.23472279189028,
+      "iterations": 21,
+      "mixer_used": "diis-fallback",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 22,
+        "converged": false
+       },
+       {
+        "mixer": "diis",
+        "iterations": 21,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000680203
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -9.240728786619641,
+      "iterations": 25,
+      "mixer_used": "diis-fallback",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 30,
+        "converged": false
+       },
+       {
+        "mixer": "diis",
+        "iterations": 25,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000852596
+     }
+    },
+    "seconds_new_calculator": 0.0019253490027040243,
+    "seconds_next_geometry": 0.0007043329533189535
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -199.37589833212,
+    "dE_vs_programs": -1.9895196601282805e-12,
+    "dE_vs_axtb": -1.5916157281026244e-12,
+    "max_abs_dgrad_vs_axtb": 7.42937617675965e-10,
+    "fallbacks": [
+     [
+      0,
+      "--iterations 1000 --etemp 1000"
+     ]
+    ],
+    "seconds": 0.2686465438455343
+   }
+  },
+  {
+   "id": "hf-stretched",
+   "label": "HF at 3.0 A (GFN2 pair needs mepd's 5000 K retry)",
+   "natoms": 2,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -100.19747174482501,
+    "gxtb": -100.164033670033,
+    "gfn2_solvated": -5.126491604317,
+    "gfn2_gas": -5.093053529525,
+    "solvation_correction": -0.03343807479199956,
+    "retry": "--iterations 1000 --etemp 5000",
+    "calls": 6,
+    "seconds": 55.97981457412243
+   },
+   "axtb_program_mode": {
+    "energy": -100.19747174479109,
+    "dE": 3.392131020518718e-11,
+    "max_abs_dgrad": 9.229766256835248e-12,
+    "components_dE": {
+     "gxtb": 2.842170943040401e-14,
+     "gfn2_solvated": 5.120881496623042e-11,
+     "gfn2_gas": 1.7318591005732742e-11,
+     "solvation_correction": 3.389022396049768e-11
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -100.16403367003298,
+      "iterations": 20,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000384229
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -5.126491604265791,
+      "iterations": 10,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 10,
+        "converged": true
+       }
+      ],
+      "etemp": 5000.0,
+      "max_iter": 1000,
+      "retry": "etemp 5000 K, 1000 iterations",
+      "seconds": 0.002378335
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -5.0930535295076815,
+      "iterations": 10,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 10,
+        "converged": true
+       }
+      ],
+      "etemp": 5000.0,
+      "max_iter": 1000,
+      "retry": "etemp 5000 K, 1000 iterations",
+      "seconds": 65.00327227700001
+     }
+    },
+    "seconds_new_calculator": 65.00625970610417,
+    "seconds_next_geometry": 70.27902614418417
+   },
+   "axtb_default": {
+    "energy": -100.22659103413004,
+    "dE_vs_program_mode": -0.029119289338950693,
+    "max_abs_dgrad_vs_program_mode": 0.005978502392585856,
+    "solvation_correction": -0.06255736406892876,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -100.16403367006112,
+      "iterations": 20,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000269667
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -5.104134062203421,
+      "iterations": 40,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 40,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.000820354
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -5.0415766981344925,
+      "iterations": 61,
+      "mixer_used": "diis-fallback",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 250,
+        "converged": false
+       },
+       {
+        "mixer": "diis",
+        "iterations": 61,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.178714561
+     }
+    },
+    "seconds_new_calculator": 0.17988829920068383,
+    "seconds_next_geometry": 0.0006950318347662687
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -100.19747174481999,
+    "dE_vs_programs": 5.016431714466307e-12,
+    "dE_vs_axtb": -2.8904878490720876e-11,
+    "max_abs_dgrad_vs_axtb": 3.1123367771890287e-13,
+    "fallbacks": [
+     [
+      0,
+      "--iterations 1000 --etemp 5000"
+     ]
+    ],
+    "seconds": 57.696104815928265
+   }
+  },
+  {
+   "id": "taxol",
+   "label": "taxol (speed)",
+   "natoms": 113,
+   "charge": 0,
+   "uhf": 0,
+   "programs": {
+    "energy": -2929.771156334641,
+    "gxtb": -2929.729770086477,
+    "gfn2_solvated": -186.541835372378,
+    "gfn2_gas": -186.500449124214,
+    "solvation_correction": -0.04138624816400238,
+    "retry": null,
+    "calls": 3,
+    "seconds": 1.72761444398202
+   },
+   "axtb_program_mode": {
+    "energy": -2929.7711563345456,
+    "dE": 9.549694368615746e-11,
+    "max_abs_dgrad": 2.783413360907261e-10,
+    "components_dE": {
+     "gxtb": 4.547473508864641e-13,
+     "gfn2_solvated": -5.666066726917052e-09,
+     "gfn2_gas": -5.7608815495768795e-09,
+     "solvation_correction": 9.481482265982777e-11
+    },
+    "composite": {
+     "definition": "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])",
+     "method": "gxtb-v2.0.1",
+     "solvation_correction": "gfn2",
+     "solvation_model": "alpb",
+     "solvent": "water",
+     "solvation_state": "gsolv",
+     "conventions": "gxtb",
+     "correction_conventions": "xtb-6.7.1",
+     "etemp": {
+      "gxtb": 0.0,
+      "gfn2": 300.0
+     },
+     "reuse_guess": false,
+     "retries": true
+    },
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "gxtb",
+      "energy": -2929.7297700864765,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.985378061
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "xtb-6.7.1",
+      "energy": -186.54183537804406,
+      "iterations": 13,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 13,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.295036486
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "xtb-6.7.1",
+      "energy": -186.50044912997487,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.248873861
+     }
+    },
+    "seconds_new_calculator": 1.6066247010603547,
+    "seconds_next_geometry": 1.603708610869944
+   },
+   "axtb_default": {
+    "energy": -2929.7711568470663,
+    "dE_vs_program_mode": -5.12520728079835e-07,
+    "max_abs_dgrad_vs_program_mode": 1.2857003260839314e-05,
+    "solvation_correction": -0.041386224916806214,
+    "parts": {
+     "gxtb": {
+      "method": "gxtb-v2.0.1",
+      "conventions": "axtb",
+      "energy": -2929.7297706221493,
+      "iterations": 9,
+      "mixer_used": null,
+      "scf_attempts": [],
+      "etemp": 0.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.994434726
+     },
+     "gfn2_solvated": {
+      "method": "gfn2+alpb",
+      "conventions": "axtb",
+      "energy": -186.5418354745174,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.249815328
+     },
+     "gfn2_gas": {
+      "method": "gfn2",
+      "conventions": "axtb",
+      "energy": -186.5004492496006,
+      "iterations": 12,
+      "mixer_used": "broyden",
+      "scf_attempts": [
+       {
+        "mixer": "broyden",
+        "iterations": 12,
+        "converged": true
+       }
+      ],
+      "etemp": 300.0,
+      "max_iter": 250,
+      "retry": null,
+      "seconds": 0.225955185
+     }
+    },
+    "seconds_new_calculator": 1.5531925281975418,
+    "seconds_next_geometry": 1.3374813999980688
+   },
+   "gate": {
+    "energy_tol": 1e-09,
+    "gradient_tol": 1e-08,
+    "pass": true
+   },
+   "mepd": {
+    "energy": -2929.77115633465,
+    "dE_vs_programs": -9.094947017729282e-12,
+    "dE_vs_axtb": -1.0459189070388675e-10,
+    "max_abs_dgrad_vs_axtb": 2.7834010443705814e-10,
+    "fallbacks": [],
+    "seconds": 1.7385964719578624
+   }
+  }
+ ],
+ "summary": {
+  "gate_pass": true,
+  "max_abs_dE": 9.549694368615746e-11,
+  "max_abs_dH": 2.046395971566639e-07,
+  "max_abs_dgrad": 2.783413360907261e-10,
+  "max_abs_dE_mepd": 9.094947017729282e-12
+ }
+}

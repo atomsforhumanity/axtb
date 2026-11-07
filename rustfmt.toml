@@ -1,0 +1,3 @@
+# One formatting for the workspace: 120 columns, short expressions kept on one line.
+max_width = 120
+use_small_heuristics = "Max"

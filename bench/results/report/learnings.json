@@ -1,0 +1,102 @@
+[
+ {
+  "topic": "Reproducing a program",
+  "lesson": "Matching a reference program to 1e-13 Eh means reproducing its constants, not only its equations: xtb's older bohr constant and single-precision literals each move energies by ~1e-8 Eh, more than a loose comparison would ever show. A second, independent implementation (tblite) separated program quirks from the method's definition."
+ },
+ {
+  "topic": "Different answers are not always bugs",
+  "lesson": "Open-shell metal clusters at low electronic temperature and one test structure have several self-consistent solutions. Restarting each program from the other's converged moments shows whether a mismatch is a second solution of the same equations or an implementation error; every mismatch in the matrix was settled this way."
+ },
+ {
+  "topic": "Cheap invariance tests find real bugs",
+  "lesson": "Permuting the atoms of CsOH changed xtb's and tblite's ALPB energy by 2.9e-3 Eh. That one test led to the Born-radius bug, and reading the same routine found the reference-state error."
+ },
+ {
+  "topic": "Input validation",
+  "lesson": "xtb and tblite return energies for impossible electron counts, with atomic charges that do not add up to the molecular charge. A wrapper cannot see this from the energy alone; axtb checks electron counts before and after filling the orbitals."
+ },
+ {
+  "topic": "Threads",
+  "lesson": "With OpenMP left to its defaults, a batch of 1024 xtb jobs on 128 workers took 30.6 s on the 64-core node instead of 1.0 s with one thread per job. axtb has no implicit threading, so there is no setting to forget."
+ },
+ {
+  "topic": "Start-up dominates small molecules",
+  "lesson": "A water energy and gradient takes 0.23 ms as an in-process call and 3.3 ms as an axtb process, against 10 ms for the xtb program (laptop). For small molecules, how a calculation is called matters more than how fast its code is."
+ },
+ {
+  "topic": "Math libraries depend on the CPU",
+  "lesson": "For the generalized eigenproblem at n = 1000 on the Intel laptop, Intel MKL was the fastest library at 1, 4 and 8 threads. With 64 single-thread processes on the AMD Zen 5 node, Intel MKL was the slowest (1.19\u20131.31\u00d7 faer's time) and AMD AOCL the fastest at n = 266. A library choice measured on one CPU does not carry over to another."
+ },
+ {
+  "topic": "SMT",
+  "lesson": "128 single-thread eigensolver processes on the 64-core node each ran about 1.9\u00d7 slower than 64, so filling the SMT threads changed linear-algebra throughput by a factor of 1.04\u20131.06."
+ },
+ {
+  "topic": "Analytic Hessians are more accurate, not only faster",
+  "lesson": "Against a tightly converged reference the analytic Hessian's frequencies were within 6e-05 cm\u207b\u00b9 for every test system; finite differences at their default settings were off by up to 0.7 cm\u207b\u00b9 in the gas phase, from the SCF convergence of each displacement. With implicit solvent it is worse (14 cm\u207b\u00b9 in the soft modes of caffeine): the ALPB/GBSA surface term is smooth in its first derivatives but not its second, so a finite-difference Hessian depends on the step, while the analytic one is the exact derivative at the point. For transition-state searches, where the imaginary and low modes decide the outcome, this matters as much as the speed."
+ },
+ {
+  "topic": "xtb --hess ignores --acc for GFN2-xTB",
+  "lesson": "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. Its Hessians therefore carry about 1e-4 Eh/bohr\u00b2 of noise, up to a few cm\u207b\u00b9 for large molecules. With sccacc=0.001, axtb's analytic Hessian agrees with xtb's to xtb's own finite-difference error."
+ },
+ {
+  "topic": "Process start-up on many-core machines",
+  "lesson": "Two dependencies of faer (private-gemm-x86, gemm-common) read the CPU cache sizes by opening every cache file of every CPU in /sys: thousands of opens per process on a 128-thread node, which the kernel serializes when many processes start together. 1024 axtb CLI runs on 128 workers took 5.87 s as benchmarked, 5.74 s with axtb's own thread-pool fix alone, and 0.52 s once the scan read one CPU only. The laptop, with 16 threads, barely shows it."
+ },
+ {
+  "topic": "More threads can be slower",
+  "lesson": "For the 999-atom water cluster on the node, faer's eigensolver took 2.19 s on 8 threads and 4.39 s on 64. Beyond about 8 threads a single calculation gets slower; on a big node, run many calculations with a few threads each."
+ },
+ {
+  "topic": "A better SCF converger is not a free win",
+  "lesson": "On a hard-SCF set (bond breaking, path images, metal clusters, small gaps) DIIS cut failures from 20 to 11 (10 to 1 at 300 K; the 0 K failures have no stable whole-electron solution for any program). But in systems with several SCF solutions it sometimes lands on a different one, once with an implausible \u22123 charge on an atom, and it lost one structure the reference mixer converges. So axtb keeps the reference mixer and uses DIIS only as a fallback: nothing that converges today changes, and rescued results are labelled."
+ },
+ {
+  "topic": "Defaults can be badly wrong, and only an independent implementation shows it",
+  "lesson": "The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to 149 cm\u207b\u00b9 off. Nothing in its output warns; it took an independent analytic Hessian, checked against tight references, to see it. AFH's skills already prescribed a tighter setting, which keeps the error near 1 cm\u207b\u00b9, but one of their own entries had concluded the default was safe from a single small molecule."
+ },
+ {
+  "topic": "A complete specification makes reimplementation fast",
+  "lesson": "Once every g-xTB 2.0.1 term had been decoded and each had captured reference values, the implementation took a few hours of agent time: 84 molecules across H\u2013Lr reproduce the program to 2.2e-11 Eh with identical SCF iteration counts. Decoding was the slow part; writing the code against per-term reference numbers was not."
+ },
+ {
+  "topic": "The published derivation is not the program",
+  "lesson": "For g-xTB v1.1, the paper's supporting information and the released program disagree in about ten places. Reproducing a method's published numbers means following the program; the supporting information is best read as intent."
+ },
+ {
+  "topic": "GPUs without fast FP64",
+  "lesson": "At 6000 basis functions the RTX PRO 6000 eigensolver made a whole calculation 2.5\u00d7 faster than the node's best CPU run in FP64 and 3.6\u00d7 with adaptive precision. Mixed precision helps less than the FP32/FP64 rate gap suggests, because its FP64 refinement steps are matrix multiplies at the card's low FP64 rate."
+ },
+ {
+  "topic": "Memory, not time, limited the g-xTB Hessian",
+  "lesson": "The first g-xTB 2.0.1 analytic Hessian kept response data for every displacement, so its memory grew as N\u00b3: taxol needed 1358 MB and a 300-atom water cluster ran out of memory at 12 GB. Contracting each displacement's response as soon as it is made brought taxol to 139 MB and the water cluster to 992 MB, as for the GFN2-xTB Hessian. Speed changes were then kept only if they gained 10%: a preconditioner that saved 7% for 170 lines was dropped."
+ },
+ {
+  "topic": "The retry temperature is part of the result",
+  "lesson": "mepd retries a failed GFN2 solvation pair at a higher electronic temperature. For HF stretched to 3 \u00c5 the pair converged only at 5000 K, after 56 s of failing 1000-iteration attempts; axtb's default converger finishes it at 300 K in 0.2 s, and the solvation correction then differs by 0.029 Eh (18 kcal/mol). Which rung converged changes the energy, so a path profile mixing rungs is not one surface; record the rung with every result."
+ },
+ {
+  "topic": "Comparing orbitals across programs needs overlaps, not coefficients",
+  "lesson": "xtb, tblite and g-xTB 1.1.0 each write Molden files with their own normalization and ordering, so coefficients cannot be compared directly. Reading every file with an independent reader and comparing orbitals through the overlap of the two bases (1 \u2212 |\u27e8i|i\u27e9|, degenerate sets by singular values) showed agreement to ~1e-10 and found the dialect differences on the way."
+ },
+ {
+  "topic": "Most of a thermochemistry difference can be atomic masses",
+  "lesson": "On the same Hessian, axtb's default vibrational analysis and xtb's differ by up to 0.10 cm\u207b\u00b9 and 4.0e-06 Eh in G(RRHO) (caffeine), almost all from the hydrogen mass (1.0080 in current standard atomic weights, 1.00794 in xtb). With xtb's masses and projection the two agree to 8e-11 Eh."
+ },
+ {
+  "topic": "One array can set a program's size limit",
+  "lesson": "xtb's GFN-FF needs 9.0 GiB for a 3000-atom water cluster and fails at 5100 atoms, almost all from one hydrogen-bond bookkeeping array that grows as N\u00b3. Building the same hydrogen-bond lists from neighbour lists, axtb's GFN-FF needs 189 MiB at 3000 atoms and 1.5 GiB at 9900, with identical energies where both run. Its only dense array is the charge model's matrix, which now sets the time above a few thousand atoms."
+ },
+ {
+  "topic": "Differentiating code is not differentiating the formula",
+  "lesson": "GFN-FF's bend, torsion and hydrogen-bond gradients are 0/0 at exactly linear or planar geometries; xtb guards them. Differentiating the literal guarded code gave Hessian errors of up to 0.15 Eh/bohr\u00b2 for CO\u2082, hundreds of cm\u207b\u00b9 in its frequencies. The Hessian uses algebraically identical smooth forms, while energies and gradients keep xtb's exact operations, and finite differences at linear and planar test geometries confirm both."
+ },
+ {
+  "topic": "Bit-for-bit can mean the compiler's arithmetic",
+  "lesson": "Some GFN-FF topology decisions in symmetric molecules are ties decided in the last bit of a vector norm. The Intel compilers inline NORM2 with different fused multiply-add orders, and xtb 6.7.1 (ifort) and 6.8.0 (ifx) round it differently, which decides which of several equidistant neighbours comes first. Matching each, read from the binary's disassembly, was needed to reproduce NF\u2083's out-of-plane term and a nitrogen torsion list."
+ },
+ {
+  "topic": "Restarting the SCF saves iterations but can change the answer",
+  "lesson": "Starting each SCF from the previous geometry's solution cut GFN2-xTB iterations by about 40% along optimizations and random walks, g-xTB's by 10\u201345% (an IRC from 9 to 5 per step). But a restart follows its own SCF solution: recompressing a stretched N2 at 3000 K, or metal clusters, ended up to 0.5 Eh above a fresh start, and the programs do the same within one run. Paths through bond breaking should check against fresh starts. A restarted g-xTB SCF also stops just at the thresholds with history-dependent gradient noise, which doubled a geomeTRIC optimization's steps until restarts converged ten times tighter."
+ }
+]

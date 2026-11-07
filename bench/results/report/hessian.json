@@ -1,0 +1,122 @@
+[
+ {
+  "id": "laptop|caffeine|1",
+  "machine": "laptop",
+  "case": "caffeine \u00b7 1 thread",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "xtb": 1.5110812101047486,
+  "axtb": 1.021493097068742
+ },
+ {
+  "id": "laptop|caffeine|8",
+  "machine": "laptop",
+  "case": "caffeine \u00b7 8 threads",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "xtb": 0.27340606320649385,
+  "axtb": 0.17317761899903417
+ },
+ {
+  "id": "laptop|taxol|1",
+  "machine": "laptop",
+  "case": "taxol \u00b7 1 thread",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "xtb": 125.20151132205501,
+  "axtb": 102.73962778202258
+ },
+ {
+  "id": "laptop|taxol|8",
+  "machine": "laptop",
+  "case": "taxol \u00b7 8 threads",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "xtb": 20.192184408195317,
+  "axtb": 17.830608459888026
+ },
+ {
+  "id": "node|caffeine|1",
+  "machine": "node",
+  "case": "caffeine \u00b7 1 thread",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "xtb": 1.1835732110776007,
+  "axtb": 0.8542259270325303
+ },
+ {
+  "id": "node|caffeine|8",
+  "machine": "node",
+  "case": "caffeine \u00b7 8 threads",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "xtb": 0.19054940901696682,
+  "axtb": 0.13175179716199636
+ },
+ {
+  "id": "node|caffeine|32",
+  "machine": "node",
+  "case": "caffeine \u00b7 32 threads",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 32,
+  "xtb": 0.10008678399026394,
+  "axtb": 0.06111188605427742
+ },
+ {
+  "id": "node|caffeine|64",
+  "machine": "node",
+  "case": "caffeine \u00b7 64 threads",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 64,
+  "xtb": 0.14106173301115632,
+  "axtb": 0.07123810099437833
+ },
+ {
+  "id": "node|taxol|1",
+  "machine": "node",
+  "case": "taxol \u00b7 1 thread",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "xtb": 83.4233284080401,
+  "axtb": 66.83671955997124
+ },
+ {
+  "id": "node|taxol|8",
+  "machine": "node",
+  "case": "taxol \u00b7 8 threads",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "xtb": 11.230978920124471,
+  "axtb": 9.328912223223597
+ },
+ {
+  "id": "node|taxol|32",
+  "machine": "node",
+  "case": "taxol \u00b7 32 threads",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 32,
+  "xtb": 3.56924471212551,
+  "axtb": 2.961204467341304
+ },
+ {
+  "id": "node|taxol|64",
+  "machine": "node",
+  "case": "taxol \u00b7 64 threads",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 64,
+  "xtb": 2.985159141011536,
+  "axtb": 2.96331839915365
+ }
+]

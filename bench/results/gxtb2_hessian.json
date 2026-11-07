@@ -1,0 +1,2827 @@
+{
+ "machine": "x86_64",
+ "threads": 8,
+ "axtb_commit": "03fcd95",
+ "reference": "Richardson (4 H(0.001) - H(0.002))/3 of numerical Hessians, SCF accuracy 1e-6",
+ "response_reference": "Richardson (4 H(1e-4) - H(2e-4))/3 of response Hessians, reference SCF accuracy 1e-6",
+ "cases": {
+  "water": {
+   "natoms": 3,
+   "load_before": "1.44 2.03 2.95",
+   "time": {
+    "analytic 1t": 0.011599081801250577,
+    "analytic 8t": 0.005839118035510182,
+    "response 1t": 0.007017022930085659,
+    "response 8t": 0.004101234953850508,
+    "numerical 1t": 0.007876095129176974,
+    "numerical 8t": 0.005369547987356782
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.000689218,
+     "tangents": 0.000352717,
+     "perturbations": 0.000636966,
+     "response": 0.001181614,
+     "explicit integrals": 0.00558078,
+     "total": 0.008459068
+    },
+    "analytic 8t": {
+     "reference scf": 0.000694338,
+     "tangents": 0.000274865,
+     "perturbations": 0.000183871,
+     "response": 0.000506835,
+     "explicit integrals": 0.001739949,
+     "total": 0.003426414
+    },
+    "response 1t": {
+     "reference scf": 0.000431145,
+     "response setup": 5.879e-06,
+     "displaced gradients": 0.004841856,
+     "total": 0.005283737
+    },
+    "response 8t": {
+     "reference scf": 0.000709654,
+     "response setup": 5.435e-06,
+     "displaced gradients": 0.001401028,
+     "total": 0.002187021
+    },
+    "numerical 1t": {
+     "total": 0.005966827
+    },
+    "numerical 8t": {
+     "total": 0.003110372
+    }
+   },
+   "asymmetry": {
+    "analytic": 8.609779555968089e-13,
+    "response": 2.0792664465196786e-08,
+    "numerical": 1.2412545981846379e-05
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 1.596972762363258e-10,
+     "max_dfreq": 6.548457349708769e-07,
+     "max_dH_vs_response_reference": 3.971725726081843e-12
+    },
+    "response": {
+     "max_dH": 3.1966239655289996e-08,
+     "max_dfreq": 0.00011219610314583406,
+     "max_dH_vs_response_reference": 3.19581224261789e-08
+    },
+    "numerical": {
+     "max_dH": 1.881945583098732e-05,
+     "max_dfreq": 0.06501838787926317,
+     "max_dH_vs_response_reference": 1.881944771375821e-05
+    }
+   },
+   "load_after": "1.44 2.03 2.95",
+   "reference_spread": 2.2541248299035033e-06,
+   "references_difference": 1.5973500300248133e-10
+  },
+  "O2 triplet": {
+   "natoms": 2,
+   "load_before": "1.44 2.03 2.95",
+   "time": {
+    "analytic 1t": 0.006140334066003561,
+    "analytic 8t": 0.006295876111835241,
+    "response 1t": 0.005744420923292637,
+    "response 8t": 0.004151801811531186,
+    "numerical 1t": 0.007143921917304397,
+    "numerical 8t": 0.004462653072550893
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.000505023,
+     "tangents": 0.000181639,
+     "perturbations": 0.000255309,
+     "response": 0.000724338,
+     "explicit integrals": 0.002559567,
+     "total": 0.004240631
+    },
+    "analytic 8t": {
+     "reference scf": 0.000781917,
+     "tangents": 0.000235222,
+     "perturbations": 0.000157991,
+     "response": 0.000523016,
+     "explicit integrals": 0.002479479,
+     "total": 0.004200878
+    },
+    "response 1t": {
+     "reference scf": 0.000549138,
+     "response setup": 9.548e-06,
+     "displaced gradients": 0.003284314,
+     "total": 0.003849292
+    },
+    "response 8t": {
+     "reference scf": 0.000746871,
+     "response setup": 8.352e-06,
+     "displaced gradients": 0.001144343,
+     "total": 0.001919881
+    },
+    "numerical 1t": {
+     "total": 0.005136552
+    },
+    "numerical 8t": {
+     "total": 0.002169251
+    }
+   },
+   "asymmetry": {
+    "analytic": 2.220446049250313e-16,
+    "response": 1.3120464521121725e-16,
+    "numerical": 5.2266095368870145e-15
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 2.672528864877677e-12,
+     "max_dfreq": 2.279193722642958e-09,
+     "max_dH_vs_response_reference": 5.704103855919129e-12
+    },
+    "response": {
+     "max_dH": 4.253715435442729e-08,
+     "max_dfreq": 4.307458243602014e-05,
+     "max_dH_vs_response_reference": 4.253328023118286e-08
+    },
+    "numerical": {
+     "max_dH": 3.073710853640499e-05,
+     "max_dfreq": 0.03112546261991156,
+     "max_dH_vs_response_reference": 3.0737104662281745e-05
+    }
+   },
+   "load_after": "1.44 2.03 2.95",
+   "reference_spread": 3.695902708877874e-06,
+   "references_difference": 3.874123244429484e-12
+  },
+  "caffeine": {
+   "natoms": 24,
+   "load_before": "4.13 2.27 0.99",
+   "time": {
+    "analytic 1t": 1.575620813993737,
+    "analytic 8t": 0.4351162500679493,
+    "response 1t (9d856a2)": 5.562998100882396,
+    "response 8t (9d856a2)": 1.0137794639449567,
+    "numerical 1t (9d856a2)": 6.635779083939269,
+    "numerical 8t (9d856a2)": 1.0951533049810678
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.059203336,
+     "tangents": 0.023008679,
+     "perturbations": 0.2636754889399449,
+     "response": 0.4272546730600551,
+     "explicit integrals": 0.751832065,
+     "total": 1.5250956100000002
+    },
+    "analytic 8t": {
+     "reference scf": 0.059581347,
+     "tangents": 0.024146503,
+     "perturbations": 0.03837499395576963,
+     "response": 0.06969449904423036,
+     "explicit integrals": 0.185925517,
+     "total": 0.378010966
+    },
+    "response 1t (9d856a2)": {
+     "reference scf": 0.053927402,
+     "response setup": 0.000553619,
+     "displaced gradients": 5.463463232,
+     "total": 5.517968365
+    },
+    "response 8t (9d856a2)": {
+     "reference scf": 0.053993692,
+     "response setup": 0.000606672,
+     "displaced gradients": 0.914265344,
+     "total": 0.968948268
+    },
+    "numerical 1t (9d856a2)": {
+     "total": 6.589463421
+    },
+    "numerical 8t (9d856a2)": {
+     "total": 1.045120547
+    }
+   },
+   "asymmetry": {
+    "analytic": 2.3491722456192576e-11
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 1.297323760571234e-09,
+     "max_dfreq": 3.137996657187614e-06,
+     "max_dH_vs_response_reference": 1.965099882816901e-08
+    }
+   },
+   "peak_rss_mb": {
+    "analytic 1t": 14.0,
+    "analytic 8t": 20.1
+   },
+   "load_after": "3.88 2.27 1.01",
+   "reference_spread": 3.212691879306284e-06,
+   "references_difference": 1.92020135506097e-08
+  },
+  "Cu(NH3)4 2+": {
+   "natoms": 17,
+   "load_before": "2.34 2.19 2.97",
+   "time": {
+    "analytic 1t": 0.6685592678841203,
+    "analytic 8t": 0.16897050803527236,
+    "response 1t": 1.768300011055544,
+    "response 8t": 0.31095021893270314,
+    "numerical 1t": 2.1341768698766828,
+    "numerical 8t": 0.3652160700876266
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.022214205,
+     "tangents": 0.007837454,
+     "perturbations": 0.103190783,
+     "response": 0.227688873,
+     "explicit integrals": 0.285776224,
+     "total": 0.646945162
+    },
+    "analytic 8t": {
+     "reference scf": 0.021705459,
+     "tangents": 0.007112838,
+     "perturbations": 0.01512461,
+     "response": 0.043753093,
+     "explicit integrals": 0.059248706,
+     "total": 0.147276323
+    },
+    "response 1t": {
+     "reference scf": 0.023596702,
+     "response setup": 0.000187795,
+     "displaced gradients": 1.723347558,
+     "total": 1.747145258
+    },
+    "response 8t": {
+     "reference scf": 0.022744882,
+     "response setup": 0.000170179,
+     "displaced gradients": 0.26417498,
+     "total": 0.287249751
+    },
+    "numerical 1t": {
+     "total": 2.111849271
+    },
+    "numerical 8t": {
+     "total": 0.342200418
+    }
+   },
+   "asymmetry": {
+    "analytic": 1.7125800777506583e-11,
+    "response": 2.0458667315814694e-08,
+    "numerical": 1.4035421208369314e-05
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 1.6770537458743462e-08,
+     "max_dfreq": 0.0002027823498167436,
+     "max_dH_vs_response_reference": 7.814082714219239e-11
+    },
+    "response": {
+     "max_dH": 3.0636466918920746e-08,
+     "max_dfreq": 0.0003879284904257929,
+     "max_dH_vs_response_reference": 2.8035635868395303e-08
+    },
+    "numerical": {
+     "max_dH": 2.6251460244874902e-05,
+     "max_dfreq": 0.28994039535655247,
+     "max_dH_vs_response_reference": 2.624885978436131e-05
+    }
+   },
+   "load_after": "2.21 2.16 2.94",
+   "reference_spread": 2.1013566814387374e-06,
+   "references_difference": 1.6847967798661045e-08
+  },
+  "ferrocene": {
+   "natoms": 21,
+   "load_before": "2.21 2.16 2.94",
+   "time": {
+    "analytic 1t": 1.3427074740175158,
+    "analytic 8t": 0.3303412040695548,
+    "response 1t": 4.116292940918356,
+    "response 8t": 0.7047576429322362,
+    "numerical 1t": 4.59445058205165,
+    "numerical 8t": 0.7972114579752088
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.040007477,
+     "tangents": 0.016145173,
+     "perturbations": 0.216615807,
+     "response": 0.46824616,
+     "explicit integrals": 0.564279338,
+     "total": 1.3056653489999999
+    },
+    "analytic 8t": {
+     "reference scf": 0.038396482,
+     "tangents": 0.016309758,
+     "perturbations": 0.034036529,
+     "response": 0.080476972,
+     "explicit integrals": 0.121125249,
+     "total": 0.291114252
+    },
+    "response 1t": {
+     "reference scf": 0.039177119,
+     "response setup": 0.000385765,
+     "displaced gradients": 4.040264626,
+     "total": 4.07984301
+    },
+    "response 8t": {
+     "reference scf": 0.038841027,
+     "response setup": 0.00037458,
+     "displaced gradients": 0.623549153,
+     "total": 0.66285032
+    },
+    "numerical 1t": {
+     "total": 4.555461703
+    },
+    "numerical 8t": {
+     "total": 0.753357647
+    }
+   },
+   "asymmetry": {
+    "analytic": 4.786837592973825e-12,
+    "response": 1.3941710202969304e-08,
+    "numerical": 5.683494387301747e-05
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 1.0645973655409868e-07,
+     "max_dfreq": 0.001653660344572927,
+     "max_dH_vs_response_reference": 1.4375756141049578e-10
+    },
+    "response": {
+     "max_dH": 1.0492368723857837e-07,
+     "max_dfreq": 0.0016457002207062033,
+     "max_dH_vs_response_reference": 2.700796480903378e-08
+    },
+    "numerical": {
+     "max_dH": 6.215396939651674e-05,
+     "max_dfreq": 0.3036221500053671,
+     "max_dH_vs_response_reference": 6.21492871862861e-05
+    }
+   },
+   "load_after": "2.43 2.20 2.93",
+   "reference_spread": 2.0202196371887915e-06,
+   "references_difference": 1.0646123646540495e-07
+  },
+  "Ni(CO)4": {
+   "natoms": 9,
+   "load_before": "2.43 2.20 2.93",
+   "time": {
+    "analytic 1t": 0.3254972258582711,
+    "analytic 8t": 0.0913964428473264,
+    "response 1t": 0.5944248219020665,
+    "response 8t": 0.12830181210301816,
+    "numerical 1t": 0.7177817500196397,
+    "numerical 8t": 0.1517921988852322
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.013987983,
+     "tangents": 0.004896591,
+     "perturbations": 0.031153694,
+     "response": 0.076185809,
+     "explicit integrals": 0.184420945,
+     "total": 0.310775545
+    },
+    "analytic 8t": {
+     "reference scf": 0.014163837,
+     "tangents": 0.004987805,
+     "perturbations": 0.005047157,
+     "response": 0.014049747,
+     "explicit integrals": 0.038456352,
+     "total": 0.076958082
+    },
+    "response 1t": {
+     "reference scf": 0.013977295,
+     "response setup": 0.000141402,
+     "displaced gradients": 0.566315245,
+     "total": 0.580443161
+    },
+    "response 8t": {
+     "reference scf": 0.01507316,
+     "response setup": 0.000143691,
+     "displaced gradients": 0.097793259,
+     "total": 0.113119959
+    },
+    "numerical 1t": {
+     "total": 0.703057298
+    },
+    "numerical 8t": {
+     "total": 0.135173383
+    }
+   },
+   "asymmetry": {
+    "analytic": 1.1812953393253167e-11,
+    "response": 4.199374528668365e-10,
+    "numerical": 5.116110840582694e-07
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 5.9473598768011726e-08,
+     "max_dfreq": 7.23911122690879e-05,
+     "max_dH_vs_response_reference": 2.6078583736932615e-11
+    },
+    "response": {
+     "max_dH": 5.9157903298245884e-08,
+     "max_dfreq": 8.805885897800181e-05,
+     "max_dH_vs_response_reference": 1.0480062984097316e-08
+    },
+    "numerical": {
+     "max_dH": 7.180525500027901e-06,
+     "max_dfreq": 0.047701935598297496,
+     "max_dH_vs_response_reference": 7.171975590802848e-06
+    }
+   },
+   "load_after": "2.31 2.18 2.92",
+   "reference_spread": 8.716177363199407e-07,
+   "references_difference": 5.948205511474569e-08
+  },
+  "UF6": {
+   "natoms": 7,
+   "load_before": "2.31 2.18 2.92",
+   "time": {
+    "analytic 1t": 0.2615897241048515,
+    "analytic 8t": 0.08012753701768816,
+    "response 1t": 0.4389029718004167,
+    "response 8t": 0.0958459391258657,
+    "numerical 1t": 0.5139301139861345,
+    "numerical 8t": 0.10913957096636295
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.013063135,
+     "tangents": 0.004482502,
+     "perturbations": 0.016025531,
+     "response": 0.050229799,
+     "explicit integrals": 0.164164118,
+     "total": 0.248072619
+    },
+    "analytic 8t": {
+     "reference scf": 0.012871512,
+     "tangents": 0.00447902,
+     "perturbations": 0.003070622,
+     "response": 0.008528748,
+     "explicit integrals": 0.036573908,
+     "total": 0.065683987
+    },
+    "response 1t": {
+     "reference scf": 0.012685095,
+     "response setup": 0.000116978,
+     "displaced gradients": 0.412863451,
+     "total": 0.425674558
+    },
+    "response 8t": {
+     "reference scf": 0.0128451,
+     "response setup": 0.000116983,
+     "displaced gradients": 0.067892683,
+     "total": 0.08096843
+    },
+    "numerical 1t": {
+     "total": 0.499971547
+    },
+    "numerical 8t": {
+     "total": 0.093743261
+    }
+   },
+   "asymmetry": {
+    "analytic": 9.856837568378296e-12,
+    "response": 4.9958747139200455e-09,
+    "numerical": 3.060026890559439e-05
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 5.2785896938190024e-09,
+     "max_dfreq": 0.00010063148400263344,
+     "max_dH_vs_response_reference": 5.047558369608574e-07
+    },
+    "response": {
+     "max_dH": 7.086858053728662e-07,
+     "max_dfreq": 0.0005801545750614423,
+     "max_dH_vs_response_reference": 1.2184346804833268e-06
+    },
+    "numerical": {
+     "max_dH": 1.5166498173058846e-05,
+     "max_dfreq": 0.02561139075083929,
+     "max_dH_vs_response_reference": 1.5167126970201672e-05
+    }
+   },
+   "load_after": "2.21 2.16 2.91",
+   "reference_spread": 5.488802885533772e-07,
+   "references_difference": 5.097490500816093e-07
+  },
+  "GdCl3 octet": {
+   "natoms": 4,
+   "load_before": "2.21 2.16 2.91",
+   "time": {
+    "analytic 1t": 0.2306611491367221,
+    "analytic 8t": 0.09497112384997308,
+    "response 1t": 0.2457576000597328,
+    "response 8t": 0.081356565002352,
+    "numerical 1t": 0.4511403401847929,
+    "numerical 8t": 0.11605071392841637
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 0.021918491,
+     "tangents": 0.003419036,
+     "perturbations": 0.0093755,
+     "response": 0.072858438,
+     "explicit integrals": 0.104823142,
+     "total": 0.212467825
+    },
+    "analytic 8t": {
+     "reference scf": 0.021760385,
+     "tangents": 0.003357345,
+     "perturbations": 0.001923712,
+     "response": 0.014332305,
+     "explicit integrals": 0.035073285,
+     "total": 0.076559973
+    },
+    "response 1t": {
+     "reference scf": 0.021542247,
+     "response setup": 0.000195827,
+     "displaced gradients": 0.206570219,
+     "total": 0.228320465
+    },
+    "response 8t": {
+     "reference scf": 0.021302187,
+     "response setup": 0.000213306,
+     "displaced gradients": 0.03997965,
+     "total": 0.061592262
+    },
+    "numerical 1t": {
+     "total": 0.433377908
+    },
+    "numerical 8t": {
+     "total": 0.096398096
+    }
+   },
+   "asymmetry": {
+    "analytic": 5.424910520801518e-12,
+    "response": 1.0338306807855524e-09,
+    "numerical": 2.1538350691773997e-06
+   },
+   "accuracy": {
+    "analytic": {
+     "max_dH": 7.59929888460853e-09,
+     "max_dfreq": 1.2170503794095566e-05,
+     "max_dH_vs_response_reference": 5.2773507785985885e-11
+    },
+    "response": {
+     "max_dH": 9.212784243817218e-09,
+     "max_dfreq": 1.3629969373596396e-05,
+     "max_dH_vs_response_reference": 2.2241026936820063e-09
+    },
+    "numerical": {
+     "max_dH": 2.7175382990574093e-06,
+     "max_dfreq": 0.003987793857504585,
+     "max_dH_vs_response_reference": 2.722483162409528e-06
+    }
+   },
+   "load_after": "2.21 2.16 2.91",
+   "reference_spread": 1.7626174911300474e-07,
+   "references_difference": 7.652072392394516e-09
+  },
+  "taxol": {
+   "natoms": 113,
+   "load_before": "4.37 2.40 1.05",
+   "time": {
+    "analytic 1t": 149.86280381307006,
+    "analytic 8t": 33.11365478206426
+   },
+   "phases": {
+    "analytic 1t": {
+     "reference scf": 1.417494992,
+     "tangents": 0.856055616,
+     "perturbations": 28.089843215935783,
+     "response": 98.85869281606422,
+     "explicit integrals": 19.528661187,
+     "total": 148.753273527
+    },
+    "analytic 8t": {
+     "reference scf": 1.5935321390000001,
+     "tangents": 0.90601861,
+     "perturbations": 4.95914396830284,
+     "response": 19.86623997469716,
+     "explicit integrals": 4.632320046,
+     "total": 31.960430545
+    }
+   },
+   "asymmetry": {
+    "analytic": 2.344867270629759e-11
+   },
+   "accuracy": {},
+   "peak_rss_mb": {
+    "analytic 1t": 139.4,
+    "analytic 8t": 233.3
+   },
+   "load_after": "8.22 5.34 2.97"
+  }
+ },
+ "program": {
+  "water": {
+   "program_settings": {
+    "step": 0.005,
+    "scc_accuracy": 0.3
+   },
+   "program_wall_ohess_1t": 0.02953168610110879,
+   "axtb_analytic_1t": 0.0071539138443768024,
+   "max_dH_projected": 4.758699980483838e-05,
+   "max_dfreq": 0.24767015296129102,
+   "max_dH_projected_axtb_numerical_program_settings": 3.189829036237546e-05,
+   "max_dfreq_axtb_numerical_program_settings": 0.24856777364357185,
+   "max_dfreq_axtb_numerical_program_settings_vs_reference": 0.06601478976608632,
+   "max_dfreq_axtb_numerical_program_step_tight_scf_vs_reference": 0.06786915778502589,
+   "frequencies_program_printed": [
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    0.0,
+    0.0,
+    1602.52,
+    3618.13,
+    3674.53
+   ],
+   "max_dfreq_program_vs_reference": 0.2476701818879974,
+   "max_dfreq_analytic_vs_reference": 2.2548510969500057e-07,
+   "max_dfreq_program_printed_vs_own_hessian": 0.0011747336470762093,
+   "frequencies_program": [
+    1602.5199697956914,
+    3618.128825266353,
+    3674.5308262834014
+   ],
+   "frequencies_axtb": [
+    1602.27229964273,
+    3617.917179532163,
+    3674.4350430389127
+   ]
+  },
+  "O2 triplet": {
+   "program_settings": {
+    "step": 0.005,
+    "scc_accuracy": 0.3
+   },
+   "program_wall_ohess_1t": 0.027789263986051083,
+   "axtb_analytic_1t": 0.0063920519314706326,
+   "max_dH_projected": 5.360828949774403e-05,
+   "max_dfreq": 0.02519265074397481,
+   "max_dH_projected_axtb_numerical_program_settings": 5.360828949735162e-05,
+   "max_dfreq_axtb_numerical_program_settings": 0.0063300479600911785,
+   "max_dfreq_axtb_numerical_program_settings_vs_reference": 0.03152270986720396,
+   "max_dfreq_axtb_numerical_program_step_tight_scf_vs_reference": 0.031409137276341426,
+   "frequencies_program_printed": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1687.36
+   ],
+   "max_dfreq_program_vs_reference": 0.02519266190711278,
+   "max_dfreq_analytic_vs_reference": 1.1163137969560921e-08,
+   "max_dfreq_program_printed_vs_own_hessian": 0.004295916951377876,
+   "frequencies_program": [
+    1687.3557040830485
+   ],
+   "frequencies_axtb": [
+    1687.3305114323045
+   ]
+  },
+  "caffeine": {
+   "program_settings": {
+    "step": 0.005,
+    "scc_accuracy": 0.3
+   },
+   "program_wall_ohess_1t": 6.896498158108443,
+   "axtb_analytic_1t": 1.7917005270719528,
+   "max_dH_projected": 0.007770546377019197,
+   "max_dfreq": 136.1436514753141,
+   "max_dH_projected_axtb_numerical_program_settings": 0.007768004529332712,
+   "max_dfreq_axtb_numerical_program_settings": 136.1739594762851,
+   "max_dfreq_axtb_numerical_program_settings_vs_reference": 0.429041000824796,
+   "max_dfreq_axtb_numerical_program_step_tight_scf_vs_reference": 0.43213446397338373,
+   "frequencies_program_printed": [
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    0.0,
+    83.46,
+    107.8,
+    133.49,
+    160.01,
+    216.51,
+    242.86,
+    278.24,
+    294.14,
+    313.29,
+    336.99,
+    340.56,
+    357.8,
+    370.84,
+    409.75,
+    415.17,
+    441.96,
+    478.78,
+    569.51,
+    630.03,
+    642.76,
+    722.77,
+    748.21,
+    773.18,
+    795.82,
+    825.46,
+    961.61,
+    967.03,
+    1008.81,
+    1098.47,
+    1124.49,
+    1148.41,
+    1215.19,
+    1228.3,
+    1237.43,
+    1240.34,
+    1270.15,
+    1294.37,
+    1320.65,
+    1341.02,
+    1389.33,
+    1414.74,
+    1453.07,
+    1461.46,
+    1472.5,
+    1500.07,
+    1530.38,
+    1538.77,
+    1541.36,
+    1554.32,
+    1561.53,
+    1573.62,
+    1578.85,
+    1619.32,
+    1708.07,
+    1739.02,
+    1768.58,
+    3116.88,
+    3121.27,
+    3148.53,
+    3150.08,
+    3169.69,
+    3170.52,
+    3222.88,
+    3244.43,
+    3252.73,
+    3341.35
+   ],
+   "max_dfreq_program_vs_reference": 136.1436513140129,
+   "max_dfreq_analytic_vs_reference": 2.78128891295637e-06,
+   "max_dfreq_program_printed_vs_own_hessian": 0.004794730143316883,
+   "frequencies_program": [
+    83.45963192724487,
+    107.80043400876714,
+    133.4876056788061,
+    160.0126335088518,
+    216.50854430451625,
+    242.8642872280019,
+    278.2422643621804,
+    294.13563259916,
+    313.2902375528001,
+    336.9857506505482,
+    340.5578682911916,
+    357.798561884799,
+    370.84358938717685,
+    409.745607448397,
+    415.17187972650765,
+    441.9560672130245,
+    478.7752948776612,
+    569.5100430019197,
+    630.0306945307141,
+    642.7562021076799,
+    722.7669862067489,
+    748.2060234173562,
+    773.1821614887216,
+    795.8152052698567,
+    825.464459521037,
+    961.6082366712204,
+    967.0290952205573,
+    1008.8066768430202,
+    1098.4677155241623,
+    1124.4865183693335,
+    1148.410808248831,
+    1215.1933072872862,
+    1228.302021697051,
+    1237.4334473742906,
+    1240.3431491755055,
+    1270.1538891286596,
+    1294.3728319521974,
+    1320.6539243641328,
+    1341.015680450126,
+    1389.3337733726573,
+    1414.741419661181,
+    1453.068536745817,
+    1461.457111758733,
+    1472.5002504413355,
+    1500.068151124366,
+    1530.382226293885,
+    1538.7702861338662,
+    1541.35988059947,
+    1554.3156873802122,
+    1561.5300409775034,
+    1573.6198354781616,
+    1578.8469827830154,
+    1619.3222341044088,
+    1708.0682567550523,
+    1739.0171104303138,
+    1768.5788385873884,
+    3116.8805887497506,
+    3121.2705848627343,
+    3148.5322867407476,
+    3150.0763220555154,
+    3169.690692327079,
+    3170.5238832226373,
+    3222.883922530021,
+    3244.427631863522,
+    3252.72589405018,
+    3341.349628939187
+   ],
+   "frequencies_axtb": [
+    -47.05534210474887,
+    42.06126901243273,
+    82.7964122907718,
+    88.49649280432298,
+    111.49127989714907,
+    123.92363214600056,
+    142.09861288686628,
+    212.11625659031614,
+    226.87266366592027,
+    270.4592156671595,
+    294.54011380245265,
+    346.2853955300621,
+    359.27290605047983,
+    401.7028453621478,
+    412.9481838834549,
+    440.45712109829174,
+    476.3545547084172,
+    565.0763381002836,
+    608.744272266374,
+    629.882298406396,
+    717.119815211521,
+    746.4148970085791,
+    772.5694538248297,
+    795.2773232183587,
+    819.8103401676328,
+    881.3657769199685,
+    958.6817707116768,
+    1006.2139084361474,
+    1068.874091348072,
+    1098.6365875585768,
+    1111.7512653581282,
+    1170.883902804748,
+    1183.9945850615575,
+    1191.9022142849267,
+    1217.2439605104162,
+    1256.890326608131,
+    1274.8281718867456,
+    1304.9261771191589,
+    1326.7771690209725,
+    1382.0605955997307,
+    1402.7380767985312,
+    1421.3683140203966,
+    1434.25187176006,
+    1443.210498260861,
+    1477.0831364564697,
+    1478.3187674956905,
+    1489.092879377077,
+    1493.7435872377673,
+    1501.6543704624546,
+    1511.3182605762495,
+    1519.966031926586,
+    1530.740529993514,
+    1610.3390602463185,
+    1705.354299461451,
+    1736.2963229581471,
+    1766.8042183472096,
+    3103.497738724875,
+    3107.918591055841,
+    3133.193683449348,
+    3134.0794783565498,
+    3151.366125271051,
+    3152.8648932717283,
+    3198.438754034627,
+    3219.869518982238,
+    3222.340025585542,
+    3316.9351431907794
+   ]
+  },
+  "Ni(CO)4": {
+   "program_settings": {
+    "step": 0.005,
+    "scc_accuracy": 0.3
+   },
+   "program_wall_ohess_1t": 0.9885757421143353,
+   "axtb_analytic_1t": 0.3184906020760536,
+   "max_dH_projected": 0.002775911143952259,
+   "max_dfreq": 39.190343259662285,
+   "max_dH_projected_axtb_numerical_program_settings": 0.0026599852303575977,
+   "max_dfreq_axtb_numerical_program_settings": 39.08047908506347,
+   "max_dfreq_axtb_numerical_program_settings_vs_reference": 0.5205706377637398,
+   "max_dfreq_axtb_numerical_program_step_tight_scf_vs_reference": 0.0750128465998614,
+   "frequencies_program_printed": [
+    -0.0,
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    0.0,
+    79.13,
+    79.13,
+    89.12,
+    89.12,
+    89.12,
+    245.97,
+    245.97,
+    245.97,
+    369.71,
+    384.01,
+    384.01,
+    384.01,
+    462.51,
+    462.51,
+    462.51,
+    478.51,
+    478.51,
+    2092.83,
+    2092.83,
+    2092.83,
+    2166.35
+   ],
+   "max_dfreq_program_vs_reference": 39.19027763485013,
+   "max_dfreq_analytic_vs_reference": 0.000208983205993718,
+   "max_dfreq_program_printed_vs_own_hessian": 0.004564326445233746,
+   "frequencies_program": [
+    79.13101461992602,
+    79.13101538844694,
+    89.11841639992076,
+    89.11841687143449,
+    89.11841790566088,
+    245.97050018526707,
+    245.97050808736552,
+    245.9705088221339,
+    369.7094456572303,
+    384.012981983985,
+    384.0129825613256,
+    384.01298345335124,
+    462.508422029544,
+    462.50842266869796,
+    462.5084228135866,
+    478.5115123314523,
+    478.5115123515868,
+    2092.8345608372165,
+    2092.8345637862612,
+    2092.834564326445,
+    2166.3502894329936
+   ],
+   "frequencies_axtb": [
+    40.85271241772335,
+    40.85271242472113,
+    57.15201854088951,
+    57.15202046023141,
+    57.152020735899676,
+    206.78016325203856,
+    206.7801650809553,
+    206.7801655624716,
+    369.2233592687093,
+    379.61906808426585,
+    379.6190687986187,
+    379.61906961717165,
+    455.54165058944307,
+    455.54165114622356,
+    455.54165126579085,
+    471.6344852620223,
+    471.63448526830837,
+    2092.3919874154412,
+    2092.3919903630394,
+    2092.3919909229644,
+    2166.072243190277
+   ]
+  },
+  "GdCl3 octet": {
+   "program_settings": {
+    "step": 0.005,
+    "scc_accuracy": 0.3
+   },
+   "program_wall_ohess_1t": 0.5527416679542512,
+   "axtb_analytic_1t": 0.2317794030532241,
+   "max_dH_projected": 0.01982125385804115,
+   "max_dfreq": 91.78328797702294,
+   "max_dH_projected_axtb_numerical_program_settings": 0.019818072351993246,
+   "max_dfreq_axtb_numerical_program_settings": 91.76113450245239,
+   "max_dfreq_axtb_numerical_program_settings_vs_reference": 0.8642396097679352,
+   "max_dfreq_axtb_numerical_program_step_tight_scf_vs_reference": 0.0016638978875782584,
+   "frequencies_program_printed": [
+    -0.0,
+    -0.0,
+    -0.0,
+    0.0,
+    0.0,
+    0.0,
+    61.87,
+    78.11,
+    85.79,
+    277.28,
+    312.63,
+    313.14
+   ],
+   "max_dfreq_program_vs_reference": 91.783288328311,
+   "max_dfreq_analytic_vs_reference": 8.169679915681627e-06,
+   "max_dfreq_program_printed_vs_own_hessian": 0.004104311092852697,
+   "frequencies_program": [
+    61.865895688907145,
+    78.10896161388422,
+    85.7919231285738,
+    277.27591501869057,
+    312.6331049112728,
+    313.13975541378596
+   ],
+   "frequencies_axtb": [
+    -29.917392288115796,
+    60.96967399365878,
+    60.972570612881526,
+    276.9700446460691,
+    312.5626797942033,
+    312.568759879364
+   ]
+  }
+ },
+ "versus_program": {
+  "caffeine": {
+   "natoms": 24,
+   "conventions": "gxtb (axtb) / program",
+   "runs": [
+    {
+     "what": "program --hess 1t",
+     "load_before": "2.58 2.25 2.93",
+     "seconds": 6.619366182945669
+    },
+    {
+     "what": "axtb analytic 1t",
+     "load_before": "2.46 2.23 2.91",
+     "seconds": 1.8130252521950752,
+     "phases": {
+      "reference scf": 0.053687655,
+      "tangents": 0.020703806,
+      "perturbations": 0.337091536,
+      "response": 0.619763717,
+      "explicit integrals": 0.733769011,
+      "total": 1.765487882
+     }
+    },
+    {
+     "what": "axtb response 1t",
+     "load_before": "2.34 2.21 2.90",
+     "seconds": 5.733311159070581,
+     "phases": {
+      "reference scf": 0.053236808,
+      "response setup": 0.000546101,
+      "displaced gradients": 5.633406796,
+      "total": 5.687207216
+     }
+    },
+    {
+     "what": "axtb numerical 1t",
+     "load_before": "2.31 2.20 2.90",
+     "seconds": 6.8482986961025745,
+     "phases": {
+      "total": 6.799864829
+     }
+    },
+    {
+     "what": "program --hess 8t",
+     "load_before": "2.21 2.18 2.89",
+     "seconds": 1.04668013099581
+    },
+    {
+     "what": "axtb analytic 8t",
+     "load_before": "2.21 2.18 2.89",
+     "seconds": 0.43471664818935096,
+     "phases": {
+      "reference scf": 0.058848484,
+      "tangents": 0.022578461,
+      "perturbations": 0.048131593,
+      "response": 0.10118934,
+      "explicit integrals": 0.151766019,
+      "total": 0.383157264
+     }
+    },
+    {
+     "what": "axtb response 8t",
+     "load_before": "2.21 2.18 2.89",
+     "seconds": 0.9427726939320564,
+     "phases": {
+      "reference scf": 0.05515226,
+      "response setup": 0.000575072,
+      "displaced gradients": 0.835406274,
+      "total": 0.89116908
+     }
+    },
+    {
+     "what": "axtb numerical 8t",
+     "load_before": "2.11 2.16 2.88",
+     "seconds": 1.143815014977008,
+     "phases": {
+      "total": 1.090936874
+     }
+    }
+   ],
+   "time": {
+    "program --hess 1t": 6.619366182945669,
+    "axtb analytic 1t": 1.8130252521950752,
+    "axtb response 1t": 5.733311159070581,
+    "axtb numerical 1t": 6.8482986961025745,
+    "program --hess 8t": 1.04668013099581,
+    "axtb analytic 8t": 0.43471664818935096,
+    "axtb response 8t": 0.9427726939320564,
+    "axtb numerical 8t": 1.143815014977008
+   },
+   "frequencies_program": [
+    70.91999436035896,
+    102.52420256271161,
+    121.19668294535718,
+    156.03159931166738,
+    219.90843847741192,
+    240.673841726276,
+    278.61488480015475,
+    291.5987067511972,
+    327.79925245087725,
+    340.2579432209825,
+    356.5240539845577,
+    366.32662747530816,
+    372.68040081007695,
+    413.11656038605514,
+    420.4069619178757,
+    443.24855999226634,
+    479.9863891456889,
+    572.7961726965566,
+    634.5263788513945,
+    643.1912907641295,
+    721.4621073149458,
+    756.5199776355394,
+    772.3724501151861,
+    796.1880532111657,
+    829.3296960698684,
+    936.237787405036,
+    973.5452216570733,
+    1020.0104520768132,
+    1105.9058984883623,
+    1129.0085387055356,
+    1154.632183243495,
+    1223.771424855528,
+    1234.940528668311,
+    1245.0427426911904,
+    1245.5554706352464,
+    1277.1502259899542,
+    1298.8727796210271,
+    1325.725816500548,
+    1345.209516460051,
+    1400.0408537016183,
+    1420.5915979076995,
+    1461.9482180384202,
+    1469.7837979670592,
+    1481.826857833476,
+    1506.2929610356675,
+    1527.109295157563,
+    1541.5294530621131,
+    1548.1136583083003,
+    1564.0282301641814,
+    1568.308054782133,
+    1575.357716387067,
+    1578.7197400156986,
+    1618.7574412885785,
+    1677.7318351467748,
+    1732.2594997135948,
+    1762.8999657449547,
+    3114.446498751841,
+    3118.4135794509757,
+    3134.456346092359,
+    3142.0529396560364,
+    3155.170668572016,
+    3159.9898901866836,
+    3205.8381355744355,
+    3210.2894100513936,
+    3212.8500399979384,
+    3380.001196905215
+   ],
+   "vs_program": {
+    "analytic": {
+     "max_dH_projected": 0.0078067337910107185,
+     "max_dfreq": 103.9816757880263,
+     "mean_dfreq": 30.413941481088887,
+     "max_dfreq_above_500": 81.55492416209381
+    },
+    "response": {
+     "max_dH_projected": 0.007806732988517504,
+     "max_dfreq": 103.98170921725841,
+     "mean_dfreq": 30.41396417240148,
+     "max_dfreq_above_500": 81.55491772028381
+    },
+    "numerical": {
+     "max_dH_projected": 0.007805834865536532,
+     "max_dfreq": 103.9870605969466,
+     "mean_dfreq": 30.422481374530406,
+     "max_dfreq_above_500": 81.54267457727076
+    }
+   },
+   "frequencies_axtb_analytic": [
+    28.841953858480515,
+    62.541096333508534,
+    81.80849511772819,
+    97.19176774617299,
+    115.92676268938563,
+    137.70739224928818,
+    177.31183678066787,
+    217.63789990500035,
+    225.2219306597423,
+    271.0560149981761,
+    293.2100105603288,
+    339.83139013506394,
+    361.78750257692286,
+    406.87555688850256,
+    415.73474978993966,
+    441.75147220424554,
+    477.4968577374854,
+    568.2362835621535,
+    606.1406462624477,
+    634.2166598871283,
+    716.4421028796388,
+    754.6849184554387,
+    771.7303616497315,
+    795.8724229578326,
+    824.0656602329267,
+    854.6828632429422,
+    964.3695761831066,
+    1017.8424280427863,
+    1077.8919454780744,
+    1101.3510830117073,
+    1120.7720768641514,
+    1182.068509624099,
+    1189.8895272320774,
+    1200.1054547270624,
+    1217.7563260212585,
+    1266.9477209489107,
+    1279.6295032004548,
+    1311.7586534772086,
+    1329.9530421296804,
+    1391.8330384775065,
+    1412.9126611794331,
+    1425.4789498418374,
+    1441.21818761147,
+    1456.169290609381,
+    1482.3314416547614,
+    1485.7625971037248,
+    1493.7904840969939,
+    1502.7099656936002,
+    1504.506100224253,
+    1511.2947181127836,
+    1520.7033076665139,
+    1529.5987372131156,
+    1611.34771736183,
+    1673.0586282826796,
+    1730.1776596674647,
+    1761.1719999100376,
+    3102.5480978439905,
+    3104.0636805637746,
+    3117.5289398028485,
+    3126.7087054713334,
+    3137.752566423077,
+    3141.003952511643,
+    3177.5316741778656,
+    3182.9883279592536,
+    3186.863479788326,
+    3355.9021921667522
+   ],
+   "program_acc": {
+    "runs": [
+     {
+      "what": "program --acc 0.001 1t",
+      "load_before": "1.69 2.68 3.38",
+      "seconds": 6.907497113803402
+     },
+     {
+      "what": "axtb analytic 1t",
+      "load_before": "1.64 2.65 3.36",
+      "seconds": 1.6797123260330409
+     },
+     {
+      "what": "program --acc 0.0001 1t",
+      "load_before": "1.64 2.65 3.36",
+      "seconds": 7.002281547058374
+     },
+     {
+      "what": "program --acc 0.001 8t",
+      "load_before": "1.54 2.60 3.34",
+      "seconds": 1.071953243110329
+     },
+     {
+      "what": "axtb analytic 8t",
+      "load_before": "1.54 2.60 3.34",
+      "seconds": 0.41848881100304425
+     },
+     {
+      "what": "program --acc 0.0001 8t",
+      "load_before": "1.54 2.60 3.34",
+      "seconds": 1.1329143790062517
+     }
+    ],
+    "time": {
+     "program --acc 0.001 1t": 6.907497113803402,
+     "axtb analytic 1t": 1.6797123260330409,
+     "program --acc 0.0001 1t": 7.002281547058374,
+     "program --acc 0.001 8t": 1.071953243110329,
+     "axtb analytic 8t": 0.41848881100304425,
+     "program --acc 0.0001 8t": 1.1329143790062517
+    },
+    "vs_analytic": {
+     "program --acc 0.001": {
+      "max_dH_projected": 3.202579771544034e-05,
+      "max_dfreq": 0.5396071906031494,
+      "mean_dfreq": 0.030446638989370844
+     },
+     "program --acc 0.0001": {
+      "max_dH_projected": 2.7616335451674523e-05,
+      "max_dfreq": 0.3544026028780891,
+      "mean_dfreq": 0.02136290077284803
+     }
+    },
+    "vs_reference": {
+     "axtb analytic": {
+      "max_dH": 1.308208937012001e-09,
+      "max_dfreq": 3.1312973192143545e-06,
+      "mean_dfreq": 2.621308992897556e-07
+     },
+     "program --acc 0.001": {
+      "max_dfreq": 0.5396058774347914,
+      "mean_dfreq": 0.030446642432242637
+     },
+     "program --acc 0.0001": {
+      "max_dfreq": 0.35440128970973106,
+      "mean_dfreq": 0.021362915809508703
+     }
+    },
+    "reference": {
+     "what": "Richardson numerical 0.002/0.001 bohr, SCF accuracy 1e-6, program conventions",
+     "spread": 3.2126898626971823e-06,
+     "load_before": "1.54 2.60 3.34"
+    }
+   }
+  },
+  "taxol": {
+   "natoms": 113,
+   "conventions": "gxtb (axtb) / program",
+   "runs": [
+    {
+     "what": "program --hess 1t",
+     "load_before": "2.11 2.16 2.88",
+     "seconds": 449.91407636902295
+    },
+    {
+     "what": "axtb analytic 1t",
+     "load_before": "1.28 1.45 2.24",
+     "seconds": 151.9754807469435,
+     "phases": {
+      "reference scf": 1.281018131,
+      "tangents": 0.703919113,
+      "perturbations": 32.028745489,
+      "response": 100.374506449,
+      "explicit integrals": 16.6012392,
+      "total": 151.023516401
+     }
+    },
+    {
+     "what": "axtb response 1t",
+     "load_before": "1.14 1.33 2.07",
+     "seconds": 500.0715050229337,
+     "phases": {
+      "reference scf": 1.273801302,
+      "response setup": 0.035539545,
+      "displaced gradients": 497.823813692,
+      "total": 499.133726603
+     }
+    },
+    {
+     "what": "axtb numerical 1t",
+     "load_before": "1.07 1.14 1.66",
+     "seconds": 730.4798564438242,
+     "phases": {
+      "total": 729.441808534
+     }
+    },
+    {
+     "what": "program --hess 8t",
+     "load_before": "1.22 1.18 1.39",
+     "seconds": 80.36045268410817
+    },
+    {
+     "what": "axtb analytic 8t",
+     "load_before": "6.58 2.88 1.97",
+     "seconds": 35.81802603392862,
+     "phases": {
+      "reference scf": 1.349992754,
+      "tangents": 0.761327221,
+      "perturbations": 5.482718857,
+      "response": 23.10343307,
+      "explicit integrals": 4.038533503,
+      "total": 34.771067752
+     }
+    },
+    {
+     "what": "axtb response 8t",
+     "load_before": "6.44 3.36 2.17",
+     "seconds": 88.79251446900889,
+     "phases": {
+      "reference scf": 1.4098226010000001,
+      "response setup": 0.036524451,
+      "displaced gradients": 86.329672245,
+      "total": 87.777148873
+     }
+    },
+    {
+     "what": "axtb numerical 8t",
+     "load_before": "7.92 4.63 2.73",
+     "seconds": 127.45324661303312,
+     "phases": {
+      "total": 126.371534903
+     }
+    }
+   ],
+   "time": {
+    "program --hess 1t": 449.91407636902295,
+    "axtb analytic 1t": 151.9754807469435,
+    "axtb response 1t": 500.0715050229337,
+    "axtb numerical 1t": 730.4798564438242,
+    "program --hess 8t": 80.36045268410817,
+    "axtb analytic 8t": 35.81802603392862,
+    "axtb response 8t": 88.79251446900889,
+    "axtb numerical 8t": 127.45324661303312
+   },
+   "frequencies_program": [
+    54.45638297557544,
+    66.42743663520888,
+    80.25059084400068,
+    87.65756294939891,
+    96.49999668446924,
+    104.30581008330849,
+    113.58754050168534,
+    117.38010484020316,
+    125.14961783205126,
+    142.66523858468645,
+    147.68604263706334,
+    148.8258031071004,
+    158.88228235883776,
+    169.11255410556456,
+    175.09054300048444,
+    183.18034106460058,
+    197.25915659287267,
+    211.60145373435483,
+    214.0767107984221,
+    221.46786138191695,
+    230.9036906498264,
+    234.3594730780977,
+    239.00526201910245,
+    248.26869891010864,
+    258.9738219157827,
+    268.40154435875274,
+    270.46543170485427,
+    274.9907847849036,
+    279.7383998293425,
+    288.21470713192394,
+    295.4826768443826,
+    300.15958709892504,
+    301.3822431003247,
+    307.7626670472485,
+    309.8899702479691,
+    315.4534103457796,
+    323.76464786492915,
+    335.5401819454637,
+    343.8854646383581,
+    351.16981685010876,
+    356.3416777728887,
+    358.3080435893244,
+    361.7913279282801,
+    366.15617880966437,
+    368.4319978504573,
+    373.7757934771625,
+    381.93778153432925,
+    386.70755964429173,
+    388.8269865663521,
+    393.4810969601994,
+    395.4911176872908,
+    396.1552666234274,
+    399.9458940869058,
+    410.3589303381634,
+    429.05808542447863,
+    434.8671276192052,
+    438.56545213332356,
+    440.5274597499603,
+    442.98784586724787,
+    450.1166777351409,
+    452.1856151501873,
+    462.04955658038233,
+    465.9575161319278,
+    473.26229094364754,
+    477.47440296136335,
+    485.4109530716653,
+    492.9296188317514,
+    495.0309057369342,
+    499.68896832956284,
+    522.8492587715388,
+    537.9860893101232,
+    551.2426596739673,
+    553.5337306697398,
+    557.1299565407052,
+    558.4817413144573,
+    572.241231697266,
+    584.5957983285596,
+    588.2183191663106,
+    601.9010941408001,
+    602.26210477493,
+    605.5899380993477,
+    606.8140566600482,
+    611.6355901646767,
+    616.045848961981,
+    626.495259435987,
+    636.5359895713716,
+    645.9035949205407,
+    652.9701012953253,
+    666.6305793525922,
+    672.1499805579903,
+    672.2974419523795,
+    674.8931472868697,
+    676.1546540036404,
+    681.0039959527925,
+    691.1420867492385,
+    702.3394075169613,
+    712.0423117362195,
+    725.2703829449268,
+    729.2377969047458,
+    731.9931410811478,
+    735.2905043473447,
+    740.8158285516265,
+    747.9089012061252,
+    751.0891154180373,
+    769.1250524419092,
+    793.5287596319043,
+    801.9546782513255,
+    821.5328841281399,
+    841.3627108334643,
+    844.6172762935507,
+    848.3329544426316,
+    853.0867405207265,
+    856.4725454711099,
+    859.2718404575418,
+    864.47832509942,
+    872.9604575306679,
+    881.5613641093217,
+    887.9482114516319,
+    909.5457906773815,
+    916.2786328177976,
+    920.9454519427458,
+    927.6865785027072,
+    940.6676533678689,
+    946.8453637121336,
+    949.5103410697031,
+    957.0037820027467,
+    965.1228764530688,
+    968.9449902930476,
+    983.0781838581573,
+    992.6857090816306,
+    1001.8547579904165,
+    1007.0711056009019,
+    1016.6077353113657,
+    1021.1989995817881,
+    1022.6017508794905,
+    1027.1674590649354,
+    1031.8545015616537,
+    1034.1718820215378,
+    1041.0660150892847,
+    1048.284382892113,
+    1051.8381759823858,
+    1054.677640206577,
+    1055.856283368987,
+    1059.8211890725815,
+    1062.0951013346355,
+    1071.118783932985,
+    1080.8643891706745,
+    1082.8793790668149,
+    1088.967973908287,
+    1090.8381542945206,
+    1091.742039465464,
+    1093.0711444991464,
+    1108.167316044354,
+    1108.6907938967308,
+    1114.8574753904343,
+    1118.6152137325682,
+    1119.6607486630296,
+    1122.4857182851968,
+    1124.3970955089362,
+    1124.6967251033764,
+    1125.9410217822651,
+    1126.7464780808466,
+    1130.4258454383817,
+    1131.1633653622375,
+    1132.5309348443996,
+    1139.7983733010078,
+    1145.4185559875054,
+    1147.1914545499317,
+    1148.260080755245,
+    1151.2008220856435,
+    1153.3872717480285,
+    1156.5191495717902,
+    1158.1051951447073,
+    1159.1639125359143,
+    1159.9852305278262,
+    1167.4483723021174,
+    1178.186017932444,
+    1180.7590138762764,
+    1192.6190758809803,
+    1203.0632703886452,
+    1205.5739683383226,
+    1210.227583307124,
+    1225.863181814533,
+    1231.0394173080654,
+    1238.692980353602,
+    1255.42945431201,
+    1258.4180603955474,
+    1261.6710604029422,
+    1263.2731681049286,
+    1264.0640319019371,
+    1268.8187352779657,
+    1273.4153571482711,
+    1275.1598934035094,
+    1276.220380468482,
+    1279.5799192298978,
+    1284.2729021870332,
+    1286.5409688889245,
+    1303.6845037204716,
+    1315.8912774727564,
+    1322.554325847533,
+    1325.2766047292653,
+    1327.4965117219936,
+    1330.8075086329359,
+    1333.7543752055585,
+    1351.2431584736416,
+    1355.2575611838795,
+    1366.039222995882,
+    1369.1992799188824,
+    1373.445768718551,
+    1378.8223240148218,
+    1393.0138165662252,
+    1395.194660262884,
+    1407.4586896651647,
+    1414.4477691993377,
+    1415.0029287776008,
+    1418.869270395298,
+    1433.502273608878,
+    1436.693913903269,
+    1439.4252494478064,
+    1450.2676598843993,
+    1452.007198677543,
+    1453.6319772447032,
+    1456.1782067023416,
+    1457.0342443184754,
+    1469.0391578498713,
+    1475.4231919409817,
+    1476.0416081580795,
+    1482.1999320576192,
+    1484.8444320078538,
+    1486.9872969915941,
+    1489.0000798488568,
+    1493.2351807941106,
+    1497.5033751182018,
+    1498.0308632921794,
+    1502.4149504937538,
+    1508.4146814797002,
+    1510.375309795496,
+    1513.801565724671,
+    1519.9549989734303,
+    1524.0890563679475,
+    1526.0343798026995,
+    1531.89268823401,
+    1538.065451772682,
+    1541.6678265330522,
+    1542.572594182471,
+    1547.1816679627273,
+    1553.6566661260977,
+    1562.2201026778575,
+    1573.4018890617378,
+    1573.755369400926,
+    1576.6987687130284,
+    1579.3389458949503,
+    1582.3272309346976,
+    1583.4651063789722,
+    1585.82221308481,
+    1590.8628697242862,
+    1593.5642620838712,
+    1594.2872342553976,
+    1594.7223734579852,
+    1597.7979053798947,
+    1598.608608765233,
+    1604.1465296250033,
+    1608.217688932959,
+    1614.022144241521,
+    1615.9772637065475,
+    1619.1598623006296,
+    1626.4587891567758,
+    1635.5775026349377,
+    1645.80087364881,
+    1703.2490208118636,
+    1710.7723399464974,
+    1712.1065652228208,
+    1722.3656672058644,
+    1732.5485761739437,
+    1735.5204202717189,
+    1746.5580234766273,
+    1748.2936335530385,
+    1754.0289089192827,
+    1765.4473364085854,
+    1769.1151241222383,
+    1792.2641019840169,
+    1799.5488466032448,
+    3113.091433867084,
+    3133.6550836539695,
+    3139.795853267401,
+    3142.651848860636,
+    3151.6601611970955,
+    3157.853282644157,
+    3157.9492419275416,
+    3162.571799553163,
+    3163.4185411041803,
+    3167.0590907824953,
+    3168.4760563592195,
+    3168.90687708835,
+    3171.3577250148464,
+    3178.9577560552943,
+    3179.931768631724,
+    3182.2218742669425,
+    3184.813416183453,
+    3189.36736895475,
+    3191.1635785693225,
+    3193.58693456717,
+    3196.889529539204,
+    3197.7072104314057,
+    3200.8553343400677,
+    3209.5494625455794,
+    3211.228653606335,
+    3212.7334819169073,
+    3213.279264480381,
+    3213.762986967583,
+    3217.559975695051,
+    3225.492296532344,
+    3226.831001048632,
+    3228.0739164695565,
+    3232.260838479271,
+    3238.5906120183613,
+    3243.0923150923627,
+    3243.7122291983273,
+    3246.1837716070663,
+    3249.3726635800904,
+    3250.5624622707587,
+    3256.792049870329,
+    3259.867434320097,
+    3265.381962477606,
+    3270.241943212475,
+    3285.3251009480614,
+    3288.4397282761847,
+    3305.222758218064,
+    3320.8588773973725,
+    3337.699736778043,
+    3450.788803375587,
+    3496.7758916713096,
+    3539.548075452458
+   ],
+   "vs_program": {
+    "analytic": {
+     "max_dH_projected": 0.0889086772280574,
+     "max_dfreq": 148.52959246647598,
+     "mean_dfreq": 78.1432043601306,
+     "max_dfreq_above_500": 127.74011681027832
+    },
+    "response": {
+     "max_dH_projected": 0.08890867302366234,
+     "max_dfreq": 148.52963745136563,
+     "mean_dfreq": 78.14321297633903,
+     "max_dfreq_above_500": 127.74012839572356
+    },
+    "numerical": {
+     "max_dH_projected": 0.08890646163478966,
+     "max_dfreq": 148.5597136381055,
+     "mean_dfreq": 78.14629320935006,
+     "max_dfreq_above_500": 127.74418406395114
+    }
+   },
+   "frequencies_axtb_analytic": [
+    -94.07320949090054,
+    -17.80023342709108,
+    4.4227304730452435,
+    17.159887050732074,
+    23.42297017001057,
+    33.116481124712756,
+    35.34575256138096,
+    49.323164502455384,
+    50.958303553171554,
+    54.53039060738158,
+    60.33381800994552,
+    63.83741639637985,
+    68.82746213444275,
+    78.04933310990697,
+    84.61363226636351,
+    90.38809905108066,
+    94.22142833710053,
+    99.61169890139111,
+    106.68763975120936,
+    111.30010652344188,
+    115.95801593056389,
+    117.46170740799677,
+    121.26729395046759,
+    138.77983427201514,
+    142.8785154213635,
+    145.34991611606702,
+    155.93414171447267,
+    159.09161139123802,
+    161.98266279587295,
+    169.99530518745047,
+    177.12171021202488,
+    183.75114031564573,
+    185.34640287638524,
+    193.97535369698045,
+    201.52564572492452,
+    204.18803839351557,
+    211.27912685427867,
+    213.18837711939136,
+    219.9565570747552,
+    227.30330570498052,
+    236.13926091293513,
+    247.13556630096653,
+    256.1862242956389,
+    259.8660771261496,
+    265.94837393305136,
+    268.4386637721409,
+    276.2932979245868,
+    284.5456683751944,
+    291.08253514245354,
+    297.87433445470583,
+    303.94348886393135,
+    307.5667927847661,
+    320.77792051338986,
+    326.5394783097982,
+    329.4457572244722,
+    340.72597578156376,
+    343.35726319672364,
+    353.02969818645704,
+    366.92675505577546,
+    374.36599529360615,
+    380.0940050689294,
+    383.5935591879474,
+    393.36454411428787,
+    402.46653017750543,
+    402.6613702745516,
+    405.31442885501474,
+    406.9833274099369,
+    409.9644325210765,
+    412.50161070110676,
+    413.4752861078694,
+    421.2767818595378,
+    424.0020823369078,
+    429.62311229851514,
+    435.5427286517858,
+    442.1413084930108,
+    444.5011148869877,
+    465.5018499240502,
+    469.9902559032569,
+    485.5428014356639,
+    490.61821953796186,
+    493.3006650341664,
+    504.0773654456992,
+    520.6171901693567,
+    524.1881885607992,
+    533.3791422691837,
+    537.4832181851772,
+    551.4998077668114,
+    555.8515297958783,
+    564.6934963040894,
+    570.2064164361153,
+    574.8263582158229,
+    580.1371555779117,
+    583.9653280295828,
+    601.3608131864418,
+    605.0353339381064,
+    613.474206063895,
+    627.628688650751,
+    630.7935179329688,
+    631.6386553421218,
+    633.127248489563,
+    639.3548907221751,
+    658.4746382698088,
+    660.4425036232699,
+    664.1775240322016,
+    672.8217491352265,
+    684.7491028012361,
+    701.5671712533463,
+    704.2316481543892,
+    713.795795457358,
+    721.0478363625098,
+    730.1886014199047,
+    733.6668534824788,
+    741.1934329630178,
+    746.7216842084316,
+    750.2802477252399,
+    764.8183396892516,
+    773.1882969837504,
+    783.4556856802845,
+    789.8844224778137,
+    791.8214766799927,
+    798.9598552846028,
+    800.7291585785272,
+    816.5167367565082,
+    827.5134502115626,
+    833.0714792552952,
+    835.7418284101609,
+    841.5461567290446,
+    866.4180962821398,
+    874.74668243204,
+    876.2923648116994,
+    884.5303609713139,
+    886.1102924896584,
+    898.4168679404014,
+    900.9825865383377,
+    922.2803044131898,
+    931.951979858492,
+    948.9841333264679,
+    952.2206562483284,
+    966.6605962627307,
+    977.4904008071763,
+    980.714385576798,
+    986.7348730919089,
+    990.2927674413626,
+    992.5723145972759,
+    1012.4517531821631,
+    1013.6181709380046,
+    1016.3778673025915,
+    1017.543170465501,
+    1019.9132412568948,
+    1026.4061052340235,
+    1029.0671864529343,
+    1036.6122753845564,
+    1039.3031870021712,
+    1044.1829383904694,
+    1044.9994317916298,
+    1047.7351666841444,
+    1050.6889344432418,
+    1051.5335459791795,
+    1051.9596192251543,
+    1054.1217997961999,
+    1055.6456191613026,
+    1056.4435169121634,
+    1062.4064960122587,
+    1064.520566869895,
+    1067.168195400259,
+    1071.3885049347641,
+    1076.0919134805906,
+    1076.5662127047378,
+    1078.4467925435906,
+    1081.6732880228155,
+    1087.6944881234306,
+    1095.0612017574267,
+    1103.7528844044418,
+    1106.3716513767463,
+    1109.8889525018099,
+    1113.935143772532,
+    1115.533739533611,
+    1118.4817550071652,
+    1125.1348953330787,
+    1136.7129179932042,
+    1139.4466028816898,
+    1154.7107462937142,
+    1162.780557643786,
+    1165.0902296613917,
+    1171.0324489518168,
+    1197.673229122379,
+    1198.6308010301943,
+    1207.6673536646258,
+    1207.817750086165,
+    1208.2967519382737,
+    1209.3829342931908,
+    1211.2600535561749,
+    1212.3593158315805,
+    1215.26431589292,
+    1221.6866316773267,
+    1224.217153561981,
+    1225.20209231943,
+    1230.6975693855418,
+    1233.9539114188767,
+    1239.3337374622536,
+    1243.2791933549943,
+    1250.7222540525006,
+    1259.8866991402147,
+    1261.523803712728,
+    1275.822747697263,
+    1277.806194197703,
+    1286.5551610595126,
+    1296.115909958954,
+    1299.5815959801096,
+    1300.4203816642757,
+    1302.5218369747272,
+    1306.4582382670944,
+    1310.1724632478567,
+    1319.7080626599286,
+    1322.1482356237416,
+    1348.3262698862945,
+    1349.9629843658345,
+    1351.616840897183,
+    1355.1431309651368,
+    1359.9225241884692,
+    1361.7428611561177,
+    1366.9653804983186,
+    1375.201895204903,
+    1381.1187951619597,
+    1386.4069473201057,
+    1391.0741958722454,
+    1393.3086307488636,
+    1394.2429743988644,
+    1398.6007037692345,
+    1406.2065213471733,
+    1409.7498017183038,
+    1414.2881051268123,
+    1422.905533220418,
+    1423.9662049106082,
+    1426.6114269211762,
+    1431.4525999895088,
+    1433.601275708692,
+    1436.6281469175378,
+    1449.5551962546642,
+    1450.4000312407088,
+    1452.993668726046,
+    1459.2661642573396,
+    1468.3963068499856,
+    1475.6963755723636,
+    1478.4531636286072,
+    1488.7316875151,
+    1489.8511177190885,
+    1495.9014303886638,
+    1497.2323691739748,
+    1498.1579655502508,
+    1502.471303536707,
+    1504.2664908687434,
+    1505.0177333345641,
+    1507.0957870958748,
+    1512.620131699988,
+    1513.9796077230878,
+    1517.1418495577204,
+    1518.4297487697788,
+    1522.7848518345113,
+    1524.031409418332,
+    1531.7453687705254,
+    1538.7797093851534,
+    1543.9427700520248,
+    1544.6293965853736,
+    1546.250519183201,
+    1547.0958206215366,
+    1549.863964099199,
+    1562.862019907346,
+    1574.2383508361604,
+    1654.4074972042133,
+    1656.3616223706263,
+    1663.8567214975249,
+    1676.335338928044,
+    1680.7738337912654,
+    1686.2497034537819,
+    1686.4102242628649,
+    1720.5308060481182,
+    1729.8120400866533,
+    1739.9418538861871,
+    1747.2690522270873,
+    1748.9363938479587,
+    1780.5548063756378,
+    3076.5130547566064,
+    3088.8666569850157,
+    3106.235418151486,
+    3107.3178861175843,
+    3111.6497173175117,
+    3113.108656886885,
+    3116.084614808746,
+    3118.1439472684574,
+    3119.5516839935053,
+    3126.1042584548672,
+    3128.591884708094,
+    3129.5718338169613,
+    3130.1141763218343,
+    3136.004999179288,
+    3142.3177245098227,
+    3142.419373202111,
+    3147.6794080815716,
+    3148.0584453631673,
+    3153.90154105744,
+    3156.8292545981208,
+    3159.30855164942,
+    3163.1320546978945,
+    3167.8081515262056,
+    3168.0820699088786,
+    3187.6807587246894,
+    3188.3988362830173,
+    3190.3333932979067,
+    3191.674482480818,
+    3193.8349051835576,
+    3193.895254393845,
+    3195.256417921202,
+    3197.6938093680897,
+    3202.7264388089325,
+    3203.3841203619318,
+    3204.1986460625226,
+    3205.3800995290835,
+    3207.1200789443255,
+    3209.8295570294736,
+    3215.36060691849,
+    3218.1144296850325,
+    3220.4661957971334,
+    3221.316153932675,
+    3223.36155721156,
+    3226.175540833662,
+    3239.205750421587,
+    3244.128064920399,
+    3261.5419640730433,
+    3269.782636846481,
+    3396.861327851253,
+    3458.353574383954,
+    3480.8946350895544
+   ],
+   "program_acc": {
+    "runs": [
+     {
+      "what": "program --acc 0.001 1t",
+      "load_before": "2.06 2.69 3.36",
+      "seconds": 534.0543075439055
+     },
+     {
+      "what": "axtb analytic 1t",
+      "load_before": "1.08 1.40 2.38",
+      "seconds": 157.8743419458624
+     },
+     {
+      "what": "program --acc 0.0001 1t",
+      "load_before": "1.59 1.41 2.22",
+      "seconds": 580.6930331019685
+     },
+     {
+      "what": "program --acc 0.001 8t",
+      "load_before": "1.28 1.30 1.77",
+      "seconds": 94.82027823617682
+     },
+     {
+      "what": "axtb analytic 8t",
+      "load_before": "6.58 3.17 2.40",
+      "seconds": 34.545457172906026
+     },
+     {
+      "what": "program --acc 0.0001 8t",
+      "load_before": "6.38 3.50 2.54",
+      "seconds": 101.97942691901699
+     }
+    ],
+    "time": {
+     "program --acc 0.001 1t": 534.0543075439055,
+     "axtb analytic 1t": 157.8743419458624,
+     "program --acc 0.0001 1t": 580.6930331019685,
+     "program --acc 0.001 8t": 94.82027823617682,
+     "axtb analytic 8t": 34.545457172906026,
+     "program --acc 0.0001 8t": 101.97942691901699
+    },
+    "vs_analytic": {
+     "program --acc 0.001": {
+      "max_dH_projected": 0.0001042466033162881,
+      "max_dfreq": 1.0665600026331248,
+      "mean_dfreq": 0.14197103538906586
+     },
+     "program --acc 0.0001": {
+      "max_dH_projected": 2.3971395775035376e-05,
+      "max_dfreq": 0.2779482991873614,
+      "mean_dfreq": 0.015572053583434529
+     }
+    },
+    "vs_reference": {
+     "axtb analytic": {
+      "max_dH": 8.231045883766441e-08,
+      "max_dfreq": 0.0001488829798068636,
+      "mean_dfreq": 9.175340785536332e-06
+     },
+     "program --acc 0.001": {
+      "max_dfreq": 1.0665835734471614,
+      "mean_dfreq": 0.14197180544365973
+     },
+     "program --acc 0.0001": {
+      "max_dfreq": 0.27779941620755455,
+      "mean_dfreq": 0.01557080019724642
+     }
+    },
+    "reference": {
+     "what": "Richardson numerical 0.002/0.001 bohr, SCF accuracy 1e-6, program conventions",
+     "spread": 2.514077332538278e-06,
+     "load_before": "7.94 4.87 3.13"
+    }
+   }
+  }
+ },
+ "program_accuracy": {
+  "Ni(CO)4": {
+   "load_before": "5.72 5.42 3.34",
+   "runs": {
+    "--acc 1": {
+     "seconds": 0.16237633605487645,
+     "threads": 8,
+     "max_dfreq": 28.956127445060986,
+     "mean_dfreq": 10.736197466544038
+    },
+    "--acc 0.01": {
+     "seconds": 0.16555380797944963,
+     "threads": 8,
+     "max_dfreq": 1.5320429517853995,
+     "mean_dfreq": 0.316807388248837
+    },
+    "--acc 0.0001": {
+     "seconds": 0.19731814390979707,
+     "threads": 8,
+     "max_dfreq": 0.05454128975134154,
+     "mean_dfreq": 0.019816813260325444
+    }
+   },
+   "fd_of_program_gradients": {
+    "step": 0.005,
+    "max_dH_vs_axtb_analytic": 7.213237336434197e-06,
+    "max_dfreq_vs_axtb_analytic": 0.0489325098051836
+   }
+  },
+  "caffeine": {
+   "load_before": "5.34 5.35 3.32",
+   "runs": {
+    "--acc 1": {
+     "seconds": 1.0813014931045473,
+     "threads": 8,
+     "max_dfreq": 103.98167578618138,
+     "mean_dfreq": 30.413941479356193
+    },
+    "--acc 0.01": {
+     "seconds": 1.1500813411548734,
+     "threads": 8,
+     "max_dfreq": 4.342504520814941,
+     "mean_dfreq": 0.29102583972266266
+    },
+    "--acc 0.0001": {
+     "seconds": 1.2308554179035127,
+     "threads": 8,
+     "max_dfreq": 0.3544026028780891,
+     "mean_dfreq": 0.02136290077284803
+    }
+   },
+   "fd_of_program_gradients": {
+    "step": 0.005,
+    "max_dH_vs_axtb_analytic": 2.6771619585086448e-05,
+    "max_dfreq_vs_axtb_analytic": 0.32236600075623656
+   }
+  },
+  "taxol": {
+   "load_before": "5.65 5.36 3.42",
+   "runs": {
+    "--acc 1": {
+     "seconds": 79.95693050092086,
+     "threads": 8,
+     "max_dfreq": 148.52959250312554,
+     "mean_dfreq": 78.14320436032109
+    },
+    "--acc 0.01": {
+     "seconds": 90.59015793097205,
+     "threads": 8,
+     "max_dfreq": 9.922779328048136,
+     "mean_dfreq": 1.3813719887762073
+    },
+    "--acc 0.0001": {
+     "seconds": 102.732958560111,
+     "threads": 8,
+     "max_dfreq": 0.2779478988862989,
+     "mean_dfreq": 0.01557205335088714
+    }
+   }
+  }
+ },
+ "memory": {
+  "caffeine 1t": {
+   "natoms": 24,
+   "threads": 1,
+   "load_before": "8.22 5.34 2.97",
+   "seconds": 1.7478467321489006,
+   "phases": {
+    "reference scf": 0.062402869,
+    "tangents": 0.024529687,
+    "perturbations": 0.2916145475552194,
+    "response": 0.4692433594447806,
+    "explicit integrals": 0.830799498,
+    "total": 1.67874075
+   },
+   "peak_rss_mb": 14.0,
+   "peak_rss_mb_single_point": 9.7
+  },
+  "caffeine 8t": {
+   "natoms": 24,
+   "threads": 8,
+   "load_before": "8.22 5.34 2.97",
+   "seconds": 0.48358773486688733,
+   "phases": {
+    "reference scf": 0.06090769,
+    "tangents": 0.024562327,
+    "perturbations": 0.044035180659825784,
+    "response": 0.08055448534017422,
+    "explicit integrals": 0.205796387,
+    "total": 0.416077027
+   },
+   "peak_rss_mb": 19.2,
+   "peak_rss_mb_single_point": 9.8
+  },
+  "taxol 1t": {
+   "natoms": 113,
+   "threads": 1,
+   "load_before": "8.22 5.34 2.97",
+   "seconds": 157.19763852492906,
+   "phases": {
+    "reference scf": 1.518968704,
+    "tangents": 0.987562172,
+    "perturbations": 29.449715351848667,
+    "response": 103.98476268115135,
+    "explicit integrals": 19.987611698,
+    "total": 155.931328047
+   },
+   "peak_rss_mb": 139.0,
+   "peak_rss_mb_single_point": 48.7
+  },
+  "taxol 8t": {
+   "natoms": 113,
+   "threads": 8,
+   "load_before": "4.82 5.01 3.22",
+   "seconds": 48.0260110180825,
+   "phases": {
+    "reference scf": 2.981886517,
+    "tangents": 1.71817405,
+    "perturbations": 6.4068702417386945,
+    "response": 24.854577985261304,
+    "explicit integrals": 8.718529844,
+    "total": 44.683205965
+   },
+   "peak_rss_mb": 235.3,
+   "peak_rss_mb_single_point": 49.4
+  },
+  "C50H102 8t": {
+   "natoms": 152,
+   "threads": 8,
+   "load_before": "10.73 6.54 3.82",
+   "seconds": 33.64602784998715,
+   "phases": {
+    "reference scf": 1.073079517,
+    "tangents": 1.173550344,
+    "perturbations": 7.633124348104785,
+    "response": 18.621017856895218,
+    "explicit integrals": 3.742307866,
+    "total": 32.24701923
+   },
+   "peak_rss_mb": 268.7,
+   "peak_rss_mb_single_point": 52.1
+  },
+  "(H2O)100 8t": {
+   "natoms": 300,
+   "threads": 8,
+   "load_before": "10.65 7.01 4.08",
+   "seconds": 423.4139403461013,
+   "phases": {
+    "reference scf": 10.812497982,
+    "tangents": 9.023355506,
+    "perturbations": 84.97384417684374,
+    "response": 278.74529075615624,
+    "explicit integrals": 33.707605305,
+    "total": 417.281533036
+   },
+   "peak_rss_mb": 992.5,
+   "peak_rss_mb_single_point": 176.2
+  },
+  "(H2O)200 8t": {
+   "natoms": 600,
+   "threads": 8,
+   "machine": "cluster node (9985WX), 8-CPU pod",
+   "axtb_commit": "59cc1a4",
+   "load_before": "30.61 20.67 9.50",
+   "seconds": 2178.3224556129426,
+   "phases": {
+    "reference scf": 29.27401894,
+    "tangents": 34.262328731,
+    "perturbations": 386.74472857388486,
+    "response": 1582.7488625201152,
+    "explicit integrals": 115.273982938,
+    "total": 2148.342737476
+   },
+   "peak_rss_mb": 4569.0,
+   "peak_rss_mb_single_point": 663.9
+  }
+ },
+ "speed_per_change_cluster": {
+  "machine": "cluster node, AMD Threadripper PRO 9985WX, one 96-CPU pod (other jobs on the node)",
+  "molecule": "taxol",
+  "threads": 1,
+  "method": "3 interleaved rounds, configurations rotated per round, one binary with measurement switches for E/X/P",
+  "configurations": {
+   "memory": "O(N^2) memory build (59cc1a4)",
+   "E": "+ response kernel efficiency and screened pairs",
+   "E+X": "+ closed-form exchange-kernel Hessian (kept, 03fcd95)",
+   "E+X+P": "+ shell-charge Woodbury preconditioner (not kept)"
+  },
+  "runs": [
+   {
+    "round": 0,
+    "config": "memory",
+    "load_before": "16.77 9.66 4.19",
+    "wall": 128.22522814804688,
+    "user": 117.339426,
+    "maxrss_mb": 131.44921875,
+    "phases": {
+     "reference scf": 1.2677142479999999,
+     "tangents": 0.623048009,
+     "perturbations": 23.27824386695759,
+     "response": 91.21672837404242,
+     "explicit integrals": 11.146161287,
+     "total": 127.533598242
+    }
+   },
+   {
+    "round": 0,
+    "config": "E",
+    "load_before": "13.60 11.48 5.58",
+    "wall": 77.06774905975908,
+    "user": 71.648608,
+    "maxrss_mb": 134.1328125,
+    "phases": {
+     "reference scf": 0.968784299,
+     "tangents": 0.432280235,
+     "perturbations": 18.490703298903618,
+     "response": 44.60581938809638,
+     "explicit integrals": 11.93580816,
+     "total": 76.435920313
+    }
+   },
+   {
+    "round": 0,
+    "config": "E+X",
+    "load_before": "4.43 9.05 5.21",
+    "wall": 73.40354024758562,
+    "user": 67.941034,
+    "maxrss_mb": 136.58203125,
+    "phases": {
+     "reference scf": 1.015438491,
+     "tangents": 0.561504153,
+     "perturbations": 15.635706975125279,
+     "response": 44.518201441874716,
+     "explicit integrals": 11.038561857,
+     "total": 72.771329537
+    }
+   },
+   {
+    "round": 0,
+    "config": "E+X+P",
+    "load_before": "2.13 7.38 4.91",
+    "wall": 68.23329374799505,
+    "user": 64.294411,
+    "maxrss_mb": 134.78125,
+    "phases": {
+     "reference scf": 0.896047552,
+     "tangents": 0.633092204,
+     "perturbations": 15.826003201335505,
+     "response": 36.0805449926645,
+     "explicit integrals": 13.990108353,
+     "total": 67.428432804
+    }
+   },
+   {
+    "round": 1,
+    "config": "E",
+    "load_before": "27.01 12.62 6.83",
+    "wall": 96.21617120411247,
+    "user": 86.892915,
+    "maxrss_mb": 118.9765625,
+    "phases": {
+     "reference scf": 1.063313778,
+     "tangents": 0.574641075,
+     "perturbations": 22.34617588988361,
+     "response": 57.745986572116394,
+     "explicit integrals": 13.666365016,
+     "total": 95.399074753
+    }
+   },
+   {
+    "round": 1,
+    "config": "E+X",
+    "load_before": "32.01 18.19 9.38",
+    "wall": 92.84554369514808,
+    "user": 83.678802,
+    "maxrss_mb": 117.640625,
+    "phases": {
+     "reference scf": 1.033630365,
+     "tangents": 0.541966258,
+     "perturbations": 18.952282022922265,
+     "response": 57.49711448007774,
+     "explicit integrals": 13.983466787,
+     "total": 92.011369635
+    }
+   },
+   {
+    "round": 1,
+    "config": "E+X+P",
+    "load_before": "33.99 22.71 11.85",
+    "wall": 81.1880750679411,
+    "user": 74.600404,
+    "maxrss_mb": 115.87890625,
+    "phases": {
+     "reference scf": 0.99254052,
+     "tangents": 0.808572308,
+     "perturbations": 19.051060211193093,
+     "response": 45.67249264980691,
+     "explicit integrals": 13.90172145,
+     "total": 80.428919201
+    }
+   },
+   {
+    "round": 1,
+    "config": "memory",
+    "load_before": "32.34 24.84 13.50",
+    "wall": 119.07978146197274,
+    "user": 108.325388,
+    "maxrss_mb": 127.109375,
+    "phases": {
+     "reference scf": 1.072368378,
+     "tangents": 0.512047963,
+     "perturbations": 23.034526499236385,
+     "response": 80.3831965877636,
+     "explicit integrals": 13.290708928,
+     "total": 118.294827187
+    }
+   },
+   {
+    "round": 2,
+    "config": "E+X",
+    "load_before": "32.55 27.32 15.79",
+    "wall": 92.99107158090919,
+    "user": 83.76028,
+    "maxrss_mb": 122.41015625,
+    "phases": {
+     "reference scf": 0.956386879,
+     "tangents": 0.579281784,
+     "perturbations": 19.078245853470786,
+     "response": 57.89242515952922,
+     "explicit integrals": 13.743218969,
+     "total": 92.252174925
+    }
+   },
+   {
+    "round": 2,
+    "config": "E+X+P",
+    "load_before": "34.46 29.43 17.67",
+    "wall": 81.06482996791601,
+    "user": 74.454374,
+    "maxrss_mb": 127.7890625,
+    "phases": {
+     "reference scf": 0.938229055,
+     "tangents": 0.732749465,
+     "perturbations": 19.07663118903265,
+     "response": 45.442067650967346,
+     "explicit integrals": 14.108614963,
+     "total": 80.301034221
+    }
+   },
+   {
+    "round": 2,
+    "config": "memory",
+    "load_before": "35.02 30.83 19.14",
+    "wall": 122.72451387671754,
+    "user": 111.470922,
+    "maxrss_mb": 129.29296875,
+    "phases": {
+     "reference scf": 1.107222492,
+     "tangents": 0.579773136,
+     "perturbations": 23.367715667346836,
+     "response": 82.61213393565318,
+     "explicit integrals": 14.259130787,
+     "total": 121.928114419
+    }
+   },
+   {
+    "round": 2,
+    "config": "E",
+    "load_before": "35.79 32.52 21.18",
+    "wall": 95.30441897315904,
+    "user": 86.153363,
+    "maxrss_mb": 117.08984375,
+    "phases": {
+     "reference scf": 0.928600653,
+     "tangents": 0.503547455,
+     "perturbations": 22.124616697039446,
+     "response": 57.37305992696055,
+     "explicit integrals": 13.56819762,
+     "total": 94.500676817
+    }
+   }
+  ],
+  "best_wall": {
+   "memory": 119.07978146197274,
+   "E": 77.06774905975908,
+   "E+X": 73.40354024758562,
+   "E+X+P": 68.23329374799505
+  }
+ },
+ "memory_before_fd71faa": {
+  "caffeine 1t": {
+   "peak_rss_mb": 28.9
+  },
+  "caffeine 8t": {
+   "peak_rss_mb": 34.7
+  },
+  "taxol 1t": {
+   "peak_rss_mb": 1358.3
+  },
+  "taxol 8t": {
+   "peak_rss_mb": 1441.2
+  },
+  "C50H102 8t": {
+   "peak_rss_mb": 2693.6
+  },
+  "(H2O)100 8t": {
+   "peak_rss_mb": null,
+   "note": "killed by the OOM killer at a 12 GB cgroup limit after 7.6 min"
+  },
+  "(H2O)200 8t": {
+   "peak_rss_mb": null,
+   "note": "not run; O(N^3) storage estimated at ~100 GB"
+  }
+ },
+ "interleaved_laptop_taxol_1t": {
+  "machine": "laptop i9-11900H",
+  "builds": {
+   "fd71faa": "before",
+   "memory": "59cc1a4",
+   "final": "03fcd95"
+  },
+  "method": "3 interleaved rounds, taxol analytic Hessian, 1 thread, default conventions",
+  "runs": [
+   {
+    "round": 1,
+    "build": "fd71faa",
+    "wall": 190.443,
+    "user": 188.23,
+    "load_before": "8.27 10.91 7.38",
+    "peak_rss_mb": 1358.6,
+    "phases": {
+     "reference scf": 1.575,
+     "tangents": 0.868,
+     "perturbations": 41.069,
+     "response": 128.061,
+     "explicit integrals": 17.738,
+     "total": 189.341
+    }
+   },
+   {
+    "round": 1,
+    "build": "memory",
+    "wall": 211.81,
+    "user": 192.33,
+    "load_before": "3.59 7.81 6.84",
+    "peak_rss_mb": 145.2,
+    "phases": {
+     "reference scf": 1.492,
+     "tangents": 0.918,
+     "perturbations": 35.68,
+     "response": 143.009,
+     "explicit integrals": 29.234,
+     "total": 210.334
+    }
+   },
+   {
+    "round": 1,
+    "build": "final",
+    "wall": 161.593,
+    "user": 143.62,
+    "load_before": "11.11 8.18 7.09",
+    "peak_rss_mb": 138.3,
+    "phases": {
+     "reference scf": 2.273,
+     "tangents": 1.355,
+     "perturbations": 30.245,
+     "response": 107.359,
+     "explicit integrals": 18.867,
+     "total": 160.105
+    }
+   },
+   {
+    "round": 2,
+    "build": "fd71faa",
+    "wall": 213.196,
+    "user": 203.1,
+    "load_before": "6.40 7.72 7.12",
+    "peak_rss_mb": 1358.8,
+    "phases": {
+     "reference scf": 1.591,
+     "tangents": 0.799,
+     "perturbations": 37.142,
+     "response": 153.289,
+     "explicit integrals": 19.187,
+     "total": 212.042
+    }
+   },
+   {
+    "round": 2,
+    "build": "memory",
+    "wall": 172.104,
+    "user": 158.81,
+    "load_before": "10.62 9.90 8.11",
+    "peak_rss_mb": 144.9,
+    "phases": {
+     "reference scf": 1.56,
+     "tangents": 0.857,
+     "perturbations": 30.917,
+     "response": 121.512,
+     "explicit integrals": 16.275,
+     "total": 171.124
+    }
+   },
+   {
+    "round": 2,
+    "build": "final",
+    "wall": 136.58,
+    "user": 122.36,
+    "load_before": "2.55 6.50 7.09",
+    "peak_rss_mb": 138.8,
+    "phases": {
+     "reference scf": 1.288,
+     "tangents": 0.754,
+     "perturbations": 24.797,
+     "response": 91.137,
+     "explicit integrals": 17.589,
+     "total": 135.568
+    }
+   },
+   {
+    "round": 3,
+    "build": "fd71faa",
+    "wall": 167.971,
+    "user": 165.99,
+    "load_before": "2.62 5.01 6.44",
+    "peak_rss_mb": 1358.8,
+    "phases": {
+     "reference scf": 1.378,
+     "tangents": 0.766,
+     "perturbations": 34.118,
+     "response": 112.899,
+     "explicit integrals": 17.78,
+     "total": 166.978
+    }
+   },
+   {
+    "round": 3,
+    "build": "memory",
+    "wall": 188.471,
+    "user": 173.82,
+    "load_before": "3.08 4.17 5.88",
+    "peak_rss_mb": 145.4,
+    "phases": {
+     "reference scf": 1.324,
+     "tangents": 0.792,
+     "perturbations": 34.381,
+     "response": 133.977,
+     "explicit integrals": 16.935,
+     "total": 187.411
+    }
+   },
+   {
+    "round": 3,
+    "build": "final",
+    "wall": 139.806,
+    "user": 125.8,
+    "load_before": "3.71 3.74 5.37",
+    "peak_rss_mb": 139.1,
+    "phases": {
+     "reference scf": 1.436,
+     "tangents": 0.844,
+     "perturbations": 25.985,
+     "response": 92.43,
+     "explicit integrals": 18.053,
+     "total": 138.751
+    }
+   }
+  ],
+  "best_wall": {
+   "fd71faa": 167.971,
+   "memory": 172.104,
+   "final": 136.58
+  }
+ }
+}

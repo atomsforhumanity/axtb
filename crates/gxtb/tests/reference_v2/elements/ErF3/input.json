@@ -1,0 +1,6 @@
+{
+ "charge": 0,
+ "uhf": 3,
+ "program": "g-xTB 2.0.1 (xtb 6.7.1 + tblite, grimme-lab/g-xtb)",
+ "command": "xtb mol.xyz --gxtb --norestart --chrg Q [--uhf U] --grad [--acc 0.0001]; OMP_NUM_THREADS=1, HOME=<workdir>"
+}

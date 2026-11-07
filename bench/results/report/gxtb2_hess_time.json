@@ -1,0 +1,254 @@
+[
+ {
+  "id": "caffeine|1|program --hess 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "program --hess, default --acc 1",
+  "threads": 1,
+  "seconds": 6.619366182945669
+ },
+ {
+  "id": "caffeine|1|axtb analytic 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 1.8130252521950752
+ },
+ {
+  "id": "caffeine|1|axtb response 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb response",
+  "threads": 1,
+  "seconds": 5.733311159070581
+ },
+ {
+  "id": "caffeine|1|axtb numerical 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb numerical",
+  "threads": 1,
+  "seconds": 6.8482986961025745
+ },
+ {
+  "id": "caffeine|1|program --hess 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "program --hess, default --acc 1",
+  "threads": 8,
+  "seconds": 1.04668013099581
+ },
+ {
+  "id": "caffeine|1|axtb analytic 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.43471664818935096
+ },
+ {
+  "id": "caffeine|1|axtb response 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb response",
+  "threads": 8,
+  "seconds": 0.9427726939320564
+ },
+ {
+  "id": "caffeine|1|axtb numerical 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "default",
+  "method": "axtb numerical",
+  "threads": 8,
+  "seconds": 1.143815014977008
+ },
+ {
+  "id": "caffeine|2|program --acc 0.001 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 1,
+  "seconds": 6.907497113803402
+ },
+ {
+  "id": "caffeine|2|axtb analytic 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 1.6797123260330409
+ },
+ {
+  "id": "caffeine|2|program --acc 0.0001 1t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 1,
+  "seconds": 7.002281547058374
+ },
+ {
+  "id": "caffeine|2|program --acc 0.001 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 8,
+  "seconds": 1.071953243110329
+ },
+ {
+  "id": "caffeine|2|axtb analytic 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.41848881100304425
+ },
+ {
+  "id": "caffeine|2|program --acc 0.0001 8t",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 8,
+  "seconds": 1.1329143790062517
+ },
+ {
+  "id": "taxol|1|program --hess 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "program --hess, default --acc 1",
+  "threads": 1,
+  "seconds": 449.91407636902295
+ },
+ {
+  "id": "taxol|1|axtb analytic 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 151.9754807469435
+ },
+ {
+  "id": "taxol|1|axtb response 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb response",
+  "threads": 1,
+  "seconds": 500.0715050229337
+ },
+ {
+  "id": "taxol|1|axtb numerical 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb numerical",
+  "threads": 1,
+  "seconds": 730.4798564438242
+ },
+ {
+  "id": "taxol|1|program --hess 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "program --hess, default --acc 1",
+  "threads": 8,
+  "seconds": 80.36045268410817
+ },
+ {
+  "id": "taxol|1|axtb analytic 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 35.81802603392862
+ },
+ {
+  "id": "taxol|1|axtb response 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb response",
+  "threads": 8,
+  "seconds": 88.79251446900889
+ },
+ {
+  "id": "taxol|1|axtb numerical 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "default",
+  "method": "axtb numerical",
+  "threads": 8,
+  "seconds": 127.45324661303312
+ },
+ {
+  "id": "taxol|2|program --acc 0.001 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 1,
+  "seconds": 534.0543075439055
+ },
+ {
+  "id": "taxol|2|axtb analytic 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 157.8743419458624
+ },
+ {
+  "id": "taxol|2|program --acc 0.0001 1t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 1,
+  "seconds": 580.6930331019685
+ },
+ {
+  "id": "taxol|2|program --acc 0.001 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 8,
+  "seconds": 94.82027823617682
+ },
+ {
+  "id": "taxol|2|axtb analytic 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 34.545457172906026
+ },
+ {
+  "id": "taxol|2|program --acc 0.0001 8t",
+  "molecule": "taxol",
+  "atoms": 113,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 8,
+  "seconds": 101.97942691901699
+ }
+]

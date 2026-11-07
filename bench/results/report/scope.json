@@ -1,0 +1,82 @@
+[
+ {
+  "kind": "Tested",
+  "item": "GFN2-xTB energies, analytic gradients, atomic charges and dipoles against xtb 6.8.0, xtb 6.7.1 (the g-xTB 2.0.1 build) and tblite 0.8.0"
+ },
+ {
+  "kind": "Tested",
+  "item": "Elements H\u2013Rn, charges \u22123 to +3, spin multiplicities up to 11, open-shell transition-metal complexes"
+ },
+ {
+  "kind": "Tested",
+  "item": "ALPB (25 solvents) and GBSA (14 solvents) in all three reference states; electronic temperatures 0\u20135000 K; SCF accuracies 1\u20131e-6"
+ },
+ {
+  "kind": "Tested",
+  "item": "Semi-numerical Hessians and frequencies against xtb --hess; analytic Hessians against tightly converged references (8 benchmark systems, and 45 reference-matrix cases: closed and open shell, charges, transition metals, ALPB and GBSA in several solvents, high electronic temperature, all three conventions) and against xtb --hess; thread-count invariance; invalid inputs"
+ },
+ {
+  "kind": "Tested",
+  "item": "Timings of GFN2-xTB and g-xTB energies, gradients and Hessians against xtb 6.8.0, tblite 0.8.0 and both g-xTB programs on a 64-core node (3\u2013600 atoms, 1 and 8 threads, shared with another user's jobs); earlier GFN2-xTB thread, batch and start-up runs on a laptop and the node"
+ },
+ {
+  "kind": "Tested",
+  "item": "A GPU eigensolver (FP64, mixed and adaptive precision) on two GPUs without fast FP64, up to 6000 basis functions; it is kept on a separate branch, not in the main code"
+ },
+ {
+  "kind": "Not tested",
+  "item": "How the molecules were chosen: hand-picked test structures, generated water clusters and alkanes, and hand-built metal complexes. They are not optimized geometries and not a sample of any production workload."
+ },
+ {
+  "kind": "Tested",
+  "item": "g-xTB v1.1 and 2.0.1 against their programs for every element H\u2013Lr (169 generated molecules each: hydrides, halides, oxides, aqua and ammine ions, radicals, f-shell high-spin), plus the reference sets"
+ },
+ {
+  "kind": "Tested",
+  "item": "Energy differences (conformers, binding, SN2 and HCN \u2192 HNC barriers) under program and default g-xTB conventions, on structures optimized with each version"
+ },
+ {
+  "kind": "Tested",
+  "item": "SCF restarts (each program's restart files reproduced), bond orders, HOMO\u2013LUMO gaps and molecular quadrupoles against xtb 6.7.1, 6.8.0 and both g-xTB programs; restarts along random walks, geomeTRIC and Sella runs"
+ },
+ {
+  "kind": "Tested",
+  "item": "g-xTB 2.0.1 energies and analytic gradients against the 2.0.1 program on its reference set across H\u2013Lr, including f-shell molecules"
+ },
+ {
+  "kind": "Tested",
+  "item": "g-xTB 2.0.1 analytic Hessians against tight references and the 2.0.1 program (9 systems including UF6, GdCl3 and ferrocene); memory and time up to a 600-atom water cluster"
+ },
+ {
+  "kind": "Tested",
+  "item": "g-xTB 2.0.1 and v1.1 at 300, 1000, 3000 and 5000 K against both programs (59 and 16 molecules), energies, gradients and SCF iterations"
+ },
+ {
+  "kind": "Tested",
+  "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs mepd makes and mepd itself (9 structures, including two that need its retry ladder)"
+ },
+ {
+  "kind": "Tested",
+  "item": "Vibrational analysis and quasi-RRHO thermochemistry against xtb 6.7.1 and the g-xTB 2.0.1 program (7 molecules, linear and symmetric tops, a transition state)"
+ },
+ {
+  "kind": "Tested",
+  "item": "Molden orbital files against the files of xtb, the g-xTB 2.0.1 program and g-xtb 1.1.0 (23 cases, s to f functions, open shells)"
+ },
+ {
+  "kind": "Tested",
+  "item": "GFN-FF topology, charges, energies and gradients against xtb 6.7.1 --gfnff on 269 structures (H\u2013Rn, charges \u22123 to +3, metal complexes, hydrogen- and halogen-bonded dimers, up to 640 atoms); Hessians on 8 structures; time and memory up to 9900 atoms"
+ },
+ {
+  "kind": "Not tested",
+  "item": "The solvation composite in solvents other than water, with GBSA or at other reference states; GFN-FF with implicit solvent or point charges (QM/MM electrostatic embedding); GFN1-xTB, periodic systems, CPCM-X and COSMO solvation, point charges"
+ },
+ {
+  "kind": "Not tested",
+  "item": "Geometry optimizations and molecular dynamics (axtb provides energies, gradients and Hessians; an outside optimizer drives them)"
+ },
+ {
+  "kind": "Not tested",
+  "item": "GFN2-xTB and g-xTB above 999 atoms (GFN-FF was run up to 9900); CPUs other than these two; macOS, Windows and ARM"
+ }
+]

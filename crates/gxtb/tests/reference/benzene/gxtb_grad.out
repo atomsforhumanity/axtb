@@ -1,0 +1,177 @@
+ coord file:mol.xyz
+ numgrad symmetry threshold set to   0.000000000000000E+000
+ ================================================================
+ preliminary g-xTB(EEQ BC) version: Tue Aug 12 10:30:12 CEST 2025
+ approximates wB97M-V/def2-TZVPPD
+ ================================================================
+ reading g-xTB parameter file ./.gxtb
+ basis read.
+ reading ... mol.xyz
+ reading EEQ BC parameter file ./.eeq
+ 
+                      -------------------------------
+                          E E Q (BC)  c h a r g e s
+                        Sun Dec 15 12:18:58 CET 2024
+                      -------------------------------
+ 
+dipole moment  X         Y          Z
+       -0.000340        0.000109        0.000039  total     (au/Debye)      :     0.0004     0.0009
+ 
+           CN       q_CN    CN(basis)   q
+    1 C    1.4752  -0.0370   1.6970  -0.0420
+    2 C    1.4753  -0.0370   1.6970  -0.0420
+    3 C    1.4753  -0.0370   1.6971  -0.0420
+    4 C    1.4752  -0.0370   1.6969  -0.0420
+    5 C    1.4753  -0.0370   1.6971  -0.0420
+    6 C    1.4753  -0.0370   1.6971  -0.0420
+    7 H    0.4207   0.0370   0.4057   0.0420
+    8 H    0.4205   0.0370   0.4055   0.0419
+    9 H    0.4208   0.0370   0.4060   0.0420
+   10 H    0.4208   0.0370   0.4059   0.0420
+   11 H    0.4206   0.0370   0.4057   0.0419
+   12 H    0.4207   0.0370   0.4059   0.0420
+ 
+                      -------------------------------
+                           g - x T B   e n e r g y
+                      -------------------------------
+  q-vSZP AO setup (q+aq^2+bCN^0.5+cqCN) :
+  at        q          CN       q change    CN change  qCN change    total 
+   6    -0.04197     1.69698    -0.04194     1.17523    -0.00329     1.12999
+   6    -0.04195     1.69700    -0.04192     1.17523    -0.00329     1.13002
+   6    -0.04198     1.69714    -0.04195     1.17528    -0.00329     1.13004
+   6    -0.04201     1.69694    -0.04198     1.17522    -0.00330     1.12994
+   6    -0.04196     1.69706    -0.04193     1.17526    -0.00329     1.13003
+   6    -0.04196     1.69712    -0.04193     1.17528    -0.00329     1.13005
+   1     0.04196     0.40572     0.04156     0.26994    -0.00252     0.30898
+   1     0.04188     0.40552     0.04148     0.26988    -0.00252     0.30884
+   1     0.04205     0.40598     0.04165     0.27003    -0.00253     0.30914
+   1     0.04201     0.40588     0.04161     0.27000    -0.00253     0.30908
+   1     0.04194     0.40569     0.04154     0.26993    -0.00252     0.30895
+   1     0.04200     0.40586     0.04160     0.26999    -0.00253     0.30907
+ ncao             30
+ nsao             30
+ npr             192
+ basis setup done.
+ charge            0
+ nel              30
+ nalpha           15
+ nbeta            15
+ nopen             0
+ Tel(K)        0.0
+ acpsao          192
+ UKS ?   F
+wall time for setup, EEQ and integrals    0.00 s
+ 
+ SCF iter         E             dE                dP               gap(eV)
+   1     -232.22651889     -232.22651889        0.15260395        0.00000000   1    F
+   2     -232.22863398       -0.00211508        0.00236781        0.67227158   1    F
+   3     -232.22890452       -0.00027054        0.00048198        1.67259795   2    F
+   4     -232.22942022       -0.00051570        0.00189650        4.24606056   3    F
+   5     -232.22942700       -0.00000678        0.00017231       10.68340533   4    F
+   6     -232.22942742       -0.00000041        0.00003180       10.68405070   5    F
+   7     -232.22942758       -0.00000017        0.00000664       10.68391374   6    F
+   8     -232.22942759       -0.00000001        0.00000061       10.68397237   7    F
+   9     -232.22942759       -0.00000000        0.00000003       10.68397225   7    F
+           9  scf iterations
+
+          eigenvalues
+ #    :           5          6          7          8          9         10         11         12
+ occ. :        2.000      2.000      2.000      2.000      2.000      2.000      2.000      2.000
+ eps  :      -15.8613   -13.7829   -12.5490   -12.1118   -11.5762   -11.5128   -11.5120    -9.9903
+ #    :          13         14         15         16         17
+ occ. :        2.000      2.000      2.000      0.000      0.000
+ eps  :       -9.9885    -9.1474    -9.1465     1.5375     1.5395
+ 
+ restart written
+        ord   CN    Z    Nel          s      p      d      f
+##     1 C   3.02  4.0  4.1359       1.134  3.002  0.000  0.000     a+b dens
+##     2 C   3.02  4.0  4.1358       1.134  3.002  0.000  0.000     a+b dens
+##     3 C   3.02  4.0  4.1359       1.134  3.002  0.000  0.000     a+b dens
+##     4 C   3.02  4.0  4.1359       1.134  3.002  0.000  0.000     a+b dens
+##     5 C   3.02  4.0  4.1359       1.134  3.002  0.000  0.000     a+b dens
+##     6 C   3.02  4.0  4.1359       1.134  3.002  0.000  0.000     a+b dens
+##     7 H   0.99  1.0  0.8641       0.864  0.000  0.000  0.000     a+b dens
+##     8 H   0.99  1.0  0.8642       0.864  0.000  0.000  0.000     a+b dens
+##     9 H   0.99  1.0  0.8641       0.864  0.000  0.000  0.000     a+b dens
+##    10 H   0.99  1.0  0.8641       0.864  0.000  0.000  0.000     a+b dens
+##    11 H   0.99  1.0  0.8641       0.864  0.000  0.000  0.000     a+b dens
+##    12 H   0.99  1.0  0.8641       0.864  0.000  0.000  0.000     a+b dens
+ largest Wiberg (=(PS)*(SP)) bond orders for each atom
+           total WBO             WBO to atom > 0.05 ...
+     1  C   3.969    C    2 1.438    C    6 1.438    H    7 0.946    C    4 0.118
+     2  C   3.969    C    3 1.438    C    1 1.438    H    8 0.946    C    5 0.118
+     3  C   3.969    C    2 1.438    C    4 1.438    H    9 0.946    C    6 0.118
+     4  C   3.969    C    5 1.438    C    3 1.438    H   10 0.946    C    1 0.118
+     5  C   3.969    C    4 1.438    C    6 1.438    H   11 0.946    C    2 0.118
+     6  C   3.969    C    5 1.438    C    1 1.438    H   12 0.946    C    3 0.118
+     7  H   0.982    C    1 0.946
+     8  H   0.982    C    2 0.946
+     9  H   0.982    C    3 0.946
+    10  H   0.982    C    4 0.946
+    11  H   0.982    C    5 0.946
+    12  H   0.982    C    6 0.946
+dipole moment  X         Y          Z
+       -0.000067        0.000019        0.000132  total     (au/Debye)      :     0.0001     0.0004
+gap (eV)                :       10.68397220
+Janaks theorem for IP   :        9.14651843
+Janaks theorem for EA   :       -1.53745377
+-----------------        
+ES1 (charge SIE)        :       -0.03143355
+ES2+3                   :        0.02995434
+ES multipole            :       -0.01095878
+ES total                :       -0.01243799
+Ex (Mulliken)           :       -3.03250320
+Espinpol                :        0.00000000
+-----------------        
+electronic              :      -25.04722039
+-----------------        
+atomic core increments  :     -209.62693616
+dispersion              :       -0.01592452
+nuclear repulsion       :        2.46062708
+-----------------        
+total                         -232.22942759
+-----------------        
+ 
+Molecule has no symmetry elements
+ PG for symtrans:c1
+ size of group larger than parameter ndi14 = 120
+  error in nuclear exchange group determination
+                      -------------------------------
+                         g - x T B   g r a d i e n t
+                      -------------------------------
+ atom            2  dir           1  degen. by symmetry            1
+ atom            2  dir           2  degen. by symmetry            1
+ atom            2  dir           3  degen. by symmetry            1
+ atom            3  dir           1  degen. by symmetry            1
+ atom            3  dir           2  degen. by symmetry            1
+ atom            3  dir           3  degen. by symmetry            1
+ atom            4  dir           1  degen. by symmetry            1
+ atom            4  dir           2  degen. by symmetry            1
+ atom            4  dir           3  degen. by symmetry            1
+ atom            5  dir           1  degen. by symmetry            1
+ atom            5  dir           2  degen. by symmetry            1
+ atom            5  dir           3  degen. by symmetry            1
+ atom            6  dir           1  degen. by symmetry            1
+ atom            6  dir           2  degen. by symmetry            1
+ atom            6  dir           3  degen. by symmetry            1
+ atom            7  dir           1  degen. by symmetry            1
+ atom            7  dir           2  degen. by symmetry            1
+ atom            7  dir           3  degen. by symmetry            1
+ atom            8  dir           1  degen. by symmetry            1
+ atom            8  dir           2  degen. by symmetry            1
+ atom            8  dir           3  degen. by symmetry            1
+ atom            9  dir           1  degen. by symmetry            1
+ atom            9  dir           2  degen. by symmetry            1
+ atom            9  dir           3  degen. by symmetry            1
+ atom           10  dir           1  degen. by symmetry            1
+ atom           10  dir           2  degen. by symmetry            1
+ atom           10  dir           3  degen. by symmetry            1
+ atom           11  dir           1  degen. by symmetry            1
+ atom           11  dir           2  degen. by symmetry            1
+ atom           11  dir           3  degen. by symmetry            1
+ atom           12  dir           1  degen. by symmetry            1
+ atom           12  dir           2  degen. by symmetry            1
+ atom           12  dir           3  degen. by symmetry            1
+  norm of gradient                1.692729935405134E-002
+ 
+wall time for total    0.00 s

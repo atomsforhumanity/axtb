@@ -1,0 +1,172 @@
+[
+ {
+  "id": "gfn2|geomeTRIC minimization",
+  "method": "GFN2-xTB",
+  "sequence": "caffeine (displaced 0.1 bohr): geomeTRIC minimization through qccompute (14 / 14 steps)",
+  "points": 14,
+  "iter_fresh": 11.0,
+  "iter_reuse": 6.642857142857143,
+  "time_fresh": null,
+  "time_reuse": null
+ },
+ {
+  "id": "gfn2|caffeine|random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "method": "GFN2-xTB",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 11.0,
+  "iter_reuse": 6.517241379310345,
+  "time_fresh": 1.1370227090083063,
+  "time_reuse": 0.8488584370352328
+ },
+ {
+  "id": "gfn2|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "method": "GFN2-xTB",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 11.0,
+  "iter_reuse": 7.655172413793103,
+  "time_fresh": 0.4395114011131227,
+  "time_reuse": 0.3527318430133164
+ },
+ {
+  "id": "gfn2|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "method": "GFN2-xTB",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 11.909090909090908,
+  "iter_reuse": 6.909090909090909,
+  "time_fresh": 2.6551737322006375,
+  "time_reuse": 1.8225234129931778
+ },
+ {
+  "id": "gfn2|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "method": "GFN2-xTB",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 12.0,
+  "iter_reuse": 8.727272727272727,
+  "time_fresh": 8.194981484906748,
+  "time_reuse": 6.738415293162689
+ },
+ {
+  "id": "gxtb-v2.0.1|Sella IRC",
+  "method": "g-xTB 2.0.1",
+  "sequence": "SN2 Cl- + CH3Cl: Sella IRC through qccompute (76 / 76 steps)",
+  "points": 76,
+  "iter_fresh": 8.894736842105264,
+  "iter_reuse": 5.0394736842105265,
+  "time_fresh": null,
+  "time_reuse": null
+ },
+ {
+  "id": "gxtb-v2.0.1|Sella transition state",
+  "method": "g-xTB 2.0.1",
+  "sequence": "SN2 Cl- + CH3Cl: Sella transition state through qccompute (5 / 5 steps)",
+  "points": 5,
+  "iter_fresh": 8.0,
+  "iter_reuse": 7.0,
+  "time_fresh": null,
+  "time_reuse": null
+ },
+ {
+  "id": "gxtb-v2.0.1|geomeTRIC minimization",
+  "method": "g-xTB 2.0.1",
+  "sequence": "caffeine (displaced 0.1 bohr): geomeTRIC minimization through qccompute (23 / 25 steps)",
+  "points": 25,
+  "iter_fresh": 9.0,
+  "iter_reuse": 6.16,
+  "time_fresh": null,
+  "time_reuse": null
+ },
+ {
+  "id": "gxtb-v2.0.1|caffeine|random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "method": "g-xTB 2.0.1",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 9.0,
+  "iter_reuse": 6.655172413793103,
+  "time_fresh": 3.749445070279762,
+  "time_reuse": 3.902730859350413
+ },
+ {
+  "id": "gxtb-v2.0.1|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "method": "g-xTB 2.0.1",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 9.0,
+  "iter_reuse": 8.0,
+  "time_fresh": 3.189677228219807,
+  "time_reuse": 3.099103873828426
+ },
+ {
+  "id": "gxtb-v2.0.1|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "method": "g-xTB 2.0.1",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 9.0,
+  "iter_reuse": 6.818181818181818,
+  "time_fresh": 12.912468021269888,
+  "time_reuse": 12.03088777535595
+ },
+ {
+  "id": "gxtb-v2.0.1|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "method": "g-xTB 2.0.1",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 9.0,
+  "iter_reuse": 8.727272727272727,
+  "time_fresh": 10.890157928224653,
+  "time_reuse": 10.69680411904119
+ },
+ {
+  "id": "gxtb-v1.1|geomeTRIC minimization",
+  "method": "g-xTB v1.1",
+  "sequence": "caffeine (displaced 0.1 bohr): geomeTRIC minimization through qccompute (49 / 49 steps)",
+  "points": 49,
+  "iter_fresh": 10.979591836734693,
+  "iter_reuse": 7.0,
+  "time_fresh": null,
+  "time_reuse": null
+ },
+ {
+  "id": "gxtb-v1.1|caffeine|random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "method": "g-xTB v1.1",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.005 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 11.0,
+  "iter_reuse": 7.896551724137931,
+  "time_fresh": 5.418103809701279,
+  "time_reuse": 5.331300411140546
+ },
+ {
+  "id": "gxtb-v1.1|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "method": "g-xTB v1.1",
+  "sequence": "caffeine: random walk, 30 steps, sigma 0.02 bohr per coordinate",
+  "points": 30,
+  "iter_fresh": 11.0,
+  "iter_reuse": 9.0,
+  "time_fresh": 3.404676884878427,
+  "time_reuse": 3.1905317795462906
+ },
+ {
+  "id": "gxtb-v1.1|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "method": "g-xTB v1.1",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.005 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 11.0,
+  "iter_reuse": 9.0,
+  "time_fresh": 14.812332263682038,
+  "time_reuse": 13.78930771467276
+ },
+ {
+  "id": "gxtb-v1.1|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "method": "g-xTB v1.1",
+  "sequence": "taxol: random walk, 12 steps, sigma 0.02 bohr per coordinate",
+  "points": 12,
+  "iter_fresh": 11.0,
+  "iter_reuse": 10.181818181818182,
+  "time_fresh": 24.668659139191732,
+  "time_reuse": 25.36207705293782
+ }
+]

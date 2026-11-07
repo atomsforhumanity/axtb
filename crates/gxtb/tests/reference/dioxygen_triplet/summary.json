@@ -1,0 +1,78 @@
+{
+ "eeq_table": {
+  "cn": [
+   0.6882,
+   0.6882
+  ],
+  "qloc": [
+   0.0,
+   0.0
+  ],
+  "cn_basis": [
+   0.5833,
+   0.5833
+  ],
+  "q": [
+   0.0,
+   -0.0
+  ]
+ },
+ "eeq_dipole_au": [
+  0.0,
+  0.0,
+  -0.0
+ ],
+ "qvszp_table": {
+  "z": [
+   8.0,
+   8.0
+  ],
+  "q": [
+   0.0,
+   -0.0
+  ],
+  "cn": [
+   0.58334,
+   0.58334
+  ],
+  "q_change": [
+   0.0,
+   -0.0
+  ],
+  "cn_change": [
+   0.2396,
+   0.2396
+  ],
+  "qcn_change": [
+   0.0,
+   -0.0
+  ],
+  "qeff": [
+   0.2396,
+   0.2396
+  ]
+ },
+ "ncao": 8,
+ "nsao": 8,
+ "npr": 48,
+ "nel": 12,
+ "nalpha": 7,
+ "nbeta": 5,
+ "nopen": 2,
+ "acpsao": 32,
+ "energy_terms": {
+  "ES1 (charge SIE)": 0.10632885,
+  "ES2+3": 0.00500441,
+  "ES multipole": 0.00382058,
+  "ES total": 0.11515384,
+  "Ex (Mulliken)": -2.89948181,
+  "Espinpol": -0.03529438,
+  "electronic": -12.46754268,
+  "atomic core increments": -138.03603541,
+  "dispersion": -0.00075058,
+  "nuclear repulsion": 0.16330751,
+  "total": -150.34102116
+ },
+ "scf_iterations": 9,
+ "total_energy": -150.3410211592299
+}

@@ -1,0 +1,226 @@
+[
+ {
+  "program": "xtb",
+  "finding": "OpenMP uses every core by default and nests threads",
+  "consequence": "Concurrent runs oversubscribe the CPU unless OMP_NUM_THREADS=1 is set (see throughput)",
+  "in_axtb": "One explicit thread count per calculation (default 1); no environment variables",
+  "status": "Known; documented in xtb's own guidance"
+ },
+ {
+  "program": "xtb and tblite",
+  "finding": "Stale variable in the Born-radius integral for engulfed spheres",
+  "consequence": "ALPB/GBSA energies depend on atom order for heavy\u2013light pairs: reversing compressed CsOH changes the energy by 2.9e-03 Eh in both programs; the gradient is not the energy's derivative",
+  "in_axtb": "Fixed by default and in xtb (6.8.0) mode; kept in xtb-6.7.1 mode",
+  "status": "Reported: grimme-lab/xtb#1504 (fixed in xtb 6.8.0), tblite/tblite#430"
+ },
+ {
+  "program": "xtb",
+  "finding": "ALPB/GBSA 'reference' state uses ln(\u03c1\u00b789.24/M\u00b2) where the solvent's number density was meant",
+  "consequence": "xtb is 5.01e-03 Eh (3.1 kcal/mol) away from tblite for every solute in water; 5\u20137e-3 Eh over all solvents",
+  "in_axtb": "Fixed by default, in tblite and xtb (6.8.0) mode; kept in xtb-6.7.1 mode",
+  "status": "Reported: grimme-lab/xtb#1505; fixed in xtb 6.8.0 (6.8.0 \u2212 tblite in 'reference': 9.9e-9 Eh)"
+ },
+ {
+  "program": "xtb",
+  "finding": "D4 coordination number uses single-precision literals for radii and electronegativities",
+  "consequence": "~1e-8 relative error in those parameters; the gradient path uses double precision",
+  "in_axtb": "Double precision by default and in xtb (6.8.0) mode; reproduced in xtb-6.7.1 mode",
+  "status": "Reported: grimme-lab/xtb#1506; fixed in xtb 6.8.0"
+ },
+ {
+  "program": "xtb",
+  "finding": "Small-gap Broyden damping tests iter == 0 inside a loop that starts at 1",
+  "consequence": "Dead code: the intended damping never happens",
+  "in_axtb": "Not reproduced",
+  "status": "Reported: grimme-lab/xtb#1506; removed in xtb 6.8.0"
+ },
+ {
+  "program": "xtb",
+  "finding": "Radius tables converted with an older bohr constant (0.52917726 \u00c5)",
+  "consequence": "xtb and tblite differ by up to ~1e-8 Eh",
+  "in_axtb": "CODATA 2022 by default; reproduced in each mode",
+  "status": "Parametrization detail; xtb 6.8.0 uses mctc-lib's (CODATA 2018) bohr, as tblite"
+ },
+ {
+  "program": "xtb vs tblite",
+  "finding": "Different D4 cutoffs (xtb: 72/40 bohr hard; tblite: 50/25 bohr smoothed), plus the constants above",
+  "consequence": "The two programs' GFN2-xTB energies differ by ~1e-8 Eh for small molecules and grow with size: 4.5e-04 Eh (0.28 kcal/mol) for (H2O)333 (999 atoms)",
+  "in_axtb": "Both reproduced; default 72/40 with a smooth switch",
+  "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs"
+ },
+ {
+  "program": "xtb vs tblite",
+  "finding": "xtb switches to integer (aufbau) occupations at or below 0.1 K; tblite always smears",
+  "consequence": "O2 singlet at 0.1 K: xtb is 2.5e-03 Eh (1.6 kcal/mol) below tblite; at 1 K they agree",
+  "in_axtb": "Smearing at any T > 0 by default; xtb's rule in both xtb modes",
+  "status": "Design difference; unchanged in xtb 6.8.0"
+ },
+ {
+  "program": "xtb and tblite",
+  "finding": "Invalid electron counts are accepted: more unpaired electrons than electrons, a charge above the electron count, a fractional charge",
+  "consequence": "An energy is returned whose atomic charges do not sum to the molecular charge; tblite then crashes with a double free",
+  "in_axtb": "Rejected with an error naming the problem",
+  "status": "Not yet reported; unchanged in xtb 6.8.0"
+ },
+ {
+  "program": "xtb",
+  "finding": "A negative electronic temperature is accepted silently (aufbau occupations); accuracy 0 or below 1e-4 is clamped to 1e-4 with a warning",
+  "consequence": "The run uses other settings than requested",
+  "in_axtb": "Rejected, or used as given",
+  "status": "Not yet reported; unchanged in xtb 6.8.0"
+ },
+ {
+  "program": "xtb 6.7.1 release",
+  "finding": "The GFN2 gradient leaves out the H0/S term of AO pairs whose overlap vanishes by symmetry (atoms sharing a Cartesian coordinate)",
+  "consequence": "Up to 3.3e-3 Eh/bohr (350 gradient checks of the reference matrix, e.g. guanidinium 2.7e-3); the energy is right. The g-xTB 2.0.1 build (6.7.1 + 127 commits) and 6.8.0 have the fix",
+  "in_axtb": "xtb-6.7.1 mode reproduces the fixed program (the g-xTB build)",
+  "status": "Fixed upstream (xtb PR #1208, March 2025); in no 6.7.x release"
+ },
+ {
+  "program": "xtb 6.7.1",
+  "finding": "For GFN2-xTB, --acc does not reach the displaced SCFs of --hess; only $hess sccacc in an xcontrol file does",
+  "consequence": "Caffeine: --acc 0.001 changes the Hessian by 7.5e-06 Eh/bohr\u00b2 (reference SCF only); $hess sccacc=0.001 changes it by 2.1e-04 and the lowest mode from -26.97 to -27.55 cm\u207b\u00b9. Default GFN2 Hessians carry ~1e-4 Eh/bohr\u00b2 of SCF noise",
+  "in_axtb": "Analytic Hessian: no displaced SCFs",
+  "status": "AFH lesson (research-skills #19, merged); fixed in xtb 6.8.0; xtb 6.8.0 passes --acc to them (PR #1500): --acc 0.001 is 3.7e-05 Eh/bohr\u00b2 from the analytic Hessian (6.7.1: 2.2e-04)"
+ },
+ {
+  "program": "g-xTB 2.0.1 program",
+  "finding": "--hess at default accuracy (or plain --hess) gives badly wrong frequencies; $hess sccacc has no effect, only --acc",
+  "consequence": "Taxol: frequencies off by up to 149 cm\u207b\u00b9 (mean 78) at default accuracy, 1.1 cm\u207b\u00b9 at --acc 0.001 (AFH's setting). Displaced SCFs stop at the --acc thresholds and the gradient uses the previous iteration's potentials, so the finite difference amplifies the SCF error ~100\u00d7. An AFH skill entry that said plain --hess tightens itself was wrong for these molecules",
+  "in_axtb": "Analytic g-xTB 2.0.1 Hessian, ~1e-4 cm\u207b\u00b9 from tight references",
+  "status": "AFH lesson (research-skills #19, merged); not reported upstream"
+ },
+ {
+  "program": "g-xTB v1.1 program",
+  "finding": "The program differs from the derivation in the paper's supporting information in about ten places, and its Fock matrix is not the exact derivative of its energy",
+  "consequence": "Examples: a factor 2 in the repulsion exponent, ATM charge scaling, ACP weights, linear vs square-root CN dependence, the onsite-exchange sign and Fock factor; the AES potential omits dipole\u2013quadrupole and quadrupole\u2013quadrupole terms, so the converged SCF is not stationary",
+  "in_axtb": "Program mode reproduces the program (to 1e-12 Eh); the default uses the exact derivative",
+  "status": "Documented in docs/gxtb-v1.1-spec.md; not reported upstream"
+ },
+ {
+  "program": "g-xTB v1.1 program",
+  "finding": "Its numerical gradient sets the first atom's gradient to minus the sum of the others, and carries ~2e-5 Eh/bohr of noise at default settings",
+  "consequence": "Gradient errors from the finite-difference step and the non-stationary SCF; the printed 'dispersion' energy also omits the three-body term included in the total",
+  "in_axtb": "Analytic gradients (exact derivative of the respective energy)",
+  "status": "Documented; not reported upstream"
+ },
+ {
+  "program": "g-xTB 2.0.1 program",
+  "finding": "The electron count is not an integer (reference occupations do not sum exactly: water 7.9999999999502), so the HOMO carries a fractional occupation",
+  "consequence": "~1e-11 Eh effects; in near-degenerate HOMO sets individual energy terms become eigensolver-dependent at ~1e-10 Eh",
+  "in_axtb": "Reproduced in program mode; integer electron count in the default",
+  "status": "Documented in docs/gxtb-v2.0.1-spec.md"
+ },
+ {
+  "program": "xtb",
+  "finding": "Broyden mixing keeps every iteration (no history limit), so each iteration costs more than the last",
+  "consequence": "A 1000-iteration SCF retry of stretched HF (2 atoms) takes 56 s in the xtb programs that mepd's retry ladder runs; axtb reproducing xtb's loop exactly takes as long",
+  "in_axtb": "Default: Broyden, then DIIS as fallback, converges the same case at 300 K in 0.2 s (a different electronic temperature, so a different \u0394G_solv)",
+  "status": "Documented in README; not reported upstream"
+ },
+ {
+  "program": "xtb",
+  "finding": "Printed IR intensities come from dipoles of the displaced SCFs at the loose fixed accuracy of --hess",
+  "consequence": "Caffeine: intensities up to 44% (2.6 km/mol) off the exact dipole derivatives on xtb's own Hessian; 0.07% with $hess sccacc=0.001",
+  "in_axtb": "Dipole derivatives from the SCC response (analytic and response Hessians)",
+  "status": "Documented in README; not reported upstream"
+ },
+ {
+  "program": "xtb",
+  "finding": "GFN-FF allocates a 4-byte array over all pairs of hydrogen-bond acceptors and every hydrogen (considered_ABH, N_AB\u00b2 \u00d7 N_H) in every energy evaluation",
+  "consequence": "Memory grows as N\u00b3: 9.0 GiB for a 3000-atom water cluster, and at 5100 atoms the array alone would need 37 GiB, so xtb stops with 'insufficient virtual memory'. This is what limits mepd's GFN-FF environments today",
+  "in_axtb": "No dense hydrogen-bond array: 460 MiB at 5100 atoms",
+  "status": "Reported: grimme-lab/xtb#1515; still in xtb 6.8.0 (8.9 GiB for 1000 waters, 6.7.1: 10.0 GiB)"
+ },
+ {
+  "program": "xtb",
+  "finding": "GFN-FF's carbonyl hydrogen-bond energy jumps when C=O\u00b7\u00b7\u00b7H is exactly linear: a torsion about the C=O axis is undefined there and not damped",
+  "consequence": "Acetone\u2013water dimer with the water's H on the C=O axis: moving it 0.001 \u00c5 off the axis lowers the energy by 6.9e-4 Eh (0.43 kcal/mol); nearby Hessians have modes down to \u22124245 cm\u207b\u00b9 (6.8.0: \u22124031), and at the axis xtb 6.7.1's --hess segfaults (hessian.F90:453); 6.8.0 has the same jump, and its --hess at the axis runs (no rotation before it) with a \u2212358 cm\u207b\u00b9 mode",
+  "in_axtb": "Reproduces xtb's energy, so the same jump; at the axis its analytic Hessian is not finite (the energy is not twice differentiable there), its numerical Hessian reproduces xtb 6.8.0",
+  "status": "Reported: grimme-lab/xtb#1516; still in xtb 6.8.0"
+ },
+ {
+  "program": "xtb",
+  "finding": "GFN-FF's gradient is not the exact derivative of its energy in two places: the coordination-number derivative uses a truncated \u221a\u03c0, and the pyridine-type hydrogen-bond gradient drops part of the lone-pair term",
+  "consequence": "Up to 6e-8 Eh/bohr off finite differences of xtb's own energy",
+  "in_axtb": "Reproduced, so energies and gradients match xtb",
+  "status": "Documented in docs/gfnff-spec.md"
+ },
+ {
+  "program": "xtb",
+  "finding": "GFN-FF's topology depends on which eigenvectors the eigensolver returns for an exactly degenerate H\u00fcckel pair",
+  "consequence": "D5h ferrocenium: \u03c0 bond orders, and the bond parameters built from them, are not invariant to a rotation of the molecule; the one structure of 269 axtb does not reproduce",
+  "in_axtb": "Same H\u00fcckel step; a degenerate pair gets axtb's eigensolver's vectors",
+  "status": "Documented"
+ },
+ {
+  "program": "tblite (also xtb --tblite and the g-xTB 2.0.1 program)",
+  "finding": "The printed molecular quadrupole counts the off-diagonal charge and dipole parts twice",
+  "consequence": "The printed tensor is not a tensor: its eigenvalues change when the molecule is rotated (water: \u22121.37/\u22120.54/1.91, rotated 45\u00b0: \u22122.11/\u22120.16/2.26); xtb's own form is rotation invariant",
+  "in_axtb": "Reproduced in the tblite and g-xTB program conventions; the real tensor otherwise",
+  "status": "Found; not reported upstream yet"
+ },
+ {
+  "program": "xtb 6.7.1",
+  "finding": "Prints the charges and moments it mixes once more after the last SCF iteration, not the converged ones",
+  "consequence": "At the default accuracy taxol's printed charges are 5.7e-5 e off the converged ones, and the printed quadrupole up to 1.3e-3",
+  "in_axtb": "Converged values",
+  "status": "Documented"
+ },
+ {
+  "program": "g-xTB 2.0.1 program",
+  "finding": "Its analytic gradient is wrong for some bonds lying exactly along a coordinate axis",
+  "consequence": "[Gd(H2O)6]3+ and [Lu(H2O)6]3+ with waters on the axes: the y components of the metal and the two axial O atoms are off by 8.0e-5 and 1.4e-4 Eh/bohr; finite differences of the program's own energies agree with axtb, and after a rotation the program agrees too",
+  "in_axtb": "Analytic gradient agrees with finite differences in any orientation",
+  "status": "Found in the element survey; not reported upstream yet"
+ },
+ {
+  "program": "g-xTB 1.1.0 program",
+  "finding": "For 24 elements without parameters it fails in its first diagonalization yet exits with code 0 and prints no energy",
+  "consequence": "A wrapper that trusts the exit code gets no energy and no error",
+  "in_axtb": "Rejected with an error naming the element",
+  "status": "Documented"
+ },
+ {
+  "program": "g-xTB 1.1.0 program",
+  "finding": "Its onsite-exchange Fock matrix doubles the off-diagonal population part, which is not rotation covariant",
+  "consequence": "Program-convention energies depend on the molecule's orientation by up to ~1e-7 Eh (in the program and in axtb's program mode); axtb's default conventions are invariant to 2e-13",
+  "in_axtb": "Reproduced in program mode; exact derivative in the default",
+  "status": "Documented in docs/gxtb-v1.1-spec.md"
+ },
+ {
+  "program": "xtb, tblite and g-xTB 1.1.0",
+  "finding": "Each writes its own Molden dialect: Cartesian functions only, unnormalized primitives, and three different normalizations of the components",
+  "consequence": "tblite (xtb --gxtb) writes the valence charge in the atomic-number column (O as 6); g-xTB 1.1.0 writes f functions in xtb's internal order instead of Molden's, so standard readers show wrong f orbitals; a reader must know which program wrote a file",
+  "in_axtb": "Standard Molden: spherical [5D]/[7F] (or Cartesian on request), normalized contractions, atomic numbers",
+  "status": "AFH lesson (research-skills #21, merged)"
+ },
+ {
+  "program": "g-xTB 2.0.1 and 1.1.0 programs",
+  "finding": "At a finite electronic temperature 2.0.1 rounds its fractional electron count per spin channel and stops the Fermi-level search at 1.5e-8 electrons; 1.1.0 uses a single-precision Boltzmann constant and computes only the lowest N_\u03b1 + 10 orbitals",
+  "consequence": "Up to 4.5e-8 Eh at 5000 K from the constant alone (EuCl3); slowly converging SCFs (Fe4, TmH3 at 3000\u20135000 K) end where rounding decides the last digits",
+  "in_axtb": "Reproduced in program mode; exact Fermi level and CODATA 2022 kB in the default",
+  "status": "Documented in the g-xTB specs"
+ },
+ {
+  "program": "axtb (own bug, fixed)",
+  "finding": "A starting-charge LU solve used faer's global parallelism, which builds a thread pool with one thread per CPU even when one thread was requested",
+  "consequence": "Every axtb process started ~126 idle threads on a cluster node; taxol used 1.9 s of CPU for 0.2 s of wall time",
+  "in_axtb": "Fixed: explicit sequential solve; a test checks that a one-thread run starts no threads",
+  "status": "Fixed"
+ },
+ {
+  "program": "faer dependencies",
+  "finding": "private-gemm-x86 0.1.22 and gemm-common 0.18.2 open every cache file of every CPU in /sys at start-up",
+  "consequence": "About 5,800 file opens per process on a 128-thread node; with 64 processes starting together each takes ~0.4 s",
+  "in_axtb": "Patched copies that read one CPU only, vendored in third_party/ until upstream releases a fix",
+  "status": "Reported: sarah-quinones/gemm#53, sarah-quinones/gemm-x64-v2#8"
+ },
+ {
+  "program": "axtb (own bug, fixed)",
+  "finding": "Off-by-one when porting the 1-based Fortran double-factorial table",
+  "consequence": "p and d functions unnormalized; invisible in energies, caught by a unit test",
+  "in_axtb": "Fixed; self-overlap now 1 to 1e-9",
+  "status": "Fixed"
+ }
+]

@@ -1,0 +1,60 @@
+{
+ "total_energy": -1.1630588222237,
+ "electronic_energy": -1.1630588222237,
+ "nel": 2.0,
+ "integral_cutoff": 26.907767250513,
+ "econv": 1e-06,
+ "pconv": 2e-05,
+ "scf_cycles": [
+  [
+   1,
+   -1.163058822224,
+   -1.1630588,
+   0.0
+  ],
+  [
+   2,
+   -1.163058822224,
+   0.0,
+   0.1209395
+  ],
+  [
+   3,
+   -1.163058822224,
+   0.0,
+   0.096751603
+  ],
+  [
+   4,
+   -1.163058822224,
+   0.0,
+   2.7755576e-17
+  ]
+ ],
+ "scf_iterations": 4,
+ "gap_eh": 0.7183177,
+ "charges": [
+  0.0,
+  0.0
+ ],
+ "returncode": 0,
+ "tight": {
+  "total_energy": -1.1630588222237,
+  "scf_iterations": 4,
+  "econv": 1e-10,
+  "pconv": 2e-09
+ },
+ "terms": {
+  "increment": 0.0,
+  "dispersion_nonsc": 0.0,
+  "first_order": 0.0,
+  "second_order": 0.0,
+  "aes": 0.013130985510286353,
+  "third_order": 0.0,
+  "fourth_order": 0.0,
+  "dispersion_sc": -1.4416256395088922e-05,
+  "exchange": -0.18634688035598757,
+  "repulsion": 0.10685185940908104,
+  "spin": 0.0
+ }
+}

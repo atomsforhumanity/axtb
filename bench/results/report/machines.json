@@ -1,0 +1,14 @@
+[
+ {
+  "machine": "laptop",
+  "label": "Laptop",
+  "cpu": "Intel Core i9-11900H (Tiger Lake), 8 cores / 16 threads",
+  "date": "2026-11-04"
+ },
+ {
+  "machine": "node",
+  "label": "64-core node",
+  "cpu": "AMD Ryzen Threadripper PRO 9985WX (Zen 5), 64 cores / 128 threads; jobs limited to 126 CPUs",
+  "date": "2026-11-05"
+ }
+]

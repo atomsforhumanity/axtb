@@ -1,0 +1,43 @@
+[package]
+name = "axtb-driver"
+description = "One request/response layer for the axtb front ends (CLI, Python): validation, dispatch to GFN2-xTB, g-xTB and GFN-FF, Hessians and their vibrational analysis"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+# GPL-3.0-only as built by default (includes the GPL crate axtb-gxtb, feature `gxtb`);
+# LGPL-3.0-or-later with --no-default-features (LICENSE)
+license = "GPL-3.0-only"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/axtb-driver"
+readme = "README.md"
+keywords = ["quantum-chemistry", "tight-binding", "xtb", "g-xtb", "chemistry"]
+categories = ["science", "simulation"]
+# the tests read data of the repository; the package is the library
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[lib]
+name = "axtb_driver"
+path = "src/lib.rs"
+
+[features]
+default = ["gxtb"]
+# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") and its solvation composite from the GPL-3.0 crate
+# axtb-gxtb; a build with it is GPL-3.0 as a whole, `--no-default-features` gives an LGPL-only
+# driver (GFN2-xTB and GFN-FF).
+gxtb = ["dep:axtb-gxtb"]
+
+[dependencies]
+axtb = { workspace = true }
+# GFN-FF (method "gfnff"), LGPL-3.0-or-later
+axtb-gfnff = { workspace = true }
+axtb-gxtb = { workspace = true, optional = true }
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+# exact decimal-to-double parsing of JSON requests (the default parser can be 1 ulp off)
+serde_json = { version = "1", features = ["float_roundtrip"] }
+
+[lints]
+workspace = true

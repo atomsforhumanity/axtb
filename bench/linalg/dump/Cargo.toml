@@ -1,0 +1,14 @@
+[package]
+name = "linalg-dump"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "Dump GFN2 H0 and S of a taxol cluster (column-major f64) as realistic eigensolver inputs"
+
+[workspace]
+
+[dependencies]
+axtb = { path = "../../../crates/axtb", features = ["bench-internals"] }
+
+[profile.release]
+opt-level = 3

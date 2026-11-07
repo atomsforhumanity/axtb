@@ -1,0 +1,26 @@
+{
+ "cpu": "AMD Ryzen Threadripper PRO 9985WX 64-Cores",
+ "sockets": 1,
+ "cores_per_socket": 64,
+ "threads_per_core": 2,
+ "l3": "256 MiB (8 instances)",
+ "smt_numbering": "CPU i and i+64 are SMT siblings; pinned runs use CPUs 0..t-1 (one per physical core)",
+ "pod": "one benchmark per node, 126 of 128 CPUs reserved (cgroup quota), node otherwise idle",
+ "axtb": "533c1a0 (git commit) + bench/ harness of this directory",
+ "rust": [
+  "rustc 1.86.0 (05f9846f8 2025-03-31)",
+  "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+ ],
+ "aocl": [
+  "aocl-utils 5.3 deb418767224511d146fc5e6841a55a6f69e5e79",
+  "blis 5.3 9212e3b464ef3310b093d4405222ec79afd147b4",
+  "libflame 5.3 954fc2601f65b06e64eb5b55164d8881063a1ee1"
+ ],
+ "linalg_libraries": [
+  "aocl | AOCL-LAPACK 5.3.0\tBuild 20261105, supports LAPACK 3.12.0",
+  "mkl | Intel(R) oneAPI Math Kernel Library Version 2026.2-Product Build 20260915 for Intel(R) 64 architecture applications",
+  "openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64"
+ ],
+ "xtb": "xtb 6.7.1 (26dd68d), g-xTB 2.0.1 build",
+ "tblite": "0.8.0"
+}

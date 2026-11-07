@@ -1,0 +1,62 @@
+[
+ {
+  "aspect": "Physical constants",
+  "axtb": "CODATA 2022 (bohr 0.529177210544 \u00c5, Boltzmann constant)",
+  "xtb": "6.8.0: radius tables with mctc-lib's CODATA 2018 bohr, as tblite; 6.7.1: with bohr 0.52917726 \u00c5; xtb's Boltzmann constant in both",
+  "tblite": "tblite's: CODATA 2018 bohr (mctc-lib); xtb's Boltzmann constant"
+ },
+ {
+  "aspect": "D4 coordination-number radii and electronegativities",
+  "axtb": "double precision",
+  "xtb": "6.8.0: double precision; 6.7.1: single-precision literals, as in its source",
+  "tblite": "double precision"
+ },
+ {
+  "aspect": "D4 cutoffs (two-body / three-body / CN)",
+  "axtb": "72 / 40 / 40 bohr with a smooth 1 bohr switch",
+  "xtb": "6.8.0: 50 / 25 / 30 bohr, smoothed (tblite's); 6.7.1: 72 / 40 / 40 bohr, hard",
+  "tblite": "50 / 25 / 30 bohr, smoothed"
+ },
+ {
+  "aspect": "Coordination number in energy and gradient",
+  "axtb": "one consistent set",
+  "xtb": "6.8.0: as tblite; 6.7.1: energy and gradient use different precision",
+  "tblite": "as tblite"
+ },
+ {
+  "aspect": "Integral screening",
+  "axtb": "xtb's formula, no pair cutoff",
+  "xtb": "6.8.0: tblite's threshold; 6.7.1: xtb's formula",
+  "tblite": "tblite's"
+ },
+ {
+  "aspect": "Starting charges",
+  "axtb": "EEQ",
+  "xtb": "EEQ (both versions)",
+  "tblite": "superposition of atomic densities"
+ },
+ {
+  "aspect": "SCC loop",
+  "axtb": "tblite's",
+  "xtb": "6.8.0: tblite's, with its own gradient potentials; 6.7.1: its own (residual test, extra iteration, mixer metric, neglected integrals, gradient from mixed moments)",
+  "tblite": "tblite's"
+ },
+ {
+  "aspect": "Electronic temperature at or below 0.1 K",
+  "axtb": "Fermi smearing at any T > 0",
+  "xtb": "integer (aufbau) occupations, xtb's rule (both versions)",
+  "tblite": "Fermi smearing"
+ },
+ {
+  "aspect": "ALPB/GBSA",
+  "axtb": "corrected: fresh Born-radius term (xtb#1504) and the reference-state shift from the solvent's density (xtb#1505)",
+  "xtb": "6.8.0: both bugs fixed, xtb's constants; 6.7.1: both bugs kept",
+  "tblite": "corrected (tblite's own model has neither bug)"
+ },
+ {
+  "aspect": "Size of the difference to the default",
+  "axtb": "\u2014",
+  "xtb": "~1e-8 Eh for ordinary molecules (6.8.0: up to 1e-5 Eh for molecules longer than 25 bohr); 6.7.1: 5\u20137e-3 Eh in the 'reference' solvation state, up to 3e-3 Eh for heavy\u2013light atom pairs in solvent",
+  "tblite": "~1e-8 Eh"
+ }
+]

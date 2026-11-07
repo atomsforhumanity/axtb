@@ -1,0 +1,31 @@
+[package]
+name = "axtb-gfnff"
+description = "GFN-FF force field (Spicher & Grimme 2020): topology, energies, gradients and Hessians reproducing xtb 6.8.0 and 6.7.1"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+# Ported from xtb's GFN-FF (src/gfnff, LGPL-3.0-or-later)
+license = "LGPL-3.0-or-later"
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/axtb-gfnff"
+readme = "README.md"
+keywords = ["force-field", "gfn-ff", "xtb", "molecular-mechanics", "chemistry"]
+categories = ["science", "simulation"]
+# the tests and examples read data of the repository; the package is the library
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[lib]
+name = "axtb_gfnff"
+path = "src/lib.rs"
+
+[dependencies]
+faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
+rayon = "1.10"
+
+[dev-dependencies]
+serde_json = "1"
+
+[lints]
+workspace = true

@@ -1,0 +1,173 @@
+//! Analytic nuclear Hessian of the SCC tight-binding energy.
+//!
+//! With the gradient written as a functional `g_x(R; P, W, s)` of the density, the
+//! energy-weighted density and the SCC variables, and `V = V(R, s)` the potentials,
+//!
+//! ```text
+//! H_xy = E''_xy + H^skel_xy + u^x·K δs^y + u^x·c^y + c^x·δs^y
+//! ```
+//!
+//! - `E''`: explicit second derivatives at fixed P, W, V (core Hamiltonian, overlap and
+//!   multipole integrals with the CN chain rule) plus those of the electrostatic,
+//!   dispersion, solvation and repulsion energies at fixed SCC variables;
+//! - `H^skel_xy = Tr(δP^y A^x) − Tr(δW^y S^x)` with the skeleton (fixed-potential) response
+//!   of the density to perturbation y, `A^x = ∂F/∂x|_V`, `S^x = ∂S/∂x`;
+//! - `u^x` the skeleton response of the SCC variables (including `b^x = −Tr(P ∂O/∂x)`),
+//!   `c^x = ∂V/∂x|_s`, `K = ∂²E/∂s∂s` and `δs` the coupled-perturbed SCC response.
+//!
+//! The expression is symmetric term by term (see `response.rs` for the derivation of
+//! the response quantities).
+
+use crate::error::Result;
+use crate::molecule::Molecule;
+use crate::response::Response;
+use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
+use faer::{Accum, Mat};
+use rayon::prelude::*;
+
+/// Analytic Hessian (row-major 3N x 3N), dipole derivatives (3N rows ∂μ/∂R_x) and timings.
+pub(crate) fn analytic_hessian(
+    model: &XtbModel,
+    extra: &[&dyn ChargeDependentTerm],
+    mol: &Molecule,
+    st: &ScfState,
+    threads: usize,
+) -> Result<crate::hessian::HessianParts> {
+    let resp = Response::new(model, extra, mol, st, threads);
+    let r = resp.scc_response(true)?;
+    let dipd = resp.dipole_derivatives(&r.ds);
+    let mut timings = r.timings.clone();
+    let t0 = std::time::Instant::now();
+    let nat = mol.nat();
+    let n3 = 3 * nat;
+    let nxi = resp.nxi();
+    let par = resp.par();
+    // T = [I; J]: local perturbations -> displacements
+    let mut t = Mat::<f64>::zeros(nxi, n3);
+    for x in 0..n3 {
+        t[(x, x)] = 1.0;
+    }
+    for c in 0..nat {
+        for x in 0..n3 {
+            t[(n3 + c, x)] = resp.jac[c * n3 + x];
+        }
+    }
+    let hs = r.hskel.as_ref().expect("skeleton Hessian");
+    let mut tmp = Mat::<f64>::zeros(nxi, n3);
+    faer::linalg::matmul::matmul(tmp.as_mut(), Accum::Replace, hs.as_ref(), t.as_ref(), 1.0, par);
+    let mut h = Mat::<f64>::zeros(n3, n3);
+    faer::linalg::matmul::matmul(h.as_mut(), Accum::Replace, t.transpose(), tmp.as_ref(), 1.0, par);
+    // u·K δs + u·c (y) + c·δs
+    let mut kds = r.c.clone();
+    faer::linalg::matmul::matmul(kds.as_mut(), Accum::Add, r.kernel.as_ref(), r.ds.as_ref(), 1.0, par);
+    faer::linalg::matmul::matmul(h.as_mut(), Accum::Add, r.u.transpose(), kds.as_ref(), 1.0, par);
+    faer::linalg::matmul::matmul(h.as_mut(), Accum::Add, r.c.transpose(), r.ds.as_ref(), 1.0, par);
+    timings.push(("response terms", t0.elapsed().as_secs_f64()));
+    let e2 = explicit(&resp, &r.extra_hessian, threads, &mut timings);
+    let mut out = vec![0.0; n3 * n3];
+    for x in 0..n3 {
+        for y in 0..n3 {
+            out[x * n3 + y] = h[(x, y)] + e2[x * n3 + y];
+        }
+    }
+    Ok((out, dipd, timings))
+}
+
+/// Explicit second derivatives `E''` at fixed P, W, potentials and SCC variables (row-major
+/// 3N x 3N): one-electron integrals with the CN chain rule, isotropic and anisotropic
+/// electrostatics, repulsion, and the charge-dependent extra terms at fixed charges.
+pub(crate) fn explicit(
+    resp: &Response,
+    extra_hessian: &[f64],
+    threads: usize,
+    timings: &mut Vec<(&'static str, f64)>,
+) -> Vec<f64> {
+    let st = resp.st;
+    let mol = resp.mol;
+    let model = resp.model;
+    let bas = &model.basis;
+    let n3 = 3 * mol.nat();
+    let parallel = threads > 1;
+    let t0 = std::time::Instant::now();
+    let mut h = extra_hessian.to_vec();
+    h.resize(n3 * n3, 0.0);
+    let vao = st.pot.vao(bas);
+    let geo = &st.geo;
+    model.h0.add_hessian(
+        mol,
+        bas,
+        &geo.se,
+        &geo.dsedcn,
+        geo.cutoff,
+        &st.density,
+        &st.wdensity,
+        &vao,
+        &st.pot.vdp,
+        &st.pot.vqp,
+        &model.ncoord,
+        &resp.jac,
+        &mut h,
+        parallel,
+    );
+    timings.push(("explicit: integrals", t0.elapsed().as_secs_f64()));
+    let t0 = std::time::Instant::now();
+    model.es2.add_hessian(mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut h);
+    if let (Some(aes), Some(cache)) = (&model.aes2, &geo.mp_cache) {
+        aes.add_hessian(mol, cache, &geo.cn, &resp.jac, &st.qat, &st.dpat, &st.qpat, &mut h);
+    }
+    model.repulsion.add_hessian(mol, &mut h);
+    timings.push(("explicit: electrostatics+repulsion", t0.elapsed().as_secs_f64()));
+    h
+}
+
+/// Explicit second derivatives by central differences of the gradient functional at fixed
+/// P, W and SCC variables, minus the potential response `b^x·c^y` that this includes
+/// (validation path).
+#[allow(dead_code)]
+pub(crate) fn explicit_fd(resp: &Response, c: &Mat<f64>, threads: usize) -> Vec<f64> {
+    let st = resp.st;
+    let mol = resp.mol;
+    let lay = resp.lay;
+    let n3 = 3 * lay.nat;
+    let h = crate::xtb::FD_STEP;
+    let column = |y: usize| -> Vec<f64> {
+        let (a, k) = (y / 3, y % 3);
+        let mut g = [Vec::new(), Vec::new()];
+        for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
+            let mut mm = mol.clone();
+            mm.positions[a][k] += sign * h;
+            g[i] = resp.model.gradient_functional(
+                &mm,
+                resp.extra,
+                &st.density,
+                &st.wdensity,
+                &st.qsh,
+                &st.dpat,
+                &st.qpat,
+                false,
+            );
+        }
+        (0..n3).map(|x| (g[0][x / 3][x % 3] - g[1][x / 3][x % 3]) / (2.0 * h)).collect()
+    };
+    let cols: Vec<Vec<f64>> =
+        if threads > 1 { (0..n3).into_par_iter().map(column).collect() } else { (0..n3).map(column).collect() };
+    let mut out = vec![0.0; n3 * n3];
+    for (y, col) in cols.iter().enumerate() {
+        for x in 0..n3 {
+            out[x * n3 + y] = col[x];
+        }
+    }
+    // subtract b^x · c^y
+    let m = lay.dim();
+    for x in 0..n3 {
+        let b = &resp.blocks[x / 3].b[x % 3];
+        for y in 0..n3 {
+            let mut acc = 0.0;
+            for t in 0..m {
+                acc += b[t] * c[(t, y)];
+            }
+            out[x * n3 + y] -= acc;
+        }
+    }
+    out
+}

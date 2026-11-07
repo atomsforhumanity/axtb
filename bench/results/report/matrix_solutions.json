@@ -1,0 +1,114 @@
+[
+ {
+  "id": "struct-gh106|xtb",
+  "case": "tests/structures/gh106.xyz",
+  "check": "axtb (xtb mode) vs xtb",
+  "dE": 8.380297263954617e-05,
+  "lower": "xtb"
+ },
+ {
+  "id": "struct-gh106|tblite",
+  "case": "tests/structures/gh106.xyz",
+  "check": "axtb (tblite mode) vs tblite",
+  "dE": 0.00023177522479755908,
+  "lower": "tblite"
+ },
+ {
+  "id": "struct-gh106|axtb_vs_xtbmode",
+  "case": "tests/structures/gh106.xyz",
+  "check": "axtb default vs its xtb mode",
+  "dE": -0.00020490612450885237,
+  "lower": ""
+ },
+ {
+  "id": "eta-Cu5-T0-acc1|xtb",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1",
+  "check": "axtb (xtb mode) vs xtb",
+  "dE": -0.00030016122278198054,
+  "lower": "axtb"
+ },
+ {
+  "id": "eta-Cu5-T0-acc1|tblite",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1",
+  "check": "axtb (tblite mode) vs tblite",
+  "dE": 0.00030016115912800956,
+  "lower": "tblite"
+ },
+ {
+  "id": "eta-Cu5-T0-acc1|axtb_vs_xtbmode",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1",
+  "check": "axtb default vs its xtb mode",
+  "dE": 0.00030016126098431073,
+  "lower": ""
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.01|xtb",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.01",
+  "check": "axtb (xtb mode) vs xtb",
+  "dE": -0.000300161332042137,
+  "lower": "axtb"
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.01|tblite",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.01",
+  "check": "axtb (tblite mode) vs tblite",
+  "dE": 0.000300161332290827,
+  "lower": "tblite"
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.01|axtb_vs_xtbmode",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.01",
+  "check": "axtb default vs its xtb mode",
+  "dE": 0.0003001613591528951,
+  "lower": ""
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.0001|xtb",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.0001",
+  "check": "axtb (xtb mode) vs xtb",
+  "dE": -0.000300161332067006,
+  "lower": "axtb"
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.0001|tblite",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.0001",
+  "check": "axtb (tblite mode) vs tblite",
+  "dE": 0.00030016133230503783,
+  "lower": "tblite"
+ },
+ {
+  "id": "eta-Cu5-T0-acc0.0001|axtb_vs_xtbmode",
+  "case": "Cu5 cluster (doublet), 0 K, acc 0.0001",
+  "check": "axtb default vs its xtb mode",
+  "dE": 0.00030016135916355324,
+  "lower": ""
+ },
+ {
+  "id": "eta-Cu5-T0-acc1e-06|xtb",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1e-06",
+  "check": "axtb (xtb mode) vs xtb",
+  "dE": -0.00030016133202792616,
+  "lower": "axtb"
+ },
+ {
+  "id": "eta-Cu5-T0-acc1e-06|tblite",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1e-06",
+  "check": "axtb (tblite mode) vs tblite",
+  "dE": 0.0003001613322979324,
+  "lower": "tblite"
+ },
+ {
+  "id": "eta-Cu5-T0-acc1e-06|axtb_vs_xtbmode",
+  "case": "Cu5 cluster (doublet), 0 K, acc 1e-06",
+  "check": "axtb default vs its xtb mode",
+  "dE": 0.00030016135913868425,
+  "lower": ""
+ },
+ {
+  "id": "eta-O2-singlet-T0.1|axtb_vs_xtbmode",
+  "case": "O2 singlet (degenerate \u03c0*), 0.1 K",
+  "check": "axtb default vs its xtb mode",
+  "dE": 0.00251973054410648,
+  "lower": ""
+ }
+]

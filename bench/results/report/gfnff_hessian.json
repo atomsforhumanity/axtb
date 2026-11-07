@@ -1,0 +1,92 @@
+[
+ {
+  "case": "caffeine",
+  "atoms": 24,
+  "num_dfreq": 0.004947228355945299,
+  "num_dG": 1.509903313490213e-13,
+  "ana_dfreq": 0.09712037863000234,
+  "ana_dG": 1.5006663742767046e-06,
+  "note": null
+ },
+ {
+  "case": "water dimer",
+  "atoms": 6,
+  "num_dfreq": 0.004484468078771897,
+  "num_dG": 2.51909604287448e-13,
+  "ana_dfreq": 0.16307860389906637,
+  "ana_dG": 1.1528055798848413e-06,
+  "note": null
+ },
+ {
+  "case": "pyridine\u2013HF",
+  "atoms": 13,
+  "num_dfreq": 0.004951449309942291,
+  "num_dG": 2.8199664825478976e-13,
+  "ana_dfreq": 0.14755484704619448,
+  "ana_dG": 1.3922848034475521e-06,
+  "note": null
+ },
+ {
+  "case": "acetone\u2013water (H on the C=O axis)",
+  "atoms": 13,
+  "num_dfreq": 0.004727897047587248,
+  "num_dG": 1.6497914145929826e-13,
+  "ana_dfreq": null,
+  "ana_dG": null,
+  "note": "energy not twice differentiable here (xtb#1516): axtb's analytic Hessian is not finite; numerical reproduces xtb"
+ },
+ {
+  "case": "ICl\u2013NH3 (halogen bond)",
+  "atoms": 6,
+  "num_dfreq": 0.004746692136194497,
+  "num_dG": 4.759526106568046e-13,
+  "ana_dfreq": 0.09890469264377089,
+  "ana_dG": 1.6450958018054962e-07,
+  "note": null
+ },
+ {
+  "case": "glycine zwitterion with water",
+  "atoms": 28,
+  "num_dfreq": 0.0049274604913307485,
+  "num_dG": 1.199040866595169e-14,
+  "ana_dfreq": 0.15992042893287817,
+  "ana_dG": 1.7923542716680174e-06,
+  "note": null
+ },
+ {
+  "case": "[Cu(NH3)4]2+",
+  "atoms": 17,
+  "num_dfreq": 0.004880712690422229,
+  "num_dG": 1.2467804566540508e-13,
+  "ana_dfreq": 0.26701853658344277,
+  "ana_dG": 3.223408075236911e-06,
+  "note": null
+ },
+ {
+  "case": "(H2O)20",
+  "atoms": 60,
+  "num_dfreq": 0.0049986342851298105,
+  "num_dG": 3.6504133049675147e-13,
+  "ana_dfreq": 0.18063334712326196,
+  "ana_dG": 2.3083879634455684e-06,
+  "note": null
+ },
+ {
+  "case": "CO2 (linear)",
+  "atoms": 3,
+  "num_dfreq": 0.003972993078150466,
+  "num_dG": 3.785860513971784e-13,
+  "ana_dfreq": 0.05399138542907167,
+  "ana_dG": 2.259882635469168e-07,
+  "note": null
+ },
+ {
+  "case": "HCN (linear)",
+  "atoms": 3,
+  "num_dfreq": 0.004544243617033317,
+  "num_dG": 3.702593787124897e-13,
+  "ana_dfreq": 0.08313898162032274,
+  "ana_dG": 3.7324646795511285e-07,
+  "note": null
+ }
+]

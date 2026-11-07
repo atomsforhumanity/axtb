@@ -1,0 +1,56 @@
+[workspace]
+resolver = "2"
+members = ["crates/axtb", "crates/axtb-py", "crates/axtb-cli", "crates/driver", "crates/d4", "crates/solvation", "crates/gxtb", "crates/gfnff"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.86"
+# the core crates; axtb-gxtb, axtb-driver, axtb-cli and axtb-py set GPL-3.0-only (LICENSE)
+license = "LGPL-3.0-or-later"
+authors = ["Colton Hicks"]
+repository = "https://github.com/atomsforhumanity/axtb"
+homepage = "https://github.com/atomsforhumanity/axtb"
+
+# The crates of the workspace, by path here and by version on crates.io (published in this
+# order: axtb-d4, axtb-solvation, axtb, axtb-gfnff, axtb-gxtb, axtb-driver, axtb-cli).
+[workspace.dependencies]
+axtb = { path = "crates/axtb", version = "0.1.0" }
+axtb-d4 = { path = "crates/d4", version = "0.1.0" }
+axtb-solvation = { path = "crates/solvation", version = "0.1.0" }
+axtb-gfnff = { path = "crates/gfnff", version = "0.1.0" }
+axtb-gxtb = { path = "crates/gxtb", version = "0.1.0" }
+# the front ends choose g-xTB with their own feature `gxtb`
+axtb-driver = { path = "crates/driver", version = "0.1.0", default-features = false }
+
+# Lints for every crate ([lints] workspace = true in each). Allowed on purpose: index loops over
+# several arrays at once and long argument lists are the clearest form of the numerical kernels,
+# and literals keep the digits of the published parameter tables.
+[workspace.lints.clippy]
+needless_range_loop = "allow"
+too_many_arguments = "allow"
+excessive_precision = "allow"
+
+# debug = 1 keeps line tables for profiling; release artifacts use the dist profile below
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+debug = 1
+
+# The release CLI binary: the release profile without debug info, stripped
+# (`cargo build --profile dist -p axtb-cli` writes target/dist/axtb). The wheels are stripped by
+# maturin (`strip = true` in crates/axtb-py/pyproject.toml).
+[profile.dist]
+inherits = "release"
+debug = false
+strip = true
+
+[profile.dev]
+opt-level = 1
+
+# Patched copies of two faer dependencies that scan every CPU's sysfs cache files at
+# start-up; see third_party/README.md. Remove when upstream releases a fix.
+[patch.crates-io]
+gemm-common = { path = "third_party/gemm-common" }
+private-gemm-x86 = { path = "third_party/private-gemm-x86" }

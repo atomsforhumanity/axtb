@@ -1,0 +1,28 @@
+[package]
+name = "linalg-bench"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "LGPL-3.0-or-later"
+description = "Dense eigensolver / GEMM backend benchmark for axtb (standalone, not in the workspace)"
+
+# standalone: not a member of the parent axtb workspace
+[workspace]
+
+[dependencies]
+faer22 = { package = "faer", version = "=0.22.6", default-features = false, features = ["std", "linalg", "rayon"] }
+faer24 = { package = "faer", version = "=0.24.4", default-features = false, features = ["std", "linalg", "rayon"] }
+rayon = "1"
+libloading = "0.8"
+libc = "0.2"
+nalgebra = "0.33"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+debug = 1
+
+[features]
+# faer's AVX-512 (x86-v4) SIMD paths; needs AVX-512 intrinsics (stable since Rust 1.89, or RUSTC_BOOTSTRAP=1)
+faer-avx512 = ["faer24/nightly"]

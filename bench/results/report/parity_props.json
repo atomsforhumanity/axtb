@@ -1,0 +1,42 @@
+[
+ {
+  "id": "gxtb201",
+  "method": "g-xTB 2.0.1",
+  "program": "the g-xTB 2.0.1 program",
+  "molecules": 11,
+  "bond_orders": 1.1293355139940786e-11,
+  "gap_eV": 3.724665020854445e-11,
+  "quadrupole": 4.8956202435501694e-05,
+  "quadrupole_printed": 5e-05
+ },
+ {
+  "id": "gxtb11",
+  "method": "g-xTB v1.1",
+  "program": "g-xtb 1.1.0",
+  "molecules": 11,
+  "bond_orders": 0.00042324755032152606,
+  "gap_eV": 2.2428925916528897e-07,
+  "quadrupole": null,
+  "quadrupole_printed": null
+ },
+ {
+  "id": "xtb680",
+  "method": "GFN2-xTB",
+  "program": "xtb 6.8.0",
+  "molecules": 12,
+  "bond_orders": 7.105427357601002e-14,
+  "gap_eV": 4.654054919228656e-13,
+  "quadrupole": 0.0004994326021101614,
+  "quadrupole_printed": 0.0005
+ },
+ {
+  "id": "xtb671",
+  "method": "GFN2-xTB",
+  "program": "xtb 6.7.1",
+  "molecules": 12,
+  "bond_orders": 1.83661641450783e-09,
+  "gap_eV": 1.0483797829863306e-08,
+  "quadrupole": 0.0012575100854856913,
+  "quadrupole_printed": 0.0005
+ }
+]

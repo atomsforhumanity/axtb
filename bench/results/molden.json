@@ -1,0 +1,1088 @@
+[
+ {
+  "case": "gfn2/water",
+  "program": "gfn2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 3,
+  "basis_functions": 6,
+  "cartesian_functions": 6,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 5.561914714452709e-16,
+  "orthonormal_axtb_cartesian": 5.561914714452709e-16,
+  "orthonormal_axtb_spherical_all": 5.561914714452709e-16,
+  "orthonormal_program": 9.452216787053658e-12,
+  "vs_program_spherical": {
+   "nondegenerate": 8.463008072112643e-12,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 1.8099965970463927e-12,
+   "values": 4.922260813388223e-11,
+   "energy": 2.0600077199617317e-11,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 8.463008072112643e-12,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 1.8099965970463927e-12,
+   "values": 4.922260813388223e-11,
+   "energy": 2.0600077199617317e-11,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 4.440892098500626e-16,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 3.3306690738754696e-16,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "mepd_homo": {
+   "max_diff_rel": 4.074274150683873e-33,
+   "norm_axtb": 1.011839118322696,
+   "norm_program": 1.011839118322696,
+   "degenerate": 1,
+   "energy_diff": 5.000000413701855e-12
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gfn2/caffeine",
+  "program": "gfn2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 24,
+  "basis_functions": 66,
+  "cartesian_functions": 66,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.61437530010744e-11,
+  "orthonormal_axtb_cartesian": 1.61437530010744e-11,
+  "orthonormal_axtb_spherical_all": 7.046120227369493e-11,
+  "orthonormal_program": 3.218558752848821e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.1333367577748277e-10,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 2.8527069595440935e-11,
+   "values": 1.5336616788215913e-07,
+   "energy": 2.427140710636877e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.1333367577748277e-10,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 2.8527069595440935e-11,
+   "values": 1.5336616788215913e-07,
+   "energy": 2.427140710636877e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 4.728106794971154e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 3.592626196535775e-11,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "mepd_homo": {
+   "max_diff_rel": 7.304558235584019e-09,
+   "norm_axtb": 0.9552415707174209,
+   "norm_program": 0.9552415697595917,
+   "degenerate": 1,
+   "energy_diff": 1.6123602453177455e-10
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gfn2/O2-triplet",
+  "program": "gfn2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 2,
+  "basis_functions": 8,
+  "cartesian_functions": 8,
+  "max_l": 1,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 2.1516122217235534e-13,
+  "orthonormal_axtb_cartesian": 2.1516122217235534e-13,
+  "orthonormal_axtb_spherical_all": 5.03375119365046e-13,
+  "orthonormal_program": 2.3218316158590824e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 5.86510839895027e-11,
+   "degenerate_blocks": 1.0504486169793381e-11,
+   "occupied_space": 1.0504486169793381e-11,
+   "values": 3.6780062071064325e-10,
+   "energy": 7.796696621653609e-11,
+   "occupation": 0.0,
+   "orbitals_compared": 8
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 5.86510839895027e-11,
+   "degenerate_blocks": 1.0504486169793381e-11,
+   "occupied_space": 1.0504486169793381e-11,
+   "values": 3.6780062071064325e-10,
+   "energy": 7.796696621653609e-11,
+   "occupation": 0.0,
+   "orbitals_compared": 8
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 1.5432100042289676e-13,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 1.5432100042289676e-13,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "mepd_homo": {
+   "max_diff_rel": 2.6805734914057756e-07,
+   "norm_axtb": 1.0055595545296,
+   "norm_program": 1.0055595619581328,
+   "degenerate": 2,
+   "energy_diff": 5.92429993950816e-11
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gfn2/Cu(NH3)4-2+",
+  "program": "gfn2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 17,
+  "basis_functions": 37,
+  "cartesian_functions": 38,
+  "max_l": 2,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 4.184430579812215e-12,
+  "orthonormal_axtb_cartesian": 4.184430579812215e-12,
+  "orthonormal_axtb_spherical_all": 8.179457111623378e-12,
+  "orthonormal_program": 4.5418890870507767e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 2.2841839530940433e-11,
+   "degenerate_blocks": 1.2825518425074733e-11,
+   "occupied_space": 2.344846539159562e-11,
+   "values": 3.4636159072836587e-09,
+   "energy": 3.014190008698847e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 37
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 2.2841950553242896e-11,
+   "degenerate_blocks": 1.2825518425074733e-11,
+   "occupied_space": 2.344902050310793e-11,
+   "values": 3.4636159072836587e-09,
+   "energy": 3.014190008698847e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 37
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 7.009393065970926e-12,
+   "degenerate_blocks": 3.2576163988551343e-12,
+   "occupied_space": 3.2619462686511724e-12,
+   "values": 2.510429968256185e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 74
+  },
+  "mepd_homo": {
+   "max_diff_rel": 0.0,
+   "norm_axtb": 1.0079012608279447,
+   "norm_program": 1.0079012608279447,
+   "degenerate": 1,
+   "energy_diff": 9.975398285178017e-11
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gfn2/ferrocene",
+  "program": "gfn2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 21,
+  "basis_functions": 59,
+  "cartesian_functions": 60,
+  "max_l": 2,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 6.213403055954636e-12,
+  "orthonormal_axtb_cartesian": 6.213403055954636e-12,
+  "orthonormal_axtb_spherical_all": 1.522137971221582e-11,
+  "orthonormal_program": 3.2082336787198074e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 7.818379277324539e-11,
+   "degenerate_blocks": 6.906242244753003e-11,
+   "occupied_space": 1.793198922683814e-11,
+   "values": 1.2912612737737395e-10,
+   "energy": 2.3916801872303495e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 58
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 7.818379277324539e-11,
+   "degenerate_blocks": 6.906242244753003e-11,
+   "occupied_space": 1.7931656159930753e-11,
+   "values": 1.2912612737737395e-10,
+   "energy": 2.3916801872303495e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 58
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 1.522137971221582e-11,
+   "degenerate_blocks": 1.384747871924219e-11,
+   "occupied_space": 6.151856801750455e-12,
+   "values": 2.413394805978697e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 59
+  },
+  "mepd_homo": {
+   "max_diff_rel": 7.035772201891816e-07,
+   "norm_axtb": 1.0039525845016057,
+   "norm_program": 1.0039525502954079,
+   "degenerate": 2,
+   "energy_diff": 3.572703244358877e-11
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gfn2/caffeine-acc1e-4",
+  "program": "gfn2",
+  "accuracy": 0.0001,
+  "axtb_accuracy": 0.0001,
+  "atoms": 24,
+  "basis_functions": 66,
+  "cartesian_functions": 66,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 3.1086244689504383e-15,
+  "orthonormal_axtb_cartesian": 3.1086244689504383e-15,
+  "orthonormal_axtb_spherical_all": 8.881784197001252e-15,
+  "orthonormal_program": 3.1162628033598594e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.0298029096134087e-10,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 3.8620218134610695e-12,
+   "values": 1.534786012488217e-07,
+   "energy": 2.4271007426079905e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.0298029096134087e-10,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 3.8620218134610695e-12,
+   "values": 1.534786012488217e-07,
+   "energy": 2.4271007426079905e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 3.219646771412954e-15,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 1.3322676295501878e-15,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "mepd_homo": {
+   "max_diff_rel": 1.970086083203089e-09,
+   "norm_axtb": 0.9552418210704249,
+   "norm_program": 0.9552418211107353,
+   "degenerate": 1,
+   "energy_diff": 1.6123796742206764e-10
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gfn2/ferrocene-acc1e-4",
+  "program": "gfn2",
+  "accuracy": 0.0001,
+  "axtb_accuracy": 0.0001,
+  "atoms": 21,
+  "basis_functions": 59,
+  "cartesian_functions": 60,
+  "max_l": 2,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 2.6645352591003757e-15,
+  "orthonormal_axtb_cartesian": 2.6645352591003757e-15,
+  "orthonormal_axtb_spherical_all": 5.995204332975845e-15,
+  "orthonormal_program": 3.0750957336067586e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 7.820188940854678e-11,
+   "degenerate_blocks": 6.31441565701607e-11,
+   "occupied_space": 1.732558541078788e-11,
+   "values": 1.2926734317585419e-10,
+   "energy": 2.390769804350157e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 58
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 7.820177838624431e-11,
+   "degenerate_blocks": 6.31441565701607e-11,
+   "occupied_space": 1.7325252343880493e-11,
+   "values": 1.2926734317585419e-10,
+   "energy": 2.390769804350157e-10,
+   "occupation": 0.0,
+   "orbitals_compared": 58
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 2.55351295663786e-15,
+   "degenerate_blocks": 2.55351295663786e-15,
+   "occupied_space": 2.220446049250313e-16,
+   "values": 1.6089298412223168e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 59
+  },
+  "mepd_homo": {
+   "max_diff_rel": 1.6317089378735975e-07,
+   "norm_axtb": 1.0039524885826054,
+   "norm_program": 1.0039524634257997,
+   "degenerate": 2,
+   "energy_diff": 3.563799255701383e-11
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb2/water",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 3,
+  "basis_functions": 6,
+  "cartesian_functions": 6,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.5543122344752192e-15,
+  "orthonormal_axtb_cartesian": 1.5543122344752192e-15,
+  "orthonormal_axtb_spherical_all": 5.440092820663267e-15,
+  "orthonormal_program": 5.10702591327572e-15,
+  "vs_program_spherical": {
+   "nondegenerate": 1.609823385706477e-14,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 0.0,
+   "values": 3.092192862512199e-13,
+   "energy": 1.504352198367087e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.609823385706477e-14,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 0.0,
+   "values": 3.092192862512199e-13,
+   "energy": 1.504352198367087e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 5.440092820663267e-15,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.440892098500626e-16,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "mepd_homo": {
+   "max_diff_rel": 0.0,
+   "norm_axtb": 1.0222773026643857,
+   "norm_program": 1.0222773026643857,
+   "degenerate": 1,
+   "energy_diff": 2.9976021664879227e-15
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gxtb2/caffeine",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 24,
+  "basis_functions": 66,
+  "cartesian_functions": 66,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 2.934119613939856e-11,
+  "orthonormal_axtb_cartesian": 2.934119613939856e-11,
+  "orthonormal_axtb_spherical_all": 7.207814545187473e-11,
+  "orthonormal_program": 2.935029996820049e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 4.315736656934632e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.76031436491553e-11,
+   "values": 1.620037996483995e-12,
+   "energy": 3.497202527569243e-14,
+   "occupation": 7.000000579182597e-10,
+   "orbitals_compared": 66
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 4.315736656934632e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.76031436491553e-11,
+   "values": 1.620037996483995e-12,
+   "energy": 3.497202527569243e-14,
+   "occupation": 7.000000579182597e-10,
+   "orbitals_compared": 66
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 4.315314772185275e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.760658534053164e-11,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  },
+  "mepd_homo": {
+   "max_diff_rel": 0.0,
+   "norm_axtb": 0.9348849578697738,
+   "norm_program": 0.9348849578697738,
+   "degenerate": 1,
+   "energy_diff": 1.2989609388114332e-14
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gxtb2/O2-triplet",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 2,
+  "basis_functions": 8,
+  "cartesian_functions": 8,
+  "max_l": 1,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 2.3101520696400257e-12,
+  "orthonormal_axtb_cartesian": 2.3101520696400257e-12,
+  "orthonormal_axtb_spherical_all": 4.824918242718468e-12,
+  "orthonormal_program": 2.3034907314922748e-12,
+  "vs_program_spherical": {
+   "nondegenerate": 4.8446802125567956e-12,
+   "degenerate_blocks": 7.427392034742297e-14,
+   "occupied_space": 1.2378986724570495e-13,
+   "values": 5.689298620133329e-14,
+   "energy": 2.6006974351844292e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 4.8446802125567956e-12,
+   "degenerate_blocks": 7.427392034742297e-14,
+   "occupied_space": 1.2378986724570495e-13,
+   "values": 5.689298620133329e-14,
+   "energy": 2.6006974351844292e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 4.824918242718468e-12,
+   "degenerate_blocks": 6.80566714095221e-14,
+   "occupied_space": 1.1746159600534156e-13,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "mepd_homo": {
+   "max_diff_rel": 1.2675960030851307e-07,
+   "norm_axtb": 1.0130078008428065,
+   "norm_program": 1.013007812003321,
+   "degenerate": 2,
+   "energy_diff": 4.9960036108132044e-15
+  },
+  "mepd_reads_spherical": true
+ },
+ {
+  "case": "gxtb2/Cu(NH3)4-2+",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 17,
+  "basis_functions": 37,
+  "cartesian_functions": 38,
+  "max_l": 2,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 5.524303237081085e-11,
+  "orthonormal_axtb_cartesian": 5.524292134850839e-11,
+  "orthonormal_axtb_spherical_all": 6.126354978874815e-11,
+  "orthonormal_program": 5.524725121830443e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 6.126765761393926e-11,
+   "degenerate_blocks": 6.040723476985477e-13,
+   "occupied_space": 6.461031709648068e-11,
+   "values": 5.279438386584197e-11,
+   "energy": 1.6200374375330284e-12,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 74
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 6.126765761393926e-11,
+   "degenerate_blocks": 6.041833700010102e-13,
+   "occupied_space": 6.461053914108561e-11,
+   "values": 5.279438386584197e-11,
+   "energy": 1.6200374375330284e-12,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 74
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 6.126354978874815e-11,
+   "degenerate_blocks": 6.032951915813101e-13,
+   "occupied_space": 6.460987300727083e-11,
+   "values": 2.0419657193049468e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 74
+  },
+  "mepd_homo": {
+   "max_diff_rel": 5.802157893969112e-14,
+   "norm_axtb": 0.9241632938136621,
+   "norm_program": 0.924163293813665,
+   "degenerate": 1,
+   "energy_diff": 1.9984014443252818e-15
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb2/ferrocene",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 21,
+  "basis_functions": 59,
+  "cartesian_functions": 60,
+  "max_l": 2,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.2450485087356356e-11,
+  "orthonormal_axtb_cartesian": 1.2450374065053893e-11,
+  "orthonormal_axtb_spherical_all": 6.358702453468368e-11,
+  "orthonormal_program": 1.2439826946319954e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 6.362277371607661e-11,
+   "degenerate_blocks": 2.0496160324512402e-11,
+   "occupied_space": 1.92293958534151e-11,
+   "values": 2.6571080806281907e-13,
+   "energy": 1.3011813848606835e-13,
+   "occupation": 5.000000413701855e-10,
+   "orbitals_compared": 59
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 6.362277371607661e-11,
+   "degenerate_blocks": 2.0496382369117327e-11,
+   "occupied_space": 1.922950687571756e-11,
+   "values": 2.6571080806281907e-13,
+   "energy": 1.3011813848606835e-13,
+   "occupation": 5.000000413701855e-10,
+   "orbitals_compared": 59
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 6.358702453468368e-11,
+   "degenerate_blocks": 2.0483170715124288e-11,
+   "occupied_space": 1.9233725723211137e-11,
+   "values": 1.816027815470868e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 59
+  },
+  "mepd_homo": {
+   "max_diff_rel": 0.0,
+   "norm_axtb": 0.9854760362497725,
+   "norm_program": 0.9854760362497725,
+   "degenerate": 1,
+   "energy_diff": 9.992007221626409e-16
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb2/UF6",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 7,
+  "basis_functions": 40,
+  "cartesian_functions": 44,
+  "max_l": 3,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.2331219378935998e-11,
+  "orthonormal_axtb_cartesian": 1.2331221113659474e-11,
+  "orthonormal_axtb_spherical_all": 6.011968700647685e-11,
+  "orthonormal_program": 1.2517055100746965e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 0.0,
+   "degenerate_blocks": 4.619638005465276e-12,
+   "occupied_space": 1.4243828339033371e-11,
+   "values": 6.732775336375698e-11,
+   "energy": 2.6501023597802487e-12,
+   "occupation": 3.000000248221113e-10,
+   "orbitals_compared": 40
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 0.0,
+   "degenerate_blocks": 4.619526983162814e-12,
+   "occupied_space": 1.4243717316730908e-11,
+   "values": 6.732775336375698e-11,
+   "energy": 2.6501023597802487e-12,
+   "occupation": 3.000000248221113e-10,
+   "orbitals_compared": 40
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 0.0,
+   "degenerate_blocks": 4.619304938557889e-12,
+   "occupied_space": 1.4243051182916133e-11,
+   "values": 9.689749491288366e-17,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 40
+  },
+  "mepd_homo": {
+   "max_diff_rel": 2.0415145049235972e-07,
+   "norm_axtb": 1.0161943203753305,
+   "norm_program": 1.0161942686465084,
+   "degenerate": 3,
+   "energy_diff": 1.0691447727140257e-13
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb2/GdCl3-octet",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 4,
+  "basis_functions": 43,
+  "cartesian_functions": 50,
+  "max_l": 3,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 3.1285311147266626e-11,
+  "orthonormal_axtb_cartesian": 3.128530420837272e-11,
+  "orthonormal_axtb_spherical_all": 1.1152725409857567e-09,
+  "orthonormal_program": 3.128463720719621e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.115272874052664e-09,
+   "degenerate_blocks": 4.6027792688363434e-10,
+   "occupied_space": 4.804878717123984e-11,
+   "values": 6.919243741356108e-12,
+   "energy": 1.5987211554602254e-14,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 86
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.115272874052664e-09,
+   "degenerate_blocks": 4.602780379059368e-10,
+   "occupied_space": 4.804900921584476e-11,
+   "values": 6.9191828843059916e-12,
+   "energy": 1.5987211554602254e-14,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 86
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 1.1152725409857567e-09,
+   "degenerate_blocks": 4.6027759381672695e-10,
+   "occupied_space": 4.804856512663491e-11,
+   "values": 4.868564013142744e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 86
+  },
+  "mepd_homo": {
+   "max_diff_rel": 0.0,
+   "norm_axtb": 1.0012235456738936,
+   "norm_program": 1.0012235456738936,
+   "degenerate": 1,
+   "energy_diff": 8.992806499463768e-15
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb2/CeCl3-doublet",
+  "program": "gxtb2",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 4,
+  "basis_functions": 43,
+  "cartesian_functions": 50,
+  "max_l": 3,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 7.596812068300096e-12,
+  "orthonormal_axtb_cartesian": 7.597034112905021e-12,
+  "orthonormal_axtb_spherical_all": 2.326938641772358e-10,
+  "orthonormal_program": 7.59392548843607e-12,
+  "vs_program_spherical": {
+   "nondegenerate": 2.3269464133335305e-10,
+   "degenerate_blocks": 9.486855745421963e-13,
+   "occupied_space": 4.15067979986361e-12,
+   "values": 7.096111276153199e-08,
+   "energy": 8.021361352916756e-15,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 86
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 2.3269441928874812e-10,
+   "degenerate_blocks": 9.484635299372712e-13,
+   "occupied_space": 4.150901844468535e-12,
+   "values": 7.096111276153199e-08,
+   "energy": 8.021361352916756e-15,
+   "occupation": 1.000000082740371e-10,
+   "orbitals_compared": 86
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 2.3269375315493335e-10,
+   "degenerate_blocks": 9.492406860545088e-13,
+   "occupied_space": 4.150790822166073e-12,
+   "values": 4.749118958801525e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 86
+  },
+  "mepd_homo": {
+   "max_diff_rel": 1.6783327441184632e-07,
+   "norm_axtb": 0.7874880759224661,
+   "norm_program": 0.7874880832787018,
+   "degenerate": 1,
+   "energy_diff": 6.994405055138486e-15
+  },
+  "mepd_reads_spherical": false
+ },
+ {
+  "case": "gxtb11/water",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 3,
+  "basis_functions": 6,
+  "cartesian_functions": 6,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.3322676295501878e-15,
+  "orthonormal_axtb_cartesian": 1.3322676295501878e-15,
+  "orthonormal_axtb_spherical_all": 5.88418203051333e-15,
+  "orthonormal_program": 5.440092820663267e-15,
+  "vs_program_spherical": {
+   "nondegenerate": 2.6645352591003757e-15,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 2.6645352591003757e-15,
+   "values": 2.8800847909792003e-13,
+   "energy": 2.19824158875781e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 2.6645352591003757e-15,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 2.6645352591003757e-15,
+   "values": 2.8800847909792003e-13,
+   "energy": 2.19824158875781e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 5.88418203051333e-15,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 0.0,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 6
+  }
+ },
+ {
+  "case": "gxtb11/caffeine",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 24,
+  "basis_functions": 66,
+  "cartesian_functions": 66,
+  "max_l": 1,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 3.0346614110499104e-11,
+  "orthonormal_axtb_cartesian": 3.0346614110499104e-11,
+  "orthonormal_axtb_spherical_all": 1.0196852977032339e-10,
+  "orthonormal_program": 3.0355051805486255e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 3.358502365102822e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.8740678160186235e-11,
+   "values": 8.660741919091421e-07,
+   "energy": 5.632708022229593e-09,
+   "occupation": 0.0,
+   "orbitals_compared": 47
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 3.358502365102822e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.8740678160186235e-11,
+   "values": 8.660741919091421e-07,
+   "energy": 5.632708022229593e-09,
+   "occupation": 0.0,
+   "orbitals_compared": 47
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 3.704225814971096e-11,
+   "degenerate_blocks": 0.0,
+   "occupied_space": 4.874278758393302e-11,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 66
+  }
+ },
+ {
+  "case": "gxtb11/O2-triplet",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 2,
+  "basis_functions": 8,
+  "cartesian_functions": 8,
+  "max_l": 1,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 2.3310242625029787e-12,
+  "orthonormal_axtb_cartesian": 2.3310242625029787e-12,
+  "orthonormal_axtb_spherical_all": 4.803268893738277e-12,
+  "orthonormal_program": 2.327471548824178e-12,
+  "vs_program_spherical": {
+   "nondegenerate": 4.814926235496841e-12,
+   "degenerate_blocks": 7.205347429817266e-14,
+   "occupied_space": 1.3600232051658168e-13,
+   "values": 1.50666422238151e-14,
+   "energy": 2.5979218776228663e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 4.814926235496841e-12,
+   "degenerate_blocks": 7.205347429817266e-14,
+   "occupied_space": 1.3600232051658168e-13,
+   "values": 1.50666422238151e-14,
+   "energy": 2.5979218776228663e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 4.803268893738277e-12,
+   "degenerate_blocks": 6.838973831690964e-14,
+   "occupied_space": 1.3167245072054357e-13,
+   "values": 0.0,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 16
+  }
+ },
+ {
+  "case": "gxtb11/Cu(NH3)4-2+",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 17,
+  "basis_functions": 37,
+  "cartesian_functions": 38,
+  "max_l": 2,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 5.421063598021192e-11,
+  "orthonormal_axtb_cartesian": 5.4210413935606994e-11,
+  "orthonormal_axtb_spherical_all": 6.09947647944864e-11,
+  "orthonormal_program": 5.420974780179222e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 6.099520888369625e-11,
+   "degenerate_blocks": 5.544453784978032e-13,
+   "occupied_space": 6.461675639002351e-11,
+   "values": 5.35243427377713e-07,
+   "energy": 6.410896260383714e-08,
+   "occupation": 0.0,
+   "orbitals_compared": 62
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 6.099498683909133e-11,
+   "degenerate_blocks": 5.544453784978032e-13,
+   "occupied_space": 6.461720047923336e-11,
+   "values": 5.35243427377713e-07,
+   "energy": 6.410896260383714e-08,
+   "occupation": 0.0,
+   "orbitals_compared": 62
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 6.09947647944864e-11,
+   "degenerate_blocks": 5.522249324485529e-13,
+   "occupied_space": 6.461753354614075e-11,
+   "values": 3.641805610452236e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 74
+  }
+ },
+ {
+  "case": "gxtb11/ferrocene",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 21,
+  "basis_functions": 59,
+  "cartesian_functions": 60,
+  "max_l": 2,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.1405321131974233e-11,
+  "orthonormal_axtb_cartesian": 1.1405321131974233e-11,
+  "orthonormal_axtb_spherical_all": 6.670097807415232e-11,
+  "orthonormal_program": 1.1410650202492434e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.1407874644930871e-11,
+   "degenerate_blocks": 2.0127122191127e-11,
+   "occupied_space": 1.7634338433936136e-11,
+   "values": 7.3618628226417e-13,
+   "energy": 2.403632848313464e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 39
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.1407874644930871e-11,
+   "degenerate_blocks": 2.0127122191127e-11,
+   "occupied_space": 1.7634338433936136e-11,
+   "values": 7.3618628226417e-13,
+   "energy": 2.403632848313464e-14,
+   "occupation": 0.0,
+   "orbitals_compared": 39
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 6.670097807415232e-11,
+   "degenerate_blocks": 2.0126789124219613e-11,
+   "occupied_space": 1.7632451054794274e-11,
+   "values": 2.0670681813060985e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 59
+  }
+ },
+ {
+  "case": "gxtb11/UF6",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 7,
+  "basis_functions": 40,
+  "cartesian_functions": 44,
+  "max_l": 3,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.2452622266678759e-11,
+  "orthonormal_axtb_cartesian": 1.2452608388890951e-11,
+  "orthonormal_axtb_spherical_all": 5.280598180945617e-11,
+  "orthonormal_program": 1.4531518349736317e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.085318138693836e-07,
+   "degenerate_blocks": 1.0851187093319226e-07,
+   "occupied_space": 1.1410683509183173e-10,
+   "values": 0.0005303417848765994,
+   "energy": 8.618333343979323e-06,
+   "occupation": 0.0,
+   "orbitals_compared": 34
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.085318137583613e-07,
+   "degenerate_blocks": 1.0851187126625916e-07,
+   "occupied_space": 1.1410683509183173e-10,
+   "values": 0.0005303417848766118,
+   "energy": 8.618333343979323e-06,
+   "occupation": 0.0,
+   "orbitals_compared": 34
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 9.658940314238862e-15,
+   "degenerate_blocks": 2.9589664052309672e-12,
+   "occupied_space": 1.4027778938441315e-11,
+   "values": 3.9789097052129636e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 40
+  }
+ },
+ {
+  "case": "gxtb11/UF6-axtb-acc1e-3",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 0.001,
+  "atoms": 7,
+  "basis_functions": 40,
+  "cartesian_functions": 44,
+  "max_l": 3,
+  "spin_sets": 1,
+  "orthonormal_axtb_spherical": 1.4543382123588522e-11,
+  "orthonormal_axtb_cartesian": 1.4543347429119002e-11,
+  "orthonormal_axtb_spherical_all": 5.2809756567739896e-11,
+  "orthonormal_program": 1.4531518349736317e-11,
+  "vs_program_spherical": {
+   "nondegenerate": 1.4264799889085467e-06,
+   "degenerate_blocks": 1.4263528791413904e-06,
+   "occupied_space": 1.4198087150418814e-11,
+   "values": 0.0010020461141162953,
+   "energy": 8.826008401907615e-08,
+   "occupation": 0.0,
+   "orbitals_compared": 34
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 1.426479989019569e-06,
+   "degenerate_blocks": 1.4263528788083235e-06,
+   "occupied_space": 1.4197976128116352e-11,
+   "values": 0.0010020461141162953,
+   "energy": 8.826008401907615e-08,
+   "occupation": 0.0,
+   "orbitals_compared": 34
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 9.103828801926284e-15,
+   "degenerate_blocks": 2.9592994721383548e-12,
+   "occupied_space": 1.402711280462654e-11,
+   "values": 5.968236351987731e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 40
+  }
+ },
+ {
+  "case": "gxtb11/CeCl3-doublet",
+  "program": "gxtb11",
+  "accuracy": 1.0,
+  "axtb_accuracy": 1.0,
+  "atoms": 4,
+  "basis_functions": 43,
+  "cartesian_functions": 50,
+  "max_l": 3,
+  "spin_sets": 2,
+  "orthonormal_axtb_spherical": 6.416644993123555e-12,
+  "orthonormal_axtb_cartesian": 6.416644993123555e-12,
+  "orthonormal_axtb_spherical_all": 2.3345814170738777e-10,
+  "orthonormal_program": 6.406875030506853e-12,
+  "vs_program_spherical": {
+   "nondegenerate": 3.1108449149996886e-12,
+   "degenerate_blocks": 1.1433076707589862e-12,
+   "occupied_space": 3.128608483393691e-12,
+   "values": 2.2122775052112213e-08,
+   "energy": 3.834230970917174e-09,
+   "occupation": 0.0,
+   "orbitals_compared": 46
+  },
+  "vs_program_cartesian": {
+   "nondegenerate": 3.1110669596046137e-12,
+   "degenerate_blocks": 1.1433076707589862e-12,
+   "occupied_space": 3.128608483393691e-12,
+   "values": 2.2122775059608528e-08,
+   "energy": 3.834230970917174e-09,
+   "occupation": 0.0,
+   "orbitals_compared": 46
+  },
+  "spherical_vs_cartesian": {
+   "nondegenerate": 2.334583637519927e-10,
+   "degenerate_blocks": 6.141176456253561e-11,
+   "occupied_space": 3.1292746172084662e-12,
+   "values": 4.767904654288631e-16,
+   "energy": 0.0,
+   "occupation": 0.0,
+   "orbitals_compared": 86
+  }
+ }
+]

@@ -1,0 +1,62 @@
+[
+ {
+  "item": "xtb 6.8.0",
+  "value": "xtb version 6.8.0 (4b8c987), official Linux release: the GFN2-xTB reference for xtb conventions",
+  "reference": "Bannwarth et al., WIREs Comput. Mol. Sci. 11, e1493 (2021), doi:10.1002/wcms.1493",
+  "license": "LGPL-3.0"
+ },
+ {
+  "item": "xtb 6.7.1 / g-xTB 2.0.1 program",
+  "value": "xtb version 6.7.1 (26dd68d), the g-xTB 2.0.1 build: g-xTB with --gxtb, GFN2-xTB 6.7.1 and GFN-FF without it",
+  "reference": "github.com/grimme-lab/g-xtb",
+  "license": "GPL-3.0"
+ },
+ {
+  "item": "g-xtb 1.1.0",
+  "value": "the g-xTB v1.1 program",
+  "reference": "github.com/grimme-lab/g-xtb",
+  "license": "GPL-3.0"
+ },
+ {
+  "item": "tblite",
+  "value": "tblite 0.8.0 (PyPI wheel), dftd4 4.3.1",
+  "reference": "github.com/tblite/tblite",
+  "license": "LGPL-3.0"
+ },
+ {
+  "item": "axtb",
+  "value": "axtb 0.1.0, Rust, faer 0.22",
+  "reference": "github.com/atomsforhumanity/axtb (private)",
+  "license": "LGPL-3.0"
+ },
+ {
+  "item": "GFN2-xTB",
+  "value": "self-consistent D4 dispersion; ALPB/GBSA implicit solvation",
+  "reference": "Bannwarth, Ehlert, Grimme, JCTC 15, 1652 (2019), doi:10.1021/acs.jctc.8b01176; Ehlert et al., JCTC 17, 4250 (2021), doi:10.1021/acs.jctc.1c00471",
+  "license": ""
+ },
+ {
+  "item": "g-xTB",
+  "value": "v1.1 and 2.0.1 (H\u2013Lr), q-vSZP basis, EEQ-BC charges, revD4",
+  "reference": "Froitzheim, M\u00fcller, Hansen, Grimme, ChemRxiv (2025), chemrxiv.org/engage/chemrxiv/article-details/685434533ba0887c335fc974 (v1); 2.0.1: github.com/grimme-lab/g-xtb",
+  "license": ""
+ },
+ {
+  "item": "GFN-FF",
+  "value": "generic force field with automatic topology",
+  "reference": "Spicher, Grimme, Angew. Chem. Int. Ed. 59, 15665 (2020), doi:10.1002/anie.202004239",
+  "license": ""
+ },
+ {
+  "item": "Linear algebra",
+  "value": "faer 0.22 (axtb), faer 0.24; OpenBLAS 0.3.32 (laptop) / 0.3.34 (node); Intel MKL 2026.2; AMD AOCL 5.3 built from source",
+  "reference": "faer.veganb.tw; openblas.net; intel.com/oneMKL; github.com/amd (aocl-blis, aocl-libflame)",
+  "license": "MIT; BSD-3; Intel Simplified Software License; BSD-3"
+ },
+ {
+  "item": "Constants",
+  "value": "NIST CODATA 2022 (axtb default conventions)",
+  "reference": "Mohr et al., CODATA 2022, physics.nist.gov/constants",
+  "license": "public domain"
+ }
+]

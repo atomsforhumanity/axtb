@@ -1,0 +1,218 @@
+[
+ {
+  "id": "24|cpu|1",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "CPU (faer)",
+  "workers": 1,
+  "per_second": 126.54,
+  "latency_ms": 7.9
+ },
+ {
+  "id": "24|cuda-f64|1",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU FP64",
+  "workers": 1,
+  "per_second": 29.98,
+  "latency_ms": 33.4
+ },
+ {
+  "id": "24|cuda-mixed2|1",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 1,
+  "per_second": 72.8,
+  "latency_ms": 13.7
+ },
+ {
+  "id": "24|cpu|8",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "CPU (faer)",
+  "workers": 8,
+  "per_second": 1219.19,
+  "latency_ms": 6.5
+ },
+ {
+  "id": "24|cuda-f64|8",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU FP64",
+  "workers": 8,
+  "per_second": 112.42,
+  "latency_ms": 70.1
+ },
+ {
+  "id": "24|cuda-mixed2|8",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 8,
+  "per_second": 351.4,
+  "latency_ms": 22.5
+ },
+ {
+  "id": "24|cpu|32",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "CPU (faer)",
+  "workers": 32,
+  "per_second": 2881.66,
+  "latency_ms": 10.2
+ },
+ {
+  "id": "24|cuda-f64|32",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU FP64",
+  "workers": 32,
+  "per_second": 103.59,
+  "latency_ms": 293.1
+ },
+ {
+  "id": "24|cuda-mixed2|32",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 32,
+  "per_second": 316.25,
+  "latency_ms": 95.8
+ },
+ {
+  "id": "24|cpu|64",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "CPU (faer)",
+  "workers": 64,
+  "per_second": 3373.89,
+  "latency_ms": 13.6
+ },
+ {
+  "id": "24|cuda-f64|64",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU FP64",
+  "workers": 64,
+  "per_second": 104.8,
+  "latency_ms": 540.6
+ },
+ {
+  "id": "24|cuda-mixed2|64",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 64,
+  "per_second": 295.83,
+  "latency_ms": 193.9
+ },
+ {
+  "id": "113|cpu|1",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "CPU (faer)",
+  "workers": 1,
+  "per_second": 5.77,
+  "latency_ms": 173.3
+ },
+ {
+  "id": "113|cuda-f64|1",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU FP64",
+  "workers": 1,
+  "per_second": 6.9,
+  "latency_ms": 145.0
+ },
+ {
+  "id": "113|cuda-mixed2|1",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 1,
+  "per_second": 13.34,
+  "latency_ms": 74.9
+ },
+ {
+  "id": "113|cpu|8",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "CPU (faer)",
+  "workers": 8,
+  "per_second": 46.65,
+  "latency_ms": 170.7
+ },
+ {
+  "id": "113|cuda-f64|8",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU FP64",
+  "workers": 8,
+  "per_second": 19.92,
+  "latency_ms": 390.1
+ },
+ {
+  "id": "113|cuda-mixed2|8",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 8,
+  "per_second": 42.4,
+  "latency_ms": 185.8
+ },
+ {
+  "id": "113|cpu|32",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "CPU (faer)",
+  "workers": 32,
+  "per_second": 168.19,
+  "latency_ms": 186.6
+ },
+ {
+  "id": "113|cuda-f64|32",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU FP64",
+  "workers": 32,
+  "per_second": 21.28,
+  "latency_ms": 1374.0
+ },
+ {
+  "id": "113|cuda-mixed2|32",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 32,
+  "per_second": 44.78,
+  "latency_ms": 658.9
+ },
+ {
+  "id": "113|cpu|64",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "CPU (faer)",
+  "workers": 64,
+  "per_second": 191.78,
+  "latency_ms": 294.2
+ },
+ {
+  "id": "113|cuda-f64|64",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU FP64",
+  "workers": 64,
+  "per_second": 20.81,
+  "latency_ms": 2386.7
+ },
+ {
+  "id": "113|cuda-mixed2|64",
+  "molecule": "taxol",
+  "atoms": 113,
+  "variant": "GPU mixed, 2 steps",
+  "workers": 64,
+  "per_second": 42.37,
+  "latency_ms": 1240.8
+ }
+]

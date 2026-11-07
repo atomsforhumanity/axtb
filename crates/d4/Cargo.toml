@@ -1,0 +1,26 @@
+[package]
+name = "axtb-d4"
+description = "DFT-D4 dispersion model (dftd4 4.3.1 / tblite 0.8.0 compatible) for GFN2-xTB"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/axtb-d4"
+readme = "README.md"
+keywords = ["dispersion", "dftd4", "quantum-chemistry", "chemistry", "xtb"]
+categories = ["science", "simulation"]
+# the tests and examples read data of the repository; the package is the library
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[lib]
+name = "axtb_d4"
+path = "src/lib.rs"
+
+[dependencies]
+rayon = "1.10"
+
+[lints]
+workspace = true

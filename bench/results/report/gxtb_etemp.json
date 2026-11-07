@@ -1,0 +1,44 @@
+[
+ {
+  "id": "v2_default",
+  "setting": "g-xTB 2.0.1, program's default thresholds",
+  "program": "xtb --gxtb --etemp T",
+  "molecules": 59,
+  "temperatures": "300, 1000, 3000, 5000",
+  "runs": 236,
+  "compared": 229,
+  "both_fail": 1,
+  "rounding_sensitive": 7,
+  "max_dE": 2.1827872842550278e-11,
+  "max_dgrad": 1.0273210233890939e-10,
+  "iteration_mismatches": 0
+ },
+ {
+  "id": "v2_tight",
+  "setting": "g-xTB 2.0.1, tight thresholds (--acc 0.0001)",
+  "program": "xtb --gxtb --etemp T --acc 0.0001",
+  "molecules": 59,
+  "temperatures": "300, 1000, 3000, 5000",
+  "runs": 236,
+  "compared": 223,
+  "both_fail": 8,
+  "rounding_sensitive": 5,
+  "max_dE": 3.8198777474462986e-11,
+  "max_dgrad": 1.4073964216265722e-11,
+  "iteration_mismatches": 0
+ },
+ {
+  "id": "v1.1",
+  "setting": "g-xTB v1.1",
+  "program": "gxtb -tel T",
+  "molecules": 16,
+  "temperatures": "300, 1000, 3000, 5000",
+  "runs": 64,
+  "compared": 60,
+  "both_fail": 0,
+  "rounding_sensitive": 0,
+  "max_dE": 1.9554136088117957e-11,
+  "max_dgrad": null,
+  "iteration_mismatches": 0
+ }
+]

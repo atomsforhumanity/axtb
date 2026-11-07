@@ -1,0 +1,422 @@
+{
+ "axtb_cli": "accuracy 1e-4 (SCF thresholds x 1e-4) in both conventions",
+ "geometries": "tests/structures/energy_differences/<version> (optimized with axtb, default conventions)",
+ "versions": {
+  "v1.1": {
+   "method": "gxtb-v1.1",
+   "rows": [
+    {
+     "quantity": "n-butane gauche - anti",
+     "program_conventions_kcal": 0.6108704050170565,
+     "default_minus_program_Eh": 5.7999852742796065e-06
+    },
+    {
+     "quantity": "ethanol OH gauche - anti",
+     "program_conventions_kcal": -0.34316345351132893,
+     "default_minus_program_Eh": 6.009131254813838e-07
+    },
+    {
+     "quantity": "ferrocene staggered - eclipsed (ring rotation)",
+     "program_conventions_kcal": 0.18447277534906892,
+     "default_minus_program_Eh": 1.6122271517815534e-07
+    },
+    {
+     "quantity": "Cl- + CH3Cl -> [Cl...CH3Cl]-, complexation",
+     "program_conventions_kcal": -9.43296936652927,
+     "default_minus_program_Eh": -6.2361602886085166e-06
+    },
+    {
+     "quantity": "Cl- + CH3Cl SN2 barrier from the complex",
+     "program_conventions_kcal": 14.916264824649746,
+     "default_minus_program_Eh": 7.036175134089717e-06
+    },
+    {
+     "quantity": "Cl- + CH3Cl SN2 TS - separated reactants",
+     "program_conventions_kcal": 5.483295458120474,
+     "default_minus_program_Eh": 8.000148454812006e-07
+    },
+    {
+     "quantity": "HCN -> HNC, reaction energy",
+     "program_conventions_kcal": 6.783478725016394,
+     "default_minus_program_Eh": -8.038759062856116e-07
+    },
+    {
+     "quantity": "HCN -> HNC, barrier",
+     "program_conventions_kcal": 54.14833517311916,
+     "default_minus_program_Eh": -5.648168595939751e-06
+    },
+    {
+     "quantity": "water dimer binding",
+     "program_conventions_kcal": -4.771298649916726,
+     "default_minus_program_Eh": -2.559478673447302e-07
+    },
+    {
+     "quantity": "iodobenzene...acetone binding",
+     "program_conventions_kcal": -2.503581376832602,
+     "default_minus_program_Eh": 3.9166278043012426e-07
+    },
+    {
+     "quantity": "ethylammonium perchlorate ion-pair binding",
+     "program_conventions_kcal": -104.62479872576021,
+     "default_minus_program_Eh": -9.401718443768914e-07
+    },
+    {
+     "quantity": "Ni(CO)4 -> Ni(CO)3 + CO (unrelaxed)",
+     "program_conventions_kcal": 34.51563398853237,
+     "default_minus_program_Eh": -1.1055424408823455e-05
+    },
+    {
+     "quantity": "[Cu(NH3)4]2+ -> [Cu(NH3)3]2+ + NH3 (unrelaxed)",
+     "program_conventions_kcal": 48.75016573907072,
+     "default_minus_program_Eh": -2.2582029188811248e-06
+    }
+   ],
+   "max_abs_change_Eh": 1.1055424408823455e-05,
+   "optimization": {
+    "butane-anti": {
+     "energy": -158.41040788949144,
+     "lowest_frequencies_cm": [
+      128.56,
+      236.56,
+      265.87
+     ],
+     "imaginary_below_-20": 0
+    },
+    "butane-gauche": {
+     "energy": -158.40942860555052,
+     "lowest_frequencies_cm": [
+      114.08,
+      227.7,
+      267.73
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ethanol-anti": {
+     "energy": -155.03237277292703,
+     "lowest_frequencies_cm": [
+      248.08,
+      319.1,
+      416.49
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ethanol-gauche": {
+     "energy": -155.03291903778677,
+     "lowest_frequencies_cm": [
+      268.67,
+      327.87,
+      424.83
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ferrocene-eclipsed": {
+     "energy": -1650.719408184343,
+     "lowest_frequencies_cm": [
+      21.78,
+      169.28,
+      169.28
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ferrocene-staggered": {
+     "energy": -1650.71911404704,
+     "lowest_frequencies_cm": [
+      -21.87,
+      168.28,
+      168.28
+     ],
+     "imaginary_below_-20": 1
+    },
+    "water-dimer": {
+     "energy": -152.88269672792924,
+     "lowest_frequencies_cm": [
+      71.03,
+      131.92,
+      131.97
+     ],
+     "imaginary_below_-20": 0
+    },
+    "water": {
+     "energy": -76.43754646179671,
+     "lowest_frequencies_cm": [
+      1609.77,
+      3631.73,
+      3675.0
+     ],
+     "imaginary_below_-20": 0
+    },
+    "chloromethane": {
+     "energy": -500.08870984030744,
+     "lowest_frequencies_cm": [
+      746.95,
+      1064.74,
+      1064.74
+     ],
+     "imaginary_below_-20": 0
+    },
+    "chloride": {
+     "energy": -460.26514348903555
+    },
+    "sn2-complex": {
+     "energy": -960.3688919590471,
+     "irc_end_energies": [
+      -960.3688919590151,
+      -960.3688919590471
+     ]
+    },
+    "sn2-ts": {
+     "energy": -960.3451143418031,
+     "imaginary_cm": -444.78,
+     "next_frequencies_cm": [
+      213.99,
+      219.59
+     ],
+     "connects": "ion-dipole complex on both sides (identity reaction)",
+     "irc_end_energies": [
+      -960.3688919590151,
+      -960.3688919590471
+     ]
+    },
+    "HCN": {
+     "energy": -93.4303856817009,
+     "lowest_frequencies_cm": [
+      818.98,
+      818.98,
+      2124.47
+     ],
+     "imaginary_below_-20": 0
+    },
+    "HNC": {
+     "energy": -93.41957632412841,
+     "lowest_frequencies_cm": [
+      645.2,
+      645.2,
+      2059.77
+     ],
+     "imaginary_below_-20": 0
+    },
+    "hcn-ts": {
+     "energy": -93.34410046509178,
+     "imaginary_cm": -1057.25,
+     "next_frequencies_cm": [
+      1911.62,
+      2539.99
+     ],
+     "connects": "HCN and HNC (minimized ends within 1e-6 Eh of the minima)",
+     "irc_end_energies": [
+      -93.4303856817009,
+      -93.41957632412843
+     ]
+    }
+   }
+  },
+  "v2.0.1": {
+   "method": "gxtb-v2.0.1",
+   "rows": [
+    {
+     "quantity": "n-butane gauche - anti",
+     "program_conventions_kcal": 0.4892158027944485,
+     "default_minus_program_Eh": -1.7905676941154525e-12
+    },
+    {
+     "quantity": "ethanol OH gauche - anti",
+     "program_conventions_kcal": -0.03436705999887039,
+     "default_minus_program_Eh": -2.0747847884194925e-12
+    },
+    {
+     "quantity": "ferrocene staggered - eclipsed (ring rotation)",
+     "program_conventions_kcal": 0.1800122460470518,
+     "default_minus_program_Eh": 4.547473508864641e-13
+    },
+    {
+     "quantity": "Cl- + CH3Cl -> [Cl...CH3Cl]-, complexation",
+     "program_conventions_kcal": -9.268798280275595,
+     "default_minus_program_Eh": 2.8762769943568856e-11
+    },
+    {
+     "quantity": "Cl- + CH3Cl SN2 barrier from the complex",
+     "program_conventions_kcal": 12.987435231843559,
+     "default_minus_program_Eh": -1.0913936421275139e-11
+    },
+    {
+     "quantity": "Cl- + CH3Cl SN2 TS - separated reactants",
+     "program_conventions_kcal": 3.718636951567964,
+     "default_minus_program_Eh": 1.7848833522293717e-11
+    },
+    {
+     "quantity": "HCN -> HNC, reaction energy",
+     "program_conventions_kcal": 7.1442385470654814,
+     "default_minus_program_Eh": 3.197442310920451e-12
+    },
+    {
+     "quantity": "HCN -> HNC, barrier",
+     "program_conventions_kcal": 51.7572603350196,
+     "default_minus_program_Eh": -3.7331915336835664e-11
+    },
+    {
+     "quantity": "water dimer binding",
+     "program_conventions_kcal": -4.896086038191967,
+     "default_minus_program_Eh": 2.5295321393059567e-12
+    },
+    {
+     "quantity": "iodobenzene...acetone binding",
+     "program_conventions_kcal": -2.9485037603327364,
+     "default_minus_program_Eh": 9.549694368615746e-12
+    },
+    {
+     "quantity": "ethylammonium perchlorate ion-pair binding",
+     "program_conventions_kcal": -103.25452981757745,
+     "default_minus_program_Eh": -8.981260180007666e-12
+    },
+    {
+     "quantity": "Ni(CO)4 -> Ni(CO)3 + CO (unrelaxed)",
+     "program_conventions_kcal": 32.87442813324011,
+     "default_minus_program_Eh": 8.526512829121202e-14
+    },
+    {
+     "quantity": "[Cu(NH3)4]2+ -> [Cu(NH3)3]2+ + NH3 (unrelaxed)",
+     "program_conventions_kcal": 47.45857267552462,
+     "default_minus_program_Eh": 7.766232101857895e-12
+    }
+   ],
+   "max_abs_change_Eh": 3.7331915336835664e-11,
+   "optimization": {
+    "butane-anti": {
+     "energy": -158.40975335913902,
+     "lowest_frequencies_cm": [
+      128.66,
+      246.37,
+      267.95
+     ],
+     "imaginary_below_-20": 0
+    },
+    "butane-gauche": {
+     "energy": -158.40897374413416,
+     "lowest_frequencies_cm": [
+      120.59,
+      238.49,
+      277.11
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ethanol-anti": {
+     "energy": -155.03224470520348,
+     "lowest_frequencies_cm": [
+      258.53,
+      316.23,
+      414.38
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ethanol-gauche": {
+     "energy": -155.0322994726017,
+     "lowest_frequencies_cm": [
+      276.93,
+      317.07,
+      422.39
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ferrocene-eclipsed": {
+     "energy": -1650.7336778162748,
+     "lowest_frequencies_cm": [
+      21.61,
+      161.36,
+      161.36
+     ],
+     "imaginary_below_-20": 0
+    },
+    "ferrocene-staggered": {
+     "energy": -1650.7333909485003,
+     "lowest_frequencies_cm": [
+      -21.51,
+      159.72,
+      159.72
+     ],
+     "imaginary_below_-20": 1
+    },
+    "water-dimer": {
+     "energy": -152.88308555370696,
+     "lowest_frequencies_cm": [
+      58.62,
+      120.98,
+      122.22
+     ],
+     "imaginary_below_-20": 0
+    },
+    "water": {
+     "energy": -76.43764157198011,
+     "lowest_frequencies_cm": [
+      1602.82,
+      3616.82,
+      3673.08
+     ],
+     "imaginary_below_-20": 0
+    },
+    "chloromethane": {
+     "energy": -500.09226901194205,
+     "lowest_frequencies_cm": [
+      769.0,
+      1075.63,
+      1075.63
+     ],
+     "imaginary_below_-20": 0
+    },
+    "chloride": {
+     "energy": -460.2601785979156
+    },
+    "sn2-complex": {
+     "energy": -960.3672183800936,
+     "irc_end_energies": [
+      -960.3672183800936,
+      -960.3672183800936
+     ]
+    },
+    "sn2-ts": {
+     "energy": -960.3465215846478,
+     "imaginary_cm": -443.41,
+     "next_frequencies_cm": [
+      230.69,
+      238.09
+     ],
+     "connects": "ion-dipole complex on both sides (identity reaction)",
+     "irc_end_energies": [
+      -960.3672183800936,
+      -960.3672183800936
+     ]
+    },
+    "HCN": {
+     "energy": -93.43563747131002,
+     "lowest_frequencies_cm": [
+      818.76,
+      818.76,
+      2225.23
+     ],
+     "imaginary_below_-20": 0
+    },
+    "HNC": {
+     "energy": -93.42425240248737,
+     "lowest_frequencies_cm": [
+      611.73,
+      611.73,
+      2127.93
+     ],
+     "imaginary_below_-20": 0
+    },
+    "hcn-ts": {
+     "energy": -93.35315702686913,
+     "imaginary_cm": -1049.89,
+     "next_frequencies_cm": [
+      2007.2,
+      2494.3
+     ],
+     "connects": "HCN and HNC (minimized ends within 1e-6 Eh of the minima)",
+     "irc_end_energies": [
+      -93.42425240248737,
+      -93.43563747130995
+     ]
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,25 @@
+[package]
+name = "axtb-solvation"
+description = "ALPB/GBSA implicit solvation for GFN2-xTB (xtb 6.8.0 and 6.7.1 compatible)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/axtb-solvation"
+readme = "README.md"
+keywords = ["solvation", "alpb", "gbsa", "quantum-chemistry", "chemistry"]
+categories = ["science", "simulation"]
+# the tests and examples read data of the repository; the package is the library
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[lib]
+name = "axtb_solvation"
+path = "src/lib.rs"
+
+[dependencies]
+
+[lints]
+workspace = true

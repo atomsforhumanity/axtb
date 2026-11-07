@@ -1,0 +1,2579 @@
+{
+ "xtb": "6.8.0 (4b8c987)",
+ "xtb671": "6.7.1 (26dd68d)",
+ "method": "GFN2-xTB",
+ "note": "axtb's xtb conventions (xtb 6.8.0) with one setting at a time put back to xtb 6.7.1's; each row: variant minus the xtb 6.8.0 program (dE in Eh, max |dG| in Eh/bohr, iterations axtb/xtb); OMP_NUM_THREADS=1",
+ "load_average": [
+  2.72,
+  5.07,
+  4.17
+ ],
+ "summary": {
+  "acc 0.0001": {
+   "xtb-6.8.0": {
+    "max_abs_dE": 4.831690603168681e-13,
+    "max_dG": 1.5078216453190407e-14,
+    "iterations_differ": 0
+   },
+   "radii: 6.7.1 tables (older bohr constant)": {
+    "max_abs_dE": 1.1902594110324571e-07,
+    "max_dG": 4.296818702925753e-09,
+    "iterations_differ": 0
+   },
+   "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+    "max_abs_dE": 6.078053615965473e-10,
+    "max_dG": 7.295834866770133e-09,
+    "iterations_differ": 0
+   },
+   "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+    "max_abs_dE": 9.358162884609555e-06,
+    "max_dG": 3.1494591019925675e-06,
+    "iterations_differ": 0
+   },
+   "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+    "max_abs_dE": 3.802824721788056e-11,
+    "max_dG": 4.4288149536608756e-11,
+    "iterations_differ": 0
+   },
+   "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+    "max_abs_dE": 0.005010611477530347,
+    "max_dG": 0.0026971038244621506,
+    "iterations_differ": 1
+   },
+   "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+    "max_abs_dE": 4.831690603168681e-13,
+    "max_dG": 1.0372653890325378e-09,
+    "iterations_differ": 4
+   },
+   "SCC 3: 6.7.1 extra final iteration": {
+    "max_abs_dE": 4.902744876744691e-13,
+    "max_dG": 5.139147015928436e-10,
+    "iterations_differ": 10
+   },
+   "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+    "max_abs_dE": 5.044853423896711e-13,
+    "max_dG": 4.015724731909476e-11,
+    "iterations_differ": 0
+   },
+   "SCC 5: 6.7.1 neglected multipole integrals": {
+    "max_abs_dE": 4.796163466380676e-13,
+    "max_dG": 1.9139736442876781e-10,
+    "iterations_differ": 0
+   },
+   "SCC 6: 6.7.1 gradient from mixed moments": {
+    "max_abs_dE": 4.831690603168681e-13,
+    "max_dG": 1.7422642124040148e-10,
+    "iterations_differ": 0
+   },
+   "SCC 6: tblite's gradient potentials": {
+    "max_abs_dE": 4.831690603168681e-13,
+    "max_dG": 4.159362385763865e-10,
+    "iterations_differ": 0
+   }
+  },
+  "acc 1": {
+   "xtb-6.8.0": {
+    "max_abs_dE": 3.552713678800501e-13,
+    "max_dG": 3.927413949611491e-14,
+    "iterations_differ": 0
+   },
+   "radii: 6.7.1 tables (older bohr constant)": {
+    "max_abs_dE": 1.19026026368374e-07,
+    "max_dG": 4.298555310311425e-09,
+    "iterations_differ": 0
+   },
+   "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+    "max_abs_dE": 6.083311632210098e-10,
+    "max_dG": 7.295747346253354e-09,
+    "iterations_differ": 0
+   },
+   "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+    "max_abs_dE": 9.358162770922718e-06,
+    "max_dG": 3.149459101936189e-06,
+    "iterations_differ": 0
+   },
+   "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+    "max_abs_dE": 3.552713678800501e-13,
+    "max_dG": 3.927413949611491e-14,
+    "iterations_differ": 0
+   },
+   "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+    "max_abs_dE": 0.005010611477565874,
+    "max_dG": 0.00269602369750159,
+    "iterations_differ": 1
+   },
+   "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+    "max_abs_dE": 1.601017629582202e-08,
+    "max_dG": 9.381069190003265e-06,
+    "iterations_differ": 5
+   },
+   "SCC 3: 6.7.1 extra final iteration": {
+    "max_abs_dE": 4.876142156717833e-09,
+    "max_dG": 6.189928410541436e-06,
+    "iterations_differ": 10
+   },
+   "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+    "max_abs_dE": 1.0237499736831523e-10,
+    "max_dG": 3.3933850650258446e-07,
+    "iterations_differ": 0
+   },
+   "SCC 5: 6.7.1 neglected multipole integrals": {
+    "max_abs_dE": 1.0507505976420362e-10,
+    "max_dG": 6.276860755813352e-08,
+    "iterations_differ": 0
+   },
+   "SCC 6: 6.7.1 gradient from mixed moments": {
+    "max_abs_dE": 3.552713678800501e-13,
+    "max_dG": 1.3956720727446812e-06,
+    "iterations_differ": 0
+   },
+   "SCC 6: tblite's gradient potentials": {
+    "max_abs_dE": 3.552713678800501e-13,
+    "max_dG": 3.9397322337056395e-06,
+    "iterations_differ": 0
+   }
+  }
+ },
+ "cases": [
+  {
+   "case": "water",
+   "accuracy": 0.0001,
+   "solvation": null,
+   "natoms": 3,
+   "E_xtb680": -5.070175963778,
+   "iterations_xtb680": 10,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 2.5833202244029962e-09,
+     "dG": 3.2880388845663022e-09,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -4.4231285301066237e-13,
+     "dG": 1.825695844503983e-12,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.2256862191861728e-13,
+     "dG": 5.3320649978649826e-11,
+     "iterations": [
+      11,
+      10
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -1.234568003383174e-13,
+     "dG": 4.015724731909476e-11,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 4.874572967494828e-16,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 2.0637732842110346e-11,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -1.2079226507921703e-13,
+     "dG": 1.704303712046773e-11,
+     "iterations": [
+      10,
+      10
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 2.5860007468736512e-09,
+    "dG": 3.3388859992794506e-09,
+    "iterations": [
+     11,
+     10
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -3.0038194154258235e-12,
+    "dG": 4.765916827853545e-12,
+    "iterations": [
+     11,
+     11
+    ]
+   }
+  },
+  {
+   "case": "caffeine",
+   "accuracy": 0.0001,
+   "solvation": null,
+   "natoms": 24,
+   "E_xtb680": -42.154422014167,
+   "iterations_xtb680": 19,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 2.91259732803327e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.175874496719189e-08,
+     "dG": 3.256480866607171e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.078053615965473e-10,
+     "dG": 7.295834866770133e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 2.91259732803327e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.4381384971784428e-11,
+     "dG": 3.061349147306122e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 2.91259732803327e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 2.91259732803327e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 5.139147015928436e-10,
+     "iterations": [
+      20,
+      19
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": 2.0605739337042905e-13,
+     "dG": 8.896694399387157e-12,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 2.2026824808563106e-13,
+     "dG": 1.7123788885876727e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 1.7422642124040148e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": 2.2737367544323206e-13,
+     "dG": 9.444829966203023e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 3.170999463009139e-08,
+    "dG": 5.741640315199664e-09,
+    "iterations": [
+     20,
+     19
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.451283868751489e-10,
+    "dG": 1.7214528164277587e-10,
+    "iterations": [
+     20,
+     20
+    ]
+   }
+  },
+  {
+   "case": "ferrocene",
+   "accuracy": 0.0001,
+   "solvation": null,
+   "natoms": 21,
+   "E_xtb680": -29.577956845812,
+   "iterations_xtb680": 15,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.3002433291452462e-15,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.747874899318049e-09,
+     "dG": 2.129312455956961e-09,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.176570035317127e-10,
+     "dG": 1.4354087016221762e-10,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.3002433291452462e-15,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 7.425171588693047e-13,
+     "dG": 1.144525446639122e-12,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.3002433291452462e-15,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.3002433291452462e-15,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": 4.902744876744691e-13,
+     "dG": 1.4430304435361222e-10,
+     "iterations": [
+      16,
+      15
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": 4.796163466380676e-13,
+     "dG": 3.606716097656615e-11,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.3002433291452462e-15,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": 4.796163466380676e-13,
+     "dG": 2.7339486143723724e-11,
+     "iterations": [
+      15,
+      15
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": 4.796163466380676e-13,
+     "dG": 3.885775035072925e-11,
+     "iterations": [
+      15,
+      15
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 3.707999240987192e-09,
+    "dG": 2.16742420018623e-09,
+    "iterations": [
+     16,
+     15
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -1.779874025942263e-10,
+    "dG": 5.023009352206342e-12,
+    "iterations": [
+     16,
+     16
+    ]
+   }
+  },
+  {
+   "case": "[Cu(NH3)4]2+ (doublet)",
+   "accuracy": 0.0001,
+   "solvation": null,
+   "natoms": 17,
+   "E_xtb680": -20.741488313326,
+   "iterations_xtb680": 14,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 8.135853102331225e-16,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 1.0183274667951991e-08,
+     "dG": 4.680984384830555e-10,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": 1.573852159708622e-12,
+     "dG": 1.922007691890215e-12,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 8.135853102331225e-16,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.2398970739013748e-12,
+     "dG": 4.831121613868561e-12,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 8.135853102331225e-16,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 9.593863984497242e-11,
+     "iterations": [
+      13,
+      14
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.2789769243681803e-13,
+     "dG": 7.783634674296547e-11,
+     "iterations": [
+      15,
+      14
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 6.912434166728154e-12,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 8.135853102331225e-16,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 3.1824683513481666e-11,
+     "iterations": [
+      14,
+      14
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -1.3500311979441904e-13,
+     "dG": 6.118296147494817e-11,
+     "iterations": [
+      14,
+      14
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 1.0217998891448588e-08,
+    "dG": 4.3377799963106867e-10,
+    "iterations": [
+     15,
+     14
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -3.162625716868206e-11,
+    "dG": 5.920447292140363e-11,
+    "iterations": [
+     15,
+     15
+    ]
+   }
+  },
+  {
+   "case": "taxol (113 atoms, 30 bohr)",
+   "accuracy": 0.0001,
+   "solvation": null,
+   "natoms": 113,
+   "E_xtb680": -186.500439896289,
+   "iterations_xtb680": 22,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 1.502270530195915e-15,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 1.1902594110324571e-07,
+     "dG": 4.296818702925753e-09,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.7537794267118443e-10,
+     "dG": 7.263593546080749e-11,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -9.358162884609555e-06,
+     "dG": 3.1494591019925675e-06,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 3.802824721788056e-11,
+     "dG": 4.4288149536608756e-11,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 1.502270530195915e-15,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 0.0,
+     "dG": 1.0372653890325378e-09,
+     "iterations": [
+      21,
+      22
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 4.3522114059370287e-10,
+     "iterations": [
+      23,
+      22
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -8.526512829121202e-14,
+     "dG": 2.4201170581439335e-11,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -2.2737367544323206e-13,
+     "dG": 1.1459238072331068e-10,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 1.5376883794049334e-10,
+     "iterations": [
+      22,
+      22
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -1.4210854715202004e-13,
+     "dG": 3.958446209706423e-10,
+     "iterations": [
+      22,
+      22
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -9.233612985326545e-06,
+    "dG": 3.1500404291998595e-06,
+    "iterations": [
+     22,
+     22
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.7610236581240315e-09,
+    "dG": 5.658760612869962e-10,
+    "iterations": [
+     22,
+     22
+    ]
+   }
+  },
+  {
+   "case": "caffeine, ALPB water",
+   "accuracy": 0.0001,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 24,
+   "E_xtb680": -42.171161372331,
+   "iterations_xtb680": 19,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -2.1316282072803006e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.1542008116502984e-08,
+     "dG": 3.1857806462309846e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.057234713807702e-10,
+     "dG": 7.260714200013618e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -2.1316282072803006e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.397637561240117e-11,
+     "dG": 3.054392849755061e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -5.450708329135523e-09,
+     "dG": 6.540574196828297e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -2.1316282072803006e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.4210854715202004e-14,
+     "dG": 4.3347317228714655e-10,
+     "iterations": [
+      20,
+      19
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -7.105427357601002e-15,
+     "dG": 1.2438373248047085e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 0.0,
+     "dG": 1.9139736442876781e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -2.1316282072803006e-14,
+     "dG": 5.3653421983046456e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -2.1316282072803006e-14,
+     "dG": 3.739432687110966e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 2.6041000467103004e-08,
+    "dG": 6.529925000026138e-09,
+    "iterations": [
+     20,
+     19
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.413269832388323e-10,
+    "dG": 1.7726686730914348e-10,
+    "iterations": [
+     20,
+     20
+    ]
+   }
+  },
+  {
+   "case": "caffeine, ALPB water, reference state",
+   "accuracy": 0.0001,
+   "solvation": "alpb:water:reference",
+   "natoms": 24,
+   "E_xtb680": -42.164336976842,
+   "iterations_xtb680": 19,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -7.815970093361102e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.1541972589366196e-08,
+     "dG": 3.1857806462309846e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.057874202269886e-10,
+     "dG": 7.260714200013618e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -7.815970093361102e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.389821591146756e-11,
+     "dG": 3.054392849755061e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -0.005010611477530347,
+     "dG": 6.540574196828297e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -7.815970093361102e-14,
+     "dG": 9.84455572616838e-16,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -7.105427357601002e-14,
+     "dG": 4.3347317228714655e-10,
+     "iterations": [
+      20,
+      19
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -7.105427357601002e-14,
+     "dG": 1.2438373248047085e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -8.526512829121202e-14,
+     "dG": 1.9139736442876781e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -7.815970093361102e-14,
+     "dG": 5.3653421983046456e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -7.815970093361102e-14,
+     "dG": 3.739432687110966e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -0.005010579985999186,
+    "dG": 6.529925000026138e-09,
+    "iterations": [
+     20,
+     19
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.411493475548923e-10,
+    "dG": 1.7726686730914348e-10,
+    "iterations": [
+     20,
+     20
+    ]
+   }
+  },
+  {
+   "case": "caffeine, GBSA water, reference state",
+   "accuracy": 0.0001,
+   "solvation": "gbsa:water:reference",
+   "natoms": 24,
+   "E_xtb680": -42.162243348333,
+   "iterations_xtb680": 19,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -4.831690603168681e-13,
+     "dG": 1.0056517250889296e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.1578437642565405e-08,
+     "dG": 3.2109450896766756e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.063203272788087e-10,
+     "dG": 7.26331604887151e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -4.831690603168681e-13,
+     "dG": 1.0056517250889296e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.3592682535090717e-11,
+     "dG": 3.055631268844561e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -0.005010610445594921,
+     "dG": 5.315277778680794e-09,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -4.831690603168681e-13,
+     "dG": 1.0056517250889296e-15,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -4.689582056016661e-13,
+     "dG": 4.6392467124845016e-10,
+     "iterations": [
+      20,
+      19
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -5.044853423896711e-13,
+     "dG": 1.7972038787728017e-11,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -4.547473508864641e-13,
+     "dG": 1.9131036078229302e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -4.831690603168681e-13,
+     "dG": 1.143572337519716e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -4.831690603168681e-13,
+     "dG": 4.159362385763865e-10,
+     "iterations": [
+      19,
+      19
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -0.005010578914998121,
+    "dG": 5.3493158300025375e-09,
+    "iterations": [
+     20,
+     19
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.434444005913974e-10,
+    "dG": 1.7394431118459945e-10,
+    "iterations": [
+     20,
+     20
+    ]
+   }
+  },
+  {
+   "case": "compressed CsOH (H, O, Cs), ALPB water",
+   "accuracy": 0.0001,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 3,
+   "E_xtb680": -4.77377647703,
+   "iterations_xtb680": 29,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 4.0245584642661925e-16,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.524291969370097e-12,
+     "dG": 1.6756624213187798e-09,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.3865354137342365e-12,
+     "dG": 1.1827623082327765e-11,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 4.0245584642661925e-16,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 4.0245584642661925e-16,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": 0.0028859323200096654,
+     "dG": 0.0026971038244621506,
+     "iterations": [
+      25,
+      29
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -3.312905505481467e-13,
+     "dG": 4.992896165956218e-10,
+     "iterations": [
+      28,
+      29
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -3.312905505481467e-13,
+     "dG": 2.009295368976538e-10,
+     "iterations": [
+      30,
+      29
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -3.304023721284466e-13,
+     "dG": 3.039235529911366e-15,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 4.0245584642661925e-16,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.7077780856133984e-10,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 5.7644395333456e-11,
+     "iterations": [
+      29,
+      29
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 0.0028859323530001646,
+    "dG": 0.002697103751833005,
+    "iterations": [
+     26,
+     29
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -1.1599610161283636e-11,
+    "dG": 3.946207076388486e-12,
+    "iterations": [
+     26,
+     26
+    ]
+   }
+  },
+  {
+   "case": "compressed CsOH (Cs, O, H), ALPB water",
+   "accuracy": 0.0001,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 3,
+   "E_xtb680": -4.77377647703,
+   "iterations_xtb680": 29,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.5078216453190407e-14,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.525180147789797e-12,
+     "dG": 1.6756617690627529e-09,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.3847590568948362e-12,
+     "dG": 1.1833245321113406e-11,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.5078216453190407e-14,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.5078216453190407e-14,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -5.143569126175862e-09,
+     "dG": 6.798310109301653e-10,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 4.992945917825509e-10,
+     "iterations": [
+      28,
+      29
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 2.0093302716128747e-10,
+     "iterations": [
+      30,
+      29
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -3.304023721284466e-13,
+     "dG": 1.3704315460216776e-14,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.5078216453190407e-14,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 1.7078530256675606e-10,
+     "iterations": [
+      29,
+      29
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.3217872896784684e-13,
+     "dG": 5.7649493685751896e-11,
+     "iterations": [
+      29,
+      29
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -5.130999625180266e-09,
+    "dG": 2.166012699929276e-09,
+    "iterations": [
+     29,
+     29
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -1.0769163338864018e-11,
+    "dG": 4.203044162709446e-12,
+    "iterations": [
+     29,
+     29
+    ]
+   }
+  },
+  {
+   "case": "water",
+   "accuracy": 1.0,
+   "solvation": null,
+   "natoms": 3,
+   "E_xtb680": -5.070175963778,
+   "iterations_xtb680": 8,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 2.583552038970538e-09,
+     "dG": 3.288023074296542e-09,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.1049828546892968e-13,
+     "dG": 1.8207883117904444e-12,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.2612133559741778e-13,
+     "dG": 1.5504996976438423e-07,
+     "iterations": [
+      9,
+      8
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": 1.2878587085651816e-13,
+     "dG": 5.722152024781324e-09,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 5.741934705483231e-16,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 6.039276558358897e-08,
+     "iterations": [
+      8,
+      8
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": 1.1013412404281553e-13,
+     "dG": 6.998094006886724e-08,
+     "iterations": [
+      8,
+      8
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 2.5860007468736512e-09,
+    "dG": 1.5212640300070468e-07,
+    "iterations": [
+     9,
+     8
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -2.9984903449076228e-12,
+    "dG": 4.765059874456412e-12,
+    "iterations": [
+     9,
+     9
+    ]
+   }
+  },
+  {
+   "case": "caffeine",
+   "accuracy": 1.0,
+   "solvation": null,
+   "natoms": 24,
+   "E_xtb680": -42.154422013565,
+   "iterations_xtb680": 11,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.2884590855181954e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.175816942757592e-08,
+     "dG": 3.2560850375365597e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.083311632210098e-10,
+     "dG": 7.295747346253354e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.2884590855181954e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.2884590855181954e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.2884590855181954e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.2884590855181954e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -4.617035642695555e-10,
+     "dG": 6.189928410541436e-06,
+     "iterations": [
+      12,
+      11
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -1.708855279503041e-11,
+     "dG": 1.9734789735480452e-07,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 2.1245227799226996e-12,
+     "dG": 3.740912041281792e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.552713678800501e-13,
+     "dG": 1.3956720727446812e-06,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.552713678800501e-13,
+     "dG": 3.075818885833234e-06,
+     "iterations": [
+      11,
+      11
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 3.123499681123576e-08,
+    "dG": 6.711883375662999e-06,
+    "iterations": [
+     12,
+     11
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.451283868751489e-10,
+    "dG": 1.7215519367145255e-10,
+    "iterations": [
+     12,
+     12
+    ]
+   }
+  },
+  {
+   "case": "ferrocene",
+   "accuracy": 1.0,
+   "solvation": null,
+   "natoms": 21,
+   "E_xtb680": -29.577956845259,
+   "iterations_xtb680": 10,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.7471856728643615e-09,
+     "dG": 2.129516591710401e-09,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.1833912455804239e-10,
+     "dG": 1.4344569629343162e-10,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -4.766143035794812e-10,
+     "dG": 7.4089463127959e-07,
+     "iterations": [
+      11,
+      10
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": 2.9611868512802175e-11,
+     "dG": 1.5854026152875914e-08,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 1.807002423194857e-14,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 3.410792871853807e-07,
+     "iterations": [
+      10,
+      10
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -2.0961010704922955e-13,
+     "dG": 4.3830461901248063e-07,
+     "iterations": [
+      10,
+      10
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 3.233999734675308e-09,
+    "dG": 6.690351214999092e-07,
+    "iterations": [
+     11,
+     10
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -1.7844925537247036e-10,
+    "dG": 5.019941060058208e-12,
+    "iterations": [
+     11,
+     11
+    ]
+   }
+  },
+  {
+   "case": "[Cu(NH3)4]2+ (doublet)",
+   "accuracy": 1.0,
+   "solvation": null,
+   "natoms": 17,
+   "E_xtb680": -20.741488313158,
+   "iterations_xtb680": 9,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.756747938929664e-16,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 1.0183065057844942e-08,
+     "dG": 4.678464404078708e-10,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": 1.3677947663381929e-12,
+     "dG": 2.0419724938713912e-12,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.756747938929664e-16,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.756747938929664e-16,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.756747938929664e-16,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 7.051887962461478e-10,
+     "dG": 1.6195411478674149e-06,
+     "iterations": [
+      8,
+      9
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.6695977933522954e-10,
+     "dG": 1.164526640647437e-06,
+     "iterations": [
+      10,
+      9
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -2.2104984509496717e-11,
+     "dG": 8.367874120181196e-08,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.756747938929664e-16,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.552713678800501e-13,
+     "dG": 5.061365247957528e-07,
+     "iterations": [
+      9,
+      9
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.552713678800501e-13,
+     "dG": 6.341466690078928e-07,
+     "iterations": [
+      9,
+      9
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 1.019400031054829e-08,
+    "dG": 5.37010324000442e-07,
+    "iterations": [
+     9,
+     9
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -3.097255785178277e-11,
+    "dG": 5.920640713807934e-11,
+    "iterations": [
+     9,
+     9
+    ]
+   }
+  },
+  {
+   "case": "taxol (113 atoms, 30 bohr)",
+   "accuracy": 1.0,
+   "solvation": null,
+   "natoms": 113,
+   "E_xtb680": -186.500439890567,
+   "iterations_xtb680": 12,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -5.684341886080802e-14,
+     "dG": 2.1033522146218786e-15,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 1.19026026368374e-07,
+     "dG": 4.298555310311425e-09,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.753210992523236e-10,
+     "dG": 7.280181318902734e-11,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -9.358162770922718e-06,
+     "dG": 3.149459101936189e-06,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -5.684341886080802e-14,
+     "dG": 2.1033522146218786e-15,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -5.684341886080802e-14,
+     "dG": 2.1033522146218786e-15,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 1.601017629582202e-08,
+     "dG": 8.110877011274775e-06,
+     "iterations": [
+      11,
+      12
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -4.876142156717833e-09,
+     "dG": 3.5787647436631015e-06,
+     "iterations": [
+      13,
+      12
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -1.0237499736831523e-10,
+     "dG": 3.3933850650258446e-07,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 1.0507505976420362e-10,
+     "dG": 6.276860755813352e-08,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -5.684341886080802e-14,
+     "dG": 1.1801163550262395e-06,
+     "iterations": [
+      12,
+      12
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -5.684341886080802e-14,
+     "dG": 3.9397322337056395e-06,
+     "iterations": [
+      12,
+      12
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -9.233648000872563e-06,
+    "dG": 2.252173675820041e-06,
+    "iterations": [
+     12,
+     12
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.761194188380614e-09,
+    "dG": 5.657099649836184e-10,
+    "iterations": [
+     12,
+     12
+    ]
+   }
+  },
+  {
+   "case": "caffeine, ALPB water",
+   "accuracy": 1.0,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 24,
+   "E_xtb680": -42.171161372136,
+   "iterations_xtb680": 11,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -7.815970093361102e-14,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.1542008116502984e-08,
+     "dG": 3.1847054507427863e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.05780314799631e-10,
+     "dG": 7.260798854085565e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -7.815970093361102e-14,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -7.815970093361102e-14,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -5.450743856272311e-09,
+     "dG": 6.539011779965742e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 4.714095780400385e-09,
+     "dG": 6.736904569343283e-06,
+     "iterations": [
+      10,
+      11
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.340083599643549e-10,
+     "dG": 3.2524223415840436e-06,
+     "iterations": [
+      12,
+      11
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -2.3732127374387346e-12,
+     "dG": 9.323924141622919e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 2.4726887204451486e-12,
+     "dG": 4.128195699691639e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -7.815970093361102e-14,
+     "dG": 4.897684599577783e-07,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -7.815970093361102e-14,
+     "dG": 1.1283161155234943e-06,
+     "iterations": [
+      11,
+      11
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 2.6026995669781172e-08,
+    "dG": 5.180890838998951e-07,
+    "iterations": [
+     11,
+     11
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.411493475548923e-10,
+    "dG": 1.7724695170785731e-10,
+    "iterations": [
+     11,
+     11
+    ]
+   }
+  },
+  {
+   "case": "caffeine, ALPB water, reference state",
+   "accuracy": 1.0,
+   "solvation": "alpb:water:reference",
+   "natoms": 24,
+   "E_xtb680": -42.164336976647,
+   "iterations_xtb680": 11,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -1.5631940186722204e-13,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.154192995680205e-08,
+     "dG": 3.1847054507427863e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.058442636458494e-10,
+     "dG": 7.260798854085565e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -1.5631940186722204e-13,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -1.5631940186722204e-13,
+     "dG": 1.4688771032833614e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -0.005010611477565874,
+     "dG": 6.539011779965742e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 4.714038936981524e-09,
+     "dG": 6.736904569343283e-06,
+     "iterations": [
+      10,
+      11
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.340652033832157e-10,
+     "dG": 3.2524223415840436e-06,
+     "iterations": [
+      12,
+      11
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -2.4371615836571436e-12,
+     "dG": 9.323924141622919e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 2.4016344468691386e-12,
+     "dG": 4.128195699691639e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -1.5631940186722204e-13,
+     "dG": 4.897684599577783e-07,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -1.5631940186722204e-13,
+     "dG": 1.1283161155234943e-06,
+     "iterations": [
+      11,
+      11
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -0.005010579999996878,
+    "dG": 5.180890838998951e-07,
+    "iterations": [
+     11,
+     11
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.409788172983099e-10,
+    "dG": 1.7724695170785731e-10,
+    "iterations": [
+     11,
+     11
+    ]
+   }
+  },
+  {
+   "case": "caffeine, GBSA water, reference state",
+   "accuracy": 1.0,
+   "solvation": "gbsa:water:reference",
+   "natoms": 24,
+   "E_xtb680": -42.162243347983,
+   "iterations_xtb680": 11,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": 1.1368683772161603e-13,
+     "dG": 1.5439038936193583e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.157903449846344e-08,
+     "dG": 3.208774637924322e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -6.057518930902006e-10,
+     "dG": 7.2630326071985996e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": 1.1368683772161603e-13,
+     "dG": 1.5439038936193583e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": 1.1368683772161603e-13,
+     "dG": 1.5439038936193583e-15,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -0.005010610445012276,
+     "dG": 5.314106476042579e-09,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": 5.8277862535760505e-09,
+     "dG": 9.381069190003265e-06,
+     "iterations": [
+      10,
+      11
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -2.82348366908991e-10,
+     "dG": 3.79567307173638e-06,
+     "iterations": [
+      12,
+      11
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -7.865708084864309e-12,
+     "dG": 7.652655778652654e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": 2.6787461138155777e-12,
+     "dG": 4.0609148014344315e-08,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": 1.1368683772161603e-13,
+     "dG": 7.066310793208026e-07,
+     "iterations": [
+      11,
+      11
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": 1.1368683772161603e-13,
+     "dG": 1.6754799802763632e-06,
+     "iterations": [
+      11,
+      11
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -0.005010578933998033,
+    "dG": 7.233381736000168e-07,
+    "iterations": [
+     11,
+     11
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -5.433520300357486e-10,
+    "dG": 1.7389257216246165e-10,
+    "iterations": [
+     11,
+     11
+    ]
+   }
+  },
+  {
+   "case": "compressed CsOH (H, O, Cs), ALPB water",
+   "accuracy": 1.0,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 3,
+   "E_xtb680": -4.773776477009,
+   "iterations_xtb680": 23,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.383959779057477e-13,
+     "dG": 1.3579415369946446e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.5234037909503968e-12,
+     "dG": 1.6429956978258886e-09,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.3936408410918375e-12,
+     "dG": 1.2350014240436469e-11,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.383959779057477e-13,
+     "dG": 1.3579415369946446e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.383959779057477e-13,
+     "dG": 1.3579415369946446e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": 0.002885932414978143,
+     "dG": 0.00269602369750159,
+     "iterations": [
+      22,
+      23
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -3.383959779057477e-13,
+     "dG": 1.3579415369946446e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.638778002188701e-11,
+     "dG": 5.248634963248011e-07,
+     "iterations": [
+      25,
+      23
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 2.4313884239290928e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -3.383959779057477e-13,
+     "dG": 1.3579415369946446e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.383959779057477e-13,
+     "dG": 6.300446317650255e-07,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.383959779057477e-13,
+     "dG": 9.333314711194862e-08,
+     "iterations": [
+      23,
+      23
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": 0.002885934225999698,
+    "dG": 0.0026972302113109983,
+    "iterations": [
+     21,
+     23
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -2.496136630725232e-11,
+    "dG": 1.5030919564562595e-09,
+    "iterations": [
+     21,
+     21
+    ]
+   }
+  },
+  {
+   "case": "compressed CsOH (Cs, O, H), ALPB water",
+   "accuracy": 1.0,
+   "solvation": "alpb:water:gsolv",
+   "natoms": 3,
+   "E_xtb680": -4.773776477009,
+   "iterations_xtb680": 23,
+   "variants": {
+    "xtb-6.8.0": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 3.927413949611491e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "radii: 6.7.1 tables (older bohr constant)": {
+     "dE": 3.5234037909503968e-12,
+     "dG": 1.643001595885707e-09,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "D4 CN: 6.7.1 single-precision literals and older bohr constant": {
+     "dE": -2.3936408410918375e-12,
+     "dG": 1.2371808438826903e-11,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "cutoffs: 6.7.1 (CN, repulsion 40 bohr; D4 40/72 bohr hard)": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 3.927413949611491e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "integral screening: 6.7.1 (max(20, 25 - 10 log10 acc))": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 3.927413949611491e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "solvation: 6.7.1 (stale r1, rho/M reference state, older bohr)": {
+     "dE": -5.14357623160322e-09,
+     "dG": 6.810403603910165e-10,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 2: 6.7.1 residual test (per atom, 1e-4 acc)": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 3.927413949611491e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 3: 6.7.1 extra final iteration": {
+     "dE": -1.638689184346731e-11,
+     "dG": 5.248634816074071e-07,
+     "iterations": [
+      25,
+      23
+     ]
+    },
+    "SCC 4: 6.7.1 mixer metric (quadrupoles unscaled)": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 2.3120394487818885e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 5: 6.7.1 neglected multipole integrals": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 3.927413949611491e-14,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 6: 6.7.1 gradient from mixed moments": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 6.300446488277656e-07,
+     "iterations": [
+      23,
+      23
+     ]
+    },
+    "SCC 6: tblite's gradient potentials": {
+     "dE": -3.4017233474514796e-13,
+     "dG": 9.333316163592092e-08,
+     "iterations": [
+      23,
+      23
+     ]
+    }
+   },
+   "xtb671_minus_xtb680": {
+    "dE": -3.1819995527371248e-09,
+    "dG": 1.7341961900535496e-07,
+    "iterations": [
+     24,
+     23
+    ]
+   },
+   "axtb_xtb671_vs_xtb671": {
+    "dE": -1.1005418798504252e-11,
+    "dG": 4.7923137680427885e-11,
+    "iterations": [
+     24,
+     24
+    ]
+   }
+  }
+ ]
+}

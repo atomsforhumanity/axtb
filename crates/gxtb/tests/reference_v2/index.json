@@ -1,0 +1,758 @@
+[
+ {
+  "name": "acetate",
+  "group": "reference",
+  "charge": -1,
+  "uhf": 0,
+  "total_energy": -228.55150111908,
+  "scf_iterations": 9,
+  "tight_energy": -228.55150111914
+ },
+ {
+  "name": "ammonium",
+  "group": "reference",
+  "charge": 1,
+  "uhf": 0,
+  "total_energy": -56.885718911772,
+  "scf_iterations": 8,
+  "tight_energy": -56.885718911772
+ },
+ {
+  "name": "benzene",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -232.22709462381,
+  "scf_iterations": 7,
+  "tight_energy": -232.22709462383
+ },
+ {
+  "name": "dioxygen_triplet",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 2,
+  "total_energy": -150.34083895141,
+  "scf_iterations": 7,
+  "tight_energy": -150.34083895142
+ },
+ {
+  "name": "ethanol",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -155.0314572061,
+  "scf_iterations": 8,
+  "tight_energy": -155.03145720688
+ },
+ {
+  "name": "glycine",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -284.45622757392,
+  "scf_iterations": 9,
+  "tight_energy": -284.45622757605
+ },
+ {
+  "name": "hydroxide",
+  "group": "reference",
+  "charge": -1,
+  "uhf": 0,
+  "total_energy": -75.79836026613,
+  "scf_iterations": 9,
+  "tight_energy": -75.79836026613
+ },
+ {
+  "name": "iodomethane",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -337.58958724276,
+  "scf_iterations": 8,
+  "tight_energy": -337.58958724277
+ },
+ {
+  "name": "mesyl_chloride",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1048.7439458351,
+  "scf_iterations": 9,
+  "tight_energy": -1048.7439458605
+ },
+ {
+  "name": "methane",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -40.494435440217,
+  "scf_iterations": 8,
+  "tight_energy": -40.494435440217
+ },
+ {
+  "name": "nickel_tetracarbonyl",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1961.7281923811,
+  "scf_iterations": 9,
+  "tight_energy": -1961.7281924295
+ },
+ {
+  "name": "silane_phosphine",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -633.79206528594,
+  "scf_iterations": 8,
+  "tight_energy": -633.79206528853
+ },
+ {
+  "name": "tetrachlorocuprate",
+  "group": "reference",
+  "charge": -2,
+  "uhf": 1,
+  "total_energy": -3481.3961128346,
+  "scf_iterations": 9,
+  "tight_energy": -3481.3961128988
+ },
+ {
+  "name": "water",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -76.437427652907,
+  "scf_iterations": 9,
+  "tight_energy": -76.437427652907
+ },
+ {
+  "name": "caffeine",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -680.41923152775,
+  "scf_iterations": 9,
+  "tight_energy": -680.41923161469
+ },
+ {
+  "name": "ferrocene",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1650.7318260071,
+  "scf_iterations": 9,
+  "tight_energy": -1650.7318260081
+ },
+ {
+  "name": "cf3br-benzene",
+  "group": "reference",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -3143.9566800364,
+  "scf_iterations": 9,
+  "tight_energy": -3143.9566800374
+ },
+ {
+  "name": "zncl4",
+  "group": "reference",
+  "charge": -2,
+  "uhf": 0,
+  "total_energy": -3620.3628916807,
+  "scf_iterations": 9,
+  "tight_energy": -3620.3628916812
+ },
+ {
+  "name": "cu-nh3-4",
+  "group": "reference",
+  "charge": 2,
+  "uhf": 1,
+  "total_energy": -1866.1201305733,
+  "scf_iterations": 9,
+  "tight_energy": -1866.1201305931
+ },
+ {
+  "name": "LiF",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -107.45516301303,
+  "scf_iterations": 9,
+  "tight_energy": -107.45516301303
+ },
+ {
+  "name": "BF3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -324.63437391057,
+  "scf_iterations": 8,
+  "tight_energy": -324.6343739117
+ },
+ {
+  "name": "NaCl",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -622.5426826923,
+  "scf_iterations": 9,
+  "tight_energy": -622.54268269232
+ },
+ {
+  "name": "AlCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1623.2166395457,
+  "scf_iterations": 9,
+  "tight_energy": -1623.2166395495
+ },
+ {
+  "name": "HBr",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2574.6047317657,
+  "scf_iterations": 7,
+  "tight_energy": -2574.6047317657
+ },
+ {
+  "name": "H2Se",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2402.5998656585,
+  "scf_iterations": 7,
+  "tight_energy": -2402.5998656589
+ },
+ {
+  "name": "SnH4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -216.59778916661,
+  "scf_iterations": 7,
+  "tight_energy": -216.59778916719
+ },
+ {
+  "name": "XeF2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -528.95053230289,
+  "scf_iterations": 9,
+  "tight_energy": -528.95053230291
+ },
+ {
+  "name": "KCl",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1060.1687166994,
+  "scf_iterations": 10,
+  "tight_energy": -1060.1687166994
+ },
+ {
+  "name": "CaCl2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1598.1210700244,
+  "scf_iterations": 9,
+  "tight_energy": -1598.1210700246
+ },
+ {
+  "name": "TiCl4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2690.4411807155,
+  "scf_iterations": 9,
+  "tight_energy": -2690.4411807261
+ },
+ {
+  "name": "Cr(CO)6",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1724.6112828472,
+  "scf_iterations": 9,
+  "tight_energy": -1724.6112828885
+ },
+ {
+  "name": "ZnCl2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2699.7897407419,
+  "scf_iterations": 9,
+  "tight_energy": -2699.7897407427
+ },
+ {
+  "name": "AgCl",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -607.15063466669,
+  "scf_iterations": 9,
+  "tight_energy": -607.1506346671
+ },
+ {
+  "name": "PtCl4(2-)",
+  "group": "elements",
+  "charge": -2,
+  "uhf": 0,
+  "total_energy": -1960.2624142673,
+  "scf_iterations": 9,
+  "tight_energy": -1960.2624142745
+ },
+ {
+  "name": "AuCl",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -595.84747024888,
+  "scf_iterations": 30,
+  "tight_energy": -595.84747024888
+ },
+ {
+  "name": "HgCl2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1073.8464985261,
+  "scf_iterations": 9,
+  "tight_energy": -1073.8464985264
+ },
+ {
+  "name": "PbH4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -195.10034625602,
+  "scf_iterations": 8,
+  "tight_energy": -195.10034625604
+ },
+ {
+  "name": "BiH3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -216.30927942781,
+  "scf_iterations": 8,
+  "tight_energy": -216.30927942843
+ },
+ {
+  "name": "WF6",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -666.57148640435,
+  "scf_iterations": 9,
+  "tight_energy": -666.57148640598
+ },
+ {
+  "name": "LaCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1412.3309408398,
+  "scf_iterations": 9,
+  "tight_energy": -1412.3309408402
+ },
+ {
+  "name": "CeCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 1,
+  "total_energy": -1855.8504846912,
+  "scf_iterations": 9,
+  "tight_energy": -1855.8504849282
+ },
+ {
+  "name": "EuCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 6,
+  "total_energy": -2090.9925322199,
+  "scf_iterations": 13,
+  "tight_energy": -2090.9925322217
+ },
+ {
+  "name": "GdCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 7,
+  "total_energy": -2146.3491249784,
+  "scf_iterations": 15,
+  "tight_energy": -2146.3491250244
+ },
+ {
+  "name": "LuCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2616.2642755497,
+  "scf_iterations": 10,
+  "tight_energy": -2616.2642755569
+ },
+ {
+  "name": "ThCl4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2248.6606992767,
+  "scf_iterations": 9,
+  "tight_energy": -2248.6606992789
+ },
+ {
+  "name": "UF6",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1076.3494473156,
+  "scf_iterations": 9,
+  "tight_energy": -1076.3494473177
+ },
+ {
+  "name": "NpF6",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 1,
+  "total_energy": -1113.7556143005,
+  "scf_iterations": 10,
+  "tight_energy": -1113.7556143178
+ },
+ {
+  "name": "LaH3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -33.203145957148,
+  "scf_iterations": 9,
+  "tight_energy": -33.203145957172
+ },
+ {
+  "name": "GdH3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 7,
+  "total_energy": -767.25316770507,
+  "scf_iterations": 10,
+  "tight_energy": -767.25316774182
+ },
+ {
+  "name": "TmH3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 2,
+  "total_energy": -1086.8073555452,
+  "scf_iterations": 11,
+  "tight_energy": null
+ },
+ {
+  "name": "ErF3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 3,
+  "total_energy": -1314.8224964804,
+  "scf_iterations": 12,
+  "tight_energy": -1314.8224966955
+ },
+ {
+  "name": "TbCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 6,
+  "total_energy": -2205.1769705532,
+  "scf_iterations": 31,
+  "tight_energy": -2205.1769705638
+ },
+ {
+  "name": "YbCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 1,
+  "total_energy": -2539.402585065,
+  "scf_iterations": 10,
+  "tight_energy": -2539.4025850688
+ },
+ {
+  "name": "AmCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 6,
+  "total_energy": -1976.0888683838,
+  "scf_iterations": 11,
+  "tight_energy": -1976.0888684363
+ },
+ {
+  "name": "PuO2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 4,
+  "total_energy": -704.27737400728,
+  "scf_iterations": 11,
+  "tight_energy": -704.27737401019
+ },
+ {
+  "name": "H2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1.1630588222237,
+  "scf_iterations": 4,
+  "tight_energy": -1.1630588222237
+ },
+ {
+  "name": "BeH2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -15.880403409038,
+  "scf_iterations": 8,
+  "tight_energy": -15.880403409038
+ },
+ {
+  "name": "MgH2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -201.20886703482,
+  "scf_iterations": 7,
+  "tight_energy": -201.20886703494
+ },
+ {
+  "name": "ScCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2141.4659589745,
+  "scf_iterations": 9,
+  "tight_energy": -2141.465958979
+ },
+ {
+  "name": "Co(CO)4-",
+  "group": "elements",
+  "charge": -1,
+  "uhf": 0,
+  "total_energy": -1836.2512942842,
+  "scf_iterations": 10,
+  "tight_energy": -1836.2512942904
+ },
+ {
+  "name": "KrF2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2953.1595394014,
+  "scf_iterations": 9,
+  "tight_energy": -2953.1595394015
+ },
+ {
+  "name": "RbH",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -24.578592470513,
+  "scf_iterations": 11,
+  "tight_energy": -24.578592470518
+ },
+ {
+  "name": "YCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1419.0801629028,
+  "scf_iterations": 9,
+  "tight_energy": -1419.0801629036
+ },
+ {
+  "name": "Mo(CO)6",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -748.37554609401,
+  "scf_iterations": 9,
+  "tight_energy": -748.37554609824
+ },
+ {
+  "name": "RuO4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -395.63932499268,
+  "scf_iterations": 9,
+  "tight_energy": -395.63932499297
+ },
+ {
+  "name": "PdCl4(2-)",
+  "group": "elements",
+  "charge": -2,
+  "uhf": 0,
+  "total_energy": -1968.824606319,
+  "scf_iterations": 9,
+  "tight_energy": -1968.8246063291
+ },
+ {
+  "name": "HfCl4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1889.0284716172,
+  "scf_iterations": 9,
+  "tight_energy": -1889.0284716208
+ },
+ {
+  "name": "OsO4",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -391.52268514712,
+  "scf_iterations": 9,
+  "tight_energy": -391.52268514844
+ },
+ {
+  "name": "IrCl6(3-)",
+  "group": "elements",
+  "charge": -3,
+  "uhf": 0,
+  "total_energy": -2865.5648126729,
+  "scf_iterations": 9,
+  "tight_energy": -2865.5648126924
+ },
+ {
+  "name": "RnF2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -488.2794286681,
+  "scf_iterations": 10,
+  "tight_energy": -488.2794286681
+ },
+ {
+  "name": "FrH",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -19.614600387802,
+  "scf_iterations": 11,
+  "tight_energy": -19.614600387802
+ },
+ {
+  "name": "RaH2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -25.003067608028,
+  "scf_iterations": 11,
+  "tight_energy": -25.003067612731
+ },
+ {
+  "name": "AcCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1756.378800506,
+  "scf_iterations": 9,
+  "tight_energy": -1756.3788005065
+ },
+ {
+  "name": "PaCl5",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2742.6167113308,
+  "scf_iterations": 10,
+  "tight_energy": -2742.6167113344
+ },
+ {
+  "name": "PrCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 2,
+  "total_energy": -1897.7348956338,
+  "scf_iterations": 9,
+  "tight_energy": -1897.7348956588
+ },
+ {
+  "name": "DyCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 5,
+  "total_energy": -2265.7584489782,
+  "scf_iterations": 10,
+  "tight_energy": -2265.758448998
+ },
+ {
+  "name": "CmCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 7,
+  "total_energy": -2019.7308120046,
+  "scf_iterations": 11,
+  "tight_energy": -2019.7308120091
+ },
+ {
+  "name": "NoCl2",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1868.5406380056,
+  "scf_iterations": 11,
+  "tight_energy": -1868.5406380059
+ },
+ {
+  "name": "LrCl3",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -2388.0391124148,
+  "scf_iterations": 10,
+  "tight_energy": -2388.039112415
+ },
+ {
+  "name": "[Co(H2O)6]2+",
+  "group": "elements",
+  "charge": 2,
+  "uhf": 3,
+  "total_energy": -1840.8089061417,
+  "scf_iterations": 9,
+  "tight_energy": -1840.8089061573
+ },
+ {
+  "name": "[Mn(H2O)6]2+",
+  "group": "elements",
+  "charge": 2,
+  "uhf": 5,
+  "total_energy": -1609.1195130466,
+  "scf_iterations": 9,
+  "tight_energy": -1609.1195130479
+ },
+ {
+  "name": "CH3 radical",
+  "group": "elements",
+  "charge": 0,
+  "uhf": 1,
+  "total_energy": -39.821044501504,
+  "scf_iterations": 9,
+  "tight_energy": -39.821044501524
+ },
+ {
+  "name": "c50h102",
+  "group": "large",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -1965.7834479158,
+  "scf_iterations": 8,
+  "tight_energy": -1965.7834479172
+ },
+ {
+  "name": "water100",
+  "group": "large",
+  "charge": 0,
+  "uhf": 0,
+  "total_energy": -7643.9518244696,
+  "scf_iterations": 8,
+  "tight_energy": -7643.951824513
+ }
+]

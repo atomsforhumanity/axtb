@@ -1,0 +1,149 @@
+[
+ {
+  "case": "water, max 3 SCF iterations",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "Fe4 cluster at 0 K (charge sloshing)",
+  "expected": "either",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "FrH (Z=87, no GFN2 parameters)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "UF6 (Z=92, no GFN2 parameters)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "OgH (Z=118)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water with uhf=1 (parity mismatch)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "NO2 with uhf=0 (odd electrons)",
+  "expected": "an error",
+  "xtb": "returns a result",
+  "tblite": "returns a result",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "H2 with uhf=4 (more unpaired than electrons)",
+  "expected": "an error",
+  "xtb": "returns a result",
+  "tblite": "returns a result",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "O2 with uhf=10 (alpha electrons exceed orbitals)",
+  "expected": "an error",
+  "xtb": "returns an energy; charges sum to 3.000000, molecule charge 0",
+  "tblite": "returns an energy; charges sum to 3.000000, molecule charge 0",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "H2 with charge +3 (negative electron count)",
+  "expected": "an error",
+  "xtb": "returns an energy; charges sum to 2.000000, molecule charge 3",
+  "tblite": "returns an energy; charges sum to 2.000000, molecule charge 3; then crashes (double free)",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "H2 with charge +2 (no electrons)",
+  "expected": "a result",
+  "xtb": "returns a result",
+  "tblite": "returns a result",
+  "axtb": "returns a result"
+ },
+ {
+  "case": "water with charge +9 (negative electron count)",
+  "expected": "an error",
+  "xtb": "returns an energy; charges sum to 8.000000, molecule charge 9",
+  "tblite": "returns an energy; charges sum to 8.000000, molecule charge 9; then crashes (double free)",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "H2 with charge -5 (more electrons than spin orbitals)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "returns an energy; charges sum to -0.000000, molecule charge -5",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water with charge -30",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "returns an energy; charges sum to -4.000000, molecule charge -30",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water with etemp -5 K",
+  "expected": "an error",
+  "xtb": "returns a result",
+  "tblite": "returns a result",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water with accuracy 0",
+  "expected": "an error",
+  "xtb": "returns a result",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water with accuracy 1e-12 (xtb clamps to 1e-4)",
+  "expected": "either",
+  "xtb": "returns a result",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "H2 with charge +0.5 at 300 K (no Fermi level in the gap)",
+  "expected": "an error",
+  "xtb": "returns an energy; charges sum to 0.000000, molecule charge 0.5",
+  "tblite": "returns an energy; charges sum to -0.000000, molecule charge 0.5",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water in ALPB 'octane' (not parametrized)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "water in GBSA 'aniline' (ALPB-only solvent)",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ },
+ {
+  "case": "two H atoms at the same position",
+  "expected": "an error",
+  "xtb": "stops with an error",
+  "tblite": "stops with an error",
+  "axtb": "stops with an error"
+ }
+]

@@ -1,0 +1,506 @@
+[
+ {
+  "id": "laptop|water333|cpu|8",
+  "machine": "laptop",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "CPU (faer)",
+  "threads": 8,
+  "seconds": 8.100146645
+ },
+ {
+  "id": "laptop|water333|cuda-adaptive|8",
+  "machine": "laptop",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU adaptive",
+  "threads": 8,
+  "seconds": 5.893790632
+ },
+ {
+  "id": "laptop|water333|cuda-f64|8",
+  "machine": "laptop",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU FP64",
+  "threads": 8,
+  "seconds": 9.812531467
+ },
+ {
+  "id": "laptop|water333|cuda-mixed|8",
+  "machine": "laptop",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 8,
+  "seconds": 7.54979978
+ },
+ {
+  "id": "laptop|water667|cpu|8",
+  "machine": "laptop",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "CPU (faer)",
+  "threads": 8,
+  "seconds": 68.565182091
+ },
+ {
+  "id": "laptop|water667|cuda-adaptive|8",
+  "machine": "laptop",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU adaptive",
+  "threads": 8,
+  "seconds": 41.544568853
+ },
+ {
+  "id": "laptop|water667|cuda-f64|8",
+  "machine": "laptop",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU FP64",
+  "threads": 8,
+  "seconds": 62.788193143
+ },
+ {
+  "id": "laptop|water667|cuda-mixed|8",
+  "machine": "laptop",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 8,
+  "seconds": 61.673200154
+ },
+ {
+  "id": "node|taxol|cpu|1",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 0.191717707
+ },
+ {
+  "id": "node|taxol|cpu|32",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 0.183388349
+ },
+ {
+  "id": "node|taxol|cuda-adaptive|1",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 0.548600341
+ },
+ {
+  "id": "node|taxol|cuda-adaptive|32",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 0.528714487
+ },
+ {
+  "id": "node|taxol|cuda-f64|32",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 0.547315967
+ },
+ {
+  "id": "node|taxol|cuda-mixed|1",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 0.548930297
+ },
+ {
+  "id": "node|taxol|cuda-mixed|32",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 0.529042611
+ },
+ {
+  "id": "node|taxol|cuda-mixed3|32",
+  "machine": "node",
+  "system": "taxol",
+  "n_ao": 299,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 0.548393179
+ },
+ {
+  "id": "node|water100|cpu|1",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 0.608613377
+ },
+ {
+  "id": "node|water100|cpu|32",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 0.47827357
+ },
+ {
+  "id": "node|water100|cuda-adaptive|1",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 0.721033629
+ },
+ {
+  "id": "node|water100|cuda-adaptive|32",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 0.603113017
+ },
+ {
+  "id": "node|water100|cuda-f64|32",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 0.629906298
+ },
+ {
+  "id": "node|water100|cuda-mixed|1",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 0.736589064
+ },
+ {
+  "id": "node|water100|cuda-mixed|32",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 0.602946816
+ },
+ {
+  "id": "node|water100|cuda-mixed3|32",
+  "machine": "node",
+  "system": "water100",
+  "n_ao": 600,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 0.613150937
+ },
+ {
+  "id": "node|water200|cpu|1",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 3.328046594
+ },
+ {
+  "id": "node|water200|cpu|32",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 1.765661184
+ },
+ {
+  "id": "node|water200|cuda-adaptive|1",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 1.696491145
+ },
+ {
+  "id": "node|water200|cuda-adaptive|32",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 0.902851764
+ },
+ {
+  "id": "node|water200|cuda-f64|32",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 1.1892220789999999
+ },
+ {
+  "id": "node|water200|cuda-mixed|1",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 1.825044892
+ },
+ {
+  "id": "node|water200|cuda-mixed|32",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 0.952695032
+ },
+ {
+  "id": "node|water200|cuda-mixed3|32",
+  "machine": "node",
+  "system": "water200",
+  "n_ao": 1200,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 0.980579645
+ },
+ {
+  "id": "node|water333|cpu|1",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 11.441856545
+ },
+ {
+  "id": "node|water333|cpu|32",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 4.759902461
+ },
+ {
+  "id": "node|water333|cuda-adaptive|1",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 4.124518207
+ },
+ {
+  "id": "node|water333|cuda-adaptive|32",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 1.614760859
+ },
+ {
+  "id": "node|water333|cuda-f64|32",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 2.286573737
+ },
+ {
+  "id": "node|water333|cuda-mixed|1",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 4.43333635
+ },
+ {
+  "id": "node|water333|cuda-mixed|32",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 1.7774075150000002
+ },
+ {
+  "id": "node|water333|cuda-mixed3|32",
+  "machine": "node",
+  "system": "water333",
+  "n_ao": 1998,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 1.923058098
+ },
+ {
+  "id": "node|water667|cpu|1",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 89.580444954
+ },
+ {
+  "id": "node|water667|cpu|32",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 19.545833124
+ },
+ {
+  "id": "node|water667|cuda-adaptive|1",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 13.90923917
+ },
+ {
+  "id": "node|water667|cuda-adaptive|32",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 5.6808272429999995
+ },
+ {
+  "id": "node|water667|cuda-f64|32",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 7.783482093
+ },
+ {
+  "id": "node|water667|cuda-mixed|1",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 16.382633271
+ },
+ {
+  "id": "node|water667|cuda-mixed|32",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 7.080409975
+ },
+ {
+  "id": "node|water667|cuda-mixed3|32",
+  "machine": "node",
+  "system": "water667",
+  "n_ao": 4002,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 7.300868843
+ },
+ {
+  "id": "node|water1000|cpu|1",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "CPU (faer)",
+  "threads": 1,
+  "seconds": 304.921076359
+ },
+ {
+  "id": "node|water1000|cpu|32",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "CPU (faer)",
+  "threads": 32,
+  "seconds": 49.902186712
+ },
+ {
+  "id": "node|water1000|cuda-adaptive|1",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU adaptive",
+  "threads": 1,
+  "seconds": 31.70469618
+ },
+ {
+  "id": "node|water1000|cuda-adaptive|32",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU adaptive",
+  "threads": 32,
+  "seconds": 14.052002193
+ },
+ {
+  "id": "node|water1000|cuda-f64|32",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU FP64",
+  "threads": 32,
+  "seconds": 19.977609232
+ },
+ {
+  "id": "node|water1000|cuda-mixed|1",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 1,
+  "seconds": 36.221284785
+ },
+ {
+  "id": "node|water1000|cuda-mixed|32",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU mixed (auto steps)",
+  "threads": 32,
+  "seconds": 18.878878405000002
+ },
+ {
+  "id": "node|water1000|cuda-mixed3|32",
+  "machine": "node",
+  "system": "water1000",
+  "n_ao": 6000,
+  "variant": "GPU mixed, 3 steps",
+  "threads": 32,
+  "seconds": 18.661737253
+ }
+]

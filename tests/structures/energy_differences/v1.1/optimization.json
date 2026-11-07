@@ -1,0 +1,137 @@
+{
+ "butane-anti": {
+  "energy": -158.41040788949144,
+  "lowest_frequencies_cm": [
+   128.56,
+   236.56,
+   265.87
+  ],
+  "imaginary_below_-20": 0
+ },
+ "butane-gauche": {
+  "energy": -158.40942860555052,
+  "lowest_frequencies_cm": [
+   114.08,
+   227.7,
+   267.73
+  ],
+  "imaginary_below_-20": 0
+ },
+ "ethanol-anti": {
+  "energy": -155.03237277292703,
+  "lowest_frequencies_cm": [
+   248.08,
+   319.1,
+   416.49
+  ],
+  "imaginary_below_-20": 0
+ },
+ "ethanol-gauche": {
+  "energy": -155.03291903778677,
+  "lowest_frequencies_cm": [
+   268.67,
+   327.87,
+   424.83
+  ],
+  "imaginary_below_-20": 0
+ },
+ "ferrocene-eclipsed": {
+  "energy": -1650.719408184343,
+  "lowest_frequencies_cm": [
+   21.78,
+   169.28,
+   169.28
+  ],
+  "imaginary_below_-20": 0
+ },
+ "ferrocene-staggered": {
+  "energy": -1650.71911404704,
+  "lowest_frequencies_cm": [
+   -21.87,
+   168.28,
+   168.28
+  ],
+  "imaginary_below_-20": 1
+ },
+ "water-dimer": {
+  "energy": -152.88269672792924,
+  "lowest_frequencies_cm": [
+   71.03,
+   131.92,
+   131.97
+  ],
+  "imaginary_below_-20": 0
+ },
+ "water": {
+  "energy": -76.43754646179671,
+  "lowest_frequencies_cm": [
+   1609.77,
+   3631.73,
+   3675.0
+  ],
+  "imaginary_below_-20": 0
+ },
+ "chloromethane": {
+  "energy": -500.08870984030744,
+  "lowest_frequencies_cm": [
+   746.95,
+   1064.74,
+   1064.74
+  ],
+  "imaginary_below_-20": 0
+ },
+ "chloride": {
+  "energy": -460.26514348903555
+ },
+ "sn2-complex": {
+  "energy": -960.3688919590471,
+  "irc_end_energies": [
+   -960.3688919590151,
+   -960.3688919590471
+  ]
+ },
+ "sn2-ts": {
+  "energy": -960.3451143418031,
+  "imaginary_cm": -444.78,
+  "next_frequencies_cm": [
+   213.99,
+   219.59
+  ],
+  "connects": "ion-dipole complex on both sides (identity reaction)",
+  "irc_end_energies": [
+   -960.3688919590151,
+   -960.3688919590471
+  ]
+ },
+ "HCN": {
+  "energy": -93.4303856817009,
+  "lowest_frequencies_cm": [
+   818.98,
+   818.98,
+   2124.47
+  ],
+  "imaginary_below_-20": 0
+ },
+ "HNC": {
+  "energy": -93.41957632412841,
+  "lowest_frequencies_cm": [
+   645.2,
+   645.2,
+   2059.77
+  ],
+  "imaginary_below_-20": 0
+ },
+ "hcn-ts": {
+  "energy": -93.34410046509178,
+  "imaginary_cm": -1057.25,
+  "next_frequencies_cm": [
+   1911.62,
+   2539.99
+  ],
+  "connects": "HCN and HNC (minimized ends within 1e-6 Eh of the minima)",
+  "irc_end_energies": [
+   -93.4303856817009,
+   -93.41957632412843
+  ]
+ }
+}

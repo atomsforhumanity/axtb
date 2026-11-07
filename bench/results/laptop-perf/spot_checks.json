@@ -1,0 +1,68 @@
+{
+ "machine": "laptop (i9-11900H)",
+ "how": "bench spot check: each binary run directly with bash's `time` (wall s), alternating, 3 rounds per cell, outside bench/final_timings.py; xtb-like programs from a coord file with OMP_NUM_THREADS=MKL_NUM_THREADS=threads, axtb from the same JSON request as the harness, AXTB_LAPACK unset (faer). Binaries identified by the first 16 hex digits of their sha256, as the harness records them.",
+ "binaries": {
+  "xtb 6.8.0": "95d82a623580bb1e",
+  "g-xTB 2.0.1 program": "1b4e30b68ed4e88b",
+  "axtb": "52eaba22e322016f"
+ },
+ "cells": [
+  {
+   "part": "gfn2",
+   "molecule": "(H2O)100",
+   "threads": 1,
+   "program_s": [
+    0.57,
+    0.586,
+    0.589
+   ],
+   "axtb_s": [
+    0.545,
+    0.583,
+    0.561
+   ],
+   "harness_median": {
+    "program": 0.581,
+    "axtb": 0.575
+   }
+  },
+  {
+   "part": "gfn2",
+   "molecule": "(H2O)200",
+   "threads": 8,
+   "program_s": [
+    1.136,
+    1.082,
+    1.135
+   ],
+   "axtb_s": [
+    1.551,
+    1.57,
+    1.569
+   ],
+   "harness_median": {
+    "program": 1.224,
+    "axtb": 1.637
+   }
+  },
+  {
+   "part": "gxtb2",
+   "molecule": "taxol",
+   "threads": 4,
+   "program_s": [
+    0.361,
+    0.377,
+    0.362
+   ],
+   "axtb_s": [
+    0.134,
+    0.141,
+    0.132
+   ],
+   "harness_median": {
+    "program": 0.368,
+    "axtb": 0.133
+   }
+  }
+ ]
+}

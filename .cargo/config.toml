@@ -1,0 +1,9 @@
+# x86-64 Linux builds use AVX2 and FMA (x86-64-v3: Intel Haswell (2013) and later, AMD Excavator
+# (2015) and later; README, "Install"). The scalar loops (integrals, gradients, Fock and Mulliken passes,
+# dispersion) vectorize 4-wide instead of SSE2's 2-wide: GFN2-xTB taxol 0.19 -> 0.16 s,
+# g-xTB 2.0.1 taxol 0.46 -> 0.34 s (laptop, 1 thread). Rust never fuses a multiply and an add
+# on its own, so the results are bit-identical to a baseline build (CLI dump: every GFN2-xTB
+# and g-xTB run). For a CPU without AVX2, build with RUSTFLAGS="-C target-cpu=x86-64" (an
+# explicit RUSTFLAGS replaces this setting).
+[target.x86_64-unknown-linux-gnu]
+rustflags = ["-C", "target-cpu=x86-64-v3"]

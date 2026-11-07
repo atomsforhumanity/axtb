@@ -1,0 +1,1577 @@
+[
+ {
+  "id": "laptop|water|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 2.1619e-05
+ },
+ {
+  "id": "laptop|water|1|Fock build",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 6.5183e-05
+ },
+ {
+  "id": "laptop|water|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 3.9665e-05
+ },
+ {
+  "id": "laptop|water|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 1.7152e-05
+ },
+ {
+  "id": "laptop|water|1|Gradient",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 2.0418e-05
+ },
+ {
+  "id": "laptop|water|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.00010079
+ },
+ {
+  "id": "laptop|water|8|Fock build",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.000386333
+ },
+ {
+  "id": "laptop|water|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 6.6623e-05
+ },
+ {
+  "id": "laptop|water|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 2.1939e-05
+ },
+ {
+  "id": "laptop|water|8|Gradient",
+  "machine": "laptop",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 8.1956e-05
+ },
+ {
+  "id": "laptop|caffeine|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.000862691
+ },
+ {
+  "id": "laptop|caffeine|1|Fock build",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.001179102
+ },
+ {
+  "id": "laptop|caffeine|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.0055870600000000005
+ },
+ {
+  "id": "laptop|caffeine|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.0008882779999999999
+ },
+ {
+  "id": "laptop|caffeine|1|Gradient",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.002379329
+ },
+ {
+  "id": "laptop|caffeine|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.000398479
+ },
+ {
+  "id": "laptop|caffeine|8|Fock build",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.001340447
+ },
+ {
+  "id": "laptop|caffeine|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.0038481720000000004
+ },
+ {
+  "id": "laptop|caffeine|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.000865679
+ },
+ {
+  "id": "laptop|caffeine|8|Gradient",
+  "machine": "laptop",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.000392585
+ },
+ {
+  "id": "laptop|anthracene dimer|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.0019057940000000002
+ },
+ {
+  "id": "laptop|anthracene dimer|1|Fock build",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.0029881220000000006
+ },
+ {
+  "id": "laptop|anthracene dimer|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.013409715
+ },
+ {
+  "id": "laptop|anthracene dimer|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.002441642
+ },
+ {
+  "id": "laptop|anthracene dimer|1|Gradient",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.007247713
+ },
+ {
+  "id": "laptop|anthracene dimer|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.000985781
+ },
+ {
+  "id": "laptop|anthracene dimer|8|Fock build",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.0028317650000000004
+ },
+ {
+  "id": "laptop|anthracene dimer|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.013422124
+ },
+ {
+  "id": "laptop|anthracene dimer|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.002319595
+ },
+ {
+  "id": "laptop|anthracene dimer|8|Gradient",
+  "machine": "laptop",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.001590761
+ },
+ {
+  "id": "laptop|taxol|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.011951082
+ },
+ {
+  "id": "laptop|taxol|1|Fock build",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.020199882000000002
+ },
+ {
+  "id": "laptop|taxol|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.11423026900000001
+ },
+ {
+  "id": "laptop|taxol|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.022266028
+ },
+ {
+  "id": "laptop|taxol|1|Gradient",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.025994308
+ },
+ {
+  "id": "laptop|taxol|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.005069705
+ },
+ {
+  "id": "laptop|taxol|8|Fock build",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.012344707999999998
+ },
+ {
+  "id": "laptop|taxol|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.08497830099999999
+ },
+ {
+  "id": "laptop|taxol|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.011907259
+ },
+ {
+  "id": "laptop|taxol|8|Gradient",
+  "machine": "laptop",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.008154616
+ },
+ {
+  "id": "laptop|C50H102|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.009697393
+ },
+ {
+  "id": "laptop|C50H102|1|Fock build",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.014508572999999999
+ },
+ {
+  "id": "laptop|C50H102|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.07177759200000002
+ },
+ {
+  "id": "laptop|C50H102|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.014514865
+ },
+ {
+  "id": "laptop|C50H102|1|Gradient",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.018499384
+ },
+ {
+  "id": "laptop|C50H102|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.007747583
+ },
+ {
+  "id": "laptop|C50H102|8|Fock build",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.012839846
+ },
+ {
+  "id": "laptop|C50H102|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.056065195
+ },
+ {
+  "id": "laptop|C50H102|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.009065420000000001
+ },
+ {
+  "id": "laptop|C50H102|8|Gradient",
+  "machine": "laptop",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.008130284
+ },
+ {
+  "id": "laptop|(H2O)100|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.121829673
+ },
+ {
+  "id": "laptop|(H2O)100|1|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.059670874
+ },
+ {
+  "id": "laptop|(H2O)100|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.417319793
+ },
+ {
+  "id": "laptop|(H2O)100|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.08217344299999998
+ },
+ {
+  "id": "laptop|(H2O)100|1|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.078629976
+ },
+ {
+  "id": "laptop|(H2O)100|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.044093953
+ },
+ {
+  "id": "laptop|(H2O)100|8|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.044459933
+ },
+ {
+  "id": "laptop|(H2O)100|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.246298996
+ },
+ {
+  "id": "laptop|(H2O)100|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.037805664
+ },
+ {
+  "id": "laptop|(H2O)100|8|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.033328862
+ },
+ {
+  "id": "laptop|(H2O)200|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.9291018990000001
+ },
+ {
+  "id": "laptop|(H2O)200|1|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.34901281
+ },
+ {
+  "id": "laptop|(H2O)200|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 3.187043832
+ },
+ {
+  "id": "laptop|(H2O)200|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.574622886
+ },
+ {
+  "id": "laptop|(H2O)200|1|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.30320709
+ },
+ {
+  "id": "laptop|(H2O)200|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.24646990400000002
+ },
+ {
+  "id": "laptop|(H2O)200|8|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.17931004699999997
+ },
+ {
+  "id": "laptop|(H2O)200|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 1.327208175
+ },
+ {
+  "id": "laptop|(H2O)200|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.197478364
+ },
+ {
+  "id": "laptop|(H2O)200|8|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.130125382
+ },
+ {
+  "id": "laptop|(H2O)333|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 3.628854489
+ },
+ {
+  "id": "laptop|(H2O)333|1|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.736074026
+ },
+ {
+  "id": "laptop|(H2O)333|1|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 14.059705026
+ },
+ {
+  "id": "laptop|(H2O)333|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 2.3907258209999998
+ },
+ {
+  "id": "laptop|(H2O)333|1|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.867850851
+ },
+ {
+  "id": "laptop|(H2O)333|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.74176525
+ },
+ {
+  "id": "laptop|(H2O)333|8|Fock build",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.45178858899999996
+ },
+ {
+  "id": "laptop|(H2O)333|8|Eigensolver",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 4.424106188
+ },
+ {
+  "id": "laptop|(H2O)333|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.641871072
+ },
+ {
+  "id": "laptop|(H2O)333|8|Gradient",
+  "machine": "laptop",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.345603858
+ },
+ {
+  "id": "node|water|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 1.4141e-05
+ },
+ {
+  "id": "node|water|1|Fock build",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 4.0351e-05
+ },
+ {
+  "id": "node|water|1|Eigensolver",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 2.7962e-05
+ },
+ {
+  "id": "node|water|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 1.1497000000000002e-05
+ },
+ {
+  "id": "node|water|1|Gradient",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 1.3129e-05
+ },
+ {
+  "id": "node|water|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 9.4732e-05
+ },
+ {
+  "id": "node|water|8|Fock build",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.000187532
+ },
+ {
+  "id": "node|water|8|Eigensolver",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 3.4019999999999996e-05
+ },
+ {
+  "id": "node|water|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 1.2399e-05
+ },
+ {
+  "id": "node|water|8|Gradient",
+  "machine": "node",
+  "molecule": "water",
+  "atoms": 3,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 4.4457e-05
+ },
+ {
+  "id": "node|caffeine|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.000372479
+ },
+ {
+  "id": "node|caffeine|1|Fock build",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.000950984
+ },
+ {
+  "id": "node|caffeine|1|Eigensolver",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.0033311309999999998
+ },
+ {
+  "id": "node|caffeine|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.000701825
+ },
+ {
+  "id": "node|caffeine|1|Gradient",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.002111849
+ },
+ {
+  "id": "node|caffeine|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.000362734
+ },
+ {
+  "id": "node|caffeine|8|Fock build",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.001163004
+ },
+ {
+  "id": "node|caffeine|8|Eigensolver",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.0033991030000000005
+ },
+ {
+  "id": "node|caffeine|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.000798818
+ },
+ {
+  "id": "node|caffeine|8|Gradient",
+  "machine": "node",
+  "molecule": "caffeine",
+  "atoms": 24,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.000345118
+ },
+ {
+  "id": "node|anthracene dimer|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.001415304
+ },
+ {
+  "id": "node|anthracene dimer|1|Fock build",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.0076513020000000005
+ },
+ {
+  "id": "node|anthracene dimer|1|Eigensolver",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.010189371
+ },
+ {
+  "id": "node|anthracene dimer|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.0022917190000000002
+ },
+ {
+  "id": "node|anthracene dimer|1|Gradient",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.007494096
+ },
+ {
+  "id": "node|anthracene dimer|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.001214853
+ },
+ {
+  "id": "node|anthracene dimer|8|Fock build",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.0027094869999999996
+ },
+ {
+  "id": "node|anthracene dimer|8|Eigensolver",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.010292204000000001
+ },
+ {
+  "id": "node|anthracene dimer|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.0016319700000000002
+ },
+ {
+  "id": "node|anthracene dimer|8|Gradient",
+  "machine": "node",
+  "molecule": "anthracene dimer",
+  "atoms": 48,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.001212169
+ },
+ {
+  "id": "node|taxol|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.008540625999999999
+ },
+ {
+  "id": "node|taxol|1|Fock build",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.04750738399999999
+ },
+ {
+  "id": "node|taxol|1|Eigensolver",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.08000991
+ },
+ {
+  "id": "node|taxol|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.016338768
+ },
+ {
+  "id": "node|taxol|1|Gradient",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.025930132
+ },
+ {
+  "id": "node|taxol|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.005854666
+ },
+ {
+  "id": "node|taxol|8|Fock build",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.011144462
+ },
+ {
+  "id": "node|taxol|8|Eigensolver",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.091331823
+ },
+ {
+  "id": "node|taxol|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.010799195000000001
+ },
+ {
+  "id": "node|taxol|8|Gradient",
+  "machine": "node",
+  "molecule": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.007196189
+ },
+ {
+  "id": "node|C50H102|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.006910009999999999
+ },
+ {
+  "id": "node|C50H102|1|Fock build",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.049429577999999995
+ },
+ {
+  "id": "node|C50H102|1|Eigensolver",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.052605212
+ },
+ {
+  "id": "node|C50H102|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.012228561999999998
+ },
+ {
+  "id": "node|C50H102|1|Gradient",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.018507614
+ },
+ {
+  "id": "node|C50H102|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.005839493
+ },
+ {
+  "id": "node|C50H102|8|Fock build",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.010468640999999997
+ },
+ {
+  "id": "node|C50H102|8|Eigensolver",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.06334225599999999
+ },
+ {
+  "id": "node|C50H102|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.008418913000000002
+ },
+ {
+  "id": "node|C50H102|8|Gradient",
+  "machine": "node",
+  "molecule": "C50H102",
+  "atoms": 152,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.007097171
+ },
+ {
+  "id": "node|(H2O)100|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.09690554400000001
+ },
+ {
+  "id": "node|(H2O)100|1|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.15263255199999998
+ },
+ {
+  "id": "node|(H2O)100|1|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 0.274064171
+ },
+ {
+  "id": "node|(H2O)100|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.06118459800000001
+ },
+ {
+  "id": "node|(H2O)100|1|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.073774612
+ },
+ {
+  "id": "node|(H2O)100|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.031543046
+ },
+ {
+  "id": "node|(H2O)100|8|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.035520073
+ },
+ {
+  "id": "node|(H2O)100|8|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.185679386
+ },
+ {
+  "id": "node|(H2O)100|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.026885846999999997
+ },
+ {
+  "id": "node|(H2O)100|8|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.028848572
+ },
+ {
+  "id": "node|(H2O)100|64|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 64,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.028415522999999998
+ },
+ {
+  "id": "node|(H2O)100|64|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 64,
+  "phase": "Fock build",
+  "seconds": 0.036349497
+ },
+ {
+  "id": "node|(H2O)100|64|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 64,
+  "phase": "Eigensolver",
+  "seconds": 0.45783661400000003
+ },
+ {
+  "id": "node|(H2O)100|64|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 64,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.028564217
+ },
+ {
+  "id": "node|(H2O)100|64|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)100",
+  "atoms": 300,
+  "threads": 64,
+  "phase": "Gradient",
+  "seconds": 0.025634219
+ },
+ {
+  "id": "node|(H2O)200|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.53178716
+ },
+ {
+  "id": "node|(H2O)200|1|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.503838379
+ },
+ {
+  "id": "node|(H2O)200|1|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 1.547146125
+ },
+ {
+  "id": "node|(H2O)200|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.296869383
+ },
+ {
+  "id": "node|(H2O)200|1|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.213951481
+ },
+ {
+  "id": "node|(H2O)200|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.15708253
+ },
+ {
+  "id": "node|(H2O)200|8|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.145323263
+ },
+ {
+  "id": "node|(H2O)200|8|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 0.639107725
+ },
+ {
+  "id": "node|(H2O)200|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.12369146900000001
+ },
+ {
+  "id": "node|(H2O)200|8|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.111774367
+ },
+ {
+  "id": "node|(H2O)200|64|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 64,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.107307584
+ },
+ {
+  "id": "node|(H2O)200|64|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 64,
+  "phase": "Fock build",
+  "seconds": 0.142605264
+ },
+ {
+  "id": "node|(H2O)200|64|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 64,
+  "phase": "Eigensolver",
+  "seconds": 1.740631164
+ },
+ {
+  "id": "node|(H2O)200|64|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 64,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.12374301700000001
+ },
+ {
+  "id": "node|(H2O)200|64|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)200",
+  "atoms": 600,
+  "threads": 64,
+  "phase": "Gradient",
+  "seconds": 0.096777391
+ },
+ {
+  "id": "node|(H2O)333|1|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 1.887514096
+ },
+ {
+  "id": "node|(H2O)333|1|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Fock build",
+  "seconds": 0.9162214809999999
+ },
+ {
+  "id": "node|(H2O)333|1|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Eigensolver",
+  "seconds": 6.712157851000001
+ },
+ {
+  "id": "node|(H2O)333|1|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 1.1026640209999998
+ },
+ {
+  "id": "node|(H2O)333|1|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 1,
+  "phase": "Gradient",
+  "seconds": 0.572003452
+ },
+ {
+  "id": "node|(H2O)333|8|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.468104583
+ },
+ {
+  "id": "node|(H2O)333|8|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Fock build",
+  "seconds": 0.378498965
+ },
+ {
+  "id": "node|(H2O)333|8|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Eigensolver",
+  "seconds": 2.187467168
+ },
+ {
+  "id": "node|(H2O)333|8|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.37994990100000003
+ },
+ {
+  "id": "node|(H2O)333|8|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 8,
+  "phase": "Gradient",
+  "seconds": 0.300454284
+ },
+ {
+  "id": "node|(H2O)333|64|Setup (classical terms, integrals, Cholesky)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 64,
+  "phase": "Setup (classical terms, integrals, Cholesky)",
+  "seconds": 0.279448421
+ },
+ {
+  "id": "node|(H2O)333|64|Fock build",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 64,
+  "phase": "Fock build",
+  "seconds": 0.364132054
+ },
+ {
+  "id": "node|(H2O)333|64|Eigensolver",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 64,
+  "phase": "Eigensolver",
+  "seconds": 4.385314472999999
+ },
+ {
+  "id": "node|(H2O)333|64|Other SCF (density, charges, energy, mixing)",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 64,
+  "phase": "Other SCF (density, charges, energy, mixing)",
+  "seconds": 0.320276272
+ },
+ {
+  "id": "node|(H2O)333|64|Gradient",
+  "machine": "node",
+  "molecule": "(H2O)333",
+  "atoms": 999,
+  "threads": 64,
+  "phase": "Gradient",
+  "seconds": 0.253092339
+ }
+]

@@ -1,0 +1,23 @@
+# reference sources and programs (reference/README.md)
+/reference/*
+!/reference/README.md
+# build output (bench/linalg also builds into target-v4/)
+target/
+target-*/
+dist/
+*.whl
+*.so
+# written by crates/axtb-py/build.rs
+/crates/axtb-py/python/axtb/_build.py
+# Python environments and caches
+.venv/
+__pycache__/
+.pytest_cache/
+# local work
+scratch/
+.claude/
+# run logs; aocl_load.log is the load record that bench/README.md cites
+*.log
+!/bench/linalg/results/aocl_load.log
+# raw data of the GPU eigensolver, whose code is on branch gpu-backend
+/bench/gpu/results/

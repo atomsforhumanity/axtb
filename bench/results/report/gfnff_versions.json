@@ -1,0 +1,20 @@
+[
+ {
+  "version": "xtb 6.8.0 (axtb default and xtb conventions)",
+  "structures": 269,
+  "reproduced": 268,
+  "max_dq": 2.2524204723595176e-12,
+  "max_dE": 8.446576771348191e-13,
+  "max_dG": 4.334310688136611e-12,
+  "not_reproduced": "ferrocenium"
+ },
+ {
+  "version": "xtb 6.7.1, the g-xTB 2.0.1 build (conventions xtb-6.7.1)",
+  "structures": 269,
+  "reproduced": 268,
+  "max_dq": 4.732214620162267e-12,
+  "max_dE": 8.428813202954188e-13,
+  "max_dG": 9.343636975245317e-12,
+  "not_reproduced": "ferrocenium"
+ }
+]

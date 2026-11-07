@@ -1,0 +1,29 @@
+[package]
+name = "axtb"
+description = "Extended tight-binding quantum chemistry: GFN2-xTB energies, gradients and Hessians reproducing xtb and tblite, and what the axtb methods share"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation = "https://docs.rs/axtb"
+readme = "README.md"
+keywords = ["quantum-chemistry", "tight-binding", "xtb", "gfn2-xtb", "chemistry"]
+categories = ["science", "simulation"]
+# the tests and examples read data of the repository; the package is the library
+include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
+
+[dependencies]
+axtb-d4 = { workspace = true }
+axtb-solvation = { workspace = true }
+faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
+rayon = "1.10"
+
+[features]
+# GFN2's core matrices for the eigensolver benchmark (bench/linalg/dump); not a supported API.
+bench-internals = []
+
+[lints]
+workspace = true

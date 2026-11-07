@@ -1,0 +1,28 @@
+[
+ {
+  "version": "g-xTB 2.0.1",
+  "molecules": 169,
+  "elements": 103,
+  "agree": 155,
+  "rounding": 12,
+  "program_wrong": 2,
+  "real": 0,
+  "unparametrized": 0,
+  "max_dE_ok": 4.934008757118136e-11,
+  "max_dG": 1.8359063626930152e-09,
+  "gradient_against": "the program's analytic gradient"
+ },
+ {
+  "version": "g-xTB 1.1",
+  "molecules": 169,
+  "elements": 103,
+  "agree": 130,
+  "rounding": 6,
+  "program_wrong": 0,
+  "real": 4,
+  "unparametrized": 29,
+  "max_dE_ok": 2.8421709430404007e-12,
+  "max_dG": 8.808510002997205e-08,
+  "gradient_against": "finite differences of tight energies"
+ }
+]

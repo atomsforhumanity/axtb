@@ -1,0 +1,43 @@
+axtb: licenses
+==============
+
+axtb (https://github.com/atomsforhumanity/axtb) is free software under two licenses. The full
+texts are in the repository's top directory:
+COPYING (GNU General Public License, version 3) and COPYING.LESSER (GNU Lesser General Public
+License, version 3, which supplements the GPL and needs it alongside).
+
+LGPL-3.0-or-later (COPYING.LESSER with COPYING)
+  crates/axtb        axtb            GFN2-xTB and the shared machinery
+  crates/d4          axtb-d4         DFT-D4 dispersion
+  crates/solvation   axtb-solvation  ALPB/GBSA implicit solvation
+  crates/gfnff       axtb-gfnff      GFN-FF force field
+
+  These crates reproduce parameters and algorithms of xtb, tblite and dftd4 (LGPL-3.0-or-later)
+  and data of mctc-lib and multicharge (Apache-2.0); see NOTICE.
+
+GPL-3.0-only (COPYING)
+  crates/gxtb        axtb-gxtb       g-xTB v1.1 and 2.0.1
+  crates/driver      axtb-driver     the request/response layer of the front ends
+  crates/axtb-cli    axtb-cli        the `axtb` command-line program
+  crates/axtb-py     axtb (PyPI)     the Python package and its wheels
+
+  axtb-gxtb is GPL-3.0-only because it embeds the g-xTB parameters: the parameter files of
+  the g-xTB 1.1.0 release and tables taken from the g-xTB 1.1.0 and 2.0.1 programs
+  (grimme-lab/g-xtb, GPL-3.0). axtb-driver, axtb-cli and axtb-py build axtb-gxtb in by
+  default (Cargo feature `gxtb`), so they, the `axtb` program and the Python wheels are
+  GPL-3.0-only as built by default.
+
+Builds without g-xTB
+  The code of axtb-driver, axtb-cli and axtb-py contains no g-xTB parameters; they reach
+  axtb-gxtb only through the feature `gxtb`. Built with `--no-default-features`
+  (`cargo build -p axtb-cli --no-default-features`,
+  `maturin build --no-default-features -m crates/axtb-py/Cargo.toml`), they contain nothing
+  from axtb-gxtb, and the result is LGPL-3.0-or-later: GFN2-xTB and GFN-FF, without g-xTB.
+
+Other files
+  third_party/   patched copies of two MIT-licensed crates (gemm-common, private-gemm-x86);
+                 each keeps its own LICENSE file (third_party/README.md).
+  tests/structures/README.md  the source and license of each test structure.
+
+Each published crate carries the license texts it needs (COPYING, and COPYING.LESSER for the
+LGPL crates and for the crates whose build without g-xTB is LGPL) and NOTICE.

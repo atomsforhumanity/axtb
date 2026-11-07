@@ -1,0 +1,6 @@
+{
+ "charge": 0,
+ "uhf": 2,
+ "program": "g-xTB 1.1.0 (grimme-lab/g-xtb v1.1.0)",
+ "command": "gxtb -c mol.xyz -molden | -grad -symthr 0; HOME=. with .gxtb/.basisq/.eeq, OMP_NUM_THREADS=1"
+}

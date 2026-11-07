@@ -1,0 +1,145 @@
+{
+ "machine": "laptop",
+ "cpu": "Intel Core i9-11900H (Tiger Lake), 8 cores / 16 threads",
+ "date": "2026-11-06",
+ "axtb_commit": "7bb7c16",
+ "programs": {
+  "xtb": "xtb 6.8.0 (4b8c987), official release",
+  "g-xTB": "g-xTB 2.0.1 build of xtb 6.7.1 (26dd68d)"
+ },
+ "how": "bench/laptop_check: axtb CLI against the program, whole-process wall time; energy + gradient interleaved with the order alternated, median of 3 after a warm-up; Hessians one run each; cores = (user + system CPU time) / wall time; laptop otherwise idle (1-minute load per row)",
+ "rows": [
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "taxol",
+   "threads": 1,
+   "program_s": 0.896,
+   "axtb_s": 0.96,
+   "speedup": 0.93,
+   "program_cores": 1.0,
+   "axtb_cores": 1.0,
+   "load": 2.66796875
+  },
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "taxol",
+   "threads": 8,
+   "program_s": 0.344,
+   "axtb_s": 1.031,
+   "speedup": 0.33,
+   "program_cores": 7.85,
+   "axtb_cores": 1.48,
+   "load": 2.69482421875
+  },
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "C50H102",
+   "threads": 1,
+   "program_s": 0.692,
+   "axtb_s": 0.871,
+   "speedup": 0.79,
+   "program_cores": 0.99,
+   "axtb_cores": 1.0,
+   "load": 2.7197265625
+  },
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "C50H102",
+   "threads": 8,
+   "program_s": 0.288,
+   "axtb_s": 0.868,
+   "speedup": 0.33,
+   "program_cores": 7.76,
+   "axtb_cores": 1.56,
+   "load": 2.822265625
+  },
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "(H2O)100",
+   "threads": 1,
+   "program_s": 3.609,
+   "axtb_s": 5.006,
+   "speedup": 0.72,
+   "program_cores": 1.0,
+   "axtb_cores": 1.0,
+   "load": 2.25634765625
+  },
+  {
+   "method": "g-xTB 2.0.1",
+   "molecule": "(H2O)100",
+   "threads": 8,
+   "program_s": 1.327,
+   "axtb_s": 5.291,
+   "speedup": 0.25,
+   "program_cores": 7.89,
+   "axtb_cores": 1.47,
+   "load": 2.6201171875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "taxol",
+   "threads": 1,
+   "program_s": 0.167,
+   "axtb_s": 0.22,
+   "speedup": 0.76,
+   "program_cores": 0.98,
+   "axtb_cores": 1.0,
+   "load": 2.6201171875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "taxol",
+   "threads": 8,
+   "program_s": 0.101,
+   "axtb_s": 0.143,
+   "speedup": 0.71,
+   "program_cores": 7.21,
+   "axtb_cores": 3.17,
+   "load": 2.6201171875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "(H2O)100",
+   "threads": 1,
+   "program_s": 0.611,
+   "axtb_s": 0.869,
+   "speedup": 0.7,
+   "program_cores": 1.0,
+   "axtb_cores": 1.0,
+   "load": 2.60498046875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "(H2O)100",
+   "threads": 8,
+   "program_s": 0.305,
+   "axtb_s": 0.475,
+   "speedup": 0.64,
+   "program_cores": 7.63,
+   "axtb_cores": 4.13,
+   "load": 2.60498046875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "(H2O)200",
+   "threads": 1,
+   "program_s": 3.742,
+   "axtb_s": 5.734,
+   "speedup": 0.65,
+   "program_cores": 1.0,
+   "axtb_cores": 1.0,
+   "load": 2.29638671875
+  },
+  {
+   "method": "GFN2-xTB",
+   "molecule": "(H2O)200",
+   "threads": 8,
+   "program_s": 1.44,
+   "axtb_s": 2.43,
+   "speedup": 0.59,
+   "program_cores": 7.87,
+   "axtb_cores": 4.75,
+   "load": 3.9365234375
+  }
+ ]
+}

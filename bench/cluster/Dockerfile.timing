@@ -1,0 +1,31 @@
+# Image for bench/final_timings.py on cluster nodes (the recorded runs: AMD Threadripper PRO 9985WX):
+#   axtb CLI + Python module at one commit (/opt/axtb), optionally the CLI of a second commit
+#   (/opt/axtb-base, for the overhead check), xtb 6.8.0 (official release binary
+#   xtb-6.8.0-linux-x86_64-ifx-mkl.tar.xz, sha256-checked), the g-xTB 2.0.1 build of xtb
+#   (/opt/gxtb/bin/xtb, from the bench image's base), the g-xtb 1.1.0 program
+#   (grimme-lab/g-xtb v1.1.0 release binary + parameter files), tblite 0.8.0 + dftd4 4.3.1 (PyPI).
+# The base is the earlier bench image (Rust 1.86, tblite, dftd4, maturin, cargo registry).
+# Build context: bench/cluster/make_timing_context.sh (it puts the registry, $REGISTRY, for <registry>).
+FROM <registry>/axtb-bench:2026-11-04c
+
+COPY programs/xtb-6.8.0-linux-x86_64-ifx-mkl.tar.xz /tmp/xtb680.tar.xz
+RUN echo "db090333361749ae0d9ccf0ce7c0035c0000f2ebad0847f6d77191d1954f4d68  /tmp/xtb680.tar.xz" | sha256sum -c - \
+    && mkdir -p /opt/xtb-6.8.0 && tar -xJf /tmp/xtb680.tar.xz -C /opt/xtb-6.8.0 --strip-components=1 \
+    && rm /tmp/xtb680.tar.xz && /opt/xtb-6.8.0/bin/xtb --version | grep "xtb version 6.8.0"
+COPY programs/gxtb-1.1.0 /opt/gxtb-1.1.0
+
+# the base commit's CLI first (its layers stay cached while the measured commit changes)
+COPY axtb-base /opt/axtb-base
+RUN if [ -f /opt/axtb-base/Cargo.toml ]; then cd /opt/axtb-base && cargo build --release -p axtb-cli \
+        && rm -rf target/release/deps target/release/build target/release/incremental; fi
+RUN rm -rf /opt/axtb
+COPY axtb /opt/axtb
+WORKDIR /opt/axtb
+RUN cargo build --release -p axtb-cli \
+    && (cd crates/axtb-py && maturin build --release -o /tmp/wheels) \
+    && pip install --no-cache-dir --force-reinstall --no-deps /tmp/wheels/*.whl && rm -rf /tmp/wheels \
+    && rm -rf target/release/deps target/release/build target/release/incremental
+
+RUN python3 -c "import axtb, tblite; import importlib.metadata as m; print('axtb', axtb.__version__, 'tblite', m.version('tblite'))" \
+    && /opt/axtb/target/release/axtb /opt/axtb/tests/structures/water.xyz --grad > /dev/null \
+    && /opt/gxtb/bin/xtb --version | grep version && cat /opt/axtb/AXTB_REV /opt/axtb-base/AXTB_REV

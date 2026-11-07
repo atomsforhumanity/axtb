@@ -1,0 +1,62 @@
+[build-system]
+requires = ["maturin>=1.9,<2"]
+build-backend = "maturin"
+
+[project]
+name = "axtb"
+description = "Extended tight binding (GFN2-xTB, g-xTB) and the GFN-FF force field: energies, gradients, Hessians, vibrational analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+# GPL-3.0-only because the default build includes g-xTB (crates/gxtb, GPL parameter files);
+# an LGPL-3.0-or-later build without g-xTB: maturin build --no-default-features (LICENSE)
+license = "GPL-3.0-only"
+license-files = ["COPYING", "COPYING.LESSER", "LICENSE", "NOTICE"]
+authors = [{ name = "Colton Hicks" }]
+keywords = ["quantum chemistry", "tight binding", "xtb", "g-xtb", "gfn-ff"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Chemistry",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+dependencies = ["numpy>=1.22"]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/atomsforhumanity/axtb"
+Documentation = "https://github.com/atomsforhumanity/axtb#readme"
+Repository = "https://github.com/atomsforhumanity/axtb"
+Issues = "https://github.com/atomsforhumanity/axtb/issues"
+Changelog = "https://github.com/atomsforhumanity/axtb/blob/main/CHANGELOG.md"
+
+[tool.maturin]
+python-source = "python"
+module-name = "axtb._axtb"
+features = ["pyo3/extension-module"]
+# The workspace's [patch.crates-io] points at third_party/, which the sdist needs too. maturin
+# takes include paths relative to this directory only, so crates/axtb-py/third_party is a
+# symbolic link to the top-level third_party/; in the sdist it lands next to the workspace's
+# Cargo.toml, where the patch expects it.
+include = [{ path = "third_party/**/*", format = "sdist" }]
+# the wheels ship without debug info (the release profile keeps line tables for profiling)
+strip = true
+# PyPI wheels run on glibc 2.28 or newer: build them in the manylinux_2_28 container
+# (.github/workflows/release.yml) or with --zig. On a newer host `maturin build` refuses them;
+# `--compatibility linux` builds a wheel for the host itself. pip's builds from source (PEP 517)
+# always tag the wheel for the host.
+compatibility = "manylinux_2_28"
+
+[project.optional-dependencies]
+qc = ["qccodec>=0.21", "qcdata"]
+
+[project.entry-points."qccodec.codecs"]
+axtb = "axtb.qccodec:codec"

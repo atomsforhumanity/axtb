@@ -1,0 +1,146 @@
+[
+ {
+  "id": "laptop|64x8|xtb, OMP_NUM_THREADS unset",
+  "machine": "laptop",
+  "setup": "xtb, OMP_NUM_THREADS unset",
+  "jobs": 64,
+  "workers": 8,
+  "batch": "64 jobs on 8 workers",
+  "wall": 2.1069841750431806
+ },
+ {
+  "id": "laptop|64x8|xtb, OMP_NUM_THREADS=1",
+  "machine": "laptop",
+  "setup": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 64,
+  "workers": 8,
+  "batch": "64 jobs on 8 workers",
+  "wall": 0.45018327492289245
+ },
+ {
+  "id": "laptop|64x8|axtb CLI processes (no env vars)",
+  "machine": "laptop",
+  "setup": "axtb CLI processes (no env vars)",
+  "jobs": 64,
+  "workers": 8,
+  "batch": "64 jobs on 8 workers",
+  "wall": 0.18825022806413472
+ },
+ {
+  "id": "laptop|64x8|axtb in-process, 8 Python threads",
+  "machine": "laptop",
+  "setup": "axtb in-process",
+  "jobs": 64,
+  "workers": 8,
+  "batch": "64 jobs on 8 workers",
+  "wall": 0.12402880797162652
+ },
+ {
+  "id": "node|128x64|xtb, OMP_NUM_THREADS unset",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS unset",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "wall": 5.316421438008547
+ },
+ {
+  "id": "node|128x64|xtb, OMP_NUM_THREADS=1",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "wall": 0.16431723488494754
+ },
+ {
+  "id": "node|128x64|axtb CLI processes (with the start-up fixes)",
+  "machine": "node",
+  "setup": "axtb CLI processes (with the start-up fixes)",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "wall": 0.07416868302971125
+ },
+ {
+  "id": "node|128x64|axtb in-process, 64 Python threads",
+  "machine": "node",
+  "setup": "axtb in-process",
+  "jobs": 128,
+  "workers": 64,
+  "batch": "128 jobs on 64 workers",
+  "wall": 0.03528765728697181
+ },
+ {
+  "id": "node|512x64|xtb, OMP_NUM_THREADS unset",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS unset",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "wall": 18.189046802930534
+ },
+ {
+  "id": "node|512x64|xtb, OMP_NUM_THREADS=1",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "wall": 0.551064036320895
+ },
+ {
+  "id": "node|512x64|axtb CLI processes (with the start-up fixes)",
+  "machine": "node",
+  "setup": "axtb CLI processes (with the start-up fixes)",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "wall": 0.2496313659939915
+ },
+ {
+  "id": "node|512x64|axtb in-process, 64 Python threads",
+  "machine": "node",
+  "setup": "axtb in-process",
+  "jobs": 512,
+  "workers": 64,
+  "batch": "512 jobs on 64 workers",
+  "wall": 0.07501117186620831
+ },
+ {
+  "id": "node|1024x128|xtb, OMP_NUM_THREADS unset",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS unset",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "wall": 30.583802660927176
+ },
+ {
+  "id": "node|1024x128|xtb, OMP_NUM_THREADS=1",
+  "machine": "node",
+  "setup": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "wall": 1.0175708578899503
+ },
+ {
+  "id": "node|1024x128|axtb CLI processes (with the start-up fixes)",
+  "machine": "node",
+  "setup": "axtb CLI processes (with the start-up fixes)",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "wall": 0.5184675410855561
+ },
+ {
+  "id": "node|1024x128|axtb in-process, 128 Python threads",
+  "machine": "node",
+  "setup": "axtb in-process",
+  "jobs": 1024,
+  "workers": 128,
+  "batch": "1024 jobs on 128 workers",
+  "wall": 0.13580447901040316
+ }
+]
