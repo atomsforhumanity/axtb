@@ -1,9 +1,0 @@
-# openblas | OpenBLAS 0.3.32 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=128 | core=SkylakeX | openblas_get_num_threads=1
-# openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64 | core=SkylakeX | openblas_get_num_threads=1
-# openblas | OpenBLAS 0.3.32 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=128 | core=SkylakeX | openblas_get_num_threads=8
-# openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64 | core=SkylakeX | openblas_get_num_threads=8
-# openblas | OpenBLAS 0.3.32 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=128 | core=SkylakeX | openblas_get_num_threads=1
-# openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64 | core=SkylakeX | openblas_get_num_threads=1
-# openblas | OpenBLAS 0.3.32 NO_LAPACKE DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=128 | core=SkylakeX | openblas_get_num_threads=8
-# openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64 | core=SkylakeX | openblas_get_num_threads=8
-# nalgebra 0.33 SymmetricEigen (sequential)

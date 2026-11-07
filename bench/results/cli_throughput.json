@@ -1,0 +1,86 @@
+[
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 0,
+  "wall": 0.267077888995118
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 0,
+  "wall": 0.09052703800261952
+ },
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 1,
+  "wall": 0.25396948699926725
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 1,
+  "wall": 0.09471843099890975
+ },
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 2,
+  "wall": 0.25018969400116475
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 64,
+  "workers": 8,
+  "repeat": 2,
+  "wall": 0.08972158600226976
+ },
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 0,
+  "wall": 0.3429567799976212
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 0,
+  "wall": 0.1500004209956387
+ },
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 1,
+  "wall": 0.34897568599990336
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 1,
+  "wall": 0.14658317399880616
+ },
+ {
+  "label": "xtb, OMP_NUM_THREADS=1",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 2,
+  "wall": 0.34725526699912734
+ },
+ {
+  "label": "axtb CLI processes (no env vars), e6b4a18",
+  "jobs": 128,
+  "workers": 16,
+  "repeat": 2,
+  "wall": 0.15122112399694743
+ }
+]
