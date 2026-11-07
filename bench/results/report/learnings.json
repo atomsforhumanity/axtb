@@ -21,7 +21,7 @@
  },
  {
   "topic": "Start-up dominates small molecules",
-  "lesson": "A water energy and gradient takes 0.23 ms as an in-process call and 3.3 ms as an axtb process, against 10 ms for the xtb program (laptop). For small molecules, how a calculation is called matters more than how fast its code is."
+  "lesson": "A water energy and gradient takes 6.77 ms as an in-process call and 2.0 ms as an axtb process, against 14 ms for the xtb program (laptop). For small molecules, how a calculation is called matters more than how fast its code is."
  },
  {
   "topic": "Math libraries depend on the CPU",
@@ -49,15 +49,15 @@
  },
  {
   "topic": "A better SCF converger is not a free win",
-  "lesson": "On a hard-SCF set (bond breaking, path images, metal clusters, small gaps) DIIS cut failures from 20 to 11 (10 to 1 at 300 K; the 0 K failures have no stable whole-electron solution for any program). But in systems with several SCF solutions it sometimes lands on a different one, once with an implausible \u22123 charge on an atom, and it lost one structure the reference mixer converges. So axtb keeps the reference mixer and uses DIIS only as a fallback: nothing that converges today changes, and rescued results are labelled."
+  "lesson": "On a hard-SCF set (bond breaking, path images, metal clusters, small gaps) DIIS cut failures from 20 to 10 (10 to 0 at 300 K; the 0 K failures have no stable whole-electron solution for any program). But in systems with several SCF solutions it sometimes lands on a different one, once with an implausible \u22123 charge on an atom, and it lost one structure the reference mixer converges. So axtb keeps the reference mixer and uses DIIS only as a fallback: nothing that converges today changes, and rescued results are labelled."
  },
  {
   "topic": "Defaults can be badly wrong, and only an independent implementation shows it",
-  "lesson": "The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to 149 cm\u207b\u00b9 off. Nothing in its output warns; it took an independent analytic Hessian, checked against tight references, to see it. AFH's skills already prescribed a tighter setting, which keeps the error near 1 cm\u207b\u00b9, but one of their own entries had concluded the default was safe from a single small molecule."
+  "lesson": "The g-xTB 2.0.1 program's Hessian at its default accuracy puts taxol's frequencies up to 149 cm\u207b\u00b9 off. Nothing in its output warns; it took an independent analytic Hessian, checked against tight references, to see it. The common tighter setting (--acc 0.001) keeps the error near 1 cm\u207b\u00b9, but a check on a single small molecule would have suggested that the default was safe."
  },
  {
   "topic": "A complete specification makes reimplementation fast",
-  "lesson": "Once every g-xTB 2.0.1 term had been decoded and each had captured reference values, the implementation took a few hours of agent time: 84 molecules across H\u2013Lr reproduce the program to 2.2e-11 Eh with identical SCF iteration counts. Decoding was the slow part; writing the code against per-term reference numbers was not."
+  "lesson": "Once every g-xTB 2.0.1 term had been decoded and each had captured reference values, the implementation took a few hours of agent time: 84 molecules across H\u2013Lr reproduce the program to 9.1e-12 Eh with identical SCF iteration counts. Decoding was the slow part; writing the code against per-term reference numbers was not."
  },
  {
   "topic": "The published derivation is not the program",
@@ -68,12 +68,8 @@
   "lesson": "At 6000 basis functions the RTX PRO 6000 eigensolver made a whole calculation 2.5\u00d7 faster than the node's best CPU run in FP64 and 3.6\u00d7 with adaptive precision. Mixed precision helps less than the FP32/FP64 rate gap suggests, because its FP64 refinement steps are matrix multiplies at the card's low FP64 rate."
  },
  {
-  "topic": "Memory, not time, limited the g-xTB Hessian",
-  "lesson": "The first g-xTB 2.0.1 analytic Hessian kept response data for every displacement, so its memory grew as N\u00b3: taxol needed 1358 MB and a 300-atom water cluster ran out of memory at 12 GB. Contracting each displacement's response as soon as it is made brought taxol to 139 MB and the water cluster to 992 MB, as for the GFN2-xTB Hessian. Speed changes were then kept only if they gained 10%: a preconditioner that saved 7% for 170 lines was dropped."
- },
- {
   "topic": "The retry temperature is part of the result",
-  "lesson": "mepd retries a failed GFN2 solvation pair at a higher electronic temperature. For HF stretched to 3 \u00c5 the pair converged only at 5000 K, after 56 s of failing 1000-iteration attempts; axtb's default converger finishes it at 300 K in 0.2 s, and the solvation correction then differs by 0.029 Eh (18 kcal/mol). Which rung converged changes the energy, so a path profile mixing rungs is not one surface; record the rung with every result."
+  "lesson": "A common retry ladder reruns a failed GFN2 solvation pair at a higher electronic temperature. For HF stretched to 3 \u00c5 the pair converged only at 5000 K, after 47 s of failing 1000-iteration attempts; axtb's default converger finishes it at 300 K in 0.1 s, and the solvation correction then differs by 0.029 Eh (18 kcal/mol). Which rung converged changes the energy, so a path profile mixing rungs is not one surface; record the rung with every result."
  },
  {
   "topic": "Comparing orbitals across programs needs overlaps, not coefficients",
@@ -85,7 +81,7 @@
  },
  {
   "topic": "One array can set a program's size limit",
-  "lesson": "xtb's GFN-FF needs 9.0 GiB for a 3000-atom water cluster and fails at 5100 atoms, almost all from one hydrogen-bond bookkeeping array that grows as N\u00b3. Building the same hydrogen-bond lists from neighbour lists, axtb's GFN-FF needs 189 MiB at 3000 atoms and 1.5 GiB at 9900, with identical energies where both run. Its only dense array is the charge model's matrix, which now sets the time above a few thousand atoms."
+  "lesson": "xtb's GFN-FF needs 9.0 GiB for a 3000-atom water cluster and fails at 5100 atoms, almost all from one hydrogen-bond bookkeeping array that grows as N\u00b3. Building the same hydrogen-bond lists from neighbour lists, axtb's GFN-FF needs 190 MiB at 3000 atoms and 1.5 GiB at 9900, with identical energies where both run. Its only dense array is the charge model's matrix, which now sets the time above a few thousand atoms."
  },
  {
   "topic": "Differentiating code is not differentiating the formula",

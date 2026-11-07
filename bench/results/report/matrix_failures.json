@@ -119,7 +119,7 @@
   "axtb": "stops with an error"
  },
  {
-  "case": "H2 with charge +0.5 at 300 K (no Fermi level in the gap)",
+  "case": "H2 with charge +0.5 (a non-integer charge is an input error)",
   "expected": "an error",
   "xtb": "returns an energy; charges sum to 0.000000, molecule charge 0.5",
   "tblite": "returns an energy; charges sum to -0.000000, molecule charge 0.5",

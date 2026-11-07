@@ -53,7 +53,7 @@
  },
  {
   "kind": "Tested",
-  "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs mepd makes and mepd itself (9 structures, including two that need its retry ladder)"
+  "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs it replaces (9 structures, including two that need a retry at a higher electronic temperature)"
  },
  {
   "kind": "Tested",

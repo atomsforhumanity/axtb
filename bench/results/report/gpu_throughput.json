@@ -6,7 +6,8 @@
   "variant": "CPU (faer)",
   "workers": 1,
   "per_second": 126.54,
-  "latency_ms": 7.9
+  "latency_ms": 7.9,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-f64|1",
@@ -15,7 +16,8 @@
   "variant": "GPU FP64",
   "workers": 1,
   "per_second": 29.98,
-  "latency_ms": 33.4
+  "latency_ms": 33.4,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-mixed2|1",
@@ -24,7 +26,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 1,
   "per_second": 72.8,
-  "latency_ms": 13.7
+  "latency_ms": 13.7,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cpu|8",
@@ -33,7 +36,8 @@
   "variant": "CPU (faer)",
   "workers": 8,
   "per_second": 1219.19,
-  "latency_ms": 6.5
+  "latency_ms": 6.5,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-f64|8",
@@ -42,7 +46,8 @@
   "variant": "GPU FP64",
   "workers": 8,
   "per_second": 112.42,
-  "latency_ms": 70.1
+  "latency_ms": 70.1,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-mixed2|8",
@@ -51,7 +56,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 8,
   "per_second": 351.4,
-  "latency_ms": 22.5
+  "latency_ms": 22.5,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cpu|32",
@@ -60,7 +66,8 @@
   "variant": "CPU (faer)",
   "workers": 32,
   "per_second": 2881.66,
-  "latency_ms": 10.2
+  "latency_ms": 10.2,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-f64|32",
@@ -69,7 +76,8 @@
   "variant": "GPU FP64",
   "workers": 32,
   "per_second": 103.59,
-  "latency_ms": 293.1
+  "latency_ms": 293.1,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-mixed2|32",
@@ -78,7 +86,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 32,
   "per_second": 316.25,
-  "latency_ms": 95.8
+  "latency_ms": 95.8,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cpu|64",
@@ -87,7 +96,8 @@
   "variant": "CPU (faer)",
   "workers": 64,
   "per_second": 3373.89,
-  "latency_ms": 13.6
+  "latency_ms": 13.6,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-f64|64",
@@ -96,7 +106,8 @@
   "variant": "GPU FP64",
   "workers": 64,
   "per_second": 104.8,
-  "latency_ms": 540.6
+  "latency_ms": 540.6,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "24|cuda-mixed2|64",
@@ -105,7 +116,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 64,
   "per_second": 295.83,
-  "latency_ms": 193.9
+  "latency_ms": 193.9,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cpu|1",
@@ -114,7 +126,8 @@
   "variant": "CPU (faer)",
   "workers": 1,
   "per_second": 5.77,
-  "latency_ms": 173.3
+  "latency_ms": 173.3,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-f64|1",
@@ -123,7 +136,8 @@
   "variant": "GPU FP64",
   "workers": 1,
   "per_second": 6.9,
-  "latency_ms": 145.0
+  "latency_ms": 145.0,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-mixed2|1",
@@ -132,7 +146,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 1,
   "per_second": 13.34,
-  "latency_ms": 74.9
+  "latency_ms": 74.9,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cpu|8",
@@ -141,7 +156,8 @@
   "variant": "CPU (faer)",
   "workers": 8,
   "per_second": 46.65,
-  "latency_ms": 170.7
+  "latency_ms": 170.7,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-f64|8",
@@ -150,7 +166,8 @@
   "variant": "GPU FP64",
   "workers": 8,
   "per_second": 19.92,
-  "latency_ms": 390.1
+  "latency_ms": 390.1,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-mixed2|8",
@@ -159,7 +176,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 8,
   "per_second": 42.4,
-  "latency_ms": 185.8
+  "latency_ms": 185.8,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cpu|32",
@@ -168,7 +186,8 @@
   "variant": "CPU (faer)",
   "workers": 32,
   "per_second": 168.19,
-  "latency_ms": 186.6
+  "latency_ms": 186.6,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-f64|32",
@@ -177,7 +196,8 @@
   "variant": "GPU FP64",
   "workers": 32,
   "per_second": 21.28,
-  "latency_ms": 1374.0
+  "latency_ms": 1374.0,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-mixed2|32",
@@ -186,7 +206,8 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 32,
   "per_second": 44.78,
-  "latency_ms": 658.9
+  "latency_ms": 658.9,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cpu|64",
@@ -195,7 +216,8 @@
   "variant": "CPU (faer)",
   "workers": 64,
   "per_second": 191.78,
-  "latency_ms": 294.2
+  "latency_ms": 294.2,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-f64|64",
@@ -204,7 +226,8 @@
   "variant": "GPU FP64",
   "workers": 64,
   "per_second": 20.81,
-  "latency_ms": 2386.7
+  "latency_ms": 2386.7,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "113|cuda-mixed2|64",
@@ -213,6 +236,7 @@
   "variant": "GPU mixed, 2 steps",
   "workers": 64,
   "per_second": 42.37,
-  "latency_ms": 1240.8
+  "latency_ms": 1240.8,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  }
 ]

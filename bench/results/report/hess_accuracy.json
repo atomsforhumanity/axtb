@@ -4,17 +4,17 @@
   "case": "water",
   "atoms": 3,
   "method": "axtb analytic",
-  "max_dH": 5.892222942199821e-10,
-  "max_dfreq": 1.2143877068969066e-05,
-  "asymmetry": 8.326672684688674e-17
+  "max_dH": 5.89141424880979e-10,
+  "max_dfreq": 8.233122691623709e-06,
+  "asymmetry": 6.938893903907228e-17
  },
  {
   "id": "water|response",
   "case": "water",
   "atoms": 3,
   "method": "axtb response-based",
-  "max_dH": 3.032382192569294e-07,
-  "max_dfreq": 0.0010792580856104905,
+  "max_dH": 3.032382760448371e-07,
+  "max_dfreq": 0.0010792575235427648,
   "asymmetry": 1.6757494523955696e-07
  },
  {
@@ -22,98 +22,98 @@
   "case": "water",
   "atoms": 3,
   "method": "axtb finite differences",
-  "max_dH": 3.059177046299544e-05,
-  "max_dfreq": 0.11447820199464331,
-  "asymmetry": 1.7009574466986255e-05
+  "max_dH": 3.05917704986336e-05,
+  "max_dfreq": 0.11447820221974325,
+  "asymmetry": 1.700957441494455e-05
  },
  {
   "id": "caffeine|analytic",
   "case": "caffeine",
   "atoms": 24,
   "method": "axtb analytic",
-  "max_dH": 1.4703186446141103e-09,
-  "max_dfreq": 3.790366194324141e-05,
-  "asymmetry": 3.608224830031759e-16
+  "max_dH": 1.4706016404630873e-09,
+  "max_dfreq": 2.623116937527925e-05,
+  "asymmetry": 3.3306690738754696e-16
  },
  {
   "id": "caffeine|response",
   "case": "caffeine",
   "atoms": 24,
   "method": "axtb response-based",
-  "max_dH": 3.4736646692401507e-07,
-  "max_dfreq": 0.00756169420477093,
-  "asymmetry": 1.6608866187928228e-07
+  "max_dH": 3.473662122388532e-07,
+  "max_dfreq": 0.007561735078184029,
+  "asymmetry": 1.6608868616541095e-07
  },
  {
   "id": "caffeine|numerical",
   "case": "caffeine",
   "atoms": 24,
   "method": "axtb finite differences",
-  "max_dH": 3.593490655839915e-05,
-  "max_dfreq": 0.7045410967759871,
-  "asymmetry": 2.5112757534029306e-05
+  "max_dH": 3.593490625963813e-05,
+  "max_dfreq": 0.704541107028767,
+  "asymmetry": 2.51127576163801e-05
  },
  {
   "id": "tyr-xab|analytic",
   "case": "tyr-xab",
   "atoms": 33,
   "method": "axtb analytic",
-  "max_dH": 4.373472917151844e-09,
-  "max_dfreq": 2.4902355335814124e-05,
-  "asymmetry": 5.551115123125783e-16
+  "max_dH": 4.374207440704936e-09,
+  "max_dfreq": 2.4058808904214857e-05,
+  "asymmetry": 3.3306690738754696e-16
  },
  {
   "id": "tyr-xab|response",
   "case": "tyr-xab",
   "atoms": 33,
   "method": "axtb response-based",
-  "max_dH": 2.62533061512471e-07,
-  "max_dfreq": 0.002466182996471389,
-  "asymmetry": 1.4146402388393042e-07
+  "max_dH": 2.625328940908389e-07,
+  "max_dfreq": 0.0024661808216848158,
+  "asymmetry": 1.4146411841942097e-07
  },
  {
   "id": "tyr-xab|numerical",
   "case": "tyr-xab",
   "atoms": 33,
   "method": "axtb finite differences",
-  "max_dH": 2.6467641030258893e-05,
-  "max_dfreq": 0.2328361370092722,
-  "asymmetry": 1.9723691101938834e-05
+  "max_dH": 2.6467640758420785e-05,
+  "max_dfreq": 0.2328361336971625,
+  "asymmetry": 1.9723691145487332e-05
  },
  {
   "id": "taxol|analytic",
   "case": "taxol",
   "atoms": 113,
   "method": "axtb analytic",
-  "max_dH": 4.354331575862069e-09,
-  "max_dfreq": 9.847857199929422e-06,
-  "asymmetry": 6.661338147750939e-16
+  "max_dH": 4.357738850324644e-09,
+  "max_dfreq": 9.801785836316412e-06,
+  "asymmetry": 4.996003610813204e-16
  },
  {
   "id": "taxol|response",
   "case": "taxol",
   "atoms": 113,
   "method": "axtb response-based",
-  "max_dH": 2.8077934144388195e-07,
-  "max_dfreq": 0.0008017778391149477,
-  "asymmetry": 1.7327552412349512e-07
+  "max_dH": 2.807776983138055e-07,
+  "max_dfreq": 0.0008017662180463958,
+  "asymmetry": 1.7327546514289693e-07
  },
  {
   "id": "taxol|numerical",
   "case": "taxol",
   "atoms": 113,
   "method": "axtb finite differences",
-  "max_dH": 3.340409433016944e-05,
-  "max_dfreq": 0.09964783583018288,
-  "asymmetry": 3.208661437052035e-05
+  "max_dH": 3.340409489949181e-05,
+  "max_dfreq": 0.09964788194793073,
+  "asymmetry": 3.2086614324248336e-05
  },
  {
   "id": "Cu(NH3)4 2+|analytic",
   "case": "Cu(NH3)4 2+",
   "atoms": 17,
   "method": "axtb analytic",
-  "max_dH": 1.868708937591279e-10,
-  "max_dfreq": 1.10677018485639e-05,
+  "max_dH": 1.8677153573731786e-10,
+  "max_dfreq": 3.075993234434636e-05,
   "asymmetry": 1.1102230246251565e-16
  },
  {
@@ -121,98 +121,98 @@
   "case": "Cu(NH3)4 2+",
   "atoms": 17,
   "method": "axtb response-based",
-  "max_dH": 1.7364794674401551e-07,
-  "max_dfreq": 0.0014245203244342974,
-  "asymmetry": 1.3169379128874503e-07
+  "max_dH": 1.7364825816157392e-07,
+  "max_dfreq": 0.0014245226603009087,
+  "asymmetry": 1.3169377655053438e-07
  },
  {
   "id": "Cu(NH3)4 2+|numerical",
   "case": "Cu(NH3)4 2+",
   "atoms": 17,
   "method": "axtb finite differences",
-  "max_dH": 1.7914722406087158e-05,
-  "max_dfreq": 0.1281866501743707,
-  "asymmetry": 1.4160724078282833e-05
+  "max_dH": 1.7914722694412077e-05,
+  "max_dfreq": 0.12818667011705998,
+  "asymmetry": 1.4160724152160369e-05
  },
  {
   "id": "caffeine+ doublet|analytic",
   "case": "caffeine+ doublet",
   "atoms": 24,
   "method": "axtb analytic",
-  "max_dH": 1.3436713630632369e-08,
-  "max_dfreq": 3.4693920497375075e-05,
-  "asymmetry": 6.661338147750939e-16
+  "max_dH": 1.3437571722008101e-08,
+  "max_dfreq": 3.472281923677656e-05,
+  "asymmetry": 4.440892098500626e-16
  },
  {
   "id": "caffeine+ doublet|response",
   "case": "caffeine+ doublet",
   "atoms": 24,
   "method": "axtb response-based",
-  "max_dH": 3.5124515285200886e-07,
-  "max_dfreq": 0.0027145967903550172,
-  "asymmetry": 1.6306797884224622e-07
+  "max_dH": 3.512438299102527e-07,
+  "max_dfreq": 0.0027145350805639623,
+  "asymmetry": 1.6306791333908777e-07
  },
  {
   "id": "caffeine+ doublet|numerical",
   "case": "caffeine+ doublet",
   "atoms": 24,
   "method": "axtb finite differences",
-  "max_dH": 3.712927668586552e-05,
-  "max_dfreq": 0.2596576634876442,
-  "asymmetry": 2.1725435346175992e-05
+  "max_dH": 3.712927729571103e-05,
+  "max_dfreq": 0.25965759702643965,
+  "asymmetry": 2.1725435115749203e-05
  },
  {
   "id": "caffeine ALPB(water)|analytic",
   "case": "caffeine ALPB(water)",
   "atoms": 24,
   "method": "axtb analytic",
-  "max_dH": 1.9626174019293785e-09,
-  "max_dfreq": 5.683033907999402e-05,
-  "asymmetry": 2.498001805406602e-16
+  "max_dH": 1.95305405181756e-09,
+  "max_dfreq": 5.708091769207613e-05,
+  "asymmetry": 4.440892098500626e-16
  },
  {
   "id": "caffeine ALPB(water)|response",
   "case": "caffeine ALPB(water)",
   "atoms": 24,
   "method": "axtb response-based",
-  "max_dH": 9.390746346540912e-05,
-  "max_dfreq": 9.111112800779892,
-  "asymmetry": 1.4376508072927452e-05
+  "max_dH": 9.390746241225156e-05,
+  "max_dfreq": 9.111113040671132,
+  "asymmetry": 1.4376507996738397e-05
  },
  {
   "id": "caffeine ALPB(water)|numerical",
   "case": "caffeine ALPB(water)",
   "atoms": 24,
   "method": "axtb finite differences",
-  "max_dH": 0.0001444437734510473,
-  "max_dfreq": 14.102765205162797,
-  "asymmetry": 3.182404017246232e-05
+  "max_dH": 0.00014444377240699358,
+  "max_dfreq": 14.10276545482613,
+  "asymmetry": 3.1824040136546605e-05
  },
  {
   "id": "taxol ALPB(water)|analytic",
   "case": "taxol ALPB(water)",
   "atoms": 113,
   "method": "axtb analytic",
-  "max_dH": 4.386536578415701e-09,
-  "max_dfreq": 2.2559271542377246e-05,
-  "asymmetry": 8.881784197001252e-16
+  "max_dH": 4.3880874489587995e-09,
+  "max_dfreq": 2.2534313984579057e-05,
+  "asymmetry": 8.326672684688674e-16
  },
  {
   "id": "taxol ALPB(water)|response",
   "case": "taxol ALPB(water)",
   "atoms": 113,
   "method": "axtb response-based",
-  "max_dH": 1.739529184197064e-05,
-  "max_dfreq": 0.024892497781635825,
-  "asymmetry": 2.0900535849521784e-06
+  "max_dH": 1.739529607269752e-05,
+  "max_dfreq": 0.02489253354249854,
+  "asymmetry": 2.090053727740737e-06
  },
  {
   "id": "taxol ALPB(water)|numerical",
   "case": "taxol ALPB(water)",
   "atoms": 113,
   "method": "axtb finite differences",
-  "max_dH": 0.0002430589174586828,
-  "max_dfreq": 0.3013022735781874,
-  "asymmetry": 4.876339232767757e-05
+  "max_dH": 0.0002430589243901382,
+  "max_dfreq": 0.301302294671018,
+  "asymmetry": 4.876339234555216e-05
  }
 ]

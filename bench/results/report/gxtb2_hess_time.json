@@ -6,7 +6,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 1,
-  "seconds": 6.619366182945669
+  "seconds": 5.082753942813724
  },
  {
   "id": "caffeine|1|axtb analytic 1t",
@@ -15,7 +15,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 1.8130252521950752
+  "seconds": 0.496793266851455
  },
  {
   "id": "caffeine|1|axtb response 1t",
@@ -24,7 +24,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 1,
-  "seconds": 5.733311159070581
+  "seconds": 1.130396659951657
  },
  {
   "id": "caffeine|1|axtb numerical 1t",
@@ -33,7 +33,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 1,
-  "seconds": 6.8482986961025745
+  "seconds": 1.6449036640115082
  },
  {
   "id": "caffeine|1|program --hess 8t",
@@ -42,7 +42,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 8,
-  "seconds": 1.04668013099581
+  "seconds": 0.8608452300541103
  },
  {
   "id": "caffeine|1|axtb analytic 8t",
@@ -51,7 +51,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 0.43471664818935096
+  "seconds": 0.14922020211815834
  },
  {
   "id": "caffeine|1|axtb response 8t",
@@ -60,7 +60,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 8,
-  "seconds": 0.9427726939320564
+  "seconds": 0.21349156508222222
  },
  {
   "id": "caffeine|1|axtb numerical 8t",
@@ -69,7 +69,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 8,
-  "seconds": 1.143815014977008
+  "seconds": 0.2690798998810351
  },
  {
   "id": "caffeine|2|program --acc 0.001 1t",
@@ -78,7 +78,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 1,
-  "seconds": 6.907497113803402
+  "seconds": 5.325732905883342
  },
  {
   "id": "caffeine|2|axtb analytic 1t",
@@ -87,7 +87,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 1.6797123260330409
+  "seconds": 0.46306526008993387
  },
  {
   "id": "caffeine|2|program --acc 0.0001 1t",
@@ -96,7 +96,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 1,
-  "seconds": 7.002281547058374
+  "seconds": 5.375413214787841
  },
  {
   "id": "caffeine|2|program --acc 0.001 8t",
@@ -105,7 +105,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 8,
-  "seconds": 1.071953243110329
+  "seconds": 0.7665652008727193
  },
  {
   "id": "caffeine|2|axtb analytic 8t",
@@ -114,7 +114,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 0.41848881100304425
+  "seconds": 0.11738330591470003
  },
  {
   "id": "caffeine|2|program --acc 0.0001 8t",
@@ -123,7 +123,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 8,
-  "seconds": 1.1329143790062517
+  "seconds": 0.7841397360898554
  },
  {
   "id": "taxol|1|program --hess 1t",
@@ -132,7 +132,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 1,
-  "seconds": 449.91407636902295
+  "seconds": 348.9455295018852
  },
  {
   "id": "taxol|1|axtb analytic 1t",
@@ -141,7 +141,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 151.9754807469435
+  "seconds": 54.91755818575621
  },
  {
   "id": "taxol|1|axtb response 1t",
@@ -150,7 +150,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 1,
-  "seconds": 500.0715050229337
+  "seconds": 105.2769934781827
  },
  {
   "id": "taxol|1|axtb numerical 1t",
@@ -159,7 +159,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 1,
-  "seconds": 730.4798564438242
+  "seconds": 163.67898095678538
  },
  {
   "id": "taxol|1|program --hess 8t",
@@ -168,7 +168,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 8,
-  "seconds": 80.36045268410817
+  "seconds": 45.457262438721955
  },
  {
   "id": "taxol|1|axtb analytic 8t",
@@ -177,7 +177,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 35.81802603392862
+  "seconds": 7.287122673820704
  },
  {
   "id": "taxol|1|axtb response 8t",
@@ -186,7 +186,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 8,
-  "seconds": 88.79251446900889
+  "seconds": 13.68182485178113
  },
  {
   "id": "taxol|1|axtb numerical 8t",
@@ -195,7 +195,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 8,
-  "seconds": 127.45324661303312
+  "seconds": 20.45473417919129
  },
  {
   "id": "taxol|2|program --acc 0.001 1t",
@@ -204,7 +204,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 1,
-  "seconds": 534.0543075439055
+  "seconds": 429.81369608361274
  },
  {
   "id": "taxol|2|axtb analytic 1t",
@@ -213,7 +213,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 157.8743419458624
+  "seconds": 53.264024674892426
  },
  {
   "id": "taxol|2|program --acc 0.0001 1t",
@@ -222,7 +222,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 1,
-  "seconds": 580.6930331019685
+  "seconds": 464.26453431369737
  },
  {
   "id": "taxol|2|program --acc 0.001 8t",
@@ -231,7 +231,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 8,
-  "seconds": 94.82027823617682
+  "seconds": 54.03588587511331
  },
  {
   "id": "taxol|2|axtb analytic 8t",
@@ -240,7 +240,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 34.545457172906026
+  "seconds": 7.035988241899759
  },
  {
   "id": "taxol|2|program --acc 0.0001 8t",
@@ -249,6 +249,60 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 8,
-  "seconds": 101.97942691901699
+  "seconds": 59.52786481613293
+ },
+ {
+  "id": "Ni(CO)4|2|program --acc 0.001 1t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 1,
+  "seconds": 0.7197637851350009
+ },
+ {
+  "id": "Ni(CO)4|2|axtb analytic 1t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 1,
+  "seconds": 0.09021393209695816
+ },
+ {
+  "id": "Ni(CO)4|2|program --acc 0.0001 1t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 1,
+  "seconds": 0.7481036600656807
+ },
+ {
+  "id": "Ni(CO)4|2|program --acc 0.001 8t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "program --hess --acc 0.001",
+  "threads": 8,
+  "seconds": 0.17734872084110975
+ },
+ {
+  "id": "Ni(CO)4|2|axtb analytic 8t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "axtb analytic",
+  "threads": 8,
+  "seconds": 0.036691582296043634
+ },
+ {
+  "id": "Ni(CO)4|2|program --acc 0.0001 8t",
+  "molecule": "Ni(CO)4",
+  "atoms": null,
+  "window": "acc",
+  "method": "program --hess --acc 0.0001",
+  "threads": 8,
+  "seconds": 0.17952446499839425
  }
 ]

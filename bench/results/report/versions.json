@@ -26,8 +26,8 @@
  {
   "item": "axtb",
   "value": "axtb 0.1.0, Rust, faer 0.22",
-  "reference": "github.com/atomsforhumanity/axtb (private)",
-  "license": "LGPL-3.0"
+  "reference": "github.com/atomsforhumanity/axtb",
+  "license": "LGPL-3.0-or-later; GPL-3.0-only with g-xTB"
  },
  {
   "item": "GFN2-xTB",

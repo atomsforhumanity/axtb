@@ -2,13 +2,13 @@
  {
   "reason": "real-space cutoffs: the default's 40/72 bohr vs xtb 6.8.0's 25/50 bohr (molecule 30 bohr long)",
   "cases": 1,
-  "min_dE": 9.358996408082021e-06,
-  "max_dE": 9.358996408082021e-06
+  "min_dE": 9.358996351238602e-06,
+  "max_dE": 9.358996351238602e-06
  },
  {
   "reason": "CODATA 2022 kB for the electronic temperature",
   "cases": 3,
-  "min_dE": 2.720367717756744e-07,
-  "max_dE": 2.7203677355203126e-07
+  "min_dE": 2.7203677355203126e-07,
+  "max_dE": 2.720367753283881e-07
  }
 ]

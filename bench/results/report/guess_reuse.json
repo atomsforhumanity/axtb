@@ -16,8 +16,8 @@
   "points": 30,
   "iter_fresh": 11.0,
   "iter_reuse": 6.517241379310345,
-  "time_fresh": 1.1370227090083063,
-  "time_reuse": 0.8488584370352328
+  "time_fresh": 0.1587221979862079,
+  "time_reuse": 0.10939659800351365
  },
  {
   "id": "gfn2|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
@@ -26,8 +26,8 @@
   "points": 30,
   "iter_fresh": 11.0,
   "iter_reuse": 7.655172413793103,
-  "time_fresh": 0.4395114011131227,
-  "time_reuse": 0.3527318430133164
+  "time_fresh": 0.15689458099222975,
+  "time_reuse": 0.12062436300038826
  },
  {
   "id": "gfn2|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
@@ -36,8 +36,8 @@
   "points": 12,
   "iter_fresh": 11.909090909090908,
   "iter_reuse": 6.909090909090909,
-  "time_fresh": 2.6551737322006375,
-  "time_reuse": 1.8225234129931778
+  "time_fresh": 1.3220962230188888,
+  "time_reuse": 0.846160521999991
  },
  {
   "id": "gfn2|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
@@ -46,8 +46,8 @@
   "points": 12,
   "iter_fresh": 12.0,
   "iter_reuse": 8.727272727272727,
-  "time_fresh": 8.194981484906748,
-  "time_reuse": 6.738415293162689
+  "time_fresh": 1.3419880980000016,
+  "time_reuse": 1.0253852440073388
  },
  {
   "id": "gxtb-v2.0.1|Sella IRC",
@@ -86,8 +86,8 @@
   "points": 30,
   "iter_fresh": 9.0,
   "iter_reuse": 6.655172413793103,
-  "time_fresh": 3.749445070279762,
-  "time_reuse": 3.902730859350413
+  "time_fresh": 0.44273068299662555,
+  "time_reuse": 0.38985340599901974
  },
  {
   "id": "gxtb-v2.0.1|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
@@ -96,8 +96,8 @@
   "points": 30,
   "iter_fresh": 9.0,
   "iter_reuse": 8.0,
-  "time_fresh": 3.189677228219807,
-  "time_reuse": 3.099103873828426
+  "time_fresh": 0.39647761501692,
+  "time_reuse": 0.3810254930140218
  },
  {
   "id": "gxtb-v2.0.1|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
@@ -106,8 +106,8 @@
   "points": 12,
   "iter_fresh": 9.0,
   "iter_reuse": 6.818181818181818,
-  "time_fresh": 12.912468021269888,
-  "time_reuse": 12.03088777535595
+  "time_fresh": 3.1948799769961624,
+  "time_reuse": 2.828786186008074
  },
  {
   "id": "gxtb-v2.0.1|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
@@ -116,8 +116,8 @@
   "points": 12,
   "iter_fresh": 9.0,
   "iter_reuse": 8.727272727272727,
-  "time_fresh": 10.890157928224653,
-  "time_reuse": 10.69680411904119
+  "time_fresh": 3.244096073001856,
+  "time_reuse": 3.2308844980070717
  },
  {
   "id": "gxtb-v1.1|geomeTRIC minimization",
@@ -136,8 +136,8 @@
   "points": 30,
   "iter_fresh": 11.0,
   "iter_reuse": 7.896551724137931,
-  "time_fresh": 5.418103809701279,
-  "time_reuse": 5.331300411140546
+  "time_fresh": 0.9090777570017963,
+  "time_reuse": 0.8424764690134907
  },
  {
   "id": "gxtb-v1.1|caffeine|random walk, 30 steps, sigma 0.02 bohr per coordinate",
@@ -146,8 +146,8 @@
   "points": 30,
   "iter_fresh": 11.0,
   "iter_reuse": 9.0,
-  "time_fresh": 3.404676884878427,
-  "time_reuse": 3.1905317795462906
+  "time_fresh": 0.9133563439827412,
+  "time_reuse": 0.8704591039786465
  },
  {
   "id": "gxtb-v1.1|taxol|random walk, 12 steps, sigma 0.005 bohr per coordinate",
@@ -156,8 +156,8 @@
   "points": 12,
   "iter_fresh": 11.0,
   "iter_reuse": 9.0,
-  "time_fresh": 14.812332263682038,
-  "time_reuse": 13.78930771467276
+  "time_fresh": 8.08558942899981,
+  "time_reuse": 7.297478183994826
  },
  {
   "id": "gxtb-v1.1|taxol|random walk, 12 steps, sigma 0.02 bohr per coordinate",
@@ -166,7 +166,7 @@
   "points": 12,
   "iter_fresh": 11.0,
   "iter_reuse": 10.181818181818182,
-  "time_fresh": 24.668659139191732,
-  "time_reuse": 25.36207705293782
+  "time_fresh": 8.12647363400174,
+  "time_reuse": 7.832469359986135
  }
 ]

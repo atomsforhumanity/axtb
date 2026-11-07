@@ -1,111 +1,57 @@
 [
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.084
+  "ms": 6.3365
  },
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.605
+  "ms": 7.852
  },
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 20.054499999999997
+  "ms": 23.127499999999998
  },
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 27.3065
+  "ms": 31.6
  },
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 209.68
+  "ms": 203.339
  },
  {
   "machine": "laptop",
-  "session": "aocl",
+  "session": "main",
   "processes": 8,
   "library": "AMD AOCL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 258.949
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 266,
-  "op": "symmetric eigenproblem",
-  "ms": 7.375500000000001
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 266,
-  "op": "generalized eigenproblem",
-  "ms": 9.0115
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 500,
-  "op": "symmetric eigenproblem",
-  "ms": 27.0895
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 500,
-  "op": "generalized eigenproblem",
-  "ms": 37.2385
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 1000,
-  "op": "symmetric eigenproblem",
-  "ms": 198.8555
- },
- {
-  "machine": "laptop",
-  "session": "aocl",
-  "processes": 8,
-  "library": "faer 0.22",
-  "n": 1000,
-  "op": "generalized eigenproblem",
-  "ms": 277.0885
+  "ms": 255.186
  },
  {
   "machine": "laptop",
@@ -114,7 +60,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 7.241
+  "ms": 6.6765
  },
  {
   "machine": "laptop",
@@ -123,7 +69,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 8.8925
+  "ms": 8.235
  },
  {
   "machine": "laptop",
@@ -132,7 +78,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 26.5975
+  "ms": 24.603
  },
  {
   "machine": "laptop",
@@ -141,7 +87,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 36.241
+  "ms": 33.7405
  },
  {
   "machine": "laptop",
@@ -150,7 +96,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 193.39600000000002
+  "ms": 181.99849999999998
  },
  {
   "machine": "laptop",
@@ -159,7 +105,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 267.719
+  "ms": 255.60649999999998
  },
  {
   "machine": "laptop",
@@ -168,7 +114,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.207
+  "ms": 5.2105
  },
  {
   "machine": "laptop",
@@ -177,7 +123,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.4635
+  "ms": 6.449
  },
  {
   "machine": "laptop",
@@ -186,7 +132,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 20.509
+  "ms": 20.439500000000002
  },
  {
   "machine": "laptop",
@@ -195,7 +141,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 27.0415
+  "ms": 27.1705
  },
  {
   "machine": "laptop",
@@ -204,7 +150,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 142.60500000000002
+  "ms": 141.8205
  },
  {
   "machine": "laptop",
@@ -213,7 +159,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 189.51
+  "ms": 192.33749999999998
  },
  {
   "machine": "laptop",
@@ -222,7 +168,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.527
+  "ms": 5.372
  },
  {
   "machine": "laptop",
@@ -231,7 +177,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.7105
+  "ms": 7.4585
  },
  {
   "machine": "laptop",
@@ -240,7 +186,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 20.2165
+  "ms": 19.64
  },
  {
   "machine": "laptop",
@@ -249,7 +195,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 30.9185
+  "ms": 30.0285
  },
  {
   "machine": "laptop",
@@ -258,7 +204,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 164.13350000000003
+  "ms": 165.1505
  },
  {
   "machine": "laptop",
@@ -267,7 +213,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 225.002
+  "ms": 219.94299999999998
  },
  {
   "machine": "node",

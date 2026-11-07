@@ -38,7 +38,7 @@
   "id": "eta-Cu5-T0-acc1|axtb_vs_xtbmode",
   "case": "Cu5 cluster (doublet), 0 K, acc 1",
   "check": "axtb default vs its xtb mode",
-  "dE": 0.00030016126098431073,
+  "dE": 6.416200903913705e-12,
   "lower": ""
  },
  {
@@ -59,7 +59,7 @@
   "id": "eta-Cu5-T0-acc0.01|axtb_vs_xtbmode",
   "case": "Cu5 cluster (doublet), 0 K, acc 0.01",
   "check": "axtb default vs its xtb mode",
-  "dE": 0.0003001613591528951,
+  "dE": 2.710365265556902e-11,
   "lower": ""
  },
  {
@@ -80,7 +80,7 @@
   "id": "eta-Cu5-T0-acc0.0001|axtb_vs_xtbmode",
   "case": "Cu5 cluster (doublet), 0 K, acc 0.0001",
   "check": "axtb default vs its xtb mode",
-  "dE": 0.00030016135916355324,
+  "dE": 2.7110758082926623e-11,
   "lower": ""
  },
  {
@@ -101,14 +101,14 @@
   "id": "eta-Cu5-T0-acc1e-06|axtb_vs_xtbmode",
   "case": "Cu5 cluster (doublet), 0 K, acc 1e-06",
   "check": "axtb default vs its xtb mode",
-  "dE": 0.00030016135913868425,
+  "dE": 2.7068125518781017e-11,
   "lower": ""
  },
  {
   "id": "eta-O2-singlet-T0.1|axtb_vs_xtbmode",
   "case": "O2 singlet (degenerate \u03c0*), 0.1 K",
   "check": "axtb default vs its xtb mode",
-  "dE": 0.00251973054410648,
+  "dE": 0.0025197305829287586,
   "lower": ""
  }
 ]
