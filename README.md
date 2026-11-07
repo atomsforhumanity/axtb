@@ -31,8 +31,8 @@ the CLI (one geometry per call).
 [docs/validation.md](docs/validation.md) has the agreement with each program, the test sets
 and the timings; `scripts/check.sh` reruns the checks (see [Checks](#checks)). Not
 implemented: periodic systems, GFN1-xTB, implicit solvation with GFN-FF, PDB residue charges.
-A GPU eigensolver is not included (an experimental CUDA eigensolver for GFN2-xTB is on branch
-`gpu-backend`, not merged).
+A GPU eigensolver is not included (an experimental CUDA eigensolver for GFN2-xTB was measured
+during development; the report's GPU rows come from it).
 
 ## Install
 

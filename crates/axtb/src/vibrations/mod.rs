@@ -51,7 +51,8 @@ use crate::error::{Error, Result};
 use crate::units;
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::evd::{self_adjoint_evd, self_adjoint_evd_scratch, ComputeEigenvectors};
-use faer::{Mat, Par};
+use faer::linalg::matmul::matmul;
+use faer::{Accum, Mat, MatRef, Par};
 
 pub use symmetry::{point_group, PointGroup};
 pub use thermo::{thermochemistry, Contribution, Thermo, ThermoOptions, ThermoPoint};
@@ -269,6 +270,14 @@ fn eigh(a: &Mat<f64>) -> Result<(Vec<f64>, Mat<f64>)> {
     Ok(((0..n).map(|i| s[i]).collect(), u))
 }
 
+/// The product `a b` on this thread. faer's `*` runs on its global parallelism, which is every
+/// CPU unless the program changes it, and this analysis runs outside the calculator's pool.
+fn mul(a: MatRef<'_, f64>, b: MatRef<'_, f64>) -> Mat<f64> {
+    let mut c = Mat::zeros(a.nrows(), b.ncols());
+    matmul(c.as_mut(), Accum::Replace, a, b, 1.0, Par::Seq);
+    c
+}
+
 /// Mass-weighted eigenvectors of the vibrations (columns of `l`, orthonormal), their
 /// eigenvalues (Eh/(bohr² mₑ)) and the factors 1/√m (mₑ) of every coordinate.
 struct Modes {
@@ -356,11 +365,11 @@ fn modes_axtb(positions: &[[f64; 3]], masses: &[f64], hessian: &[f64]) -> Result
         )));
     }
     let b = Mat::from_fn(n3, nvib, |i, j| pv[(i, cols[j])]);
-    let kb = &k * &b;
-    let kint = b.transpose() * &kb;
+    let kb = mul(k.as_ref(), b.as_ref());
+    let kint = mul(b.transpose(), kb.as_ref());
     let kint = Mat::from_fn(nvib, nvib, |i, j| 0.5 * (kint[(i, j)] + kint[(j, i)]));
     let (w, y) = eigh(&kint)?;
-    let l = &b * &y;
+    let l = mul(b.as_ref(), y.as_ref());
     Ok(Modes { linear, eigenvalues: w, l, inv_sqrt_m, to_wavenumber: units::HARTREE_TO_WAVENUMBER })
 }
 
@@ -421,8 +430,8 @@ fn trproj(positions: &[[f64; 3]], hs: &Mat<f64>) -> Mat<f64> {
     }
     let f = orthonormalize(f, f64::EPSILON);
     let fm = Mat::from_fn(n3, f.len(), |i, j| f[j][i]);
-    let p = Mat::<f64>::identity(n3, n3) - &fm * fm.transpose();
-    &p * hs * &p
+    let p = Mat::<f64>::identity(n3, n3) - mul(fm.as_ref(), fm.transpose());
+    mul(mul(p.as_ref(), hs.as_ref()).as_ref(), p.as_ref())
 }
 
 /// xtb 6.8.0's `is_linear` (`axis_trafo.f90`): the unit-mass moments of inertia about the
@@ -539,7 +548,7 @@ fn projector_xtb680(positions: &[[f64; 3]], masses: &[f64]) -> (Mat<f64>, usize)
     }
     let d = orthonormalize(vecs, f64::EPSILON);
     let dm = Mat::from_fn(n3, d.len(), |i, j| d[j][i]);
-    (Mat::<f64>::identity(n3, n3) - &dm * dm.transpose(), d.len())
+    (Mat::<f64>::identity(n3, n3) - mul(dm.as_ref(), dm.transpose()), d.len())
 }
 
 /// `xtb` conventions (xtb 6.8.0, `hessian.F90`): the Hessian mass weighted, projected with
@@ -562,7 +571,7 @@ fn modes_xtb680(positions: &[[f64; 3]], masses: &[f64], hessian: &[f64]) -> Resu
     }
     let k = Mat::from_fn(n3, n3, |i, j| hs[(i, j)] * inv_sqrt_m[i] * inv_sqrt_m[j]);
     let (p, nproj) = projector_xtb680(positions, masses);
-    let k = &p * &k * &p;
+    let k = mul(mul(p.as_ref(), k.as_ref()).as_ref(), p.as_ref());
     let k = Mat::from_fn(n3, n3, |i, j| 0.5 * (k[(i, j)] + k[(j, i)]));
     let (w, v) = eigh(&k)?;
     let freq: Vec<f64> = w.iter().map(|x| xtbc::AUTORCM * x.abs().sqrt().copysign(*x)).collect();
@@ -717,7 +726,7 @@ pub fn project_xtb(
             let a: Vec<f64> = (0..n3).map(|x| (1.0 / masses[x / 3].sqrt()) / xtbc::AMUTOAU.sqrt()).collect();
             let k = Mat::from_fn(n3, n3, |i, j| hs[(i, j)] * a[i] * a[j]);
             let (p, _) = projector_xtb680(positions, &masses);
-            let k = &p * &k * &p;
+            let k = mul(mul(p.as_ref(), k.as_ref()).as_ref(), p.as_ref());
             hs = Mat::from_fn(n3, n3, |i, j| 0.5 * (k[(i, j)] + k[(j, i)]) / (a[i] * a[j]));
         }
         Projection::Complement => {

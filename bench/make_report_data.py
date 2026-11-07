@@ -269,7 +269,7 @@ def libraries() -> None:
         {"library": "ndarray-linalg / lapack crates", "license": "MIT/Apache", "packaging": "Wrappers over a system LAPACK",
          "threads": "Whatever the LAPACK does", "verdict": "Rejected: forces copies; a small FFI layer suffices"},
         {"library": "cuSOLVER (via cudarc)", "license": "NVIDIA EULA", "packaging": "Runtime-loaded CUDA",
-         "threads": "GPU", "verdict": "Optional GPU backend (branch gpu-backend): worth it on the node for basis sets above ~1000 functions; not for small molecules"},
+         "threads": "GPU", "verdict": "Optional GPU backend (a development experiment, not in this release): worth it on the node for basis sets above ~1000 functions; not for small molecules"},
         {"library": "ELPA / ScaLAPACK", "license": "LGPL / BSD", "packaging": "MPI",
          "threads": "MPI ranks", "verdict": "Out of scope (n ≫ 10⁴)"},
     ])
@@ -714,7 +714,7 @@ GPU_VARIANTS = {"cpu": "CPU (faer)", "cuda-f64": "GPU FP64", "cuda-mixed": "GPU 
 
 
 def gpu() -> None:
-    """GPU eigensolver backend (branch gpu-backend): bench/gpu/results."""
+    """GPU eigensolver backend (a development experiment, not released): bench/gpu/results."""
     base = ROOT / "bench/gpu/results"
     if not base.exists():
         return
