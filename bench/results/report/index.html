@@ -93,7 +93,7 @@
     <div class="tile"><span class="lbl">GFN2-xTB · test cases against xtb and tblite</span><span class="big" data-draw="k-cases" data-source="matrix_summary" data-field="cases">—</span><span class="note"><b data-draw="k-failing" data-source="matrix_summary" data-field="failing">—</b> with an unexplained difference</span></div>
     <div class="tile"><span class="lbl">g-xTB 2.0.1 · every element H–Lr</span><span class="big"><span data-draw="k-gel" data-source="gxtb_elements_summary" data-field="agree" data-where="version=g-xTB%202.0.1">—</span> of <span data-draw="k-gel-n" data-source="gxtb_elements_summary" data-field="molecules" data-where="version=g-xTB%202.0.1">—</span></span><span class="note">molecules agree with the program; the rest are rounding-sensitive or a program error</span></div>
     <div class="tile"><span class="lbl">g-xTB 2.0.1 · taxol Hessian memory</span><span class="big"><span data-draw="k-mem" data-source="gxtb2_hess_memory" data-field="rss_after_mb" data-where="id=taxol%201t">—</span> MB</span><span class="note">peak, one thread, <span data-draw="k-mem-m" data-source="gxtb2_hess_memory" data-field="machine" data-where="id=taxol%201t">—</span>; <b data-draw="k-mem1" data-source="gxtb2_hess_memory" data-field="rss_single_point_mb" data-where="id=taxol%201t">—</b> MB for an energy + gradient</span></div>
-    <div class="tile"><span class="lbl">GFN-FF · memory at <span data-draw="k-ff-n" data-source="gfnff_scaling" data-field="atoms" data-where="id=water1000">—</span> atoms</span><span class="big"><span data-draw="k-ff-a" data-source="gfnff_scaling" data-field="axtb_mib" data-where="id=water1000">—</span> MiB</span><span class="note">energy + gradient; xtb needs <b data-draw="k-ff-x" data-source="gfnff_scaling" data-field="xtb_mib" data-where="id=water1000">—</b> GiB</span></div>
+    <div class="tile"><span class="lbl">GFN-FF · memory at <span data-draw="k-ff-n" data-source="gfnff_scaling" data-field="atoms" data-where="id=water1000">—</span> atoms</span><span class="big"><span data-draw="k-ff-a" data-source="gfnff_scaling" data-field="axtb_mib" data-where="id=water1000">—</span> MiB</span><span class="note">energy + gradient; xtb needs <b data-draw="k-ff-x" data-source="gfnff_scaling" data-field="xtb_gib" data-where="id=water1000">—</b> GiB</span></div>
   </div>
 
   <section id="methods">
@@ -1015,7 +1015,7 @@ bind(F.txt, 't-lg-m', 't-lg-l', 't-ng-m', 't-ng-l', 'k-lg-m', 'k-ng-m', 'k-lx-m'
   's-lx-m', 's-nx-m', 'x-la', 'x-lx', 'x-ld', 'x-na', 'x-nx', 'x-nd', 'l-lf-m', 'l-lf-t', 'l-lf-xm', 'm-commit', 'm-commit-n');
 bind(F.sec, 's-wn', 's-wl', 's-wan', 's-wal');
 bind(AX.sci, 't-dxtb', 't-dtb', 'ff-se', 'ff-sg', 'xt-671', 'xt-680');
-one('k-ff-x', (v) => d3.format('.1f')(v / 1024));
+one('k-ff-x', (v) => d3.format('.1f')(v));
 one('c-hf-d', (v) => d3.format('.3f')(Math.abs(v)));
 dash.draw('l-nbf', (el) => { el.textContent = String(AX.LAPACK_FROM); });
 dash.draw('ff-tq', (el) => { el.textContent = d3.format('.0e')(AX.FF_TOL_Q); });

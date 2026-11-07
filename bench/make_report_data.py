@@ -1662,7 +1662,7 @@ def gfnff() -> None:
         g, g8, xg = x.get("axtb_grad", {}), x.get("axtb_grad_t8", {}), x.get("xtb_grad", {})
         h1, h8, xh = x.get("axtb_hess_t1"), x.get("axtb_hess_t8"), x.get("xtb_hess")
         sc.append({"id": x["name"], "system": gfnff_name(x["name"]), "atoms": x["natoms"],
-                   "xtb_s": xg.get("wall_s") if xg.get("ok") else None, "xtb_mib": xg.get("peak_rss_mib") if xg.get("ok") else None,
+                   "xtb_s": xg.get("wall_s") if xg.get("ok") else None, "xtb_mib": xg.get("peak_rss_mib") if xg.get("ok") else None, "xtb_gib": xg["peak_rss_mib"] / 1024 if xg.get("ok") and xg.get("peak_rss_mib") is not None else None,
                    "xtb_failed": None if xg.get("ok") else "fails: out of memory",
                    "xtb_hb_array_gib": x.get("xtb_considered_ABH_gib"),
                    "axtb_s": g.get("wall_s"), "axtb_s8": g8.get("wall_s"), "axtb_mib": g.get("peak_rss_mib"),
