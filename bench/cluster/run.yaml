@@ -1,14 +1,19 @@
 # axtb benchmarks on whole cluster nodes (AMD Threadripper PRO 9985WX, 64 cores / 128 threads): the
-# job runner's settings of the recorded run (one pod per task, image built from bench/cluster/Dockerfile).
-# One task per node: each pod reserves the node so the timings see no neighbours.
-# Run dir = this file + tasks.jsonl + bench_task.sh + mats/ (h0.bin, s.bin, dim.txt from
-# bench/linalg/dump: GFN2 H0/S of 11 taxol copies, n = 3289). See bench/README.md.
-description: axtb benchmarks on a whole 9985WX node - linalg backends (faer, OpenBLAS, MKL, AOCL 5.3) at 1/8/32/64 threads + throughput, and axtb vs xtb 6.7.1 vs tblite 0.8.0
-image: <registry>/axtb-bench:2026-11-04c   # <registry>: the cluster's image registry
+# job runner's settings of the recorded run (axtb 0.1.0, 3499913). Each run is one pod that reserves
+# a node, so the timings see no neighbours; its tasks run one after the other.
+# linalg run: this file with the tasks linalg, linalg-unpinned and linalg-tp of tasks.jsonl; run dir =
+# this file + tasks.jsonl + bench_task.sh + mats/ (h0.bin, s.bin, dim.txt from bench/linalg/dump: GFN2
+# H0/S of 11 taxol copies, n = 3289); image built from bench/cluster/Dockerfile.
+# suite run: the same settings with the timing image (cluster/Dockerfile.timing, which adds xtb 6.8.0),
+# memory_per_pod 32Gi (measured peak 5.2 GiB) and the task suite, followed in the same pod by
+# bench/phases.py --threads 1,8 --big-threads 64, the CLI start-up probe and
+# cluster/cli_throughput.py --specs 128x64,512x64,1024x128. See bench/README.md.
+description: axtb benchmarks on a whole 9985WX node - linalg backends (faer, OpenBLAS, MKL, AOCL 5.3) at 1/8/32/64 threads + throughput
+image: <registry>/axtb-bench:2026-11-07b   # <registry>: the cluster's image registry
 command: bash $RUN_DIR/bench_task.sh
 threads_per_task: 126     # whole node (max per pod); scripts use explicit 1/8/32/64 threads
 cpus_per_pod: 126
-memory_per_pod: 16Gi      # measured peak 10.2 GiB (linalg-tp, 128 processes); 126 CPUs keep other pods (>2 CPUs) off the node
-shards: 3                 # one pod (node) per task, all three at once
-task_timeout: 14400       # linalg rounds ~1.5 h expected
+memory_per_pod: 14Gi      # measured peak 10.3 GiB (linalg-tp, 128 processes); 126 CPUs keep other pods (>2 CPUs) off the node
+shards: 1                 # one pod (node); the three tasks one after the other, ~90 min
+task_timeout: 14400
 max_attempts: 1

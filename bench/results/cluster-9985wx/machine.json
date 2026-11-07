@@ -6,7 +6,7 @@
  "l3": "256 MiB (8 instances)",
  "smt_numbering": "CPU i and i+64 are SMT siblings; pinned runs use CPUs 0..t-1 (one per physical core)",
  "pod": "one benchmark per node, 126 of 128 CPUs reserved (cgroup quota), node otherwise idle",
- "axtb": "533c1a0 (git commit) + bench/ harness of this directory",
+ "axtb": "3499913 (git commit) + bench/ harness of this directory",
  "rust": [
   "rustc 1.86.0 (05f9846f8 2025-03-31)",
   "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
@@ -21,6 +21,7 @@
   "mkl | Intel(R) oneAPI Math Kernel Library Version 2026.2-Product Build 20260915 for Intel(R) 64 architecture applications",
   "openblas | OpenBLAS 0.3.34.481.3 DYNAMIC_ARCH NO_AFFINITY SkylakeX MAX_THREADS=64"
  ],
- "xtb": "xtb 6.7.1 (26dd68d), g-xTB 2.0.1 build",
- "tblite": "0.8.0"
+ "xtb": "xtb 6.8.0 (4b8c987)",
+ "tblite": "0.8.0",
+ "images": "suite, phases and CLI start-up: axtb-timing:2026-11-07c (3499913; run_benchmarks.py with the timer fix of f51dfe7); linalg: axtb-bench:2026-11-07b (3499913)"
 }

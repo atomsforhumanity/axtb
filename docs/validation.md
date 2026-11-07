@@ -137,24 +137,24 @@ solution in some cases with several (e.g. the pathological `gh106`).
 ## Restarts
 
 Along paths, default conventions, one thread (`python tests/gxtb_parity_features.py`,
-`bench/results/gxtb_parity_features.json`; axtb e6b4a18 on the i9-11900H, started at a 1-minute
+`bench/results/gxtb_parity_features.json`; axtb 3499913 on the i9-11900H, started at a 1-minute
 load below 1.5, recorded per row). Random walks move every coordinate by N(0, σ) bohr per step;
 errors are against fresh SCFs at accuracy 1e-4 over the restarted points:
 
 | molecule (points) | method | σ (bohr) | SCF iterations per point, fresh → restart | SCF time (s) | time of all points (s) | max error vs converged, fresh / restart: energy (Eh); gradient (Eh/bohr) | load |
 |---|---|---|---|---|---|---|---|
-| caffeine (30) | g-xTB 2.0.1 | 0.005 | 9.0 → 6.7 | 0.15 → 0.11 | 0.44 → 0.39 | 9e-08 / 1e-08; 7e-05 / 4e-05 | 1–1 |
-| caffeine (30) | g-xTB v1.1 | 0.005 | 11.0 → 7.9 | 0.24 → 0.17 | 0.91 → 0.84 | 7e-11 / 4e-10; 3e-06 / 4e-06 | 1–1 |
-| caffeine (30) | GFN2-xTB | 0.005 | 11.0 → 6.5 | 0.12 → 0.07 | 0.16 → 0.11 | 6e-10 / 4e-09; 3e-06 / 7e-06 | 1–1 |
-| caffeine (30) | g-xTB 2.0.1 | 0.02 | 9.0 → 8.0 | 0.13 → 0.12 | 0.40 → 0.38 | 1e-07 / 2e-09; 8e-05 / 1e-05 | 1–1 |
-| caffeine (30) | g-xTB v1.1 | 0.02 | 11.0 → 9.0 | 0.24 → 0.19 | 0.91 → 0.87 | 9e-11 / 2e-10; 3e-06 / 4e-06 | 1–1 |
-| caffeine (30) | GFN2-xTB | 0.02 | 11.0 → 7.7 | 0.11 → 0.08 | 0.16 → 0.12 | 8e-10 / 4e-09; 5e-06 / 8e-06 | 1–1 |
-| taxol (12) | g-xTB 2.0.1 | 0.005 | 9.0 → 6.8 | 1.55 → 1.19 | 3.19 → 2.83 | 1e-07 / 3e-08; 4e-05 / 5e-05 | 1–1 |
-| taxol (12) | g-xTB v1.1 | 0.005 | 11.0 → 9.0 | 4.05 → 3.29 | 8.09 → 7.30 | 9e-11 / 5e-10; 2e-06 / 7e-06 | 1–1 |
-| taxol (12) | GFN2-xTB | 0.005 | 11.9 → 6.9 | 1.12 → 0.65 | 1.32 → 0.85 | 1e-08 / 2e-08; 7e-06 / 7e-06 | 1–1 |
-| taxol (12) | g-xTB 2.0.1 | 0.02 | 9.0 → 8.7 | 1.56 → 1.54 | 3.24 → 3.23 | 2e-07 / 1e-08; 4e-05 / 3e-05 | 1–1 |
-| taxol (12) | g-xTB v1.1 | 0.02 | 11.0 → 10.2 | 4.08 → 3.77 | 8.13 → 7.83 | 5e-10 / 3e-10; 6e-06 / 5e-06 | 1–1 |
-| taxol (12) | GFN2-xTB | 0.02 | 12.0 → 8.7 | 1.14 → 0.83 | 1.34 → 1.03 | 1e-08 / 2e-08; 6e-06 / 8e-06 | 1–1 |
+| caffeine (30) | g-xTB 2.0.1 | 0.005 | 9.0 → 6.7 | 0.13 → 0.10 | 0.39 → 0.36 | 9e-08 / 1e-08; 7e-05 / 4e-05 | 1–1 |
+| caffeine (30) | g-xTB v1.1 | 0.005 | 11.0 → 7.9 | 0.24 → 0.17 | 0.92 → 0.85 | 7e-11 / 4e-10; 3e-06 / 4e-06 | 1–1 |
+| caffeine (30) | GFN2-xTB | 0.005 | 11.0 → 6.5 | 0.12 → 0.07 | 0.17 → 0.12 | 6e-10 / 4e-09; 3e-06 / 7e-06 | 1–1 |
+| caffeine (30) | g-xTB 2.0.1 | 0.02 | 9.0 → 8.0 | 0.14 → 0.13 | 0.42 → 0.41 | 1e-07 / 2e-09; 8e-05 / 1e-05 | 1–1 |
+| caffeine (30) | g-xTB v1.1 | 0.02 | 11.0 → 9.0 | 0.26 → 0.21 | 0.99 → 0.95 | 9e-11 / 2e-10; 3e-06 / 4e-06 | 1–1 |
+| caffeine (30) | GFN2-xTB | 0.02 | 11.0 → 7.7 | 0.12 → 0.08 | 0.17 → 0.13 | 8e-10 / 4e-09; 5e-06 / 8e-06 | 1–1 |
+| taxol (12) | g-xTB 2.0.1 | 0.005 | 9.0 → 6.8 | 1.62 → 1.24 | 3.39 → 3.01 | 1e-07 / 3e-08; 4e-05 / 5e-05 | 1–1 |
+| taxol (12) | g-xTB v1.1 | 0.005 | 11.0 → 9.0 | 4.27 → 3.47 | 8.63 → 7.88 | 9e-11 / 5e-10; 2e-06 / 7e-06 | 1–1 |
+| taxol (12) | GFN2-xTB | 0.005 | 11.9 → 6.9 | 1.18 → 0.68 | 1.39 → 0.89 | 1e-08 / 2e-08; 7e-06 / 7e-06 | 1–1 |
+| taxol (12) | g-xTB 2.0.1 | 0.02 | 9.0 → 8.7 | 1.64 → 1.58 | 3.43 → 3.35 | 2e-07 / 1e-08; 4e-05 / 3e-05 | 1–1 |
+| taxol (12) | g-xTB v1.1 | 0.02 | 11.0 → 10.2 | 4.30 → 3.99 | 8.72 → 8.40 | 5e-10 / 3e-10; 6e-06 / 5e-06 | 1–1 |
+| taxol (12) | GFN2-xTB | 0.02 | 12.0 → 8.7 | 1.13 → 0.82 | 1.33 → 1.02 | 1e-08 / 2e-08; 6e-06 / 8e-06 | 1–1 |
 
 Through the codec with qccompute (`propagate_wfn` off → on; SCF iterations of all steps):
 
@@ -164,13 +164,13 @@ Through the codec with qccompute (`propagate_wfn` off → on; SCF iterations of 
 | geomeTRIC minimization, caffeine | g-xTB v1.1 | 49 → 49 | 538 → 343 | 2.8e-9 Eh |
 | geomeTRIC minimization, caffeine | GFN2-xTB | 14 → 14 | 154 → 93 | 1.0e-10 Eh |
 | Sella saddle point (exact axtb Hessians), SN2 Cl⁻ + CH3Cl (`bench/ts_example.py`'s guess) | g-xTB 2.0.1 | 5 → 5 | 40 → 35 | 3.5e-9 Eh |
-| Sella IRC from that saddle point, both directions | g-xTB 2.0.1 | 76 → 76 | 676 → 383 | 5.2e-9 Eh |
+| Sella IRC from that saddle point, both directions | g-xTB 2.0.1 | 76 → 76 | 676 → 383 | 5.7e-9 Eh |
 
-Restarts save 3–42 % of the SCF iterations per point and 1–42 % of the SCF time at these step
+Restarts save 3–42 % of the SCF iterations per point and 4–42 % of the SCF time at these step
 sizes (most for GFN2-xTB and the smaller steps), and 43 % of the iterations along the IRC. A whole
 g-xTB step gains less: the SCF is a quarter to half of an energy + gradient (caffeine 34 %, taxol
-49 % for 2.0.1, without the setup of the charge-adapted basis and the integrals), so the time of
-all points drops by 0–11 %; GFN2-xTB, whose SCF is three quarters of the time or more, gains
+48 % for 2.0.1, without the setup of the charge-adapted basis and the integrals), so the time of
+all points drops by 2–11 %; GFN2-xTB, whose SCF is three quarters of the time or more, gains
 23–36 %. The two sequences of a row take turns point by point, so both see the
 same load. Through qccompute, wall times are dominated by the drivers and the machine's load
 and are in the results only for completeness.
@@ -181,13 +181,13 @@ SCF thresholds (`solutions` in the results: bond-stretch scans 0.8–4 Å in 0.1
 directions, and 15-step random walks of σ 0.02 bohr, at 0 K and 3000 K, v1.1 and 2.0.1):
 
 - none on ordinary molecules: ethane's C–C scan, the SN2 path image, [Cu(NH3)4]²⁺, [FeCl4]⁻,
-  twisted ethylene, Cr2 (≤ 4e-8 Eh, 2.0.1);
-- stretched bonds: F2, HF and H2O beyond ~1.5–2 Å and N2 beyond 3.5 Å (3000 K). A restart that
-  comes in from the dissociated side stays on its solution until it collapses: N2 at 3000 K,
-  recompressed from 4 Å, is up to 0.53 Eh above the fresh start before it returns to it at
-  1.4 Å; F2 at 0 K up to 0.32 Eh. Going out from the bonded side the restart is often lower
-  (HF v1.1 −0.12 Eh, N2 at 3000 K −0.08 Eh): it keeps the lower solution that a fresh EEQ-BC
-  start misses;
+  twisted ethylene, Cr2 (≤ 5e-8 Eh, 2.0.1);
+- stretched bonds: F2 from 1.7 Å, HF and H2O from 2.6 Å, N2 at 3000 K from 1.9 Å (none at
+  0 K). A restart that comes in from the dissociated side stays on its solution until it
+  collapses: N2 at 3000 K (2.0.1), recompressed from 4 Å, is up to 0.30 Eh above the fresh start
+  before it returns to it at 1.8 Å; F2 at 0 K up to 0.32 Eh, back at 1.6 Å. Going out from the
+  bonded side the restart is often lower (HF v1.1 −0.12 Eh, N2 at 3000 K −0.08 Eh beyond
+  3.5 Å): it keeps the lower solution that a fresh EEQ-BC start misses;
 - metal clusters (Fe4, Cu5, Ni4, Mn2O, Pt3 v1.1, Fe²⁺ aqua v1.1): differences of 1e-5 to 9e-2 Eh,
   either sign, at 0 K and 3000 K.
 
@@ -214,16 +214,16 @@ cm⁻¹), since its displacements run at 1.0 instead of 0.3. 6.8.0 also no longe
 molecule before `--hess`, and projects the Hessian it writes in mass-weighted coordinates.
 
 Timings on the 64-core AMD Threadripper PRO 9985WX node, in a 16-CPU pod of the shared node
-(`bench/hessian_benchmark.py`, axtb e6b4a18, best of 2, all results in
+(`bench/hessian_benchmark.py`, axtb 3499913, best of 2, all results in
 `bench/results/hessian.json`; `xtb --hess` is the g-xTB 2.0.1 build of xtb 6.7.1; seconds, 1 / 8
 threads):
 
 | molecule | analytic | response | numerical | `xtb --hess` |
 |---|---|---|---|---|
-| caffeine (24) | 0.022 / 0.017 | 0.14 / 0.038 | 0.54 / 0.084 | 1.25 / 0.27 |
-| tyr-xab (33) | 0.037 / 0.026 | 0.26 / 0.054 | 1.08 / 0.16 | 2.50 / 0.49 |
-| taxol (113) | 1.45 / 0.43 | 8.3 / 1.3 | 40.0 / 5.2 | 107 / 16.6 |
-| taxol, ALPB water | 1.63 / 0.60 | 10.9 / 1.9 | 45.6 / 6.2 | 104 / 13.0 |
+| caffeine (24) | 0.019 / 0.016 | 0.12 / 0.029 | 0.48 / 0.074 | 1.02 / 0.18 |
+| tyr-xab (33) | 0.034 / 0.024 | 0.25 / 0.051 | 1.00 / 0.14 | 2.32 / 0.55 |
+| taxol (113) | 1.44 / 0.52 | 9.8 / 1.5 | 39.7 / 5.2 | 93.5 / 12.7 |
+| taxol, ALPB water | 1.29 / 0.42 | 9.1 / 1.4 | 41.7 / 5.3 | 103 / 15.7 |
 
 Analytic vs a Richardson-extrapolated tight numerical Hessian: ≤ 1.3e-8 Eh/bohr² for all
 gas-phase cases (frequencies identical to 0.001 cm⁻¹); the default numerical Hessian is off
@@ -268,10 +268,9 @@ finite differences) ≤ 0.46 cm⁻¹ and ≤ 2.3e-5 Eh in G(RRHO) (caffeine, 6.7
 `--hess` runs its SCFs at accuracy 0.2: ≤ 0.84 cm⁻¹ and 3.2e-5 Eh); g-xTB 2.0.1 (analytic vs
 the program at `--acc 1e-4`) ≤ 0.35 cm⁻¹ and ≤ 5.2e-6 Eh. Caffeine's g-xTB G(RRHO) is 0.150578
 Eh with axtb's analytic Hessian, 0.150572 with the program's at `--acc 1e-4` and 0.151263 at
-its default `--acc 1` (inaccurate Hessian, +0.43 kcal/mol). The analysis takes 0.7 ms for
-caffeine and 16 ms for taxol on the i9-11900H, symmetry detection included
-(`axtb.vibrational_analysis` on GFN2-xTB analytic Hessians, best of 7, axtb e6b4a18; its matrix
-products run on all CPUs, see `bench/README.md`, "Hessians";
+its default `--acc 1` (inaccurate Hessian, +0.43 kcal/mol). The analysis takes 0.5 ms for
+caffeine and 19 ms for taxol on one thread of the i9-11900H, symmetry detection included
+(`axtb.vibrational_analysis` on GFN2-xTB analytic Hessians, best of 7, axtb 3499913;
 `bench/results/final-laptop/vibrational_analysis_time.json`).
 
 ## g-xTB at finite electronic temperature
@@ -288,7 +287,7 @@ Finite-temperature Hessians agree with tight references to ≤ 3e-9 Eh/bohr² (s
 ## g-xTB in implicit solvent
 
 **Validation** (`python tests/solvation_composite.py` →
-`bench/results/solvation_composite.json`; axtb e6b4a18 on the i9-11900H, one thread, xtb 6.7.1
+`bench/results/solvation_composite.json`; axtb 3499913 on the i9-11900H, one thread, xtb 6.7.1
 g-xTB build). The cases are water, caffeine, acetate, the water radical cation, an Na⁺ acetate
 contact ion pair, an SN2 path image (the `bench/ts_example.py` guess), F2 and HF at 3.0 Å
 (whose GFN2 pairs need the 1000 K and 5000 K retries), and taxol, all in ALPB water. Each is
@@ -313,16 +312,16 @@ retries; axtb in default conventions, new calculator / next geometry on the same
 
 | molecule | 3 xtb programs | mepd `SolvationCorrection` path | axtb composite |
 |---|---|---|---|
-| water | 26 ms | 29 ms | 1.0 / 0.9 ms |
-| caffeine | 105 ms | 104 ms | 27 / 20 ms |
-| taxol (113 atoms) | 1.45 s | 1.46 s | 0.60 / 0.39 s (g-xTB 0.26 s, GFN2 halves 0.15 + 0.15 s) |
-| F2 at 3.0 Å (one retry) | 117 ms | 209 ms | 0.75 ms (program mode) |
+| water | 26 ms | 28 ms | 1.1 / 0.9 ms |
+| caffeine | 103 ms | 103 ms | 27 / 19 ms |
+| taxol (113 atoms) | 1.46 s | 1.46 s | 0.58 / 0.38 s (g-xTB 0.25 s, GFN2 halves 0.14 + 0.14 s) |
+| F2 at 3.0 Å (one retry) | 118 ms | 204 ms | 0.75 ms (program mode) |
 
 Small molecules gain most, since every program call costs about 9 ms to start. For large ones
-the g-xTB part takes the largest share (taxol: 0.26 of 0.60 s). Hessians are
+the g-xTB part takes the largest share (taxol: 0.25 of 0.58 s). Hessians are
 analytic, where the three-program workflow differentiates the composite gradient numerically (6N gradients of three
 programs each). The failing rungs of a retry ladder cost about as much as in the programs (HF:
-41 s vs 47 s), because Broyden mixing with full history is O(n³) per iteration for 1000 iterations.
+40 s vs 47 s), because Broyden mixing with full history is O(n³) per iteration for 1000 iterations.
 In the default conventions the GFN2 halves are not the programs: the `auto` mixer converges
 stretched HF at 300 K without retries, and that ΔG_solv differs from the programs' 5000 K value by
 0.029 Eh. On the other molecules the default and program modes differ by ≤ 1.3e-8 Eh for the
@@ -365,8 +364,8 @@ Memory grows linearly with the number of atoms except for the dense EEQ matrix (
 fragments)², 1.4 GB at 9900 water atoms); xtb keeps several N x N arrays and an NAB² x NH
 logical array of the hydrogen-bond atoms in every energy evaluation (7.5 GiB at 3000 water
 atoms, 37 GiB at 5100). Wall time and peak memory (`/usr/bin/time -v`) on the i9-11900H, axtb
-e6b4a18 in the `xtb-6.7.1` conventions against xtb 6.7.1 with one thread and its address space
-capped at 10 GiB (started at a 1-minute load below 1.5, which these runs raised to 2-5;
+3499913 in the `xtb-6.7.1` conventions against xtb 6.7.1 with one thread and its address space
+capped at 10 GiB (started at a 1-minute load below 1.5, which these runs raised to at most 4;
 recorded per run in `bench/results/gfnff_reproduction.json`, from `python
 tests/gfnff_reproduction.py --part scaling --xtb <the g-xTB build>`; xtb 6.8.0 still allocates
 the hydrogen-bond array below, 8.9 GiB peak for 1000 waters,
@@ -374,13 +373,13 @@ the hydrogen-bond array below, 8.9 GiB peak for 1000 waters,
 
 | system (atoms) | xtb energy + gradient | axtb energy + gradient, 1 / 8 threads | axtb analytic Hessian, 1 / 8 threads | `xtb --hess` |
 |---|---|---|---|---|
-| (H2O)100 (300) | 0.09 s, 64 MiB | 0.04 / 0.04 s, 11 MiB | 0.34 / 0.10 s, 28 MiB | 42 s, 114 MiB |
-| crambin (640) | 0.47 s, 134 MiB | 0.10 / 0.09 s, 15 MiB | 1.7 / 0.41 s, 67 MiB | 225 s, 334 MiB |
-| (H2O)333 (999) | 0.85 s, 542 MiB | 0.34 / 0.25 s, 39 MiB | 3.4 / 0.90 s, 171 MiB | — |
-| (H2O)1000 (3000) | 13 s, 9.0 GiB | 3.9 / 1.9 s, 190 MiB | 39 / 8.7 s, 1.1 GiB | — |
-| (H2O)1700 (5100) | out of memory (> 36 GiB) | 15 / 5.4 s, 461 MiB | 135 / 30 s, 3.1 GiB | — |
-| crambin in water (5311) | out of memory (> 33 GiB) | 20 / 6.6 s, 458 MiB | 151 / 35 s, 3.3 GiB | — |
-| (H2O)3300 (9900) | out of memory (> 267 GiB) | 95 / 25 s, 1.5 GiB | — | — |
+| (H2O)100 (300) | 0.08 s, 64 MiB | 0.03 / 0.03 s, 11 MiB | 0.33 / 0.09 s, 28 MiB | 40 s, 114 MiB |
+| crambin (640) | 0.46 s, 134 MiB | 0.10 / 0.08 s, 15 MiB | 1.6 / 0.35 s, 67 MiB | 209 s, 334 MiB |
+| (H2O)333 (999) | 0.77 s, 542 MiB | 0.33 / 0.24 s, 39 MiB | 3.3 / 0.85 s, 171 MiB | — |
+| (H2O)1000 (3000) | 13 s, 9.0 GiB | 3.8 / 1.8 s, 190 MiB | 37 / 8.0 s, 1.1 GiB | — |
+| (H2O)1700 (5100) | out of memory (> 36 GiB) | 14 / 4.8 s, 461 MiB | 134 / 28 s, 3.1 GiB | — |
+| crambin in water (5311) | out of memory (> 33 GiB) | 20 / 6.1 s, 458 MiB | 149 / 32 s, 3.3 GiB | — |
+| (H2O)3300 (9900) | out of memory (> 267 GiB) | 89 / 23 s, 1.5 GiB | — | — |
 
 Where both finish, energies agree to 1.3e-11 Eh and gradients to 5.3e-14 Eh/bohr. Above ~3000
 atoms the dense EEQ solves (two in the setup, one per energy) dominate axtb's time.
@@ -468,8 +467,8 @@ through `xtb --tblite` start their SCF differently from tblite 0.8.0, which the 
 conventions reproduce, and differ at the level of the SCF thresholds.
 
 Cost (CLI energy + gradient, `bench/results/gxtb_parity_features.json`, best of 15): `--wbo` adds
-nothing measurable, −2 % to +0.7 % for caffeine and taxol with all three methods (1-minute load
-2.7–4.4; `overhead` in the results).
+little, −0.5 % to +2.3 % for caffeine and taxol with all three methods (1-minute load 2.4–3.7;
+`overhead` in the results).
 
 ## Running the scripts by hand
 

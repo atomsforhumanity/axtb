@@ -87,7 +87,7 @@ target x86-64-v3 (`.cargo/config.toml`: AVX2, FMA, BMI2 and the rest of the leve
 since Haswell (2013) and AMD CPUs since Excavator (2015), but not many low-end Intel Atom,
 Celeron and Pentium N-series CPUs. Results are bit-identical to a baseline x86-64 build, which
 is slower: one thread on the 64-core node, energy + gradient of caffeine, taxol and (H2O)200,
-GFN2-xTB 22-46 %, g-xTB 2.0.1 34-72 %, GFN-FF 2-13 % (axtb 0.1.0, the CLI built with
+GFN2-xTB 27-52 %, g-xTB 2.0.1 34-68 %, GFN-FF 1-10 % (axtb 0.1.0, the CLI built with
 `RUSTFLAGS="-C target-cpu=x86-64"`; `bench/results/final-9985wx/baseline_build.json`). On a CPU
 without these instructions the CLI stops with an error before it runs any of them, and `import
 axtb` raises `ImportError` before it loads the extension module. The Python check reads the CPU
@@ -291,17 +291,14 @@ The response, for every front end (a field is present when it applies):
 
 axtb runs every calculation on exactly the threads you ask for (default 1) and never caps
 them, but more is not always faster. Measured on a whole 64-core AMD Threadripper PRO 9985WX
-node (`bench/results/cluster-9985wx`, energy + gradient, seconds) with axtb 533c1a0 on
-2026-11-05, before the performance work described in `bench/README.md`: these whole-node runs
-could not be repeated for 0.1.0 (no node was free), so the times are longer than 0.1.0's
-(taxol on 1 thread: 0.108 s in the release run, `bench/results/final-9985wx`); what the table
-shows is how the time changes with the thread count:
+node with axtb 0.1.0 (`bench/results/cluster-9985wx`, the release run of 2026-11-07: energy +
+gradient in one Python process, xtb conventions, seconds):
 
 | molecule (atoms) | 1 thread | 8 threads | 32 threads | 64 threads |
 |---|---|---|---|---|
-| taxol (113) | 0.167 | 0.127 | 0.144 | 0.186 |
-| (H2O)200 (600) | 3.39 | 1.28 | 1.71 | 2.32 |
-| (H2O)333 (999) | 12.2 | 3.63 | 4.59 | 5.43 |
+| taxol (113) | 0.108 | 0.105 | 0.130 | 0.184 |
+| (H2O)200 (600) | 2.59 | 0.98 | 1.41 | 1.87 |
+| (H2O)333 (999) | 8.29 | 3.03 | 3.72 | 4.71 |
 
 - **One calculation:** use at most about 8 threads. Beyond that the SCF eigensolver gets
   slower with every library we measured (faer, OpenBLAS, MKL, AOCL), and axtb warns about a
@@ -310,12 +307,12 @@ shows is how the time changes with the thread count:
   SCF and gets no warning.
 - **Many calculations** (conformers, path images, batches): run them in parallel with 1
   thread each. This always gives the most work per node; small molecules gain little from
-  threads at all (taxol in the release run: 1.2× on 8 threads, node; 1.5× on the laptop with
+  threads at all (taxol in the release run: 1.1× on 8 threads, node; 1.5× on the laptop with
   faer).
 - **Hessians** run their perturbations or displacements in parallel and do use many threads
-  well, with no warning (taxol, GFN2-xTB: analytic 2.96 s on 1 thread, 0.92 s on 8 on the
-  laptop; numerical 40.0 s on 1 thread and 5.2 s on 8 on the node, `bench/results/hessian.json`;
-  3.0 s on 32 or 64 threads in the 533c1a0 whole-node run).
+  well, with no warning (taxol, GFN2-xTB: analytic 2.89 s on 1 thread, 0.87 s on 8 on the
+  laptop; numerical 39.7 s on 1 thread and 5.2 s on 8 on the node, `bench/results/hessian.json`;
+  on a whole node 1.5 s on 32 threads and 1.1 s on 64, `bench/results/cluster-9985wx`).
 - **A LAPACK library for the SCF eigensolver** (optional): `AXTB_LAPACK=<path or soname>`
   names Intel MKL (`libmkl_rt`), OpenBLAS, or AMD AOCL's `libflame.so` together with
   `AXTB_LAPACK_BLAS=<libblis-mt.so>`. The library is opened at run time (nothing is linked) and
@@ -343,8 +340,8 @@ shows is how the time changes with the thread count:
 
   Between thread counts, and against faer, the results differ by round-off (≤ 2e-12 Eh in the
   release run). On the Intel laptop MKL makes GFN2-xTB faster than xtb 6.8.0 in every measured
-  case (1.04-8.6x on 1-8 threads; with faer 0.81-0.96x for the water clusters on 4-8 threads and
-  C100H202 on 4); on the AMD node faer is ahead of xtb 6.8.0 everywhere (1.22x and up), AOCL
+  case (1.03-8.4x on 1-8 threads; with faer 0.75-0.99x for the water clusters on 2-8 threads and
+  C100H202 on 4-8); on the AMD node faer is ahead of xtb 6.8.0 everywhere (1.07x and up), AOCL
   about as fast and faster for the largest systems on 1 thread, MKL slower; `bench/README.md`,
   "Final timings".
 
