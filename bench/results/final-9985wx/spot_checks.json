@@ -1,11 +1,11 @@
 {
  "machine": "64-core node",
- "axtb_commit": "e6b4a18",
- "how": "bench/spot_check.sh on the inputs of bench/spot_check_inputs.py: each binary run directly with bash's `time` (wall s), alternating, 3 rounds per cell, outside bench/final_timings.py; xtb-like programs from a coord file with OMP_NUM_THREADS=MKL_NUM_THREADS=threads, axtb from the same JSON request as the harness, AXTB_LAPACK unset (faer). Binaries identified by the first 16 hex digits of their sha256, as the harness records them. In a 16-CPU pod of the shared node (1-minute load 60-62), 2026-11-07 07:12 UTC, right after the node's energy + gradient tasks.",
+ "axtb_commit": "3499913",
+ "how": "bench/spot_check.sh on the inputs of bench/spot_check_inputs.py: each binary run directly with bash's `time` (wall s), alternating, 3 rounds per cell, outside bench/final_timings.py; xtb-like programs from a coord file with OMP_NUM_THREADS=MKL_NUM_THREADS=threads, axtb from the same JSON request as the harness, AXTB_LAPACK unset (faer). Binaries identified by the first 16 hex digits of their sha256, as the harness records them. In a 16-CPU pod of the shared node (1-minute load 63-66), 2026-11-07 12:19 UTC, while the node's energy + gradient tasks ran in other pods.",
  "binaries": {
   "xtb 6.8.0": "95d82a623580bb1e",
   "g-xTB 2.0.1 program": "1b4e30b68ed4e88b",
-  "axtb": "34756aa480df6959"
+  "axtb": "2790f80f19aa617c"
  },
  "cells": [
   {
@@ -13,18 +13,18 @@
    "molecule": "(H2O)100",
    "threads": 1,
    "program_s": [
-    0.733,
-    0.726,
-    0.663
+    0.686,
+    0.599,
+    0.661
    ],
    "axtb_s": [
-    0.395,
-    0.379,
-    0.38
+    0.371,
+    0.348,
+    0.379
    ],
    "harness_median": {
-    "program": 0.615,
-    "axtb": 0.346
+    "program": 0.6,
+    "axtb": 0.358
    }
   },
   {
@@ -32,18 +32,18 @@
    "molecule": "(H2O)200",
    "threads": 8,
    "program_s": [
-    1.532,
-    1.343,
-    1.52
+    1.249,
+    1.179,
+    1.228
    ],
    "axtb_s": [
-    1.408,
-    1.213,
-    1.039
+    1.168,
+    1.109,
+    1.441
    ],
    "harness_median": {
-    "program": 1.659,
-    "axtb": 1.363
+    "program": 1.54,
+    "axtb": 1.444
    }
   },
   {
@@ -51,18 +51,18 @@
    "molecule": "taxol",
    "threads": 4,
    "program_s": [
-    0.538,
-    0.394,
-    0.496
+    0.377,
+    0.418,
+    0.571
    ],
    "axtb_s": [
-    0.135,
-    0.121,
-    0.101
+    0.12,
+    0.122,
+    0.153
    ],
    "harness_median": {
-    "program": 0.447,
-    "axtb": 0.13
+    "program": 0.32,
+    "axtb": 0.116
    }
   }
  ]
