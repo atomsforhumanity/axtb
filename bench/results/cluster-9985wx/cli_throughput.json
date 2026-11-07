@@ -4,251 +4,125 @@
   "jobs": 128,
   "workers": 64,
   "repeat": 0,
-  "wall": 0.1958924310747534
+  "wall": 0.16182273905724287
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 128,
   "workers": 64,
   "repeat": 0,
-  "wall": 0.8444504761137068
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 0,
-  "wall": 0.8428489631041884
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 0,
-  "wall": 0.07338168192654848
+  "wall": 0.09732871921733022
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 128,
   "workers": 64,
   "repeat": 1,
-  "wall": 0.16756559209898114
+  "wall": 0.15630171028897166
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 128,
   "workers": 64,
   "repeat": 1,
-  "wall": 0.827842443017289
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 1,
-  "wall": 0.8343997129704803
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 1,
-  "wall": 0.07416868302971125
+  "wall": 0.09629392204806209
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 128,
   "workers": 64,
   "repeat": 2,
-  "wall": 0.1669694969896227
+  "wall": 0.15957139106467366
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 128,
   "workers": 64,
   "repeat": 2,
-  "wall": 0.8406914048828185
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 2,
-  "wall": 0.843852458987385
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 128,
-  "workers": 64,
-  "repeat": 2,
-  "wall": 0.07866087392903864
+  "wall": 0.09848376782611012
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 512,
   "workers": 64,
   "repeat": 0,
-  "wall": 0.5666371281258762
+  "wall": 0.5447573447600007
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 512,
   "workers": 64,
   "repeat": 0,
-  "wall": 3.2842176349367946
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 0,
-  "wall": 3.3381571299396455
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 0,
-  "wall": 0.2471375239547342
+  "wall": 0.34524589916691184
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 512,
   "workers": 64,
   "repeat": 1,
-  "wall": 0.5558224788401276
+  "wall": 0.554986550938338
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 512,
   "workers": 64,
   "repeat": 1,
-  "wall": 3.2888780389912426
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 1,
-  "wall": 3.3262131370138377
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 1,
-  "wall": 0.2496313659939915
+  "wall": 0.34483490232378244
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 512,
   "workers": 64,
   "repeat": 2,
-  "wall": 0.5548954878468066
+  "wall": 0.5358784212730825
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 512,
   "workers": 64,
   "repeat": 2,
-  "wall": 3.2858687918633223
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 2,
-  "wall": 3.3487604930996895
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 512,
-  "workers": 64,
-  "repeat": 2,
-  "wall": 0.25101604289375246
+  "wall": 0.3488340899348259
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 1024,
   "workers": 128,
   "repeat": 0,
-  "wall": 1.0239977990277112
+  "wall": 1.044281107839197
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 1024,
   "workers": 128,
   "repeat": 0,
-  "wall": 5.853614235064015
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 0,
-  "wall": 5.736059213988483
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 0,
-  "wall": 0.5133735979907215
+  "wall": 0.6949481070041656
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 1024,
   "workers": 128,
   "repeat": 1,
-  "wall": 1.0942753520794213
+  "wall": 1.0314349234104156
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 1024,
   "workers": 128,
   "repeat": 1,
-  "wall": 5.871894156793132
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 1,
-  "wall": 5.751147866947576
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 1,
-  "wall": 0.5188060500659049
+  "wall": 0.719956967048347
  },
  {
   "label": "xtb, OMP_NUM_THREADS=1",
   "jobs": 1024,
   "workers": 128,
   "repeat": 2,
-  "wall": 1.0945386281237006
+  "wall": 1.032538483850658
  },
  {
-  "label": "axtb CLI processes (no env vars), orig",
+  "label": "axtb CLI processes (no env vars), 3499913",
   "jobs": 1024,
   "workers": 128,
   "repeat": 2,
-  "wall": 5.877046359004453
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 2,
-  "wall": 5.725425285985693
- },
- {
-  "label": "axtb CLI processes (no env vars), eeq-fix+cache-scan-cpu0",
-  "jobs": 1024,
-  "workers": 128,
-  "repeat": 2,
-  "wall": 0.5184675410855561
+  "wall": 0.704668496735394
  }
 ]
