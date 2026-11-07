@@ -85,12 +85,15 @@ glibc 2.28 needs the manylinux_2_28 container or `--zig` (`pip install ziglang`)
 **CPU.** Builds from this repository on x86-64 Linux, and the released wheels and binaries,
 target x86-64-v3 (`.cargo/config.toml`: AVX2, FMA, BMI2 and the rest of the level): Intel CPUs
 since Haswell (2013) and AMD CPUs since Excavator (2015), but not many low-end Intel Atom,
-Celeron and Pentium N-series CPUs. Results are bit-identical to a baseline build, which is
-15-25 % slower. On a CPU without these instructions the CLI stops with an error before it runs
-any of them, and `import axtb` raises `ImportError` before it loads the extension module. The
-Python check reads the CPU flags in `/proc/cpuinfo`; where that file is missing or lists no
-flags (other operating systems, some emulators; user-mode QEMU shows the host's) it cannot
-check. For any x86-64 CPU, build with
+Celeron and Pentium N-series CPUs. Results are bit-identical to a baseline x86-64 build, which
+is slower: one thread on the 64-core node, energy + gradient of caffeine, taxol and (H2O)200,
+GFN2-xTB 22-46 %, g-xTB 2.0.1 34-72 %, GFN-FF 2-13 % (axtb 0.1.0, the CLI built with
+`RUSTFLAGS="-C target-cpu=x86-64"`; `bench/results/final-9985wx/baseline_build.json`). On a CPU
+without these instructions the CLI stops with an error before it runs any of them, and `import
+axtb` raises `ImportError` before it loads the extension module. The Python check reads the CPU
+flags in `/proc/cpuinfo`; where that file is missing or lists no flags (other operating
+systems, some emulators; user-mode QEMU shows the host's) it cannot check. For any x86-64 CPU,
+build with
 
 ```bash
 RUSTFLAGS="-C target-cpu=x86-64" cargo build --release -p axtb-cli
@@ -251,12 +254,13 @@ The response, for every front end (a field is present when it applies):
   results repeat bit for bit on a given thread count. Between thread counts they may differ
   by round-off, as xtb's do: the SCF eigensolver's tridiagonalization (faer's above ~313 rows,
   or the `dsytrd` of a run-time LAPACK library) sums one partial product per thread. Measured
-  for GFN2-xTB and g-xTB 2.0.1 on taxol and (H2O)200, 1 vs 2, 4 and 8 threads, with faer, MKL,
-  OpenBLAS and AOCL: energies ≤ 5.7e-13 Eh apart, gradients ≤ 7.6e-15 Eh/bohr, the same SCF
-  iterations; three runs on each thread count gave identical bits. GFN-FF differs between
-  thread counts through the LU factorizations of its EEQ systems (faer's parallel kernels above
-  ~100 atoms): C50H102, (H2O)200, (H2O)333 and crambin on 1, 2, 4 and 8 threads gave energies
-  ≤ 1.2e-12 Eh, gradients ≤ 9e-14 Eh/bohr and analytic Hessians ≤ 3e-13 Eh/bohr² apart.
+  for GFN2-xTB and g-xTB 2.0.1 on taxol and (H2O)200, 1 vs 2, 4 and 8 threads, with faer and
+  MKL on the laptop and faer, MKL and AOCL on the 64-core node (axtb 0.1.0): energies ≤ 1.8e-12
+  Eh apart, gradients ≤ 8.0e-15 Eh/bohr, the same SCF iterations; three runs on each thread
+  count gave identical bits. GFN-FF differs between thread counts through the LU factorizations
+  of its EEQ systems (faer's parallel kernels above ~100 atoms): C50H102, (H2O)200, (H2O)333 and
+  crambin on 1, 2, 4 and 8 threads gave energies ≤ 6.5e-13 Eh, gradients ≤ 7.9e-14 Eh/bohr and
+  analytic Hessians ≤ 2.3e-13 Eh/bohr² apart (`bench/results/final-*/thread_determinism.json`).
 - **Correct by default, exact on request.** The default `conventions="axtb"` uses CODATA
   2022 constants, double-precision tables, one coordination number for energy and
   gradient, smooth long-range cutoffs, and fixes the solvation bugs reported upstream
@@ -286,12 +290,12 @@ The response, for every front end (a field is present when it applies):
 ## Threads
 
 axtb runs every calculation on exactly the threads you ask for (default 1) and never caps
-them, but more is not always faster. Measured on a 64-core AMD Threadripper PRO 9985WX node
-(`bench/results/cluster-9985wx`, energy + gradient, seconds). The table comes from axtb
-533c1a0, before the performance work described in `bench/README.md`, so its times are
-longer than the current code's (taxol on 1 thread: 0.109 s in
-`bench/results/final-9985wx-gxtb-perf`); what it shows is how the time changes with the
-thread count:
+them, but more is not always faster. Measured on a whole 64-core AMD Threadripper PRO 9985WX
+node (`bench/results/cluster-9985wx`, energy + gradient, seconds) with axtb 533c1a0 on
+2026-11-05, before the performance work described in `bench/README.md`: these whole-node runs
+could not be repeated for 0.1.0 (no node was free), so the times are longer than 0.1.0's
+(taxol on 1 thread: 0.108 s in the release run, `bench/results/final-9985wx`); what the table
+shows is how the time changes with the thread count:
 
 | molecule (atoms) | 1 thread | 8 threads | 32 threads | 64 threads |
 |---|---|---|---|---|
@@ -306,10 +310,12 @@ thread count:
   SCF and gets no warning.
 - **Many calculations** (conformers, path images, batches): run them in parallel with 1
   thread each. This always gives the most work per node; small molecules gain little from
-  threads at all (taxol: 1.3× on 8 threads).
+  threads at all (taxol in the release run: 1.2× on 8 threads, node; 1.5× on the laptop with
+  faer).
 - **Hessians** run their perturbations or displacements in parallel and do use many threads
-  well, with no warning (taxol: analytic 3.8 s on 1 thread, 0.94 s on 8 on the laptop;
-  numerical 9.3 s on 8 threads, 3.0 s on 32 or 64 on the node).
+  well, with no warning (taxol, GFN2-xTB: analytic 2.96 s on 1 thread, 0.92 s on 8 on the
+  laptop; numerical 40.0 s on 1 thread and 5.2 s on 8 on the node, `bench/results/hessian.json`;
+  3.0 s on 32 or 64 threads in the 533c1a0 whole-node run).
 - **A LAPACK library for the SCF eigensolver** (optional): `AXTB_LAPACK=<path or soname>`
   names Intel MKL (`libmkl_rt`), OpenBLAS, or AMD AOCL's `libflame.so` together with
   `AXTB_LAPACK_BLAS=<libblis-mt.so>`. The library is opened at run time (nothing is linked) and
@@ -325,9 +331,9 @@ thread count:
   - MKL runs in its strict conditional numerical reproducibility mode (`MKL_CBWR_Set`), so its
     results repeat bit for bit on a given thread count. An MKL that was set up differently
     earlier in the process (for example by an MKL build of NumPy) is refused.
-  - MKL's Intel OpenMP runs without thread affinity (its topology detection cost ~0.1 s per
-    process on the 128-CPU nodes). That setting (`kmp_set_defaults`) applies to every user of
-    Intel OpenMP in the process.
+  - MKL's Intel OpenMP runs without thread affinity (its topology detection is slow on
+    many-CPU machines and runs in every process). That setting (`kmp_set_defaults`) applies
+    to every user of Intel OpenMP in the process.
   - `AXTB_LAPACK` and `AXTB_LAPACK_BLAS` are read once per process, at the first SCF large
     enough to use them; later changes have no effect.
   - When the library cannot be loaded or is refused, faer solves instead. The CLI and the Python
@@ -335,11 +341,12 @@ thread count:
     which solver ran (`faer` or the library); in Rust, `SinglePoint::eigensolver` and
     `axtb::linalg::runtime_lapack()`.
 
-  Between thread counts, and against faer, the results differ by round-off (~1e-13 Eh). On the
-  Intel laptop MKL makes GFN2-xTB faster than xtb 6.8.0 in every measured case (with faer:
-  0.75-0.94x for 300-600 atoms on 4-8 threads); on the AMD node faer is the fastest overall
-  (AOCL for the largest systems on 1-2 threads, MKL slower); `bench/README.md`, "GFN2-xTB and
-  g-xTB 2.0.1 performance work".
+  Between thread counts, and against faer, the results differ by round-off (≤ 2e-12 Eh in the
+  release run). On the Intel laptop MKL makes GFN2-xTB faster than xtb 6.8.0 in every measured
+  case (1.04-8.6x on 1-8 threads; with faer 0.81-0.96x for the water clusters on 4-8 threads and
+  C100H202 on 4); on the AMD node faer is ahead of xtb 6.8.0 everywhere (1.22x and up), AOCL
+  about as fast and faster for the largest systems on 1 thread, MKL slower; `bench/README.md`,
+  "Final timings".
 
 ## Environment variables
 
@@ -436,15 +443,13 @@ xtb 6.7.1 program's own (`scc_core.f90`, `scf_module.F90`, `aespot.F90`), which 
 tblite's in six places. xtb 6.8.0 took over tblite's loop in four of them; `xtb` runs 6.8.0's,
 which keeps xtb's start (1) and its own gradient potentials (6). Each place is a setting of
 `ConventionParams` (`eeq_guess_cn` and the `scc_*` fields). They matter only while the SCF is
-unconverged, so at xtb's default accuracy 1 (thresholds 1e-6 Eh and 2e-5 e, 6.7.1: 1e-4 e):
-with tblite's loop the 6.7.1 conventions reproduced the program's GFN2 gradients there only to
-~4e-6 Eh/bohr.
+unconverged, so at xtb's default accuracy 1 (thresholds 1e-6 Eh and 2e-5 e, 6.7.1: 1e-4 e),
+where tblite's loop does not reproduce the program's GFN2 gradients to the last digits.
 
 1. **Start** (both xtb versions): `goedecker_chrgeq` EEQ charges on `ncoord_erf`'s
    coordination number (xtb's D4 radii, 40 bohr, no cap; 6.7.1's radii single-precision with
    the older bohr constant), not multicharge's CN capped at 8, and not tblite's zero charges.
-   The first iteration's energy then agrees to all printed digits (caffeine: off by 3e-4 Eh
-   before).
+   The first iteration's energy then agrees to all printed digits.
 2. **Residual test** (`scc_residual`): 6.7.1 tests sqrt(Σ dq² / N_atoms) < 1e-4·acc over the
    mixed vector (shell charges, dipoles, quadrupoles); tblite and 6.8.0 the RMS over the vector
    < 2e-5·acc; plus |ΔE| < 1e-6·acc in all.
@@ -459,8 +464,8 @@ with tblite's loop the 6.7.1 conventions reproduced the program's GFN2 gradients
    (quadrupole) term when Σ_k d_k² (Σ_diag M² + 2 Σ_off M²) ≤ 1e-10·acc (`setdqlist`,
    `buildIsoAnisotropicH1`). The overlap part of every potential stays, and the Mulliken
    moments, energy and gradient use all integrals (`hamiltonian::MultipoleNeglect`). The
-   effect depends on where the molecule sits relative to the origin: at accuracy 1 it moves
-   caffeine's charges by 4e-8 e. 6.8.0 sets the threshold to 0.
+   effect depends on where the molecule sits relative to the origin and is far below the SCF
+   thresholds. 6.8.0 sets the threshold to 0.
 6. **Gradient moments and potentials** (`scc_gradient`): 6.7.1 mixes once more after the last
    iteration and evaluates the ES2, AES, D4 and solvation gradients and the multipole
    potentials of the integral derivatives with those mixed moments. 6.8.0 uses the output
@@ -494,9 +499,10 @@ converge runs once more from the program's EEQ-BC start. Results say which start
   `guess="eeq"`.
 - In the default conventions a restarted g-xTB 2.0.1 SCF converges to 0.1 × the thresholds
   (`axtb_gxtb::calculator::RESTART_ACCURACY`). A fresh 2.0.1 SCF ends with a DIIS step that
-  overshoots tblite's thresholds; a restart meets them after 2–5 iterations and would stop there,
-  with gradient errors twice a fresh SCF's that depend on the history: a geomeTRIC minimization
-  of caffeine then took 48 steps instead of 23. With the tighter thresholds it takes 25,
+  overshoots tblite's thresholds; a restart meets them after a few iterations and would stop
+  there, with larger gradient errors than a fresh SCF's that depend on the history and that
+  lengthen a geomeTRIC minimization of caffeine. With the tighter thresholds it takes 25 steps
+  (23 from fresh starts),
   restarted energies are 3–50 times closer to the converged ones than fresh ones and gradients
   about as close (table). v1.1 and GFN2-xTB restarts keep the thresholds: their errors are 1–4
   times a fresh SCF's but at most 8e-6 Eh/bohr, and the optimizers take the same steps.
