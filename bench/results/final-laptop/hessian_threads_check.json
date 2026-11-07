@@ -1,0 +1,178 @@
+{
+ "old": "axtb e6b4a18 CLI",
+ "new": "axtb 3499913 CLI",
+ "threads": 1,
+ "rows": [
+  {
+   "method": "gfn2",
+   "hessian_method": "analytic",
+   "molecule": "water",
+   "modes": 3,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.0043913639965467155,
+    "cores": 0.8334540254185611,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.0036066480024601333,
+    "cores": 0.8384516586973,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gfn2",
+   "hessian_method": "analytic",
+   "molecule": "caffeine",
+   "modes": 66,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.04396617500606226,
+    "cores": 1.0973890722435449,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.035877248003089335,
+    "cores": 0.9754928805293642,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gfn2",
+   "hessian_method": "analytic",
+   "molecule": "taxol",
+   "modes": 333,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 2.805127770996478,
+    "cores": 1.0050194608420708,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 2.817540028001531,
+    "cores": 0.9967883231785176,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "hessian_method": "analytic",
+   "molecule": "water",
+   "modes": 3,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.007985085001564585,
+    "cores": 1.5172036362326413,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.007615199996507727,
+    "cores": 0.9885492178082266,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "hessian_method": "analytic",
+   "molecule": "caffeine",
+   "modes": 66,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.7658579890048713,
+    "cores": 1.0050309731705411,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.7660207220033044,
+    "cores": 0.99919229077552,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "hessian_method": "analytic",
+   "molecule": "taxol",
+   "modes": 333,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 96.39698299500014,
+    "cores": 0.9999749162792754,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 94.20693610000308,
+    "cores": 0.9997498793509424,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gxtb-v1.1",
+   "hessian_method": "numerical",
+   "molecule": "water",
+   "modes": 3,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.06674483299138956,
+    "cores": 1.0424177705111939,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.06973685100092553,
+    "cores": 0.998467797163361,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gxtb-v1.1",
+   "hessian_method": "numerical",
+   "molecule": "caffeine",
+   "modes": 66,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 5.515095605005627,
+    "cores": 1.0006345121181908,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 5.486842261001584,
+    "cores": 0.999808403276143,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gfnff",
+   "hessian_method": "analytic",
+   "molecule": "caffeine",
+   "modes": 66,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.006899332001921721,
+    "cores": 1.5994302052644143,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.005815797005197965,
+    "cores": 0.9422612231923027,
+    "threads_started": 0
+   }
+  },
+  {
+   "method": "gfnff",
+   "hessian_method": "analytic",
+   "molecule": "taxol",
+   "modes": 333,
+   "max_abs_dfreq_cm": 0.0,
+   "old": {
+    "wall_s": 0.10428721499920357,
+    "cores": 1.0890596704576239,
+    "threads_started": 16
+   },
+   "new": {
+    "wall_s": 0.10471519400016405,
+    "cores": 0.9290724324096874,
+    "threads_started": 0
+   }
+  }
+ ],
+ "how": "1-thread Hessians (CLI, default conventions, with the vibrational analysis) of both commits: largest difference of the harmonic frequencies, and the process's CPU time / wall time and threads started (strace)"
+}

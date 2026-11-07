@@ -7,7 +7,7 @@
  },
  "versions": {
   "axtb": "0.1.0",
-  "axtb_commit": "e6b4a18",
+  "axtb_commit": "3499913",
   "xtb": "6.7.1 (26dd68d)",
   "mepd": true
  },
@@ -18,7 +18,7 @@
   "state": "gsolv",
   "program_mode": "conventions='gxtb' (g-xTB: 2.0.1 program; GFN2 halves: xtb 6.7.1, conventions 'xtb-6.7.1')",
   "timing": "wall seconds, best of 3, one thread; programs: sum of the calls incl. retries; axtb: one composite gradient with a new calculator, and the next geometry on a reused one, in program mode (t gxtb, conventions='gxtb') and default conventions (t axtb)",
-  "load_average": 1.0244140625
+  "load_average": 1.16796875
  },
  "cases": [
   {
@@ -35,7 +35,7 @@
     "solvation_correction": -0.014617353448000081,
     "retry": null,
     "calls": 3,
-    "seconds": 0.025958387996070087
+    "seconds": 0.025787537997530308
    },
    "axtb_program_mode": {
     "energy": -76.45200477990556,
@@ -81,7 +81,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000278409
+      "seconds": 0.000275912
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -99,7 +99,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000287853
+      "seconds": 0.000281714
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -111,11 +111,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.00032299
+      "seconds": 0.000323089
      }
     },
-    "seconds_new_calculator": 0.0011240219973842613,
-    "seconds_next_geometry": 0.0010869090037886053
+    "seconds_new_calculator": 0.0011283730054856278,
+    "seconds_next_geometry": 0.0010898379987338558
    },
    "axtb_default": {
     "energy": -76.45200477639887,
@@ -139,7 +139,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000247398
+      "seconds": 0.000246747
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -157,7 +157,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000241728
+      "seconds": 0.000245897
      },
      "gxtb": {
       "conventions": "axtb",
@@ -169,11 +169,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000319807
+      "seconds": 0.000318171
      }
     },
-    "seconds_new_calculator": 0.0010396510042482987,
-    "seconds_next_geometry": 0.000901806000911165
+    "seconds_new_calculator": 0.0010501770011615008,
+    "seconds_next_geometry": 0.000896049001312349
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -186,7 +186,7 @@
     "dE_vs_axtb": -4.433786671143025e-12,
     "max_abs_dgrad_vs_axtb": 1.2087969514240626e-12,
     "fallbacks": [],
-    "seconds": 0.02936964700347744
+    "seconds": 0.02835665799648268
    },
    "hessian": [
     {
@@ -210,7 +210,7 @@
       }
      },
      "max_abs_H": 0.5075444151779542,
-     "seconds": 0.0058076850036741234,
+     "seconds": 0.005259949000901543,
      "pass": true
     },
     {
@@ -234,7 +234,7 @@
       }
      },
      "max_abs_H": 0.5075444150652443,
-     "seconds": 0.005577036004979163,
+     "seconds": 0.008123730003717355,
      "pass": true
     }
    ]
@@ -253,7 +253,7 @@
     "solvation_correction": -0.01673936377900276,
     "retry": null,
     "calls": 3,
-    "seconds": 0.10535923299903516
+    "seconds": 0.1031133750002482
    },
    "axtb_program_mode": {
     "energy": -680.4359708915299,
@@ -299,7 +299,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.007211515
+      "seconds": 0.006967324
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -317,7 +317,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.00690308
+      "seconds": 0.006736786
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -329,11 +329,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.011944781
+      "seconds": 0.011636914
      }
     },
-    "seconds_new_calculator": 0.028064642996469047,
-    "seconds_next_geometry": 0.028698923000774812
+    "seconds_new_calculator": 0.028495087004557718,
+    "seconds_next_geometry": 0.02813161000085529
    },
    "axtb_default": {
     "energy": -680.4359708861915,
@@ -357,7 +357,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.006144066
+      "seconds": 0.005898017
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -375,7 +375,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.006300545
+      "seconds": 0.00608449
      },
      "gxtb": {
       "conventions": "axtb",
@@ -387,11 +387,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.011715208
+      "seconds": 0.011576741
      }
     },
-    "seconds_new_calculator": 0.027129378002427984,
-    "seconds_next_geometry": 0.019891182004357688
+    "seconds_new_calculator": 0.026544917993305717,
+    "seconds_next_geometry": 0.01943715500237886
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -404,7 +404,7 @@
     "dE_vs_axtb": 0.0,
     "max_abs_dgrad_vs_axtb": 2.3613867805583055e-11,
     "fallbacks": [],
-    "seconds": 0.10448045899829594
+    "seconds": 0.1025150949935778
    },
    "hessian": [
     {
@@ -428,7 +428,7 @@
       }
      },
      "max_abs_H": 0.9227144904859486,
-     "seconds": 0.854316678000032,
+     "seconds": 0.8282468059987877,
      "pass": true
     },
     {
@@ -452,7 +452,7 @@
       }
      },
      "max_abs_H": 0.922714479612926,
-     "seconds": 0.8771491420047823,
+     "seconds": 0.8539633830005187,
      "pass": true
     }
    ]
@@ -471,7 +471,7 @@
     "solvation_correction": -0.10783623400700115,
     "retry": null,
     "calls": 3,
-    "seconds": 0.03492083799210377
+    "seconds": 0.034864780005591456
    },
    "axtb_program_mode": {
     "energy": -228.6593373530444,
@@ -517,7 +517,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000570851
+      "seconds": 0.000575212
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -535,7 +535,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000585717
+      "seconds": 0.000576807
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -547,11 +547,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001143643
+      "seconds": 0.001139696
      }
     },
-    "seconds_new_calculator": 0.0027278480047243647,
-    "seconds_next_geometry": 0.0026824999949894845
+    "seconds_new_calculator": 0.002699361000850331,
+    "seconds_next_geometry": 0.002673356997547671
    },
    "axtb_default": {
     "energy": -228.6593373421753,
@@ -575,7 +575,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000609864
+      "seconds": 0.000580151
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -593,7 +593,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.00063405
+      "seconds": 0.000624047
      },
      "gxtb": {
       "conventions": "axtb",
@@ -605,11 +605,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001204699
+      "seconds": 0.001158809
      }
     },
-    "seconds_new_calculator": 0.0027932869998039678,
-    "seconds_next_geometry": 0.0022292409994406626
+    "seconds_new_calculator": 0.0027298790009808727,
+    "seconds_next_geometry": 0.002165040001273155
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -622,7 +622,7 @@
     "dE_vs_axtb": -4.558842192636803e-11,
     "max_abs_dgrad_vs_axtb": 6.666616911288337e-11,
     "fallbacks": [],
-    "seconds": 0.03531108300376218
+    "seconds": 0.03494703299656976
    },
    "hessian": [
     {
@@ -646,7 +646,7 @@
       }
      },
      "max_abs_H": 0.6811220160388093,
-     "seconds": 0.047717465000459924,
+     "seconds": 0.044689387003018055,
      "pass": true
     },
     {
@@ -670,7 +670,7 @@
       }
      },
      "max_abs_H": 0.6811220073958868,
-     "seconds": 0.04977159199916059,
+     "seconds": 0.04655975099740317,
      "pass": true
     }
    ]
@@ -689,7 +689,7 @@
     "solvation_correction": -0.16692402877100054,
     "retry": null,
     "calls": 3,
-    "seconds": 0.02643988298950717
+    "seconds": 0.02643866799917305
    },
    "axtb_program_mode": {
     "energy": -76.12983607707537,
@@ -735,7 +735,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 9.8898e-05
+      "seconds": 0.000103447
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -753,7 +753,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 9.861e-05
+      "seconds": 0.000101304
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -765,11 +765,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000269128
+      "seconds": 0.000271703
      }
     },
-    "seconds_new_calculator": 0.0006051890013623051,
-    "seconds_next_geometry": 0.0005892789995414205
+    "seconds_new_calculator": 0.0006161879937280901,
+    "seconds_next_geometry": 0.0005765690002590418
    },
    "axtb_default": {
     "energy": -76.12983606409804,
@@ -793,7 +793,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 9.6644e-05
+      "seconds": 9.3323e-05
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -811,7 +811,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 9.3898e-05
+      "seconds": 9.3398e-05
      },
      "gxtb": {
       "conventions": "axtb",
@@ -823,11 +823,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000261489
+      "seconds": 0.000258325
      }
     },
-    "seconds_new_calculator": 0.0005832800015923567,
-    "seconds_next_geometry": 0.00048600099398754537
+    "seconds_new_calculator": 0.000573998004256282,
+    "seconds_next_geometry": 0.00048145800246857107
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -840,7 +840,7 @@
     "dE_vs_axtb": -4.632738637155853e-12,
     "max_abs_dgrad_vs_axtb": 9.74512137652539e-13,
     "fallbacks": [],
-    "seconds": 0.02877587800321635
+    "seconds": 0.02735569699871121
    },
    "hessian": [
     {
@@ -864,7 +864,7 @@
       }
      },
      "max_abs_H": 0.53608124112964,
-     "seconds": 0.005540111997106578,
+     "seconds": 0.005481038002471905,
      "pass": true
     },
     {
@@ -888,7 +888,7 @@
       }
      },
      "max_abs_H": 0.5360812432821056,
-     "seconds": 0.00613481699838303,
+     "seconds": 0.006008902993926313,
      "pass": true
     }
    ]
@@ -907,7 +907,7 @@
     "solvation_correction": -0.027121275694000246,
     "retry": null,
     "calls": 3,
-    "seconds": 0.036140420990705024
+    "seconds": 0.035296922011184506
    },
    "axtb_program_mode": {
     "energy": -390.8754639889567,
@@ -953,7 +953,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000843563
+      "seconds": 0.000823129
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -971,7 +971,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000921907
+      "seconds": 0.000905366
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -983,11 +983,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001468639
+      "seconds": 0.001489436
      }
     },
-    "seconds_new_calculator": 0.003735393998795189,
-    "seconds_next_geometry": 0.003699708999192808
+    "seconds_new_calculator": 0.0037317470050766133,
+    "seconds_next_geometry": 0.003671365004265681
    },
    "axtb_default": {
     "energy": -390.87546398343267,
@@ -1011,7 +1011,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000761886
+      "seconds": 0.00076476
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -1029,7 +1029,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000863103
+      "seconds": 0.000837051
      },
      "gxtb": {
       "conventions": "axtb",
@@ -1041,11 +1041,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001456839
+      "seconds": 0.001535979
      }
     },
-    "seconds_new_calculator": 0.0035355300060473382,
-    "seconds_next_geometry": 0.0026366579986643046
+    "seconds_new_calculator": 0.0036048879992449656,
+    "seconds_next_geometry": 0.002697037998586893
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -1058,7 +1058,7 @@
     "dE_vs_axtb": 6.707523425575346e-12,
     "max_abs_dgrad_vs_axtb": 4.957658589210823e-11,
     "fallbacks": [],
-    "seconds": 0.038077183002314996
+    "seconds": 0.03768647900142241
    },
    "hessian": [
     {
@@ -1082,7 +1082,7 @@
       }
      },
      "max_abs_H": 0.6764684394146369,
-     "seconds": 0.06159137500071665,
+     "seconds": 0.0813206020029611,
      "pass": true
     },
     {
@@ -1106,7 +1106,7 @@
       }
      },
      "max_abs_H": 0.6764684301758105,
-     "seconds": 0.06484199300030014,
+     "seconds": 0.06779964300221764,
      "pass": true
     }
    ]
@@ -1125,7 +1125,7 @@
     "solvation_correction": -0.08586281322200051,
     "retry": null,
     "calls": 3,
-    "seconds": 0.03374137599894311
+    "seconds": 0.03361848200438544
    },
    "axtb_program_mode": {
     "energy": -960.4264294830848,
@@ -1171,7 +1171,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000898047
+      "seconds": 0.00097857
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -1189,7 +1189,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.00096022
+      "seconds": 0.001051005
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -1201,11 +1201,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001249138
+      "seconds": 0.001252068
      }
     },
-    "seconds_new_calculator": 0.003505290995235555,
-    "seconds_next_geometry": 0.003439988002355676
+    "seconds_new_calculator": 0.0036724430028698407,
+    "seconds_next_geometry": 0.0035858120027114637
    },
    "axtb_default": {
     "energy": -960.4264294736876,
@@ -1229,7 +1229,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000825343
+      "seconds": 0.000944805
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -1247,7 +1247,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000890779
+      "seconds": 0.001008534
      },
      "gxtb": {
       "conventions": "axtb",
@@ -1259,11 +1259,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.001231048
+      "seconds": 0.001315893
      }
     },
-    "seconds_new_calculator": 0.0033260860000154935,
-    "seconds_next_geometry": 0.00222098600352183
+    "seconds_new_calculator": 0.0036692080029752105,
+    "seconds_next_geometry": 0.002403817998128943
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -1276,7 +1276,7 @@
     "dE_vs_axtb": -3.524291969370097e-11,
     "max_abs_dgrad_vs_axtb": 1.6564410433572707e-11,
     "fallbacks": [],
-    "seconds": 0.035641670001496095
+    "seconds": 0.03600974100118037
    },
    "hessian": [
     {
@@ -1300,7 +1300,7 @@
       }
      },
      "max_abs_H": 0.6362770446142283,
-     "seconds": 0.044143154002085794,
+     "seconds": 0.046340372995473444,
      "pass": true
     },
     {
@@ -1324,7 +1324,7 @@
       }
      },
      "max_abs_H": 0.6362770441302271,
-     "seconds": 0.047922534999088384,
+     "seconds": 0.049533318997418974,
      "pass": true
     }
    ]
@@ -1343,7 +1343,7 @@
     "solvation_correction": 0.0060059936600005415,
     "retry": "--iterations 1000 --etemp 1000",
     "calls": 4,
-    "seconds": 0.11721918799594278
+    "seconds": 0.11796679301187396
    },
    "axtb_program_mode": {
     "energy": -199.3758983321185,
@@ -1389,7 +1389,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000354111
+      "seconds": 0.000360942
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -1407,7 +1407,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 7.7085e-05
+      "seconds": 7.8061e-05
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -1419,11 +1419,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000186908
+      "seconds": 0.000186559
      }
     },
-    "seconds_new_calculator": 0.0007476410028175451,
-    "seconds_next_geometry": 0.000719423005648423
+    "seconds_new_calculator": 0.0007512120064347982,
+    "seconds_next_geometry": 0.0007141870009945706
    },
    "axtb_default": {
     "energy": -199.37589833143764,
@@ -1452,7 +1452,7 @@
         "mixer": "diis"
        }
       ],
-      "seconds": 0.000534078
+      "seconds": 0.00053079
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -1475,7 +1475,7 @@
         "mixer": "diis"
        }
       ],
-      "seconds": 0.000519289
+      "seconds": 0.000519033
      },
      "gxtb": {
       "conventions": "axtb",
@@ -1487,11 +1487,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000178437
+      "seconds": 0.000182019
      }
     },
-    "seconds_new_calculator": 0.0013507710027624853,
-    "seconds_next_geometry": 0.00038826999661978334
+    "seconds_new_calculator": 0.0013512660007108934,
+    "seconds_next_geometry": 0.00039144499896792695
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -1509,7 +1509,7 @@
       "--iterations 1000 --etemp 1000"
      ]
     ],
-    "seconds": 0.20856908900168492
+    "seconds": 0.204273342002125
    }
   },
   {
@@ -1526,7 +1526,7 @@
     "solvation_correction": -0.03343807479199956,
     "retry": "--iterations 1000 --etemp 5000",
     "calls": 6,
-    "seconds": 46.89949667399924
+    "seconds": 47.20056682499853
    },
    "axtb_program_mode": {
     "energy": -100.19747174479109,
@@ -1572,7 +1572,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 41.50491563600001
+      "seconds": 40.384669159
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -1590,7 +1590,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.000113819
+      "seconds": 0.000111435
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -1602,11 +1602,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000283805
+      "seconds": 0.000277467
      }
     },
-    "seconds_new_calculator": 41.47704411800078,
-    "seconds_next_geometry": 41.3627007929972
+    "seconds_new_calculator": 40.38529140900209,
+    "seconds_next_geometry": 40.44846060100099
    },
    "axtb_default": {
     "energy": -100.22659103413002,
@@ -1635,7 +1635,7 @@
         "mixer": "diis"
        }
       ],
-      "seconds": 0.144964938
+      "seconds": 0.145606183
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -1653,7 +1653,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.00074702
+      "seconds": 0.000740839
      },
      "gxtb": {
       "conventions": "axtb",
@@ -1665,11 +1665,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.000244721
+      "seconds": 0.000243654
      }
     },
-    "seconds_new_calculator": 0.14611136799794622,
-    "seconds_next_geometry": 0.00040352499490836635
+    "seconds_new_calculator": 0.1467399400062277,
+    "seconds_next_geometry": 0.00040448099753120914
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -1687,7 +1687,7 @@
       "--iterations 1000 --etemp 5000"
      ]
     ],
-    "seconds": 46.12726689400006
+    "seconds": 45.983373950002715
    }
   },
   {
@@ -1704,7 +1704,7 @@
     "solvation_correction": -0.04138624816400238,
     "retry": null,
     "calls": 3,
-    "seconds": 1.4506115269978181
+    "seconds": 1.458283140003914
    },
    "axtb_program_mode": {
     "energy": -2929.7711563345442,
@@ -1750,7 +1750,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.197175093
+      "seconds": 0.188332616
      },
      "gfn2_solvated": {
       "conventions": "xtb-6.7.1",
@@ -1768,7 +1768,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.211169641
+      "seconds": 0.201901223
      },
      "gxtb": {
       "conventions": "gxtb",
@@ -1780,11 +1780,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.261747013
+      "seconds": 0.254959831
      }
     },
-    "seconds_new_calculator": 0.7061770770014846,
-    "seconds_next_geometry": 0.7060317319992464
+    "seconds_new_calculator": 0.6885642950001056,
+    "seconds_next_geometry": 0.6833827959999326
    },
    "axtb_default": {
     "energy": -2929.7711568470663,
@@ -1808,7 +1808,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.145044918
+      "seconds": 0.138583496
      },
      "gfn2_solvated": {
       "conventions": "axtb",
@@ -1826,7 +1826,7 @@
         "mixer": "broyden"
        }
       ],
-      "seconds": 0.145619643
+      "seconds": 0.138573676
      },
      "gxtb": {
       "conventions": "axtb",
@@ -1838,11 +1838,11 @@
       "mixer_used": null,
       "retry": null,
       "scf_attempts": [],
-      "seconds": 0.257952391
+      "seconds": 0.251958834
      }
     },
-    "seconds_new_calculator": 0.595617006001703,
-    "seconds_next_geometry": 0.3858613900010823
+    "seconds_new_calculator": 0.5757250560054672,
+    "seconds_next_geometry": 0.3758909690004657
    },
    "gate": {
     "energy_tol": 1e-09,
@@ -1855,7 +1855,7 @@
     "dE_vs_axtb": -1.0595613275654614e-10,
     "max_abs_dgrad_vs_axtb": 2.783381424648068e-10,
     "fallbacks": [],
-    "seconds": 1.462675094997394
+    "seconds": 1.461647381001967
    }
   }
  ],
