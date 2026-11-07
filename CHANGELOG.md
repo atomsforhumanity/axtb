@@ -3,7 +3,7 @@
 All notable changes to axtb. Versions follow [Semantic Versioning](https://semver.org); the
 Rust crates, the CLI and the Python package share one version.
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-11-07)
 
 The first release: the Rust crates `axtb`, `axtb-d4`, `axtb-solvation`, `axtb-gfnff`,
 `axtb-gxtb`, `axtb-driver` and `axtb-cli` (the `axtb` program, JSON in and out) on crates.io,
