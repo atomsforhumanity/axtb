@@ -242,4 +242,4 @@ fn x86_64_v3() -> bool {
 const CPU_MISMATCH: &std::ffi::CStr = c"this axtb was built for x86-64-v3 CPUs (AVX2, FMA, BMI2: Intel since Haswell (2013), AMD \
 since Excavator (2015); not many low-end Intel Atom, Celeron and Pentium N-series CPUs), and this CPU (or its operating \
 system) does not support them. Build axtb from source for any x86-64 CPU with RUSTFLAGS=\"-C target-cpu=x86-64\" (CLI: \
-cargo build --release -p axtb-cli; Python: maturin build --release in crates/axtb-py)";
+cargo install axtb-cli; Python: pip install --no-binary axtb axtb)";
