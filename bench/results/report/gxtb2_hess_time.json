@@ -6,7 +6,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 1,
-  "seconds": 5.082753942813724
+  "seconds": 4.908440052997321
  },
  {
   "id": "caffeine|1|axtb analytic 1t",
@@ -15,7 +15,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 0.496793266851455
+  "seconds": 0.49645768804475665
  },
  {
   "id": "caffeine|1|axtb response 1t",
@@ -24,7 +24,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 1,
-  "seconds": 1.130396659951657
+  "seconds": 1.2108114529401064
  },
  {
   "id": "caffeine|1|axtb numerical 1t",
@@ -33,7 +33,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 1,
-  "seconds": 1.6449036640115082
+  "seconds": 1.974586509168148
  },
  {
   "id": "caffeine|1|program --hess 8t",
@@ -42,7 +42,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 8,
-  "seconds": 0.8608452300541103
+  "seconds": 1.0435566329397261
  },
  {
   "id": "caffeine|1|axtb analytic 8t",
@@ -51,7 +51,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 0.14922020211815834
+  "seconds": 0.15188341634348035
  },
  {
   "id": "caffeine|1|axtb response 8t",
@@ -60,7 +60,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 8,
-  "seconds": 0.21349156508222222
+  "seconds": 0.22208698093891144
  },
  {
   "id": "caffeine|1|axtb numerical 8t",
@@ -69,7 +69,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 8,
-  "seconds": 0.2690798998810351
+  "seconds": 0.31784064415842295
  },
  {
   "id": "caffeine|2|program --acc 0.001 1t",
@@ -78,7 +78,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 1,
-  "seconds": 5.325732905883342
+  "seconds": 5.617636647075415
  },
  {
   "id": "caffeine|2|axtb analytic 1t",
@@ -87,7 +87,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 0.46306526008993387
+  "seconds": 0.4754161541350186
  },
  {
   "id": "caffeine|2|program --acc 0.0001 1t",
@@ -96,7 +96,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 1,
-  "seconds": 5.375413214787841
+  "seconds": 5.698925433214754
  },
  {
   "id": "caffeine|2|program --acc 0.001 8t",
@@ -105,7 +105,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 8,
-  "seconds": 0.7665652008727193
+  "seconds": 0.793364570941776
  },
  {
   "id": "caffeine|2|axtb analytic 8t",
@@ -114,7 +114,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 0.11738330591470003
+  "seconds": 0.11208878131583333
  },
  {
   "id": "caffeine|2|program --acc 0.0001 8t",
@@ -123,7 +123,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 8,
-  "seconds": 0.7841397360898554
+  "seconds": 0.8615915491245687
  },
  {
   "id": "taxol|1|program --hess 1t",
@@ -132,7 +132,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 1,
-  "seconds": 348.9455295018852
+  "seconds": 382.4337208797224
  },
  {
   "id": "taxol|1|axtb analytic 1t",
@@ -141,7 +141,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 54.91755818575621
+  "seconds": 57.64488544780761
  },
  {
   "id": "taxol|1|axtb response 1t",
@@ -150,7 +150,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 1,
-  "seconds": 105.2769934781827
+  "seconds": 113.92093107523397
  },
  {
   "id": "taxol|1|axtb numerical 1t",
@@ -159,7 +159,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 1,
-  "seconds": 163.67898095678538
+  "seconds": 155.20209412509575
  },
  {
   "id": "taxol|1|program --hess 8t",
@@ -168,7 +168,7 @@
   "window": "default",
   "method": "program --hess, default --acc 1",
   "threads": 8,
-  "seconds": 45.457262438721955
+  "seconds": 51.87764773797244
  },
  {
   "id": "taxol|1|axtb analytic 8t",
@@ -177,7 +177,7 @@
   "window": "default",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 7.287122673820704
+  "seconds": 8.164400021079928
  },
  {
   "id": "taxol|1|axtb response 8t",
@@ -186,7 +186,7 @@
   "window": "default",
   "method": "axtb response",
   "threads": 8,
-  "seconds": 13.68182485178113
+  "seconds": 15.173512240406126
  },
  {
   "id": "taxol|1|axtb numerical 8t",
@@ -195,7 +195,7 @@
   "window": "default",
   "method": "axtb numerical",
   "threads": 8,
-  "seconds": 20.45473417919129
+  "seconds": 20.568946997169405
  },
  {
   "id": "taxol|2|program --acc 0.001 1t",
@@ -204,7 +204,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 1,
-  "seconds": 429.81369608361274
+  "seconds": 427.43735756119713
  },
  {
   "id": "taxol|2|axtb analytic 1t",
@@ -213,7 +213,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 53.264024674892426
+  "seconds": 52.44675496732816
  },
  {
   "id": "taxol|2|program --acc 0.0001 1t",
@@ -222,7 +222,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 1,
-  "seconds": 464.26453431369737
+  "seconds": 488.64418156212196
  },
  {
   "id": "taxol|2|program --acc 0.001 8t",
@@ -231,7 +231,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 8,
-  "seconds": 54.03588587511331
+  "seconds": 65.26266007497907
  },
  {
   "id": "taxol|2|axtb analytic 8t",
@@ -240,7 +240,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 7.035988241899759
+  "seconds": 7.114062631968409
  },
  {
   "id": "taxol|2|program --acc 0.0001 8t",
@@ -249,7 +249,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 8,
-  "seconds": 59.52786481613293
+  "seconds": 58.78692895779386
  },
  {
   "id": "Ni(CO)4|2|program --acc 0.001 1t",
@@ -258,7 +258,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 1,
-  "seconds": 0.7197637851350009
+  "seconds": 1.1261618961580098
  },
  {
   "id": "Ni(CO)4|2|axtb analytic 1t",
@@ -267,7 +267,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 1,
-  "seconds": 0.09021393209695816
+  "seconds": 0.10069479001685977
  },
  {
   "id": "Ni(CO)4|2|program --acc 0.0001 1t",
@@ -276,7 +276,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 1,
-  "seconds": 0.7481036600656807
+  "seconds": 0.8719404768198729
  },
  {
   "id": "Ni(CO)4|2|program --acc 0.001 8t",
@@ -285,7 +285,7 @@
   "window": "acc",
   "method": "program --hess --acc 0.001",
   "threads": 8,
-  "seconds": 0.17734872084110975
+  "seconds": 0.2942001922056079
  },
  {
   "id": "Ni(CO)4|2|axtb analytic 8t",
@@ -294,7 +294,7 @@
   "window": "acc",
   "method": "axtb analytic",
   "threads": 8,
-  "seconds": 0.036691582296043634
+  "seconds": 0.04236330883577466
  },
  {
   "id": "Ni(CO)4|2|program --acc 0.0001 8t",
@@ -303,6 +303,6 @@
   "window": "acc",
   "method": "program --hess --acc 0.0001",
   "threads": 8,
-  "seconds": 0.17952446499839425
+  "seconds": 0.3345412788912654
  }
 ]

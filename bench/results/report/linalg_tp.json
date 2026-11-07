@@ -6,7 +6,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 6.3365
+  "ms": 6.2475000000000005
  },
  {
   "machine": "laptop",
@@ -15,7 +15,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.852
+  "ms": 8.0535
  },
  {
   "machine": "laptop",
@@ -24,7 +24,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 23.127499999999998
+  "ms": 23.5315
  },
  {
   "machine": "laptop",
@@ -33,7 +33,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 31.6
+  "ms": 31.804000000000002
  },
  {
   "machine": "laptop",
@@ -42,7 +42,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 203.339
+  "ms": 204.601
  },
  {
   "machine": "laptop",
@@ -51,7 +51,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 255.186
+  "ms": 251.55599999999998
  },
  {
   "machine": "laptop",
@@ -60,7 +60,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 6.6765
+  "ms": 6.7204999999999995
  },
  {
   "machine": "laptop",
@@ -69,7 +69,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 8.235
+  "ms": 8.326
  },
  {
   "machine": "laptop",
@@ -78,7 +78,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 24.603
+  "ms": 24.9115
  },
  {
   "machine": "laptop",
@@ -87,7 +87,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 33.7405
+  "ms": 34.348
  },
  {
   "machine": "laptop",
@@ -96,7 +96,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 181.99849999999998
+  "ms": 183.1805
  },
  {
   "machine": "laptop",
@@ -105,7 +105,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 255.60649999999998
+  "ms": 257.444
  },
  {
   "machine": "laptop",
@@ -114,7 +114,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.2105
+  "ms": 5.2844999999999995
  },
  {
   "machine": "laptop",
@@ -123,7 +123,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.449
+  "ms": 6.507
  },
  {
   "machine": "laptop",
@@ -132,7 +132,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 20.439500000000002
+  "ms": 20.665
  },
  {
   "machine": "laptop",
@@ -141,7 +141,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 27.1705
+  "ms": 27.601
  },
  {
   "machine": "laptop",
@@ -150,7 +150,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 141.8205
+  "ms": 143.856
  },
  {
   "machine": "laptop",
@@ -159,7 +159,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 192.33749999999998
+  "ms": 193.196
  },
  {
   "machine": "laptop",
@@ -168,7 +168,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.372
+  "ms": 5.427
  },
  {
   "machine": "laptop",
@@ -177,7 +177,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.4585
+  "ms": 7.552
  },
  {
   "machine": "laptop",
@@ -186,7 +186,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 19.64
+  "ms": 19.8545
  },
  {
   "machine": "laptop",
@@ -195,7 +195,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 30.0285
+  "ms": 30.647
  },
  {
   "machine": "laptop",
@@ -204,7 +204,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 165.1505
+  "ms": 163.083
  },
  {
   "machine": "laptop",
@@ -213,7 +213,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 219.94299999999998
+  "ms": 222.0355
  },
  {
   "machine": "node",
@@ -222,7 +222,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.742
+  "ms": 3.781
  },
  {
   "machine": "node",
@@ -231,7 +231,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.7684999999999995
+  "ms": 4.827500000000001
  },
  {
   "machine": "node",
@@ -240,7 +240,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.514
+  "ms": 14.629000000000001
  },
  {
   "machine": "node",
@@ -249,7 +249,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 18.959000000000003
+  "ms": 18.935000000000002
  },
  {
   "machine": "node",
@@ -258,7 +258,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 108.652
+  "ms": 112.066
  },
  {
   "machine": "node",
@@ -267,7 +267,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 137.7145
+  "ms": 138.6895
  },
  {
   "machine": "node",
@@ -276,7 +276,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.628500000000001
+  "ms": 4.5835
  },
  {
   "machine": "node",
@@ -285,7 +285,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.640000000000001
+  "ms": 5.558
  },
  {
   "machine": "node",
@@ -294,7 +294,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 17.7505
+  "ms": 17.191499999999998
  },
  {
   "machine": "node",
@@ -303,7 +303,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 22.9715
+  "ms": 22.433
  },
  {
   "machine": "node",
@@ -312,7 +312,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 120.493
+  "ms": 121.26050000000001
  },
  {
   "machine": "node",
@@ -321,67 +321,13 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 162.898
+  "ms": 162.877
  },
  {
   "machine": "node",
   "session": "main",
   "processes": 64,
   "library": "faer 0.24",
-  "n": 266,
-  "op": "symmetric eigenproblem",
-  "ms": 4.58
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24",
-  "n": 266,
-  "op": "generalized eigenproblem",
-  "ms": 5.5329999999999995
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24",
-  "n": 500,
-  "op": "symmetric eigenproblem",
-  "ms": 17.6085
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24",
-  "n": 500,
-  "op": "generalized eigenproblem",
-  "ms": 22.8575
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24",
-  "n": 1000,
-  "op": "symmetric eigenproblem",
-  "ms": 122.64
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24",
-  "n": 1000,
-  "op": "generalized eigenproblem",
-  "ms": 162.672
- },
- {
-  "machine": "node",
-  "session": "main",
-  "processes": 64,
-  "library": "faer 0.24 (AVX-512)",
   "n": 266,
   "op": "symmetric eigenproblem",
   "ms": 4.477
@@ -390,10 +336,64 @@
   "machine": "node",
   "session": "main",
   "processes": 64,
+  "library": "faer 0.24",
+  "n": 266,
+  "op": "generalized eigenproblem",
+  "ms": 5.481
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
+  "library": "faer 0.24",
+  "n": 500,
+  "op": "symmetric eigenproblem",
+  "ms": 16.9485
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
+  "library": "faer 0.24",
+  "n": 500,
+  "op": "generalized eigenproblem",
+  "ms": 22.256
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
+  "library": "faer 0.24",
+  "n": 1000,
+  "op": "symmetric eigenproblem",
+  "ms": 122.2855
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
+  "library": "faer 0.24",
+  "n": 1000,
+  "op": "generalized eigenproblem",
+  "ms": 163.228
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
+  "library": "faer 0.24 (AVX-512)",
+  "n": 266,
+  "op": "symmetric eigenproblem",
+  "ms": 4.4795
+ },
+ {
+  "machine": "node",
+  "session": "main",
+  "processes": 64,
   "library": "faer 0.24 (AVX-512)",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.5195
+  "ms": 5.474
  },
  {
   "machine": "node",
@@ -402,7 +402,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 16.8075
+  "ms": 17.0205
  },
  {
   "machine": "node",
@@ -411,7 +411,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 22.1725
+  "ms": 22.3205
  },
  {
   "machine": "node",
@@ -420,7 +420,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 113.7555
+  "ms": 113.831
  },
  {
   "machine": "node",
@@ -429,7 +429,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 153.54
+  "ms": 155.27100000000002
  },
  {
   "machine": "node",
@@ -438,7 +438,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.145
+  "ms": 5.2065
  },
  {
   "machine": "node",
@@ -447,7 +447,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.739
+  "ms": 6.817
  },
  {
   "machine": "node",
@@ -456,7 +456,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 21.907
+  "ms": 22.284
  },
  {
   "machine": "node",
@@ -465,7 +465,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 30.1665
+  "ms": 30.5355
  },
  {
   "machine": "node",
@@ -474,7 +474,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 148.5005
+  "ms": 151.2025
  },
  {
   "machine": "node",
@@ -483,7 +483,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 203.0735
+  "ms": 204.7385
  },
  {
   "machine": "node",
@@ -492,7 +492,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.8985
+  "ms": 3.967
  },
  {
   "machine": "node",
@@ -501,7 +501,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.305
+  "ms": 5.3985
  },
  {
   "machine": "node",
@@ -510,7 +510,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.003
+  "ms": 14.188500000000001
  },
  {
   "machine": "node",
@@ -519,7 +519,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 20.64
+  "ms": 20.911
  },
  {
   "machine": "node",
@@ -528,7 +528,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 93.4185
+  "ms": 94.0795
  },
  {
   "machine": "node",
@@ -537,7 +537,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 131.84050000000002
+  "ms": 134.68099999999998
  },
  {
   "machine": "node",
@@ -546,7 +546,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 6.859
+  "ms": 7.085
  },
  {
   "machine": "node",
@@ -555,7 +555,7 @@
   "library": "AMD AOCL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 8.8775
+  "ms": 9.186
  },
  {
   "machine": "node",
@@ -564,7 +564,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 28.0615
+  "ms": 29.853
  },
  {
   "machine": "node",
@@ -573,7 +573,7 @@
   "library": "AMD AOCL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 38.3485
+  "ms": 39.647999999999996
  },
  {
   "machine": "node",
@@ -582,7 +582,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 340.3805
+  "ms": 339.486
  },
  {
   "machine": "node",
@@ -591,7 +591,7 @@
   "library": "AMD AOCL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 404.43399999999997
+  "ms": 401.7675
  },
  {
   "machine": "node",
@@ -600,7 +600,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 8.841000000000001
+  "ms": 8.821
  },
  {
   "machine": "node",
@@ -609,7 +609,7 @@
   "library": "faer 0.22",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 10.789000000000001
+  "ms": 10.617
  },
  {
   "machine": "node",
@@ -618,7 +618,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 33.199
+  "ms": 33.7
  },
  {
   "machine": "node",
@@ -627,7 +627,7 @@
   "library": "faer 0.22",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 44.0665
+  "ms": 45.053
  },
  {
   "machine": "node",
@@ -636,7 +636,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 294.85400000000004
+  "ms": 278.55600000000004
  },
  {
   "machine": "node",
@@ -645,7 +645,7 @@
   "library": "faer 0.22",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 306.4175
+  "ms": 310.9885
  },
  {
   "machine": "node",
@@ -654,7 +654,7 @@
   "library": "faer 0.24",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 8.596499999999999
+  "ms": 8.5775
  },
  {
   "machine": "node",
@@ -663,7 +663,7 @@
   "library": "faer 0.24",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 10.566
+  "ms": 10.5245
  },
  {
   "machine": "node",
@@ -672,7 +672,7 @@
   "library": "faer 0.24",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 32.9705
+  "ms": 33.744
  },
  {
   "machine": "node",
@@ -681,7 +681,7 @@
   "library": "faer 0.24",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 44.0375
+  "ms": 44.766999999999996
  },
  {
   "machine": "node",
@@ -690,7 +690,7 @@
   "library": "faer 0.24",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 305.4945
+  "ms": 291.211
  },
  {
   "machine": "node",
@@ -699,7 +699,7 @@
   "library": "faer 0.24",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 305.175
+  "ms": 299.986
  },
  {
   "machine": "node",
@@ -708,7 +708,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 8.3335
+  "ms": 8.745000000000001
  },
  {
   "machine": "node",
@@ -717,7 +717,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 10.637
+  "ms": 10.773
  },
  {
   "machine": "node",
@@ -726,7 +726,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 31.368499999999997
+  "ms": 33.2025
  },
  {
   "machine": "node",
@@ -735,7 +735,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 42.641999999999996
+  "ms": 44.5595
  },
  {
   "machine": "node",
@@ -744,7 +744,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 244.315
+  "ms": 237.3715
  },
  {
   "machine": "node",
@@ -753,7 +753,7 @@
   "library": "faer 0.24 (AVX-512)",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 284.294
+  "ms": 320.85900000000004
  },
  {
   "machine": "node",
@@ -762,7 +762,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 9.690999999999999
+  "ms": 9.8835
  },
  {
   "machine": "node",
@@ -771,7 +771,7 @@
   "library": "Intel MKL",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 12.932500000000001
+  "ms": 13.097000000000001
  },
  {
   "machine": "node",
@@ -780,7 +780,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 43.009
+  "ms": 43.7805
  },
  {
   "machine": "node",
@@ -789,7 +789,7 @@
   "library": "Intel MKL",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 59.6005
+  "ms": 60.564499999999995
  },
  {
   "machine": "node",
@@ -798,7 +798,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 417.5395
+  "ms": 419.966
  },
  {
   "machine": "node",
@@ -807,7 +807,7 @@
   "library": "Intel MKL",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 484.0555
+  "ms": 511.0425
  },
  {
   "machine": "node",
@@ -816,7 +816,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 7.119
+  "ms": 7.24
  },
  {
   "machine": "node",
@@ -825,7 +825,7 @@
   "library": "OpenBLAS",
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 9.891
+  "ms": 10.0975
  },
  {
   "machine": "node",
@@ -834,7 +834,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 26.5485
+  "ms": 27.802
  },
  {
   "machine": "node",
@@ -843,7 +843,7 @@
   "library": "OpenBLAS",
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 39.876999999999995
+  "ms": 41.5725
  },
  {
   "machine": "node",
@@ -852,7 +852,7 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 261.615
+  "ms": 261.1865
  },
  {
   "machine": "node",
@@ -861,6 +861,6 @@
   "library": "OpenBLAS",
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 332.6705
+  "ms": 316.75750000000005
  }
 ]

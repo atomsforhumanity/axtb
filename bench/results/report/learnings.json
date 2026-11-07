@@ -17,19 +17,19 @@
  },
  {
   "topic": "Threads",
-  "lesson": "With OpenMP left to its defaults, a batch of 1024 xtb jobs on 128 workers took 30.6 s on the 64-core node instead of 1.0 s with one thread per job. axtb has no implicit threading, so there is no setting to forget."
+  "lesson": "With OpenMP left to its defaults, a batch of 1024 xtb jobs on 128 workers took 23.2 s on the 64-core node instead of 1.0 s with one thread per job. axtb has no implicit threading, so there is no setting to forget."
  },
  {
   "topic": "Start-up dominates small molecules",
-  "lesson": "A water energy and gradient takes 0.7 ms of calculation inside an axtb process, 1.8 ms for the whole process, and 15 ms for the xtb 6.8.0 program (laptop, one thread). For small molecules, how a calculation is started matters more than how fast its code is."
+  "lesson": "A water energy and gradient takes 0.7 ms of calculation inside an axtb process, 1.7 ms for the whole process, and 14 ms for the xtb 6.8.0 program (laptop, one thread). For small molecules, how a calculation is started matters more than how fast its code is."
  },
  {
   "topic": "Math libraries depend on the CPU",
-  "lesson": "For the generalized eigenproblem at n = 1000 on the Intel laptop, Intel MKL was the fastest library at 1, 4 and 8 threads. With 64 single-thread processes on the AMD Zen 5 node, Intel MKL was the slowest (1.19\u20131.31\u00d7 faer's time) and AMD AOCL the fastest at n = 266. A library choice measured on one CPU does not carry over to another."
+  "lesson": "For the generalized eigenproblem at n = 1000 on the Intel laptop, Intel MKL was the fastest library at 1, 4 and 8 threads. With 64 single-thread processes on the AMD Zen 5 node, Intel MKL was the slowest (1.23\u20131.36\u00d7 faer's time) and AMD AOCL the fastest at n = 266. A library choice measured on one CPU does not carry over to another."
  },
  {
   "topic": "SMT",
-  "lesson": "128 single-thread eigensolver processes on the 64-core node each ran about 1.9\u00d7 slower than 64, so filling the SMT threads changed linear-algebra throughput by a factor of 1.04\u20131.06."
+  "lesson": "128 single-thread eigensolver processes on the 64-core node each ran about 1.9\u00d7 slower than 64, so filling the SMT threads changed linear-algebra throughput by a factor of 1.00\u20131.05."
  },
  {
   "topic": "Analytic Hessians are more accurate, not only faster",
@@ -40,12 +40,8 @@
   "lesson": "xtb 6.7.1 runs the displacement SCFs of a GFN2-xTB Hessian at its own fixed SCC accuracy whatever --acc says; only $hess sccacc in an xcontrol file changes it. On caffeine its --hess --acc 0.001 is therefore 2.2e-04 Eh/bohr\u00b2 from the analytic Hessian and $hess sccacc=0.001 3.7e-05, xtb's own finite-difference error. xtb 6.8.0 passes --acc to the displacements (PR #1500): 3.7e-05 at --acc 0.001."
  },
  {
-  "topic": "Process start-up on many-core machines",
-  "lesson": "Two dependencies of faer (private-gemm-x86, gemm-common) read the CPU cache sizes by opening every cache file of every CPU in /sys: thousands of opens per process on a 128-thread node, which the kernel serializes when many processes start together. 1024 axtb CLI runs on 128 workers took 5.87 s as benchmarked, 5.74 s with axtb's own thread-pool fix alone, and 0.52 s once the scan read one CPU only. The laptop, with 16 threads, barely shows it."
- },
- {
   "topic": "More threads can be slower",
-  "lesson": "For the 999-atom water cluster on the node, faer's eigensolver took 2.19 s on 8 threads and 4.39 s on 64. Beyond about 8 threads a single calculation gets slower; on a big node, run many calculations with a few threads each."
+  "lesson": "For the 999-atom water cluster on the node, faer's eigensolver took 2.35 s on 8 threads and 4.28 s on 64. Beyond about 8 threads a single calculation gets slower; on a big node, run many calculations with a few threads each."
  },
  {
   "topic": "A better SCF converger is not a free win",

@@ -25,7 +25,7 @@
  },
  {
   "item": "axtb",
-  "value": "axtb 0.1.0 (commit e6b4a18 in the final timings), Rust, faer 0.22",
+  "value": "axtb 0.1.0 (commit 3499913 in the final timings), Rust, faer 0.22",
   "reference": "github.com/atomsforhumanity/axtb",
   "license": "LGPL-3.0-or-later; GPL-3.0-only with g-xTB"
  },

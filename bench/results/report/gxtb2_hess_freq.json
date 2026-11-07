@@ -11,8 +11,8 @@
   "id": "caffeine|program --acc 0.001",
   "molecule": "caffeine",
   "method": "program --hess --acc 0.001",
-  "max_dfreq": 0.5396058623612383,
-  "mean_dfreq": 0.03044664269620108,
+  "max_dfreq": 0.5396058625627091,
+  "mean_dfreq": 0.0304466454062698,
   "against": "tight reference"
  },
  {
@@ -35,16 +35,16 @@
   "id": "taxol|program --acc 0.001",
   "molecule": "taxol",
   "method": "program --hess --acc 0.001",
-  "max_dfreq": 1.0665607653998421,
-  "mean_dfreq": 0.14197095354341557,
+  "max_dfreq": 1.0665609515600494,
+  "mean_dfreq": 0.14197093497368182,
   "against": "tight reference"
  },
  {
   "id": "taxol|program --acc 0.0001",
   "molecule": "taxol",
   "method": "program --hess --acc 0.0001",
-  "max_dfreq": 0.2779355893069342,
-  "mean_dfreq": 0.015572085211033853,
+  "max_dfreq": 0.277936024335383,
+  "mean_dfreq": 0.015572086323248344,
   "against": "tight reference"
  },
  {
@@ -75,8 +75,8 @@
   "id": "Ni(CO)4|program --acc 1",
   "molecule": "Ni(CO)4",
   "method": "program --hess --acc 1",
-  "max_dfreq": 28.956127436588815,
-  "mean_dfreq": 10.736197467567019,
+  "max_dfreq": 28.95612744623469,
+  "mean_dfreq": 10.736197466568475,
   "against": "axtb analytic"
  },
  {
@@ -91,32 +91,32 @@
   "id": "caffeine|program --acc 1",
   "molecule": "caffeine",
   "method": "program --hess --acc 1",
-  "max_dfreq": 103.98167576254015,
-  "mean_dfreq": 30.41394148165316,
+  "max_dfreq": 103.98167578525481,
+  "mean_dfreq": 30.413941480696586,
   "against": "axtb analytic"
  },
  {
   "id": "caffeine|program --acc 0.01",
   "molecule": "caffeine",
   "method": "program --hess --acc 0.01",
-  "max_dfreq": 4.342504512063961,
-  "mean_dfreq": 0.2910257535119848,
+  "max_dfreq": 4.3425045125992625,
+  "mean_dfreq": 0.2910258394846135,
   "against": "axtb analytic"
  },
  {
   "id": "taxol|program --acc 1",
   "molecule": "taxol",
   "method": "program --hess --acc 1",
-  "max_dfreq": 148.52959241993887,
-  "mean_dfreq": 78.14320436013023,
+  "max_dfreq": 148.5295924340271,
+  "mean_dfreq": 78.14320435954697,
   "against": "axtb analytic"
  },
  {
   "id": "taxol|program --acc 0.01",
   "molecule": "taxol",
   "method": "program --hess --acc 0.01",
-  "max_dfreq": 9.922779342833564,
-  "mean_dfreq": 1.3813719888761264,
+  "max_dfreq": 9.922779342130752,
+  "mean_dfreq": 1.3813719850647466,
   "against": "axtb analytic"
  }
 ]

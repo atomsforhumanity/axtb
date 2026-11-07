@@ -11,8 +11,8 @@
   "machine": "node",
   "label": "64-core node",
   "cpu": "AMD Ryzen Threadripper PRO 9985WX (Zen 5), 64 cores / 128 threads; jobs limited to 126 CPUs",
-  "date": "2026-11-05",
-  "axtb": "commit 533c1a0",
-  "xtb": "xtb 6.7.1 (the g-xTB 2.0.1 build)"
+  "date": "2026-11-07",
+  "axtb": "commit 3499913",
+  "xtb": "xtb 6.8.0"
  }
 ]

@@ -7,9 +7,9 @@
   "machine": "64-core node",
   "rss_before_mb": null,
   "before_note": null,
-  "rss_after_mb": 145.1,
-  "rss_single_point_mb": 37.6,
-  "seconds": 52.29706872301176
+  "rss_after_mb": 146.7,
+  "rss_single_point_mb": 38.0,
+  "seconds": 58.06732118083164
  },
  {
   "id": "(H2O)100 8t",
@@ -19,9 +19,9 @@
   "machine": "64-core node",
   "rss_before_mb": null,
   "before_note": null,
-  "rss_after_mb": 1021.1,
-  "rss_single_point_mb": 140.4,
-  "seconds": 101.00323554500937
+  "rss_after_mb": 1036.0,
+  "rss_single_point_mb": 139.7,
+  "seconds": 110.2260260921903
  },
  {
   "id": "(H2O)200 8t",
@@ -31,8 +31,8 @@
   "machine": "64-core node",
   "rss_before_mb": null,
   "before_note": null,
-  "rss_after_mb": 4214.8,
-  "rss_single_point_mb": 617.7,
-  "seconds": 1250.1213331809267
+  "rss_after_mb": 4212.7,
+  "rss_single_point_mb": 620.0,
+  "seconds": 1269.5454863728955
  }
 ]

@@ -6,7 +6,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.633
+  "ms": 0.604
  },
  {
   "machine": "laptop",
@@ -15,7 +15,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.829
+  "ms": 0.784
  },
  {
   "machine": "laptop",
@@ -24,7 +24,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.386
+  "ms": 4.379
  },
  {
   "machine": "laptop",
@@ -33,7 +33,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.603
+  "ms": 5.592
  },
  {
   "machine": "laptop",
@@ -42,7 +42,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 16.037
+  "ms": 16.044
  },
  {
   "machine": "laptop",
@@ -51,7 +51,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 21.59
+  "ms": 21.583
  },
  {
   "machine": "laptop",
@@ -60,7 +60,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 103.64
+  "ms": 103.45
  },
  {
   "machine": "laptop",
@@ -69,7 +69,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 139.924
+  "ms": 139.69
  },
  {
   "machine": "laptop",
@@ -78,7 +78,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 736.212
+  "ms": 729.343
  },
  {
   "machine": "laptop",
@@ -87,7 +87,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 993.944
+  "ms": 985.645
  },
  {
   "machine": "laptop",
@@ -96,7 +96,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 2751.629
+  "ms": 2695.405
  },
  {
   "machine": "laptop",
@@ -105,7 +105,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 3622.31
+  "ms": 3557.825
  },
  {
   "machine": "laptop",
@@ -114,7 +114,7 @@
   "threads": 4,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.716
+  "ms": 0.742
  },
  {
   "machine": "laptop",
@@ -123,7 +123,7 @@
   "threads": 4,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.921
+  "ms": 0.955
  },
  {
   "machine": "laptop",
@@ -132,7 +132,7 @@
   "threads": 4,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.86
+  "ms": 4.15
  },
  {
   "machine": "laptop",
@@ -141,7 +141,7 @@
   "threads": 4,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.714
+  "ms": 5.122
  },
  {
   "machine": "laptop",
@@ -150,7 +150,7 @@
   "threads": 4,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 12.237
+  "ms": 12.695
  },
  {
   "machine": "laptop",
@@ -159,7 +159,7 @@
   "threads": 4,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 15.092
+  "ms": 15.566
  },
  {
   "machine": "laptop",
@@ -168,7 +168,7 @@
   "threads": 4,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 68.358
+  "ms": 66.987
  },
  {
   "machine": "laptop",
@@ -177,7 +177,7 @@
   "threads": 4,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 81.6
+  "ms": 80.185
  },
  {
   "machine": "laptop",
@@ -186,7 +186,7 @@
   "threads": 4,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 450.264
+  "ms": 441.915
  },
  {
   "machine": "laptop",
@@ -195,7 +195,7 @@
   "threads": 4,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 529.599
+  "ms": 526.282
  },
  {
   "machine": "laptop",
@@ -204,7 +204,7 @@
   "threads": 4,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1766.209
+  "ms": 1778.226
  },
  {
   "machine": "laptop",
@@ -213,7 +213,7 @@
   "threads": 4,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 2030.663
+  "ms": 1973.922
  },
  {
   "machine": "laptop",
@@ -222,7 +222,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 4.079
+  "ms": 0.865
  },
  {
   "machine": "laptop",
@@ -231,7 +231,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.104
+  "ms": 1.064
  },
  {
   "machine": "laptop",
@@ -240,7 +240,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.389
+  "ms": 4.392
  },
  {
   "machine": "laptop",
@@ -249,7 +249,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.31
+  "ms": 5.308
  },
  {
   "machine": "laptop",
@@ -258,7 +258,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 12.833
+  "ms": 12.839
  },
  {
   "machine": "laptop",
@@ -267,7 +267,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 15.08
+  "ms": 15.312
  },
  {
   "machine": "laptop",
@@ -276,7 +276,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 65.417
+  "ms": 66.014
  },
  {
   "machine": "laptop",
@@ -285,7 +285,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 73.984
+  "ms": 76.051
  },
  {
   "machine": "laptop",
@@ -294,7 +294,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 436.922
+  "ms": 433.59
  },
  {
   "machine": "laptop",
@@ -303,7 +303,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 488.645
+  "ms": 475.136
  },
  {
   "machine": "laptop",
@@ -312,7 +312,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1705.288
+  "ms": 1708.379
  },
  {
   "machine": "laptop",
@@ -321,7 +321,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1870.106
+  "ms": 1860.616
  },
  {
   "machine": "laptop",
@@ -339,7 +339,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.775
+  "ms": 0.773
  },
  {
   "machine": "laptop",
@@ -348,7 +348,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 6.045
+  "ms": 6.033
  },
  {
   "machine": "laptop",
@@ -357,7 +357,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.288
+  "ms": 7.257
  },
  {
   "machine": "laptop",
@@ -366,7 +366,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 20.664
+  "ms": 20.724
  },
  {
   "machine": "laptop",
@@ -375,7 +375,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 27.816
+  "ms": 27.871
  },
  {
   "machine": "laptop",
@@ -384,7 +384,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 142.087
+  "ms": 141.193
  },
  {
   "machine": "laptop",
@@ -393,7 +393,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 193.545
+  "ms": 192.76
  },
  {
   "machine": "laptop",
@@ -402,7 +402,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 932.361
+  "ms": 923.789
  },
  {
   "machine": "laptop",
@@ -411,7 +411,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 1328.561
+  "ms": 1324.065
  },
  {
   "machine": "laptop",
@@ -420,7 +420,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 3782.949
+  "ms": 3731.631
  },
  {
   "machine": "laptop",
@@ -429,7 +429,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 5111.981
+  "ms": 5062.038
  },
  {
   "machine": "laptop",
@@ -438,7 +438,7 @@
   "threads": 4,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.685
+  "ms": 0.72
  },
  {
   "machine": "laptop",
@@ -447,7 +447,7 @@
   "threads": 4,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.817
+  "ms": 0.861
  },
  {
   "machine": "laptop",
@@ -456,7 +456,7 @@
   "threads": 4,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.287
+  "ms": 4.454
  },
  {
   "machine": "laptop",
@@ -465,7 +465,7 @@
   "threads": 4,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.109
+  "ms": 5.198
  },
  {
   "machine": "laptop",
@@ -474,7 +474,7 @@
   "threads": 4,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 13.484
+  "ms": 13.787
  },
  {
   "machine": "laptop",
@@ -483,7 +483,7 @@
   "threads": 4,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 16.467
+  "ms": 16.676
  },
  {
   "machine": "laptop",
@@ -492,7 +492,7 @@
   "threads": 4,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 84.648
+  "ms": 81.903
  },
  {
   "machine": "laptop",
@@ -501,7 +501,7 @@
   "threads": 4,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 101.15
+  "ms": 103.63
  },
  {
   "machine": "laptop",
@@ -510,7 +510,7 @@
   "threads": 4,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 360.515
+  "ms": 363.553
  },
  {
   "machine": "laptop",
@@ -519,7 +519,7 @@
   "threads": 4,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 486.498
+  "ms": 496.658
  },
  {
   "machine": "laptop",
@@ -528,7 +528,7 @@
   "threads": 4,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1396.594
+  "ms": 1393.39
  },
  {
   "machine": "laptop",
@@ -537,7 +537,7 @@
   "threads": 4,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1853.0
+  "ms": 1862.544
  },
  {
   "machine": "laptop",
@@ -546,7 +546,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.895
+  "ms": 0.867
  },
  {
   "machine": "laptop",
@@ -555,7 +555,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.176
+  "ms": 1.073
  },
  {
   "machine": "laptop",
@@ -564,7 +564,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.684
+  "ms": 4.635
  },
  {
   "machine": "laptop",
@@ -573,7 +573,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.349
+  "ms": 5.276
  },
  {
   "machine": "laptop",
@@ -582,7 +582,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 12.441
+  "ms": 12.352
  },
  {
   "machine": "laptop",
@@ -591,7 +591,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 14.443
+  "ms": 14.286
  },
  {
   "machine": "laptop",
@@ -600,7 +600,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 72.659
+  "ms": 73.892
  },
  {
   "machine": "laptop",
@@ -609,7 +609,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 84.234
+  "ms": 85.475
  },
  {
   "machine": "laptop",
@@ -618,7 +618,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 302.23
+  "ms": 299.953
  },
  {
   "machine": "laptop",
@@ -627,7 +627,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 380.885
+  "ms": 385.209
  },
  {
   "machine": "laptop",
@@ -636,7 +636,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 998.602
+  "ms": 995.204
  },
  {
   "machine": "laptop",
@@ -645,7 +645,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1287.067
+  "ms": 1293.178
  },
  {
   "machine": "laptop",
@@ -654,13 +654,121 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.585
+  "ms": 0.55
  },
  {
   "machine": "laptop",
   "session": "main",
   "library": "faer 0.24",
   "threads": 1,
+  "n": 100,
+  "op": "generalized eigenproblem",
+  "ms": 0.652
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 266,
+  "op": "symmetric eigenproblem",
+  "ms": 5.608
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 266,
+  "op": "generalized eigenproblem",
+  "ms": 6.852
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 500,
+  "op": "symmetric eigenproblem",
+  "ms": 19.572
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 500,
+  "op": "generalized eigenproblem",
+  "ms": 26.513
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 1000,
+  "op": "symmetric eigenproblem",
+  "ms": 135.67
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 1000,
+  "op": "generalized eigenproblem",
+  "ms": 185.935
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 2000,
+  "op": "symmetric eigenproblem",
+  "ms": 905.591
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 2000,
+  "op": "generalized eigenproblem",
+  "ms": 1307.212
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 3000,
+  "op": "symmetric eigenproblem",
+  "ms": 3702.599
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 1,
+  "n": 3000,
+  "op": "generalized eigenproblem",
+  "ms": 5042.364
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 4,
+  "n": 100,
+  "op": "symmetric eigenproblem",
+  "ms": 0.601
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "faer 0.24",
+  "threads": 4,
   "n": 100,
   "op": "generalized eigenproblem",
   "ms": 0.693
@@ -669,118 +777,10 @@
   "machine": "laptop",
   "session": "main",
   "library": "faer 0.24",
-  "threads": 1,
-  "n": 266,
-  "op": "symmetric eigenproblem",
-  "ms": 5.613
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 266,
-  "op": "generalized eigenproblem",
-  "ms": 6.819
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 500,
-  "op": "symmetric eigenproblem",
-  "ms": 19.539
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 500,
-  "op": "generalized eigenproblem",
-  "ms": 26.537
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 1000,
-  "op": "symmetric eigenproblem",
-  "ms": 137.548
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 1000,
-  "op": "generalized eigenproblem",
-  "ms": 186.049
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 2000,
-  "op": "symmetric eigenproblem",
-  "ms": 907.532
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 2000,
-  "op": "generalized eigenproblem",
-  "ms": 1307.317
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 3000,
-  "op": "symmetric eigenproblem",
-  "ms": 3757.573
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 1,
-  "n": 3000,
-  "op": "generalized eigenproblem",
-  "ms": 5090.565
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 4,
-  "n": 100,
-  "op": "symmetric eigenproblem",
-  "ms": 0.603
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
-  "threads": 4,
-  "n": 100,
-  "op": "generalized eigenproblem",
-  "ms": 0.707
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "faer 0.24",
   "threads": 4,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.363
+  "ms": 4.278
  },
  {
   "machine": "laptop",
@@ -789,7 +789,7 @@
   "threads": 4,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.867
+  "ms": 4.791
  },
  {
   "machine": "laptop",
@@ -798,7 +798,7 @@
   "threads": 4,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.431
+  "ms": 13.69
  },
  {
   "machine": "laptop",
@@ -807,7 +807,7 @@
   "threads": 4,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 17.32
+  "ms": 16.6
  },
  {
   "machine": "laptop",
@@ -816,7 +816,7 @@
   "threads": 4,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 89.356
+  "ms": 89.966
  },
  {
   "machine": "laptop",
@@ -825,7 +825,7 @@
   "threads": 4,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 105.346
+  "ms": 104.959
  },
  {
   "machine": "laptop",
@@ -834,7 +834,7 @@
   "threads": 4,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 374.73
+  "ms": 377.097
  },
  {
   "machine": "laptop",
@@ -843,7 +843,7 @@
   "threads": 4,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 498.978
+  "ms": 513.451
  },
  {
   "machine": "laptop",
@@ -852,7 +852,7 @@
   "threads": 4,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1404.219
+  "ms": 1412.472
  },
  {
   "machine": "laptop",
@@ -861,7 +861,7 @@
   "threads": 4,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1849.11
+  "ms": 1851.26
  },
  {
   "machine": "laptop",
@@ -870,7 +870,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.671
+  "ms": 0.693
  },
  {
   "machine": "laptop",
@@ -879,7 +879,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.914
+  "ms": 0.834
  },
  {
   "machine": "laptop",
@@ -888,7 +888,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.654
+  "ms": 4.722
  },
  {
   "machine": "laptop",
@@ -897,7 +897,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.078
+  "ms": 5.183
  },
  {
   "machine": "laptop",
@@ -906,7 +906,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 12.728
+  "ms": 12.805
  },
  {
   "machine": "laptop",
@@ -915,7 +915,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 14.475
+  "ms": 14.606
  },
  {
   "machine": "laptop",
@@ -924,7 +924,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 76.769
+  "ms": 77.466
  },
  {
   "machine": "laptop",
@@ -933,7 +933,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 87.056
+  "ms": 86.888
  },
  {
   "machine": "laptop",
@@ -942,7 +942,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 306.558
+  "ms": 312.743
  },
  {
   "machine": "laptop",
@@ -951,7 +951,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 386.157
+  "ms": 398.167
  },
  {
   "machine": "laptop",
@@ -960,7 +960,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1006.178
+  "ms": 1023.05
  },
  {
   "machine": "laptop",
@@ -969,7 +969,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1290.376
+  "ms": 1293.569
  },
  {
   "machine": "laptop",
@@ -978,7 +978,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.621
+  "ms": 0.613
  },
  {
   "machine": "laptop",
@@ -987,7 +987,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.73
+  "ms": 0.715
  },
  {
   "machine": "laptop",
@@ -996,7 +996,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.467
+  "ms": 5.342
  },
  {
   "machine": "laptop",
@@ -1005,7 +1005,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.607
+  "ms": 6.587
  },
  {
   "machine": "laptop",
@@ -1014,7 +1014,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 19.443
+  "ms": 19.17
  },
  {
   "machine": "laptop",
@@ -1023,7 +1023,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 26.564
+  "ms": 26.172
  },
  {
   "machine": "laptop",
@@ -1032,7 +1032,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 128.347
+  "ms": 126.926
  },
  {
   "machine": "laptop",
@@ -1041,7 +1041,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 178.457
+  "ms": 176.995
  },
  {
   "machine": "laptop",
@@ -1050,7 +1050,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 858.396
+  "ms": 850.564
  },
  {
   "machine": "laptop",
@@ -1059,7 +1059,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 1252.644
+  "ms": 1242.725
  },
  {
   "machine": "laptop",
@@ -1068,7 +1068,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 3461.037
+  "ms": 3443.925
  },
  {
   "machine": "laptop",
@@ -1077,7 +1077,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 4795.075
+  "ms": 4760.705
  },
  {
   "machine": "laptop",
@@ -1086,7 +1086,7 @@
   "threads": 4,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.668
+  "ms": 0.679
  },
  {
   "machine": "laptop",
@@ -1095,7 +1095,7 @@
   "threads": 4,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.784
+  "ms": 0.782
  },
  {
   "machine": "laptop",
@@ -1104,7 +1104,7 @@
   "threads": 4,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.066
+  "ms": 4.048
  },
  {
   "machine": "laptop",
@@ -1113,7 +1113,7 @@
   "threads": 4,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.57
+  "ms": 4.607
  },
  {
   "machine": "laptop",
@@ -1122,7 +1122,7 @@
   "threads": 4,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 15.87
+  "ms": 15.497
  },
  {
   "machine": "laptop",
@@ -1131,7 +1131,7 @@
   "threads": 4,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 18.059
+  "ms": 18.283
  },
  {
   "machine": "laptop",
@@ -1140,7 +1140,7 @@
   "threads": 4,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 104.187
+  "ms": 104.44
  },
  {
   "machine": "laptop",
@@ -1149,7 +1149,7 @@
   "threads": 4,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 119.981
+  "ms": 124.099
  },
  {
   "machine": "laptop",
@@ -1158,7 +1158,7 @@
   "threads": 4,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 380.833
+  "ms": 395.868
  },
  {
   "machine": "laptop",
@@ -1167,7 +1167,7 @@
   "threads": 4,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 515.427
+  "ms": 527.67
  },
  {
   "machine": "laptop",
@@ -1176,7 +1176,7 @@
   "threads": 4,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1381.919
+  "ms": 1378.288
  },
  {
   "machine": "laptop",
@@ -1185,7 +1185,7 @@
   "threads": 4,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1826.819
+  "ms": 1834.089
  },
  {
   "machine": "laptop",
@@ -1194,7 +1194,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.798
+  "ms": 0.759
  },
  {
   "machine": "laptop",
@@ -1203,7 +1203,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.94
+  "ms": 0.936
  },
  {
   "machine": "laptop",
@@ -1212,7 +1212,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.476
+  "ms": 4.489
  },
  {
   "machine": "laptop",
@@ -1221,7 +1221,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.998
+  "ms": 5.143
  },
  {
   "machine": "laptop",
@@ -1230,7 +1230,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.501
+  "ms": 14.806
  },
  {
   "machine": "laptop",
@@ -1239,7 +1239,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 16.395
+  "ms": 16.033
  },
  {
   "machine": "laptop",
@@ -1248,7 +1248,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 92.355
+  "ms": 91.759
  },
  {
   "machine": "laptop",
@@ -1257,7 +1257,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 100.662
+  "ms": 101.365
  },
  {
   "machine": "laptop",
@@ -1266,7 +1266,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 355.764
+  "ms": 359.763
  },
  {
   "machine": "laptop",
@@ -1275,7 +1275,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 433.207
+  "ms": 425.624
  },
  {
   "machine": "laptop",
@@ -1284,7 +1284,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1039.869
+  "ms": 1051.38
  },
  {
   "machine": "laptop",
@@ -1293,7 +1293,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1327.405
+  "ms": 1332.637
  },
  {
   "machine": "laptop",
@@ -1302,7 +1302,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.422
+  "ms": 0.42
  },
  {
   "machine": "laptop",
@@ -1311,7 +1311,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.501
+  "ms": 0.498
  },
  {
   "machine": "laptop",
@@ -1320,7 +1320,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.881
+  "ms": 3.837
  },
  {
   "machine": "laptop",
@@ -1329,7 +1329,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.675
+  "ms": 4.672
  },
  {
   "machine": "laptop",
@@ -1338,7 +1338,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.71
+  "ms": 14.689
  },
  {
   "machine": "laptop",
@@ -1356,7 +1356,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 98.085
+  "ms": 97.981
  },
  {
   "machine": "laptop",
@@ -1365,7 +1365,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 132.729
+  "ms": 132.248
  },
  {
   "machine": "laptop",
@@ -1374,7 +1374,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 675.607
+  "ms": 672.192
  },
  {
   "machine": "laptop",
@@ -1383,7 +1383,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 929.909
+  "ms": 925.229
  },
  {
   "machine": "laptop",
@@ -1392,7 +1392,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 2629.058
+  "ms": 2560.11
  },
  {
   "machine": "laptop",
@@ -1401,7 +1401,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 3459.58
+  "ms": 3431.964
  },
  {
   "machine": "laptop",
@@ -1410,7 +1410,7 @@
   "threads": 4,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.357
+  "ms": 0.362
  },
  {
   "machine": "laptop",
@@ -1419,7 +1419,7 @@
   "threads": 4,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.432
+  "ms": 0.436
  },
  {
   "machine": "laptop",
@@ -1428,7 +1428,7 @@
   "threads": 4,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.569
+  "ms": 2.622
  },
  {
   "machine": "laptop",
@@ -1437,7 +1437,7 @@
   "threads": 4,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.941
+  "ms": 3.036
  },
  {
   "machine": "laptop",
@@ -1446,7 +1446,7 @@
   "threads": 4,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 7.876
+  "ms": 8.058
  },
  {
   "machine": "laptop",
@@ -1455,7 +1455,7 @@
   "threads": 4,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 9.65
+  "ms": 9.814
  },
  {
   "machine": "laptop",
@@ -1464,7 +1464,7 @@
   "threads": 4,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 36.705
+  "ms": 37.425
  },
  {
   "machine": "laptop",
@@ -1473,7 +1473,7 @@
   "threads": 4,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 48.99
+  "ms": 49.911
  },
  {
   "machine": "laptop",
@@ -1482,7 +1482,7 @@
   "threads": 4,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 229.389
+  "ms": 232.824
  },
  {
   "machine": "laptop",
@@ -1491,7 +1491,7 @@
   "threads": 4,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 312.14
+  "ms": 317.088
  },
  {
   "machine": "laptop",
@@ -1500,7 +1500,7 @@
   "threads": 4,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 895.898
+  "ms": 896.986
  },
  {
   "machine": "laptop",
@@ -1509,7 +1509,7 @@
   "threads": 4,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1166.206
+  "ms": 1175.566
  },
  {
   "machine": "laptop",
@@ -1518,7 +1518,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.386
+  "ms": 0.374
  },
  {
   "machine": "laptop",
@@ -1527,7 +1527,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.463
+  "ms": 0.434
  },
  {
   "machine": "laptop",
@@ -1536,7 +1536,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.613
+  "ms": 2.461
  },
  {
   "machine": "laptop",
@@ -1545,7 +1545,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.826
+  "ms": 2.81
  },
  {
   "machine": "laptop",
@@ -1554,7 +1554,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 6.942
+  "ms": 6.838
  },
  {
   "machine": "laptop",
@@ -1563,7 +1563,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 8.285
+  "ms": 8.161
  },
  {
   "machine": "laptop",
@@ -1572,7 +1572,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 27.848
+  "ms": 27.521
  },
  {
   "machine": "laptop",
@@ -1581,7 +1581,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 36.034
+  "ms": 35.297
  },
  {
   "machine": "laptop",
@@ -1590,7 +1590,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 160.044
+  "ms": 156.831
  },
  {
   "machine": "laptop",
@@ -1599,7 +1599,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 217.127
+  "ms": 215.42
  },
  {
   "machine": "laptop",
@@ -1608,7 +1608,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 609.33
+  "ms": 611.556
  },
  {
   "machine": "laptop",
@@ -1617,13 +1617,229 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 782.642
+  "ms": 787.881
  },
  {
   "machine": "laptop",
   "session": "main",
   "library": "OpenBLAS",
   "threads": 1,
+  "n": 100,
+  "op": "symmetric eigenproblem",
+  "ms": 0.564
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 100,
+  "op": "generalized eigenproblem",
+  "ms": 0.742
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 266,
+  "op": "symmetric eigenproblem",
+  "ms": 4.262
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 266,
+  "op": "generalized eigenproblem",
+  "ms": 5.843
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 500,
+  "op": "symmetric eigenproblem",
+  "ms": 15.146
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 500,
+  "op": "generalized eigenproblem",
+  "ms": 22.893
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 1000,
+  "op": "symmetric eigenproblem",
+  "ms": 98.262
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 1000,
+  "op": "generalized eigenproblem",
+  "ms": 144.838
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 2000,
+  "op": "symmetric eigenproblem",
+  "ms": 688.101
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 2000,
+  "op": "generalized eigenproblem",
+  "ms": 996.586
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 3000,
+  "op": "symmetric eigenproblem",
+  "ms": 2551.793
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 1,
+  "n": 3000,
+  "op": "generalized eigenproblem",
+  "ms": 3526.872
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 100,
+  "op": "symmetric eigenproblem",
+  "ms": 0.545
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 100,
+  "op": "generalized eigenproblem",
+  "ms": 0.681
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 266,
+  "op": "symmetric eigenproblem",
+  "ms": 3.26
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 266,
+  "op": "generalized eigenproblem",
+  "ms": 4.081
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 500,
+  "op": "symmetric eigenproblem",
+  "ms": 9.701
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 500,
+  "op": "generalized eigenproblem",
+  "ms": 12.828
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 1000,
+  "op": "symmetric eigenproblem",
+  "ms": 43.954
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 1000,
+  "op": "generalized eigenproblem",
+  "ms": 61.02
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 2000,
+  "op": "symmetric eigenproblem",
+  "ms": 278.987
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 2000,
+  "op": "generalized eigenproblem",
+  "ms": 387.3
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 3000,
+  "op": "symmetric eigenproblem",
+  "ms": 1088.499
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 4,
+  "n": 3000,
+  "op": "generalized eigenproblem",
+  "ms": 1434.63
+ },
+ {
+  "machine": "laptop",
+  "session": "main",
+  "library": "OpenBLAS",
+  "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
   "ms": 0.562
@@ -1632,226 +1848,10 @@
   "machine": "laptop",
   "session": "main",
   "library": "OpenBLAS",
-  "threads": 1,
-  "n": 100,
-  "op": "generalized eigenproblem",
-  "ms": 0.73
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 266,
-  "op": "symmetric eigenproblem",
-  "ms": 4.266
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 266,
-  "op": "generalized eigenproblem",
-  "ms": 5.845
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 500,
-  "op": "symmetric eigenproblem",
-  "ms": 15.126
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 500,
-  "op": "generalized eigenproblem",
-  "ms": 22.85
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 1000,
-  "op": "symmetric eigenproblem",
-  "ms": 98.604
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 1000,
-  "op": "generalized eigenproblem",
-  "ms": 144.817
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 2000,
-  "op": "symmetric eigenproblem",
-  "ms": 690.502
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 2000,
-  "op": "generalized eigenproblem",
-  "ms": 996.687
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 3000,
-  "op": "symmetric eigenproblem",
-  "ms": 2587.844
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 1,
-  "n": 3000,
-  "op": "generalized eigenproblem",
-  "ms": 3570.231
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 100,
-  "op": "symmetric eigenproblem",
-  "ms": 0.576
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 100,
-  "op": "generalized eigenproblem",
-  "ms": 0.731
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 266,
-  "op": "symmetric eigenproblem",
-  "ms": 3.417
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 266,
-  "op": "generalized eigenproblem",
-  "ms": 4.212
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 500,
-  "op": "symmetric eigenproblem",
-  "ms": 9.977
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 500,
-  "op": "generalized eigenproblem",
-  "ms": 13.057
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 1000,
-  "op": "symmetric eigenproblem",
-  "ms": 44.422
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 1000,
-  "op": "generalized eigenproblem",
-  "ms": 61.376
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 2000,
-  "op": "symmetric eigenproblem",
-  "ms": 279.648
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 2000,
-  "op": "generalized eigenproblem",
-  "ms": 384.72
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 3000,
-  "op": "symmetric eigenproblem",
-  "ms": 1086.593
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 4,
-  "n": 3000,
-  "op": "generalized eigenproblem",
-  "ms": 1428.92
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
-  "threads": 8,
-  "n": 100,
-  "op": "symmetric eigenproblem",
-  "ms": 0.609
- },
- {
-  "machine": "laptop",
-  "session": "main",
-  "library": "OpenBLAS",
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.771
+  "ms": 0.702
  },
  {
   "machine": "laptop",
@@ -1860,7 +1860,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.378
+  "ms": 3.195
  },
  {
   "machine": "laptop",
@@ -1869,7 +1869,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.062
+  "ms": 3.883
  },
  {
   "machine": "laptop",
@@ -1878,7 +1878,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 9.183
+  "ms": 9.024
  },
  {
   "machine": "laptop",
@@ -1887,7 +1887,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 11.484
+  "ms": 11.353
  },
  {
   "machine": "laptop",
@@ -1896,7 +1896,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 37.189
+  "ms": 38.693
  },
  {
   "machine": "laptop",
@@ -1905,7 +1905,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 48.645
+  "ms": 48.979
  },
  {
   "machine": "laptop",
@@ -1914,7 +1914,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 205.257
+  "ms": 205.077
  },
  {
   "machine": "laptop",
@@ -1923,7 +1923,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 275.73
+  "ms": 278.681
  },
  {
   "machine": "laptop",
@@ -1932,7 +1932,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 873.358
+  "ms": 847.425
  },
  {
   "machine": "laptop",
@@ -1941,7 +1941,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1121.349
+  "ms": 1085.362
  },
  {
   "machine": "node",
@@ -1950,7 +1950,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.367
+  "ms": 0.375
  },
  {
   "machine": "node",
@@ -1959,7 +1959,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.468
+  "ms": 0.525
  },
  {
   "machine": "node",
@@ -1968,7 +1968,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.6
+  "ms": 2.665
  },
  {
   "machine": "node",
@@ -1977,7 +1977,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.232
+  "ms": 3.309
  },
  {
   "machine": "node",
@@ -1986,7 +1986,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 9.204
+  "ms": 9.313
  },
  {
   "machine": "node",
@@ -1995,7 +1995,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 11.666
+  "ms": 11.841
  },
  {
   "machine": "node",
@@ -2004,7 +2004,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 51.654
+  "ms": 52.861
  },
  {
   "machine": "node",
@@ -2013,7 +2013,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 67.193
+  "ms": 68.803
  },
  {
   "machine": "node",
@@ -2022,7 +2022,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 361.266
+  "ms": 369.086
  },
  {
   "machine": "node",
@@ -2031,7 +2031,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 475.276
+  "ms": 482.258
  },
  {
   "machine": "node",
@@ -2040,7 +2040,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1435.251
+  "ms": 1455.376
  },
  {
   "machine": "node",
@@ -2049,7 +2049,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1810.133
+  "ms": 1828.78
  },
  {
   "machine": "node",
@@ -2058,7 +2058,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.445
+  "ms": 0.427
  },
  {
   "machine": "node",
@@ -2067,7 +2067,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.521
+  "ms": 0.527
  },
  {
   "machine": "node",
@@ -2076,7 +2076,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.297
+  "ms": 2.318
  },
  {
   "machine": "node",
@@ -2085,7 +2085,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.748
+  "ms": 2.773
  },
  {
   "machine": "node",
@@ -2094,7 +2094,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 6.674
+  "ms": 6.779
  },
  {
   "machine": "node",
@@ -2103,7 +2103,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 7.688
+  "ms": 7.867
  },
  {
   "machine": "node",
@@ -2112,7 +2112,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 31.677
+  "ms": 32.112
  },
  {
   "machine": "node",
@@ -2121,7 +2121,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 35.551
+  "ms": 36.169
  },
  {
   "machine": "node",
@@ -2130,7 +2130,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 186.581
+  "ms": 191.357
  },
  {
   "machine": "node",
@@ -2139,7 +2139,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 206.946
+  "ms": 211.21
  },
  {
   "machine": "node",
@@ -2148,7 +2148,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 802.305
+  "ms": 755.464
  },
  {
   "machine": "node",
@@ -2157,7 +2157,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 927.085
+  "ms": 913.827
  },
  {
   "machine": "node",
@@ -2166,7 +2166,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.793
+  "ms": 0.772
  },
  {
   "machine": "node",
@@ -2175,7 +2175,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.803
+  "ms": 0.875
  },
  {
   "machine": "node",
@@ -2184,7 +2184,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.002
+  "ms": 5.183
  },
  {
   "machine": "node",
@@ -2193,7 +2193,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.958
+  "ms": 6.999
  },
  {
   "machine": "node",
@@ -2202,7 +2202,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 18.071
+  "ms": 18.447
  },
  {
   "machine": "node",
@@ -2211,7 +2211,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 21.121
+  "ms": 21.104
  },
  {
   "machine": "node",
@@ -2220,7 +2220,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 86.666
+  "ms": 87.178
  },
  {
   "machine": "node",
@@ -2229,7 +2229,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 91.358
+  "ms": 92.908
  },
  {
   "machine": "node",
@@ -2238,7 +2238,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 309.356
+  "ms": 304.065
  },
  {
   "machine": "node",
@@ -2247,7 +2247,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 281.14
+  "ms": 299.976
  },
  {
   "machine": "node",
@@ -2256,7 +2256,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 928.874
+  "ms": 927.946
  },
  {
   "machine": "node",
@@ -2265,7 +2265,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1024.861
+  "ms": 958.811
  },
  {
   "machine": "node",
@@ -2274,7 +2274,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.764
+  "ms": 0.787
  },
  {
   "machine": "node",
@@ -2283,7 +2283,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.735
+  "ms": 0.85
  },
  {
   "machine": "node",
@@ -2292,7 +2292,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.205
+  "ms": 4.478
  },
  {
   "machine": "node",
@@ -2301,7 +2301,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 9.545
+  "ms": 9.734
  },
  {
   "machine": "node",
@@ -2310,7 +2310,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 17.864
+  "ms": 16.953
  },
  {
   "machine": "node",
@@ -2319,7 +2319,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 28.717
+  "ms": 27.693
  },
  {
   "machine": "node",
@@ -2328,7 +2328,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 86.502
+  "ms": 78.529
  },
  {
   "machine": "node",
@@ -2337,7 +2337,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 106.528
+  "ms": 102.194
  },
  {
   "machine": "node",
@@ -2346,7 +2346,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 351.997
+  "ms": 340.736
  },
  {
   "machine": "node",
@@ -2355,7 +2355,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 366.437
+  "ms": 366.742
  },
  {
   "machine": "node",
@@ -2364,7 +2364,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1005.978
+  "ms": 1022.018
  },
  {
   "machine": "node",
@@ -2373,7 +2373,7 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1120.993
+  "ms": 1122.192
  },
  {
   "machine": "node",
@@ -2382,7 +2382,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.621
+  "ms": 0.529
  },
  {
   "machine": "node",
@@ -2391,7 +2391,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.678
+  "ms": 0.584
  },
  {
   "machine": "node",
@@ -2400,7 +2400,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.504
+  "ms": 3.423
  },
  {
   "machine": "node",
@@ -2409,7 +2409,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.069
+  "ms": 4.034
  },
  {
   "machine": "node",
@@ -2418,7 +2418,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 11.736
+  "ms": 11.393
  },
  {
   "machine": "node",
@@ -2427,7 +2427,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 14.847
+  "ms": 14.628
  },
  {
   "machine": "node",
@@ -2436,7 +2436,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 75.009
+  "ms": 76.104
  },
  {
   "machine": "node",
@@ -2445,7 +2445,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 96.729
+  "ms": 98.392
  },
  {
   "machine": "node",
@@ -2454,7 +2454,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 488.601
+  "ms": 499.198
  },
  {
   "machine": "node",
@@ -2463,7 +2463,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 665.146
+  "ms": 679.519
  },
  {
   "machine": "node",
@@ -2472,7 +2472,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1990.309
+  "ms": 2022.761
  },
  {
   "machine": "node",
@@ -2481,7 +2481,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 2598.827
+  "ms": 2639.681
  },
  {
   "machine": "node",
@@ -2490,7 +2490,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.545
+  "ms": 0.482
  },
  {
   "machine": "node",
@@ -2499,7 +2499,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.629
+  "ms": 0.564
  },
  {
   "machine": "node",
@@ -2508,7 +2508,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.211
+  "ms": 2.443
  },
  {
   "machine": "node",
@@ -2517,7 +2517,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.713
+  "ms": 2.814
  },
  {
   "machine": "node",
@@ -2526,7 +2526,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 7.08
+  "ms": 6.305
  },
  {
   "machine": "node",
@@ -2535,7 +2535,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 8.177
+  "ms": 7.694
  },
  {
   "machine": "node",
@@ -2544,7 +2544,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 37.279
+  "ms": 35.858
  },
  {
   "machine": "node",
@@ -2553,7 +2553,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 41.704
+  "ms": 40.642
  },
  {
   "machine": "node",
@@ -2562,7 +2562,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 137.863
+  "ms": 131.415
  },
  {
   "machine": "node",
@@ -2571,7 +2571,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 176.559
+  "ms": 168.101
  },
  {
   "machine": "node",
@@ -2580,7 +2580,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 361.666
+  "ms": 387.84
  },
  {
   "machine": "node",
@@ -2589,7 +2589,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 516.233
+  "ms": 544.042
  },
  {
   "machine": "node",
@@ -2598,7 +2598,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 1.633
+  "ms": 1.465
  },
  {
   "machine": "node",
@@ -2607,7 +2607,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 2.525
+  "ms": 2.334
  },
  {
   "machine": "node",
@@ -2616,7 +2616,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.206
+  "ms": 4.947
  },
  {
   "machine": "node",
@@ -2625,7 +2625,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.608
+  "ms": 7.046
  },
  {
   "machine": "node",
@@ -2634,7 +2634,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 16.62
+  "ms": 15.401
  },
  {
   "machine": "node",
@@ -2643,7 +2643,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 24.476
+  "ms": 23.256
  },
  {
   "machine": "node",
@@ -2652,7 +2652,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 76.331
+  "ms": 69.456
  },
  {
   "machine": "node",
@@ -2661,7 +2661,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 96.667
+  "ms": 92.588
  },
  {
   "machine": "node",
@@ -2670,7 +2670,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 282.257
+  "ms": 265.92
  },
  {
   "machine": "node",
@@ -2679,7 +2679,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 332.93
+  "ms": 316.921
  },
  {
   "machine": "node",
@@ -2688,7 +2688,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 637.556
+  "ms": 617.242
  },
  {
   "machine": "node",
@@ -2697,7 +2697,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 778.398
+  "ms": 729.635
  },
  {
   "machine": "node",
@@ -2706,7 +2706,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 2.6
+  "ms": 2.434
  },
  {
   "machine": "node",
@@ -2715,7 +2715,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 4.419
+  "ms": 4.33
  },
  {
   "machine": "node",
@@ -2724,7 +2724,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 5.876
+  "ms": 5.714
  },
  {
   "machine": "node",
@@ -2733,7 +2733,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 10.625
+  "ms": 10.533
  },
  {
   "machine": "node",
@@ -2742,7 +2742,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 26.667
+  "ms": 23.685
  },
  {
   "machine": "node",
@@ -2751,7 +2751,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 37.23
+  "ms": 33.152
  },
  {
   "machine": "node",
@@ -2760,7 +2760,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 134.187
+  "ms": 107.188
  },
  {
   "machine": "node",
@@ -2769,7 +2769,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 160.981
+  "ms": 142.001
  },
  {
   "machine": "node",
@@ -2778,7 +2778,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 447.639
+  "ms": 387.835
  },
  {
   "machine": "node",
@@ -2787,7 +2787,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 536.593
+  "ms": 458.741
  },
  {
   "machine": "node",
@@ -2796,7 +2796,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 861.943
+  "ms": 790.244
  },
  {
   "machine": "node",
@@ -2805,7 +2805,7 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1043.686
+  "ms": 922.716
  },
  {
   "machine": "node",
@@ -2814,7 +2814,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.418
+  "ms": 0.363
  },
  {
   "machine": "node",
@@ -2823,7 +2823,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.467
+  "ms": 0.413
  },
  {
   "machine": "node",
@@ -2832,7 +2832,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.355
+  "ms": 3.295
  },
  {
   "machine": "node",
@@ -2841,7 +2841,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.946
+  "ms": 3.899
  },
  {
   "machine": "node",
@@ -2850,7 +2850,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 11.469
+  "ms": 10.97
  },
  {
   "machine": "node",
@@ -2859,7 +2859,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 14.565
+  "ms": 14.2
  },
  {
   "machine": "node",
@@ -2868,7 +2868,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 74.963
+  "ms": 75.187
  },
  {
   "machine": "node",
@@ -2877,7 +2877,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 96.709
+  "ms": 97.048
  },
  {
   "machine": "node",
@@ -2886,7 +2886,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 489.789
+  "ms": 496.489
  },
  {
   "machine": "node",
@@ -2895,7 +2895,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 667.217
+  "ms": 676.262
  },
  {
   "machine": "node",
@@ -2904,7 +2904,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 2009.896
+  "ms": 2063.633
  },
  {
   "machine": "node",
@@ -2913,7 +2913,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 2608.197
+  "ms": 2670.963
  },
  {
   "machine": "node",
@@ -2922,7 +2922,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.42
+  "ms": 0.365
  },
  {
   "machine": "node",
@@ -2931,7 +2931,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.468
+  "ms": 0.412
  },
  {
   "machine": "node",
@@ -2940,7 +2940,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.396
+  "ms": 2.931
  },
  {
   "machine": "node",
@@ -2949,7 +2949,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.497
+  "ms": 3.311
  },
  {
   "machine": "node",
@@ -2958,7 +2958,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 6.63
+  "ms": 6.022
  },
  {
   "machine": "node",
@@ -2967,7 +2967,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 8.053
+  "ms": 7.244
  },
  {
   "machine": "node",
@@ -2976,7 +2976,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 37.103
+  "ms": 35.207
  },
  {
   "machine": "node",
@@ -2985,7 +2985,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 41.261
+  "ms": 39.334
  },
  {
   "machine": "node",
@@ -2994,7 +2994,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 137.21
+  "ms": 131.647
  },
  {
   "machine": "node",
@@ -3003,7 +3003,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 174.01
+  "ms": 173.814
  },
  {
   "machine": "node",
@@ -3012,7 +3012,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 367.97
+  "ms": 363.981
  },
  {
   "machine": "node",
@@ -3021,7 +3021,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 473.121
+  "ms": 482.77
  },
  {
   "machine": "node",
@@ -3030,7 +3030,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.715
+  "ms": 0.639
  },
  {
   "machine": "node",
@@ -3039,7 +3039,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.008
+  "ms": 0.973
  },
  {
   "machine": "node",
@@ -3048,7 +3048,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.227
+  "ms": 4.321
  },
  {
   "machine": "node",
@@ -3057,7 +3057,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.437
+  "ms": 5.595
  },
  {
   "machine": "node",
@@ -3066,7 +3066,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.931
+  "ms": 14.179
  },
  {
   "machine": "node",
@@ -3075,7 +3075,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 20.236
+  "ms": 20.162
  },
  {
   "machine": "node",
@@ -3084,7 +3084,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 77.207
+  "ms": 72.761
  },
  {
   "machine": "node",
@@ -3093,7 +3093,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 92.215
+  "ms": 89.261
  },
  {
   "machine": "node",
@@ -3102,7 +3102,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 285.571
+  "ms": 269.948
  },
  {
   "machine": "node",
@@ -3111,7 +3111,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 332.649
+  "ms": 314.436
  },
  {
   "machine": "node",
@@ -3120,7 +3120,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 648.217
+  "ms": 612.368
  },
  {
   "machine": "node",
@@ -3129,7 +3129,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 746.609
+  "ms": 726.637
  },
  {
   "machine": "node",
@@ -3138,7 +3138,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.808
+  "ms": 0.717
  },
  {
   "machine": "node",
@@ -3147,7 +3147,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.49
+  "ms": 1.374
  },
  {
   "machine": "node",
@@ -3156,7 +3156,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.836
+  "ms": 4.654
  },
  {
   "machine": "node",
@@ -3165,7 +3165,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 19.465
+  "ms": 6.954
  },
  {
   "machine": "node",
@@ -3174,7 +3174,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 24.435
+  "ms": 21.78
  },
  {
   "machine": "node",
@@ -3183,7 +3183,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 31.822
+  "ms": 28.133
  },
  {
   "machine": "node",
@@ -3192,7 +3192,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 132.128
+  "ms": 110.735
  },
  {
   "machine": "node",
@@ -3201,7 +3201,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 163.103
+  "ms": 137.566
  },
  {
   "machine": "node",
@@ -3210,7 +3210,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 439.389
+  "ms": 392.896
  },
  {
   "machine": "node",
@@ -3219,7 +3219,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 502.946
+  "ms": 446.388
  },
  {
   "machine": "node",
@@ -3228,7 +3228,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 887.733
+  "ms": 786.477
  },
  {
   "machine": "node",
@@ -3237,7 +3237,7 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1009.698
+  "ms": 894.781
  },
  {
   "machine": "node",
@@ -3246,7 +3246,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.392
+  "ms": 0.396
  },
  {
   "machine": "node",
@@ -3255,7 +3255,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.449
+  "ms": 0.452
  },
  {
   "machine": "node",
@@ -3264,7 +3264,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.278
+  "ms": 3.342
  },
  {
   "machine": "node",
@@ -3273,7 +3273,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.865
+  "ms": 3.931
  },
  {
   "machine": "node",
@@ -3282,7 +3282,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 10.814
+  "ms": 11.161
  },
  {
   "machine": "node",
@@ -3291,7 +3291,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 13.964
+  "ms": 14.337
  },
  {
   "machine": "node",
@@ -3300,7 +3300,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 68.015
+  "ms": 69.796
  },
  {
   "machine": "node",
@@ -3309,7 +3309,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 88.987
+  "ms": 91.211
  },
  {
   "machine": "node",
@@ -3318,7 +3318,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 437.177
+  "ms": 451.864
  },
  {
   "machine": "node",
@@ -3327,7 +3327,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 612.41
+  "ms": 631.167
  },
  {
   "machine": "node",
@@ -3336,7 +3336,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1868.217
+  "ms": 1873.378
  },
  {
   "machine": "node",
@@ -3345,7 +3345,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 2468.135
+  "ms": 2481.227
  },
  {
   "machine": "node",
@@ -3354,7 +3354,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.395
+  "ms": 0.397
  },
  {
   "machine": "node",
@@ -3363,7 +3363,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.454
+  "ms": 0.451
  },
  {
   "machine": "node",
@@ -3372,7 +3372,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.396
+  "ms": 2.907
  },
  {
   "machine": "node",
@@ -3381,7 +3381,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.752
+  "ms": 3.335
  },
  {
   "machine": "node",
@@ -3390,7 +3390,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 7.06
+  "ms": 6.794
  },
  {
   "machine": "node",
@@ -3399,7 +3399,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 8.091
+  "ms": 7.985
  },
  {
   "machine": "node",
@@ -3408,7 +3408,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 37.175
+  "ms": 36.198
  },
  {
   "machine": "node",
@@ -3417,7 +3417,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 42.023
+  "ms": 40.751
  },
  {
   "machine": "node",
@@ -3426,7 +3426,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 137.093
+  "ms": 134.136
  },
  {
   "machine": "node",
@@ -3435,7 +3435,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 174.859
+  "ms": 168.866
  },
  {
   "machine": "node",
@@ -3444,7 +3444,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 411.398
+  "ms": 412.102
  },
  {
   "machine": "node",
@@ -3453,7 +3453,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 501.615
+  "ms": 519.542
  },
  {
   "machine": "node",
@@ -3462,7 +3462,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.687
+  "ms": 0.685
  },
  {
   "machine": "node",
@@ -3471,7 +3471,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.026
+  "ms": 1.041
  },
  {
   "machine": "node",
@@ -3480,7 +3480,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.41
+  "ms": 4.324
  },
  {
   "machine": "node",
@@ -3489,7 +3489,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 5.772
+  "ms": 5.354
  },
  {
   "machine": "node",
@@ -3498,7 +3498,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 16.689
+  "ms": 16.015
  },
  {
   "machine": "node",
@@ -3507,7 +3507,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 22.705
+  "ms": 21.823
  },
  {
   "machine": "node",
@@ -3516,7 +3516,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 80.61
+  "ms": 79.842
  },
  {
   "machine": "node",
@@ -3525,7 +3525,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 97.361
+  "ms": 96.278
  },
  {
   "machine": "node",
@@ -3534,7 +3534,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 292.462
+  "ms": 300.641
  },
  {
   "machine": "node",
@@ -3543,7 +3543,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 338.814
+  "ms": 340.853
  },
  {
   "machine": "node",
@@ -3552,7 +3552,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 680.161
+  "ms": 666.165
  },
  {
   "machine": "node",
@@ -3561,7 +3561,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 787.467
+  "ms": 776.866
  },
  {
   "machine": "node",
@@ -3570,7 +3570,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.806
+  "ms": 0.789
  },
  {
   "machine": "node",
@@ -3579,7 +3579,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.441
+  "ms": 1.458
  },
  {
   "machine": "node",
@@ -3588,7 +3588,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 4.765
+  "ms": 4.742
  },
  {
   "machine": "node",
@@ -3597,7 +3597,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 7.1
+  "ms": 6.833
  },
  {
   "machine": "node",
@@ -3606,7 +3606,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 28.222
+  "ms": 27.968
  },
  {
   "machine": "node",
@@ -3615,7 +3615,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 35.518
+  "ms": 35.264
  },
  {
   "machine": "node",
@@ -3624,7 +3624,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 144.483
+  "ms": 144.804
  },
  {
   "machine": "node",
@@ -3633,7 +3633,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 177.957
+  "ms": 162.712
  },
  {
   "machine": "node",
@@ -3642,7 +3642,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 499.09
+  "ms": 508.906
  },
  {
   "machine": "node",
@@ -3651,7 +3651,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 560.548
+  "ms": 575.349
  },
  {
   "machine": "node",
@@ -3660,7 +3660,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 971.818
+  "ms": 968.428
  },
  {
   "machine": "node",
@@ -3669,7 +3669,7 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1101.521
+  "ms": 1108.169
  },
  {
   "machine": "node",
@@ -3687,7 +3687,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.447
+  "ms": 0.449
  },
  {
   "machine": "node",
@@ -3696,7 +3696,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.559
+  "ms": 3.604
  },
  {
   "machine": "node",
@@ -3705,7 +3705,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.627
+  "ms": 4.689
  },
  {
   "machine": "node",
@@ -3714,7 +3714,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 14.226
+  "ms": 14.438
  },
  {
   "machine": "node",
@@ -3723,7 +3723,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 19.432
+  "ms": 19.738
  },
  {
   "machine": "node",
@@ -3732,7 +3732,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 90.701
+  "ms": 92.312
  },
  {
   "machine": "node",
@@ -3741,7 +3741,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 125.066
+  "ms": 127.215
  },
  {
   "machine": "node",
@@ -3750,7 +3750,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 630.487
+  "ms": 638.668
  },
  {
   "machine": "node",
@@ -3759,7 +3759,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 874.028
+  "ms": 885.264
  },
  {
   "machine": "node",
@@ -3768,7 +3768,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 2571.42
+  "ms": 2619.228
  },
  {
   "machine": "node",
@@ -3777,7 +3777,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 3352.068
+  "ms": 3422.502
  },
  {
   "machine": "node",
@@ -3786,7 +3786,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.23
+  "ms": 0.227
  },
  {
   "machine": "node",
@@ -3795,7 +3795,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.292
+  "ms": 0.289
  },
  {
   "machine": "node",
@@ -3813,7 +3813,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.017
+  "ms": 2.018
  },
  {
   "machine": "node",
@@ -3822,7 +3822,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 4.575
+  "ms": 4.563
  },
  {
   "machine": "node",
@@ -3831,7 +3831,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 5.915
+  "ms": 5.907
  },
  {
   "machine": "node",
@@ -3840,7 +3840,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 20.515
+  "ms": 20.458
  },
  {
   "machine": "node",
@@ -3849,7 +3849,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 27.441
+  "ms": 27.511
  },
  {
   "machine": "node",
@@ -3858,7 +3858,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 112.88
+  "ms": 112.84
  },
  {
   "machine": "node",
@@ -3867,7 +3867,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 153.96
+  "ms": 153.485
  },
  {
   "machine": "node",
@@ -3876,7 +3876,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 391.347
+  "ms": 390.408
  },
  {
   "machine": "node",
@@ -3885,7 +3885,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 524.954
+  "ms": 522.78
  },
  {
   "machine": "node",
@@ -3894,7 +3894,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.529
+  "ms": 0.523
  },
  {
   "machine": "node",
@@ -3903,7 +3903,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.195
+  "ms": 1.287
  },
  {
   "machine": "node",
@@ -3912,7 +3912,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.182
+  "ms": 3.312
  },
  {
   "machine": "node",
@@ -3921,7 +3921,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 4.996
+  "ms": 5.069
  },
  {
   "machine": "node",
@@ -3930,7 +3930,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 8.8
+  "ms": 9.258
  },
  {
   "machine": "node",
@@ -3939,7 +3939,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 12.4
+  "ms": 12.768
  },
  {
   "machine": "node",
@@ -3948,7 +3948,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 32.499
+  "ms": 32.997
  },
  {
   "machine": "node",
@@ -3957,7 +3957,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 40.695
+  "ms": 40.957
  },
  {
   "machine": "node",
@@ -3966,7 +3966,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 166.925
+  "ms": 170.727
  },
  {
   "machine": "node",
@@ -3975,7 +3975,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 194.328
+  "ms": 197.797
  },
  {
   "machine": "node",
@@ -3984,7 +3984,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 424.923
+  "ms": 433.917
  },
  {
   "machine": "node",
@@ -3993,7 +3993,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 505.099
+  "ms": 512.008
  },
  {
   "machine": "node",
@@ -4002,7 +4002,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.604
+  "ms": 0.615
  },
  {
   "machine": "node",
@@ -4011,7 +4011,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 1.481
+  "ms": 1.516
  },
  {
   "machine": "node",
@@ -4020,7 +4020,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.415
+  "ms": 3.513
  },
  {
   "machine": "node",
@@ -4029,7 +4029,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 6.085
+  "ms": 6.281
  },
  {
   "machine": "node",
@@ -4038,7 +4038,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 9.222
+  "ms": 9.407
  },
  {
   "machine": "node",
@@ -4047,7 +4047,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 14.891
+  "ms": 15.112
  },
  {
   "machine": "node",
@@ -4056,7 +4056,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 40.897
+  "ms": 40.629
  },
  {
   "machine": "node",
@@ -4065,7 +4065,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 52.53
+  "ms": 53.536
  },
  {
   "machine": "node",
@@ -4074,7 +4074,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 168.015
+  "ms": 173.343
  },
  {
   "machine": "node",
@@ -4083,7 +4083,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 197.46
+  "ms": 201.101
  },
  {
   "machine": "node",
@@ -4092,7 +4092,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 488.818
+  "ms": 494.973
  },
  {
   "machine": "node",
@@ -4101,7 +4101,7 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 567.491
+  "ms": 575.376
  },
  {
   "machine": "node",
@@ -4110,7 +4110,7 @@
   "threads": 1,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.383
+  "ms": 0.389
  },
  {
   "machine": "node",
@@ -4119,7 +4119,7 @@
   "threads": 1,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.485
+  "ms": 0.494
  },
  {
   "machine": "node",
@@ -4128,7 +4128,7 @@
   "threads": 1,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 2.792
+  "ms": 2.828
  },
  {
   "machine": "node",
@@ -4137,7 +4137,7 @@
   "threads": 1,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.65
+  "ms": 3.706
  },
  {
   "machine": "node",
@@ -4146,7 +4146,7 @@
   "threads": 1,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 9.251
+  "ms": 9.368
  },
  {
   "machine": "node",
@@ -4155,7 +4155,7 @@
   "threads": 1,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 13.211
+  "ms": 13.455
  },
  {
   "machine": "node",
@@ -4164,7 +4164,7 @@
   "threads": 1,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 51.003
+  "ms": 52.204
  },
  {
   "machine": "node",
@@ -4173,7 +4173,7 @@
   "threads": 1,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 74.221
+  "ms": 76.008
  },
  {
   "machine": "node",
@@ -4182,7 +4182,7 @@
   "threads": 1,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 341.324
+  "ms": 348.508
  },
  {
   "machine": "node",
@@ -4191,7 +4191,7 @@
   "threads": 1,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 498.153
+  "ms": 507.753
  },
  {
   "machine": "node",
@@ -4200,7 +4200,7 @@
   "threads": 1,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 1304.377
+  "ms": 1319.988
  },
  {
   "machine": "node",
@@ -4209,7 +4209,7 @@
   "threads": 1,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 1809.219
+  "ms": 1830.031
  },
  {
   "machine": "node",
@@ -4218,7 +4218,7 @@
   "threads": 8,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.332
+  "ms": 0.337
  },
  {
   "machine": "node",
@@ -4227,7 +4227,7 @@
   "threads": 8,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.398
+  "ms": 0.403
  },
  {
   "machine": "node",
@@ -4236,7 +4236,7 @@
   "threads": 8,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 1.71
+  "ms": 1.745
  },
  {
   "machine": "node",
@@ -4245,7 +4245,7 @@
   "threads": 8,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 2.009
+  "ms": 2.056
  },
  {
   "machine": "node",
@@ -4254,7 +4254,7 @@
   "threads": 8,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 4.526
+  "ms": 4.679
  },
  {
   "machine": "node",
@@ -4263,7 +4263,7 @@
   "threads": 8,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 5.529
+  "ms": 5.689
  },
  {
   "machine": "node",
@@ -4272,7 +4272,7 @@
   "threads": 8,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 17.365
+  "ms": 17.512
  },
  {
   "machine": "node",
@@ -4281,7 +4281,7 @@
   "threads": 8,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 22.072
+  "ms": 22.313
  },
  {
   "machine": "node",
@@ -4290,7 +4290,7 @@
   "threads": 8,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 86.267
+  "ms": 86.569
  },
  {
   "machine": "node",
@@ -4299,7 +4299,7 @@
   "threads": 8,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 115.594
+  "ms": 116.214
  },
  {
   "machine": "node",
@@ -4308,7 +4308,7 @@
   "threads": 8,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 297.551
+  "ms": 297.526
  },
  {
   "machine": "node",
@@ -4317,7 +4317,7 @@
   "threads": 8,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 401.719
+  "ms": 399.639
  },
  {
   "machine": "node",
@@ -4326,7 +4326,7 @@
   "threads": 32,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.51
+  "ms": 0.512
  },
  {
   "machine": "node",
@@ -4335,7 +4335,7 @@
   "threads": 32,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.64
+  "ms": 0.634
  },
  {
   "machine": "node",
@@ -4344,7 +4344,7 @@
   "threads": 32,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.124
+  "ms": 3.196
  },
  {
   "machine": "node",
@@ -4353,7 +4353,7 @@
   "threads": 32,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.624
+  "ms": 3.674
  },
  {
   "machine": "node",
@@ -4362,7 +4362,7 @@
   "threads": 32,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 10.067
+  "ms": 10.267
  },
  {
   "machine": "node",
@@ -4371,7 +4371,7 @@
   "threads": 32,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 11.439
+  "ms": 11.607
  },
  {
   "machine": "node",
@@ -4380,7 +4380,7 @@
   "threads": 32,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 38.07
+  "ms": 38.742
  },
  {
   "machine": "node",
@@ -4389,7 +4389,7 @@
   "threads": 32,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 43.871
+  "ms": 44.89
  },
  {
   "machine": "node",
@@ -4398,7 +4398,7 @@
   "threads": 32,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 145.299
+  "ms": 147.546
  },
  {
   "machine": "node",
@@ -4407,7 +4407,7 @@
   "threads": 32,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 165.459
+  "ms": 171.429
  },
  {
   "machine": "node",
@@ -4416,7 +4416,7 @@
   "threads": 32,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 352.726
+  "ms": 354.611
  },
  {
   "machine": "node",
@@ -4425,7 +4425,7 @@
   "threads": 32,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 417.187
+  "ms": 416.865
  },
  {
   "machine": "node",
@@ -4434,7 +4434,7 @@
   "threads": 64,
   "n": 100,
   "op": "symmetric eigenproblem",
-  "ms": 0.552
+  "ms": 0.559
  },
  {
   "machine": "node",
@@ -4443,7 +4443,7 @@
   "threads": 64,
   "n": 100,
   "op": "generalized eigenproblem",
-  "ms": 0.674
+  "ms": 0.675
  },
  {
   "machine": "node",
@@ -4452,7 +4452,7 @@
   "threads": 64,
   "n": 266,
   "op": "symmetric eigenproblem",
-  "ms": 3.333
+  "ms": 3.314
  },
  {
   "machine": "node",
@@ -4461,7 +4461,7 @@
   "threads": 64,
   "n": 266,
   "op": "generalized eigenproblem",
-  "ms": 3.858
+  "ms": 3.845
  },
  {
   "machine": "node",
@@ -4470,7 +4470,7 @@
   "threads": 64,
   "n": 500,
   "op": "symmetric eigenproblem",
-  "ms": 11.189
+  "ms": 11.249
  },
  {
   "machine": "node",
@@ -4479,7 +4479,7 @@
   "threads": 64,
   "n": 500,
   "op": "generalized eigenproblem",
-  "ms": 12.773
+  "ms": 12.816
  },
  {
   "machine": "node",
@@ -4488,7 +4488,7 @@
   "threads": 64,
   "n": 1000,
   "op": "symmetric eigenproblem",
-  "ms": 48.691
+  "ms": 48.408
  },
  {
   "machine": "node",
@@ -4497,7 +4497,7 @@
   "threads": 64,
   "n": 1000,
   "op": "generalized eigenproblem",
-  "ms": 55.006
+  "ms": 55.019
  },
  {
   "machine": "node",
@@ -4506,7 +4506,7 @@
   "threads": 64,
   "n": 2000,
   "op": "symmetric eigenproblem",
-  "ms": 195.184
+  "ms": 193.487
  },
  {
   "machine": "node",
@@ -4515,7 +4515,7 @@
   "threads": 64,
   "n": 2000,
   "op": "generalized eigenproblem",
-  "ms": 229.14
+  "ms": 227.93
  },
  {
   "machine": "node",
@@ -4524,7 +4524,7 @@
   "threads": 64,
   "n": 3000,
   "op": "symmetric eigenproblem",
-  "ms": 434.71
+  "ms": 434.334
  },
  {
   "machine": "node",
@@ -4533,6 +4533,6 @@
   "threads": 64,
   "n": 3000,
   "op": "generalized eigenproblem",
-  "ms": 518.331
+  "ms": 514.909
  }
 ]
