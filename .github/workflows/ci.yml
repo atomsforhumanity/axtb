@@ -29,11 +29,11 @@ jobs:
     env:
       AXTB_PRIVATE_PATTERN: ${{ secrets.AXTB_PRIVATE_PATTERN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v10.3.3
       - uses: Swatinem/rust-cache@v2
       - name: scripts/check.sh fast
         run: scripts/check.sh fast
