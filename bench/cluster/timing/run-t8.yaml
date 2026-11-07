@@ -1,5 +1,5 @@
-description: axtb 0.1.0 release run (e6b4a18), 2, 4 and 8 threads - energy + gradient (tasks-eg.jsonl, one run per thread count) and 8-thread Hessians (tasks-t8.jsonl), interleaved, one calculation at a time (bench/final_timings.py)
-image: <registry>/axtb-timing:2026-11-07b   # <registry>: the cluster's image registry
+description: axtb 0.1.0 release run (3499913), 2, 4 and 8 threads - energy + gradient (tasks-eg.jsonl, one run per thread count) and 8-thread Hessians (tasks-t8.jsonl), interleaved, one calculation at a time (bench/final_timings.py)
+image: <registry>/axtb-timing:2026-11-07c   # <registry>: the cluster's image registry
 command: bash $RUN_DIR/timing_task.sh
 threads_per_task: 16     # up to 8-thread runs in a 16-CPU pod, so our own threads never need to share a core
 cpus_per_pod: 16
