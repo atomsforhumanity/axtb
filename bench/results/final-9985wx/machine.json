@@ -12,14 +12,20 @@
   "axtb (Python)": "0.1.0"
  },
  "axtb_commits": {
-  "gfn2-t1": "08120069c080",
-  "gxtb11-t1": "08120069c080",
-  "gxtb2-t1": "08120069c080",
-  "overhead-t1": "08120069c080",
-  "gfn2-t8": "08120069c080",
-  "gxtb11-t8": "08120069c080",
-  "gxtb2-t8": "08120069c080",
-  "overhead-null": "3df4e47e31dc"
+  "gfn2-eg-t1": "349991343381",
+  "gxtb2-eg-t1": "349991343381",
+  "gfn2-eg-t2": "349991343381",
+  "gxtb2-eg-t2": "349991343381",
+  "gfn2-eg-t4": "349991343381",
+  "gxtb2-eg-t4": "349991343381",
+  "gfn2-eg-t8": "349991343381",
+  "gxtb2-eg-t8": "349991343381",
+  "gfn2-hess-t1": "349991343381",
+  "gxtb11-t1": "349991343381",
+  "gxtb2-hess-t1": "349991343381",
+  "gfn2-hess-t8": "349991343381",
+  "gxtb11-t8": "349991343381",
+  "gxtb2-hess-t8": "349991343381"
  },
  "how": "bench/final_timings.py (docstring); bench/README.md, 'Final timings'",
  "notes": [

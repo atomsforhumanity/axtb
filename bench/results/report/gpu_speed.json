@@ -6,7 +6,8 @@
   "n_ao": 1998,
   "variant": "CPU (faer)",
   "threads": 8,
-  "seconds": 8.100146645
+  "seconds": 8.100146645,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water333|cuda-adaptive|8",
@@ -15,7 +16,8 @@
   "n_ao": 1998,
   "variant": "GPU adaptive",
   "threads": 8,
-  "seconds": 5.893790632
+  "seconds": 5.893790632,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water333|cuda-f64|8",
@@ -24,7 +26,8 @@
   "n_ao": 1998,
   "variant": "GPU FP64",
   "threads": 8,
-  "seconds": 9.812531467
+  "seconds": 9.812531467,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water333|cuda-mixed|8",
@@ -33,7 +36,8 @@
   "n_ao": 1998,
   "variant": "GPU mixed (auto steps)",
   "threads": 8,
-  "seconds": 7.54979978
+  "seconds": 7.54979978,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water667|cpu|8",
@@ -42,7 +46,8 @@
   "n_ao": 4002,
   "variant": "CPU (faer)",
   "threads": 8,
-  "seconds": 68.565182091
+  "seconds": 68.565182091,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water667|cuda-adaptive|8",
@@ -51,7 +56,8 @@
   "n_ao": 4002,
   "variant": "GPU adaptive",
   "threads": 8,
-  "seconds": 41.544568853
+  "seconds": 41.544568853,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water667|cuda-f64|8",
@@ -60,7 +66,8 @@
   "n_ao": 4002,
   "variant": "GPU FP64",
   "threads": 8,
-  "seconds": 62.788193143
+  "seconds": 62.788193143,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "laptop|water667|cuda-mixed|8",
@@ -69,7 +76,8 @@
   "n_ao": 4002,
   "variant": "GPU mixed (auto steps)",
   "threads": 8,
-  "seconds": 61.673200154
+  "seconds": 61.673200154,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cpu|1",
@@ -78,7 +86,8 @@
   "n_ao": 299,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 0.191717707
+  "seconds": 0.191717707,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cpu|32",
@@ -87,7 +96,8 @@
   "n_ao": 299,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 0.183388349
+  "seconds": 0.183388349,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-adaptive|1",
@@ -96,7 +106,8 @@
   "n_ao": 299,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 0.548600341
+  "seconds": 0.548600341,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-adaptive|32",
@@ -105,7 +116,8 @@
   "n_ao": 299,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 0.528714487
+  "seconds": 0.528714487,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-f64|32",
@@ -114,7 +126,8 @@
   "n_ao": 299,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 0.547315967
+  "seconds": 0.547315967,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-mixed|1",
@@ -123,7 +136,8 @@
   "n_ao": 299,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 0.548930297
+  "seconds": 0.548930297,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-mixed|32",
@@ -132,7 +146,8 @@
   "n_ao": 299,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 0.529042611
+  "seconds": 0.529042611,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|taxol|cuda-mixed3|32",
@@ -141,7 +156,8 @@
   "n_ao": 299,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 0.548393179
+  "seconds": 0.548393179,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cpu|1",
@@ -150,7 +166,8 @@
   "n_ao": 600,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 0.608613377
+  "seconds": 0.608613377,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cpu|32",
@@ -159,7 +176,8 @@
   "n_ao": 600,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 0.47827357
+  "seconds": 0.47827357,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-adaptive|1",
@@ -168,7 +186,8 @@
   "n_ao": 600,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 0.721033629
+  "seconds": 0.721033629,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-adaptive|32",
@@ -177,7 +196,8 @@
   "n_ao": 600,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 0.603113017
+  "seconds": 0.603113017,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-f64|32",
@@ -186,7 +206,8 @@
   "n_ao": 600,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 0.629906298
+  "seconds": 0.629906298,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-mixed|1",
@@ -195,7 +216,8 @@
   "n_ao": 600,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 0.736589064
+  "seconds": 0.736589064,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-mixed|32",
@@ -204,7 +226,8 @@
   "n_ao": 600,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 0.602946816
+  "seconds": 0.602946816,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water100|cuda-mixed3|32",
@@ -213,7 +236,8 @@
   "n_ao": 600,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 0.613150937
+  "seconds": 0.613150937,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cpu|1",
@@ -222,7 +246,8 @@
   "n_ao": 1200,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 3.328046594
+  "seconds": 3.328046594,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cpu|32",
@@ -231,7 +256,8 @@
   "n_ao": 1200,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 1.765661184
+  "seconds": 1.765661184,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-adaptive|1",
@@ -240,7 +266,8 @@
   "n_ao": 1200,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 1.696491145
+  "seconds": 1.696491145,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-adaptive|32",
@@ -249,7 +276,8 @@
   "n_ao": 1200,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 0.902851764
+  "seconds": 0.902851764,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-f64|32",
@@ -258,7 +286,8 @@
   "n_ao": 1200,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 1.1892220789999999
+  "seconds": 1.1892220789999999,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-mixed|1",
@@ -267,7 +296,8 @@
   "n_ao": 1200,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 1.825044892
+  "seconds": 1.825044892,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-mixed|32",
@@ -276,7 +306,8 @@
   "n_ao": 1200,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 0.952695032
+  "seconds": 0.952695032,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water200|cuda-mixed3|32",
@@ -285,7 +316,8 @@
   "n_ao": 1200,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 0.980579645
+  "seconds": 0.980579645,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cpu|1",
@@ -294,7 +326,8 @@
   "n_ao": 1998,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 11.441856545
+  "seconds": 11.441856545,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cpu|32",
@@ -303,7 +336,8 @@
   "n_ao": 1998,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 4.759902461
+  "seconds": 4.759902461,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-adaptive|1",
@@ -312,7 +346,8 @@
   "n_ao": 1998,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 4.124518207
+  "seconds": 4.124518207,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-adaptive|32",
@@ -321,7 +356,8 @@
   "n_ao": 1998,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 1.614760859
+  "seconds": 1.614760859,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-f64|32",
@@ -330,7 +366,8 @@
   "n_ao": 1998,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 2.286573737
+  "seconds": 2.286573737,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-mixed|1",
@@ -339,7 +376,8 @@
   "n_ao": 1998,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 4.43333635
+  "seconds": 4.43333635,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-mixed|32",
@@ -348,7 +386,8 @@
   "n_ao": 1998,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 1.7774075150000002
+  "seconds": 1.7774075150000002,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water333|cuda-mixed3|32",
@@ -357,7 +396,8 @@
   "n_ao": 1998,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 1.923058098
+  "seconds": 1.923058098,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cpu|1",
@@ -366,7 +406,8 @@
   "n_ao": 4002,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 89.580444954
+  "seconds": 89.580444954,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cpu|32",
@@ -375,7 +416,8 @@
   "n_ao": 4002,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 19.545833124
+  "seconds": 19.545833124,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-adaptive|1",
@@ -384,7 +426,8 @@
   "n_ao": 4002,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 13.90923917
+  "seconds": 13.90923917,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-adaptive|32",
@@ -393,7 +436,8 @@
   "n_ao": 4002,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 5.6808272429999995
+  "seconds": 5.6808272429999995,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-f64|32",
@@ -402,7 +446,8 @@
   "n_ao": 4002,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 7.783482093
+  "seconds": 7.783482093,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-mixed|1",
@@ -411,7 +456,8 @@
   "n_ao": 4002,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 16.382633271
+  "seconds": 16.382633271,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-mixed|32",
@@ -420,7 +466,8 @@
   "n_ao": 4002,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 7.080409975
+  "seconds": 7.080409975,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water667|cuda-mixed3|32",
@@ -429,7 +476,8 @@
   "n_ao": 4002,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 7.300868843
+  "seconds": 7.300868843,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cpu|1",
@@ -438,7 +486,8 @@
   "n_ao": 6000,
   "variant": "CPU (faer)",
   "threads": 1,
-  "seconds": 304.921076359
+  "seconds": 304.921076359,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cpu|32",
@@ -447,7 +496,8 @@
   "n_ao": 6000,
   "variant": "CPU (faer)",
   "threads": 32,
-  "seconds": 49.902186712
+  "seconds": 49.902186712,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-adaptive|1",
@@ -456,7 +506,8 @@
   "n_ao": 6000,
   "variant": "GPU adaptive",
   "threads": 1,
-  "seconds": 31.70469618
+  "seconds": 31.70469618,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-adaptive|32",
@@ -465,7 +516,8 @@
   "n_ao": 6000,
   "variant": "GPU adaptive",
   "threads": 32,
-  "seconds": 14.052002193
+  "seconds": 14.052002193,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-f64|32",
@@ -474,7 +526,8 @@
   "n_ao": 6000,
   "variant": "GPU FP64",
   "threads": 32,
-  "seconds": 19.977609232
+  "seconds": 19.977609232,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-mixed|1",
@@ -483,7 +536,8 @@
   "n_ao": 6000,
   "variant": "GPU mixed (auto steps)",
   "threads": 1,
-  "seconds": 36.221284785
+  "seconds": 36.221284785,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-mixed|32",
@@ -492,7 +546,8 @@
   "n_ao": 6000,
   "variant": "GPU mixed (auto steps)",
   "threads": 32,
-  "seconds": 18.878878405000002
+  "seconds": 18.878878405000002,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  },
  {
   "id": "node|water1000|cuda-mixed3|32",
@@ -501,6 +556,7 @@
   "n_ao": 6000,
   "variant": "GPU mixed, 3 steps",
   "threads": 32,
-  "seconds": 18.661737253
+  "seconds": 18.661737253,
+  "source": "GPU eigensolver of the development branch gpu-backend (not part of axtb 0.1.0), measured 2026-11-04 with the development code before 0.1.0; not rerun for the release"
  }
 ]

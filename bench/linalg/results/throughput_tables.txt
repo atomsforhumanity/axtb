@@ -1,0 +1,16 @@
+
+### throughput concurrent8: evd, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 6.72 | 25 | 183 |
+| openblas | 5.43 (0.81x) | 20 (0.80x) | 163 (0.89x) |
+| mkl | 5.28 (0.79x) | 21 (0.83x) | 144 (0.79x) |
+| aocl | 6.25 (0.93x) | 24 (0.94x) | 205 (1.12x) |
+
+### throughput concurrent8: gen, 1 thread per process [ms; median over processes]  (vs faer22 in brackets)
+| backend | n=266 | n=500 | n=1000 |
+|---|---|---|---|
+| faer22 | 8.33 | 34 | 257 |
+| openblas | 7.55 (0.91x) | 31 (0.89x) | 222 (0.86x) |
+| mkl | 6.51 (0.78x) | 28 (0.80x) | 193 (0.75x) |
+| aocl | 8.05 (0.97x) | 32 (0.93x) | 252 (0.98x) |

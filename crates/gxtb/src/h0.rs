@@ -121,8 +121,7 @@ fn bond_projectors(l: usize, n: [f64; 3]) -> [Vec<f64>; 3] {
     let frame = [e1, e2, n]; // bond-frame x, y, z axes in lab coordinates
                              // u[m_bond][m_lab]: lab components of the bond-frame functions
     let mut u = vec![0.0; ns * ns];
-    let mu_of: Vec<usize>;
-    match l {
+    let mu_of: Vec<usize> = match l {
         1 => {
             // axtb order y, z, x -> axis index 1, 2, 0
             let axis = [1usize, 2, 0];
@@ -131,7 +130,7 @@ fn bond_projectors(l: usize, n: [f64; 3]) -> [Vec<f64>; 3] {
                     u[mb * ns + ml] = frame[ab][al];
                 }
             }
-            mu_of = vec![1, 0, 1];
+            vec![1, 0, 1]
         }
         2 => {
             let s3 = 3f64.sqrt() / 2.0;
@@ -172,10 +171,10 @@ fn bond_projectors(l: usize, n: [f64; 3]) -> [Vec<f64>; 3] {
                     u[mb * ns + ml] = dot / 1.5;
                 }
             }
-            mu_of = vec![2, 1, 0, 1, 2];
+            vec![2, 1, 0, 1, 2]
         }
         _ => unreachable!(),
-    }
+    };
     for (mb, &mu) in mu_of.iter().enumerate() {
         for a in 0..ns {
             for b in 0..ns {

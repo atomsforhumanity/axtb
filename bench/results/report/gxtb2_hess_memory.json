@@ -1,75 +1,27 @@
 [
  {
-  "id": "caffeine 1t",
-  "system": "caffeine",
-  "atoms": 24,
-  "threads": 1,
-  "machine": "laptop",
-  "rss_before_mb": 28.9,
-  "before_note": null,
-  "rss_after_mb": 14.0,
-  "rss_single_point_mb": 9.7,
-  "seconds": 1.7478467321489006
- },
- {
-  "id": "caffeine 8t",
-  "system": "caffeine",
-  "atoms": 24,
-  "threads": 8,
-  "machine": "laptop",
-  "rss_before_mb": 34.7,
-  "before_note": null,
-  "rss_after_mb": 19.2,
-  "rss_single_point_mb": 9.8,
-  "seconds": 0.48358773486688733
- },
- {
   "id": "taxol 1t",
   "system": "taxol",
   "atoms": 113,
   "threads": 1,
-  "machine": "laptop",
-  "rss_before_mb": 1358.3,
+  "machine": "64-core node",
+  "rss_before_mb": null,
   "before_note": null,
-  "rss_after_mb": 139.0,
-  "rss_single_point_mb": 48.7,
-  "seconds": 157.19763852492906
- },
- {
-  "id": "taxol 8t",
-  "system": "taxol",
-  "atoms": 113,
-  "threads": 8,
-  "machine": "laptop",
-  "rss_before_mb": 1441.2,
-  "before_note": null,
-  "rss_after_mb": 235.3,
-  "rss_single_point_mb": 49.4,
-  "seconds": 48.0260110180825
- },
- {
-  "id": "C50H102 8t",
-  "system": "C50H102",
-  "atoms": 152,
-  "threads": 8,
-  "machine": "laptop",
-  "rss_before_mb": 2693.6,
-  "before_note": null,
-  "rss_after_mb": 268.7,
-  "rss_single_point_mb": 52.1,
-  "seconds": 33.64602784998715
+  "rss_after_mb": 146.7,
+  "rss_single_point_mb": 38.0,
+  "seconds": 58.06732118083164
  },
  {
   "id": "(H2O)100 8t",
   "system": "(H2O)100",
   "atoms": 300,
   "threads": 8,
-  "machine": "laptop",
+  "machine": "64-core node",
   "rss_before_mb": null,
-  "before_note": "out of memory at a 12 GB limit after 7.6 min",
-  "rss_after_mb": 992.5,
-  "rss_single_point_mb": 176.2,
-  "seconds": 423.4139403461013
+  "before_note": null,
+  "rss_after_mb": 1036.0,
+  "rss_single_point_mb": 139.7,
+  "seconds": 110.2260260921903
  },
  {
   "id": "(H2O)200 8t",
@@ -78,9 +30,9 @@
   "threads": 8,
   "machine": "64-core node",
   "rss_before_mb": null,
-  "before_note": "not run; estimated ~100 GB",
-  "rss_after_mb": 4569.0,
-  "rss_single_point_mb": 663.9,
-  "seconds": 2178.3224556129426
+  "before_note": null,
+  "rss_after_mb": 4212.7,
+  "rss_single_point_mb": 620.0,
+  "seconds": 1269.5454863728955
  }
 ]

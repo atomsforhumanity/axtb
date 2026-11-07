@@ -17,7 +17,7 @@
  },
  {
   "kind": "Tested",
-  "item": "Timings of GFN2-xTB and g-xTB energies, gradients and Hessians against xtb 6.8.0, tblite 0.8.0 and both g-xTB programs on a 64-core node (3\u2013600 atoms, 1 and 8 threads, shared with another user's jobs); earlier GFN2-xTB thread, batch and start-up runs on a laptop and the node"
+  "item": "Timings of GFN2-xTB and g-xTB energies, gradients and Hessians against xtb 6.8.0 and both g-xTB programs on an Intel laptop and a shared 64-core AMD node (3\u2013600 atoms; energy + gradient on 1, 2, 4, 8 threads, Hessians on 1, 8), axtb with faer and with Intel MKL loaded at run time (and AMD AOCL on the node); earlier GFN2-xTB thread, batch and start-up runs on both machines"
  },
  {
   "kind": "Tested",
@@ -53,7 +53,7 @@
  },
  {
   "kind": "Tested",
-  "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs mepd makes and mepd itself (9 structures, including two that need its retry ladder)"
+  "item": "g-xTB 2.0.1 in ALPB water through the composite correction, against the three xtb runs it replaces (9 structures, including two that need a retry at a higher electronic temperature)"
  },
  {
   "kind": "Tested",
@@ -65,7 +65,7 @@
  },
  {
   "kind": "Tested",
-  "item": "GFN-FF topology, charges, energies and gradients against xtb 6.7.1 --gfnff on 269 structures (H\u2013Rn, charges \u22123 to +3, metal complexes, hydrogen- and halogen-bonded dimers, up to 640 atoms); Hessians on 8 structures; time and memory up to 9900 atoms"
+  "item": "GFN-FF topology, charges, energies and gradients against xtb 6.8.0 and 6.7.1 --gfnff on 269 structures (H\u2013Rn, charges \u22123 to +3, metal complexes, hydrogen- and halogen-bonded dimers, up to 640 atoms); Hessians on 10 structures; time and memory up to 9900 atoms"
  },
  {
   "kind": "Not tested",

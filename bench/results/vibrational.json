@@ -4,14 +4,14 @@
  "analysis_conventions": "xtb-6.7.1",
  "machine": "x86_64",
  "load_before": [
-  26.52,
-  30.67,
-  33.76
+  5.65,
+  6.32,
+  4.92
  ],
  "load_after": [
-  22.64,
-  28.96,
-  33.0
+  4.92,
+  6.13,
+  4.88
  ],
  "gates": {
   "frequency_cm1": 0.01,
@@ -22,7 +22,7 @@
   "gfn2": {
    "caffeine": {
     "n_atoms": 24,
-    "xtb_hess_seconds": 7.240158800967038,
+    "xtb_hess_seconds": 1.5349055500046234,
     "same_hessian": {
      "n_modes": [
       66,
@@ -351,7 +351,7 @@
    },
    "CO2": {
     "n_atoms": 3,
-    "xtb_hess_seconds": 0.11006101802922785,
+    "xtb_hess_seconds": 0.019567601004382595,
     "same_hessian": {
      "n_modes": [
       4,
@@ -436,7 +436,7 @@
    },
    "HCN": {
     "n_atoms": 3,
-    "xtb_hess_seconds": 0.14641503803431988,
+    "xtb_hess_seconds": 0.01874980299908202,
     "same_hessian": {
      "n_modes": [
       4,
@@ -521,7 +521,7 @@
    },
    "benzene": {
     "n_atoms": 12,
-    "xtb_hess_seconds": 0.9519549491815269,
+    "xtb_hess_seconds": 0.2106041090009967,
     "same_hessian": {
      "n_modes": [
       30,
@@ -674,7 +674,7 @@
    },
    "NH3": {
     "n_atoms": 4,
-    "xtb_hess_seconds": 0.051996419206261635,
+    "xtb_hess_seconds": 0.01859770699957153,
     "same_hessian": {
      "n_modes": [
       6,
@@ -763,7 +763,7 @@
    },
    "CH4": {
     "n_atoms": 5,
-    "xtb_hess_seconds": 0.06903686979785562,
+    "xtb_hess_seconds": 0.028432109000277705,
     "same_hessian": {
      "n_modes": [
       9,
@@ -852,13 +852,13 @@
    },
    "SN2-TS": {
     "n_atoms": 6,
-    "xtb_hess_seconds": 0.1539795428980142,
+    "xtb_hess_seconds": 0.06588885599921923,
     "same_hessian": {
      "n_modes": [
       12,
       12
      ],
-     "max_frequency_diff": 3.1796441476217296e-05,
+     "max_frequency_diff": 3.179644176043439e-05,
      "max_reduced_mass_diff_nondegenerate": 4.382940384317635e-05,
      "point_group": {
       "xtb": "d3h",
@@ -873,10 +873,10 @@
       "axtb": 1
      },
      "thermo_diff": {
-      "zpve": 1.7698689736000972e-12,
-      "enthalpy": 1.0661263538658261e-12,
-      "ts": 1.8145207558717402e-14,
-      "g_rrho": 1.0479828810305847e-12,
+      "zpve": 1.769889790281809e-12,
+      "enthalpy": 1.0661471705475378e-12,
+      "ts": 1.815214645262131e-14,
+      "g_rrho": 1.0479967588183925e-12,
       "free_energy": 1.0480505352461478e-12
      },
      "xtb": {
@@ -886,13 +886,13 @@
       "g_rrho": 0.010578264214,
       "free_energy": -12.984026779872
      },
-     "max_ir_abs_diff_axtb_dipole_derivatives": 5.175595799775266,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 0.14091521007160457,
-     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.022892902500416312,
-     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 4.869100700980913e-05
+     "max_ir_abs_diff_axtb_dipole_derivatives": 5.175595799771571,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.14091521007152685,
+     "max_ir_abs_diff_axtb_dipole_derivatives_sccacc_0.001": 0.022892902494504597,
+     "max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001": 4.869100699636079e-05
     },
     "axtb_hessian": {
-     "max_frequency_diff": 0.2949307989733825,
+     "max_frequency_diff": 0.294930798991345,
      "n_imaginary": {
       "axtb": 1,
       "xtb_g98": 1
@@ -900,55 +900,55 @@
      "ir_groups_km_mol": [
       [
        1620.0774,
-       1618.4123302535822
+       1618.4123302535795
       ],
       [
        25.6798,
-       24.30528229387164
+       24.30528229387089
       ],
       [
        0.0,
-       2.9612711540732153e-12
+       2.961271219400266e-12
       ],
       [
        88.6961,
-       94.1255289212807
+       94.12552892127292
       ],
       [
        0.0015,
-       1.183429421210308e-09
+       1.183429446796745e-09
       ],
       [
        3.8059,
-       3.2690871701414235
+       3.269087170141722
       ],
       [
        0.0,
-       4.3474219577958776e-11
+       4.347422034138973e-11
       ],
       [
        0.5779,
-       0.6063002727218996
+       0.6063002727220079
       ]
      ],
-     "max_ir_rel_diff": 0.14104753930964462,
-     "max_ir_abs_diff": 5.429428921280703,
+     "max_ir_rel_diff": 0.14104753930956618,
+     "max_ir_abs_diff": 5.429428921272915,
      "thermo_diff": {
-      "zpve": -2.288127245127225e-06,
-      "enthalpy": -2.4075313976371082e-06,
+      "zpve": -2.2881272450300805e-06,
+      "enthalpy": -2.4075313975399637e-06,
       "ts": -3.7513194581229037e-07,
-      "g_rrho": -2.032399451823083e-06,
-      "free_energy": -2.032457354417261e-06
+      "g_rrho": -2.0323994517259386e-06,
+      "free_energy": -2.0324573561936177e-06
      },
      "symmetry_number": 6
     },
     "conventions_axtb_minus_xtb": {
-     "max_frequency_diff": 0.09152668181150148,
-     "max_ir_rel_diff": 0.00013983727472419237,
-     "zpve": -9.59171499934075e-07,
-     "enthalpy": -9.552023913159124e-07,
-     "ts": -1.4032134122710094e-07,
-     "g_rrho": -8.148810500888115e-07,
+     "max_frequency_diff": 0.09152668181241097,
+     "max_ir_rel_diff": 0.00013983727472042948,
+     "zpve": -9.591714999895862e-07,
+     "enthalpy": -9.55202391343668e-07,
+     "ts": -1.40321341157712e-07,
+     "g_rrho": -8.14881050185956e-07,
      "symmetry_number": [
       6,
       6
@@ -961,10 +961,10 @@
     "n_atoms": 24,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": 3.393535452644869e-12,
-      "enthalpy": 3.5177149410037245e-07,
-      "ts": 4.00879811776611e-08,
-      "g_rrho": 7.51290696321405e-12
+      "zpve": 3.3858194026237243e-12,
+      "enthalpy": 3.5177150012333236e-07,
+      "ts": 4.0088027147833216e-08,
+      "g_rrho": 7.47296668990316e-12
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -991,25 +991,25 @@
       "axtb": 1
      },
      "g_rrho_program": 0.150572401228,
-     "seconds": 24.186204998055473,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.027603491977458816,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 0.0002545406618741178
+     "seconds": 8.008169491004082,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.027603490738414393,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.00025454083684578504
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.3543539903256878,
-     "g_rrho_diff": 5.210455512966172e-06,
-     "zpve_diff": 1.3593353936358632e-06,
-     "analytic_hessian_seconds": 7.37416
+     "max_frequency_diff": 0.35435398448072064,
+     "g_rrho_diff": 5.21045547283161e-06,
+     "zpve_diff": 1.359335385864302e-06,
+     "analytic_hessian_seconds": 0.823830627
     }
    },
    "CO2": {
     "n_atoms": 3,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": -9.992527638669202e-14,
-      "enthalpy": -4.540728921163806e-08,
-      "ts": 7.713934879749473e-09,
-      "g_rrho": -2.2408984390320796e-13
+      "zpve": -9.979864157294571e-14,
+      "enthalpy": -4.5407289039900434e-08,
+      "ts": 7.713934938730072e-09,
+      "g_rrho": -2.2397708687726947e-13
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -1036,25 +1036,25 @@
       "axtb": 2
      },
      "g_rrho_program": -0.008594886569,
-     "seconds": 0.5585059691220522,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.002461863593907765,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 3.02991048341581e-06
+     "seconds": 0.05386186199757503,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0024618638658466807,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 3.0299105112261964e-06
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.037787003512676165,
-     "g_rrho_diff": -1.6655222409046877e-07,
-     "zpve_diff": -1.6424009992646593e-07,
-     "analytic_hessian_seconds": 0.06587531
+     "max_frequency_diff": 0.0377870034726584,
+     "g_rrho_diff": -1.6655222397771174e-07,
+     "zpve_diff": -1.6424009979983112e-07,
+     "analytic_hessian_seconds": 0.010314762
     }
    },
    "HCN": {
     "n_atoms": 3,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": 1.891136552911732e-12,
-      "enthalpy": -1.6483266758460235e-08,
+      "zpve": 1.891788808938699e-12,
+      "enthalpy": -1.648326610620421e-08,
       "ts": -3.274393112553953e-08,
-      "g_rrho": 2.664366990923206e-12
+      "g_rrho": 2.6650192469501732e-12
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -1081,25 +1081,25 @@
       "axtb": 1
      },
      "g_rrho_program": -0.00246616016,
-     "seconds": 0.4346171428915113,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005127605725974149,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 8.300922292183678e-05
+     "seconds": 0.042049985997437034,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005127605721284567,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 8.30092372993352e-05
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.07223443796010542,
-     "g_rrho_diff": -3.235793356328419e-07,
-     "zpve_diff": -3.207171088634442e-07,
-     "analytic_hessian_seconds": 0.088078005
+     "max_frequency_diff": 0.07223443768452853,
+     "g_rrho_diff": -3.2357933498058586e-07,
+     "zpve_diff": -3.2071710821118815e-07,
+     "analytic_hessian_seconds": 0.007738885
     }
    },
    "benzene": {
     "n_atoms": 12,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": 2.39451514172373e-12,
-      "enthalpy": 2.6108408018865603e-08,
-      "ts": -2.5944770862956767e-08,
-      "g_rrho": 4.178879464689089e-12
+      "zpve": 2.4031610035279982e-12,
+      "enthalpy": 2.610841651207174e-08,
+      "ts": -2.5944771046837456e-08,
+      "g_rrho": 4.187553082068973e-12
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -1126,25 +1126,25 @@
       "axtb": 12
      },
      "g_rrho_program": 0.076439077558,
-     "seconds": 2.579644831130281,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0080219080054178,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 0.000154815477866883
+     "seconds": 1.0825662380011636,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.008021908029604674,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 0.00015481545190554878
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.05597146206036996,
-     "g_rrho_diff": -7.255048211501913e-07,
-     "zpve_diff": -7.10724605515467e-07,
-     "analytic_hessian_seconds": 0.454480807
+     "max_frequency_diff": 0.055971462031720876,
+     "g_rrho_diff": -7.255048124765739e-07,
+     "zpve_diff": -7.10724596883483e-07,
+     "analytic_hessian_seconds": 0.139666522
     }
    },
    "NH3": {
     "n_atoms": 4,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": 6.457195889097989e-13,
-      "enthalpy": -3.7848085679415e-08,
-      "ts": 3.8284788526909974e-08,
-      "g_rrho": 1.2579520758393414e-13
+      "zpve": 6.477943181870671e-13,
+      "enthalpy": -3.784808358386904e-08,
+      "ts": 3.82847885511961e-08,
+      "g_rrho": 1.2786646741425045e-13
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -1171,25 +1171,25 @@
       "axtb": 3
      },
      "g_rrho_program": 0.015489250362,
-     "seconds": 0.121359309181571,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005287315453337271,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 5.150517703141825e-05
+     "seconds": 0.050328060999163426,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0005287314860815684,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 5.15051712595044e-05
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.05347769773561595,
-     "g_rrho_diff": -1.264948742123878e-07,
-     "zpve_diff": -1.2703235428151993e-07,
-     "analytic_hessian_seconds": 0.022914975
+     "max_frequency_diff": 0.05347769719583084,
+     "g_rrho_diff": -1.264948721272502e-07,
+     "zpve_diff": -1.2703235219291287e-07,
+     "analytic_hessian_seconds": 0.007715595
     }
    },
    "CH4": {
     "n_atoms": 5,
     "axtb_hessian_xtb_thermo_vs_axtb_analysis": {
      "thermo_diff": {
-      "zpve": -4.738591463659958e-12,
-      "enthalpy": 4.177629524260151e-08,
-      "ts": 1.223876174016869e-09,
-      "g_rrho": -4.58092938582233e-12
+      "zpve": -4.759435900947295e-12,
+      "enthalpy": 4.177627457857547e-08,
+      "ts": 1.2238763856531332e-09,
+      "g_rrho": -4.601805048132235e-12
      },
      "thermo_digits": 6,
      "symmetry_number": {
@@ -1216,15 +1216,15 @@
       "axtb": 12
      },
      "g_rrho_program": 0.028152138161,
-     "seconds": 0.16716792108491063,
-     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0006711472393874374,
-     "max_ir_rel_diff_axtb_dipole_derivatives": 2.2779788455368106e-05
+     "seconds": 0.07417956499557476,
+     "max_ir_abs_diff_axtb_dipole_derivatives": 0.0006711454758701052,
+     "max_ir_rel_diff_axtb_dipole_derivatives": 2.2779728598827833e-05
     },
     "axtb_vs_program_hessian": {
-     "max_frequency_diff": 0.02768421436553581,
-     "g_rrho_diff": 3.023914190956878e-07,
-     "zpve_diff": 3.0181026143549783e-07,
-     "analytic_hessian_seconds": 0.032818969
+     "max_frequency_diff": 0.027684213324619122,
+     "g_rrho_diff": 3.023913981783921e-07,
+     "zpve_diff": 3.018102405494272e-07,
+     "analytic_hessian_seconds": 0.011994449
     }
    }
   }

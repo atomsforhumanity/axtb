@@ -153,12 +153,16 @@ fn compare(tight: bool) {
     assert!(worst_g < 1e-9, "gradient {worst_g:e}");
 }
 
+/// Converged far enough that the 5-point differences see no SCF error: the free energy is
+/// variational, so its error goes as the residual squared. Tighter thresholds sit at the
+/// round-off of a heavy-element energy (CeCl3 stalled at a residual of 2.3e-11 and energy
+/// changes of 2e-13 Eh on another x86-64 CPU).
 fn tight(c: Conventions, etemp: f64) -> ScfOptions {
     ScfOptions {
         conventions: c,
         etemp,
-        energy_tol: Some(1e-13),
-        residual_tol: Some(1e-11),
+        energy_tol: Some(1e-11),
+        residual_tol: Some(1e-10),
         max_iter: 500,
         ..Default::default()
     }

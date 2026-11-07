@@ -19,5 +19,5 @@ scratch/
 # run logs; aocl_load.log is the load record that bench/README.md cites
 *.log
 !/bench/linalg/results/aocl_load.log
-# raw data of the GPU eigensolver, whose code is on branch gpu-backend
+# raw data of the GPU eigensolver, an experiment of the development repository (not released)
 /bench/gpu/results/

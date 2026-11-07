@@ -86,7 +86,15 @@ fn threads_one_spawns_nothing() {
         "threads=1 spawned threads: peak {} > {baseline}",
         peak.load(Ordering::Relaxed)
     );
-    assert!(os_threads() < baseline, "monitor gone, nothing else left");
+    // the kernel can list the monitor's task for a moment after join returns
+    let gone = (0..200).any(|_| {
+        let below = os_threads() < baseline;
+        if !below {
+            std::thread::sleep(std::time::Duration::from_millis(5));
+        }
+        below
+    });
+    assert!(gone, "monitor gone, nothing else left: {} threads, baseline {baseline}", os_threads());
 
     // two threads, inside the calculator's pool: the same results to round-off
     let g = |c: &mut Calculator| c.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();

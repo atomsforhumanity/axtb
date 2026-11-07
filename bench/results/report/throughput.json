@@ -6,7 +6,7 @@
   "jobs": 64,
   "workers": 8,
   "batch": "64 jobs on 8 workers",
-  "wall": 2.1069841750431806
+  "wall": 1.5972397879959317
  },
  {
   "id": "laptop|64x8|xtb, OMP_NUM_THREADS=1",
@@ -15,7 +15,7 @@
   "jobs": 64,
   "workers": 8,
   "batch": "64 jobs on 8 workers",
-  "wall": 0.45018327492289245
+  "wall": 0.2848916160000954
  },
  {
   "id": "laptop|64x8|axtb CLI processes (no env vars)",
@@ -24,7 +24,7 @@
   "jobs": 64,
   "workers": 8,
   "batch": "64 jobs on 8 workers",
-  "wall": 0.18825022806413472
+  "wall": 0.10385232700355118
  },
  {
   "id": "laptop|64x8|axtb in-process, 8 Python threads",
@@ -33,7 +33,7 @@
   "jobs": 64,
   "workers": 8,
   "batch": "64 jobs on 8 workers",
-  "wall": 0.12402880797162652
+  "wall": 0.0711751720009488
  },
  {
   "id": "node|128x64|xtb, OMP_NUM_THREADS unset",
@@ -42,7 +42,7 @@
   "jobs": 128,
   "workers": 64,
   "batch": "128 jobs on 64 workers",
-  "wall": 5.316421438008547
+  "wall": 3.464113207999617
  },
  {
   "id": "node|128x64|xtb, OMP_NUM_THREADS=1",
@@ -51,16 +51,16 @@
   "jobs": 128,
   "workers": 64,
   "batch": "128 jobs on 64 workers",
-  "wall": 0.16431723488494754
+  "wall": 0.14516394678503275
  },
  {
-  "id": "node|128x64|axtb CLI processes (with the start-up fixes)",
+  "id": "node|128x64|axtb CLI processes (no env vars)",
   "machine": "node",
-  "setup": "axtb CLI processes (with the start-up fixes)",
+  "setup": "axtb CLI processes (no env vars)",
   "jobs": 128,
   "workers": 64,
   "batch": "128 jobs on 64 workers",
-  "wall": 0.07416868302971125
+  "wall": 0.09343446791172028
  },
  {
   "id": "node|128x64|axtb in-process, 64 Python threads",
@@ -69,7 +69,7 @@
   "jobs": 128,
   "workers": 64,
   "batch": "128 jobs on 64 workers",
-  "wall": 0.03528765728697181
+  "wall": 0.032017880119383335
  },
  {
   "id": "node|512x64|xtb, OMP_NUM_THREADS unset",
@@ -78,7 +78,7 @@
   "jobs": 512,
   "workers": 64,
   "batch": "512 jobs on 64 workers",
-  "wall": 18.189046802930534
+  "wall": 12.250630387105048
  },
  {
   "id": "node|512x64|xtb, OMP_NUM_THREADS=1",
@@ -87,16 +87,16 @@
   "jobs": 512,
   "workers": 64,
   "batch": "512 jobs on 64 workers",
-  "wall": 0.551064036320895
+  "wall": 0.503654079977423
  },
  {
-  "id": "node|512x64|axtb CLI processes (with the start-up fixes)",
+  "id": "node|512x64|axtb CLI processes (no env vars)",
   "machine": "node",
-  "setup": "axtb CLI processes (with the start-up fixes)",
+  "setup": "axtb CLI processes (no env vars)",
   "jobs": 512,
   "workers": 64,
   "batch": "512 jobs on 64 workers",
-  "wall": 0.2496313659939915
+  "wall": 0.3515237979590893
  },
  {
   "id": "node|512x64|axtb in-process, 64 Python threads",
@@ -105,7 +105,7 @@
   "jobs": 512,
   "workers": 64,
   "batch": "512 jobs on 64 workers",
-  "wall": 0.07501117186620831
+  "wall": 0.09813768696039915
  },
  {
   "id": "node|1024x128|xtb, OMP_NUM_THREADS unset",
@@ -114,7 +114,7 @@
   "jobs": 1024,
   "workers": 128,
   "batch": "1024 jobs on 128 workers",
-  "wall": 30.583802660927176
+  "wall": 23.223562019877136
  },
  {
   "id": "node|1024x128|xtb, OMP_NUM_THREADS=1",
@@ -123,16 +123,16 @@
   "jobs": 1024,
   "workers": 128,
   "batch": "1024 jobs on 128 workers",
-  "wall": 1.0175708578899503
+  "wall": 0.9931224589236081
  },
  {
-  "id": "node|1024x128|axtb CLI processes (with the start-up fixes)",
+  "id": "node|1024x128|axtb CLI processes (no env vars)",
   "machine": "node",
-  "setup": "axtb CLI processes (with the start-up fixes)",
+  "setup": "axtb CLI processes (no env vars)",
   "jobs": 1024,
   "workers": 128,
   "batch": "1024 jobs on 128 workers",
-  "wall": 0.5184675410855561
+  "wall": 0.7049650428816676
  },
  {
   "id": "node|1024x128|axtb in-process, 128 Python threads",
@@ -141,6 +141,6 @@
   "jobs": 1024,
   "workers": 128,
   "batch": "1024 jobs on 128 workers",
-  "wall": 0.13580447901040316
+  "wall": 0.20424200408160686
  }
 ]

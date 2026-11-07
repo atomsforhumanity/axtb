@@ -25,9 +25,9 @@
  },
  {
   "item": "axtb",
-  "value": "axtb 0.1.0, Rust, faer 0.22",
-  "reference": "github.com/atomsforhumanity/axtb (private)",
-  "license": "LGPL-3.0"
+  "value": "axtb 0.1.0 (commit 3499913 in the final timings), Rust, faer 0.22",
+  "reference": "github.com/atomsforhumanity/axtb",
+  "license": "LGPL-3.0-or-later; GPL-3.0-only with g-xTB"
  },
  {
   "item": "GFN2-xTB",
@@ -49,7 +49,7 @@
  },
  {
   "item": "Linear algebra",
-  "value": "faer 0.22 (axtb), faer 0.24; OpenBLAS 0.3.32 (laptop) / 0.3.34 (node); Intel MKL 2026.2; AMD AOCL 5.3 built from source",
+  "value": "faer 0.22 (axtb), faer 0.24; OpenBLAS 0.3.32 (laptop) / 0.3.34 (node); Intel MKL 2026.2 (eigensolver benchmarks), 2025.3 (laptop timings), 2026.2 (64-core node timings); AMD AOCL 5.3 built from source",
   "reference": "faer.veganb.tw; openblas.net; intel.com/oneMKL; github.com/amd (aocl-blis, aocl-libflame)",
   "license": "MIT; BSD-3; Intel Simplified Software License; BSD-3"
  },

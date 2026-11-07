@@ -114,6 +114,7 @@ dependencies = [
  "axtb",
  "axtb-gfnff",
  "axtb-gxtb",
+ "faer",
  "serde",
  "serde_json",
 ]

@@ -1,461 +1,458 @@
 {
- "machine": "x86_64",
+ "machine": "64-core node (AMD Threadripper PRO 9985WX), 16-CPU pod; axtb_commit from the image's AXTB_REV (no git in the image)",
  "threads": 8,
  "cases": {
   "water": {
    "natoms": 3,
-   "load_before": "1.29 3.77 5.61",
+   "load_before": "19.55 29.45 31.90",
    "time": {
-    "axtb analytic 1t": 0.004385564,
-    "axtb analytic 8t": 0.003639234,
-    "axtb response 1t": 0.004243504,
-    "axtb response 8t": 0.003919309,
-    "axtb numerical 1t": 0.00481738,
-    "axtb numerical 8t": 0.002517579,
-    "xtb 1t": 0.01367823383770883,
-    "xtb 8t": 0.01123224594630301,
-    "xtb --acc 0.001 8t": 0.013048276072368026,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.01842174190096557
+    "axtb analytic 1t": 0.001319876,
+    "axtb analytic 8t": 0.001799828,
+    "axtb response 1t": 0.001526617,
+    "axtb response 8t": 0.00184051,
+    "axtb numerical 1t": 0.002050375,
+    "axtb numerical 8t": 0.002109174,
+    "xtb 1t": 0.026525422930717468,
+    "xtb 8t": 0.022523480001837015,
+    "xtb --acc 0.001 8t": 0.027285955846309662,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.025543564930558205
    },
    "asymmetry": {
-    "analytic": 8.326672684688674e-17,
+    "analytic": 6.938893903907228e-17,
     "response": 1.6757494523955696e-07,
-    "numerical": 1.7009574466986255e-05
+    "numerical": 1.700957441494455e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 5.892222942199821e-10,
-     "max_dfreq": 1.2143877068969066e-05
+     "max_dH": 5.89141424880979e-10,
+     "max_dfreq": 8.233122691623709e-06
     },
     "response": {
-     "max_dH": 3.032382192569294e-07,
-     "max_dfreq": 0.0010792580856104905
+     "max_dH": 3.032382760448371e-07,
+     "max_dfreq": 0.0010792575235427648
     },
     "numerical": {
-     "max_dH": 3.059177046299544e-05,
-     "max_dfreq": 0.11447820199464331
+     "max_dH": 3.05917704986336e-05,
+     "max_dfreq": 0.11447820221974325
     }
    },
-   "load_after": "1.29 3.77 5.61",
-   "reference_spread": 3.60737928589705e-06,
+   "load_after": "19.55 29.45 31.90",
+   "reference_spread": 3.6073793105995122e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 4.588502090974167e-05,
-     "max_dfreq": 0.14294524266097142
+     "max_dH": 4.588528749460696e-05,
+     "max_dfreq": 0.14294619099109696
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 1.626739944309008e-05,
-     "max_dfreq": 0.05764705314868479
+     "max_dH": 1.5863102561394782e-05,
+     "max_dfreq": 0.050560781946842326
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 3.029562714823575e-05,
-     "max_dfreq": 0.1074116700833656
+     "max_dH": 3.0295800054758182e-05,
+     "max_dfreq": 0.10741199563562986
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 4.611541258359164e-06,
-     "max_dfreq": 0.014615364643759676
+     "max_dH": 5.329338003748352e-06,
+     "max_dfreq": 0.017670405119133648
     }
    }
   },
   "caffeine": {
    "natoms": 24,
-   "load_before": "1.29 3.77 5.61",
+   "load_before": "19.55 29.45 31.90",
    "time": {
-    "axtb analytic 1t": 0.050784792,
-    "axtb analytic 8t": 0.024636797,
-    "axtb response 1t": 0.404057908,
-    "axtb response 8t": 0.083980419,
-    "axtb numerical 1t": 1.136584353,
-    "axtb numerical 8t": 0.191245238,
-    "xtb 1t": 1.4278745499905199,
-    "xtb 8t": 0.24864706117659807,
-    "xtb --acc 0.001 8t": 0.36611573095433414,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.358630727045238
+    "axtb analytic 1t": 0.019305409,
+    "axtb analytic 8t": 0.015614235,
+    "axtb response 1t": 0.121597206,
+    "axtb response 8t": 0.029371044,
+    "axtb numerical 1t": 0.480940203,
+    "axtb numerical 8t": 0.07367612,
+    "xtb 1t": 1.01682083401829,
+    "xtb 8t": 0.1751837059855461,
+    "xtb --acc 0.001 8t": 0.18408498028293252,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.21811445290222764
    },
    "asymmetry": {
-    "analytic": 3.608224830031759e-16,
-    "response": 1.6608866187928228e-07,
-    "numerical": 2.5112757534029306e-05
+    "analytic": 3.3306690738754696e-16,
+    "response": 1.6608868616541095e-07,
+    "numerical": 2.51127576163801e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 1.4703186446141103e-09,
-     "max_dfreq": 3.790366194324141e-05
+     "max_dH": 1.4706016404630873e-09,
+     "max_dfreq": 2.623116937527925e-05
     },
     "response": {
-     "max_dH": 3.4736646692401507e-07,
-     "max_dfreq": 0.00756169420477093
+     "max_dH": 3.473662122388532e-07,
+     "max_dfreq": 0.007561735078184029
     },
     "numerical": {
-     "max_dH": 3.593490655839915e-05,
-     "max_dfreq": 0.7045410967759871
+     "max_dH": 3.593490625963813e-05,
+     "max_dfreq": 0.704541107028767
     }
    },
-   "load_after": "1.27 3.72 5.58",
-   "reference_spread": 4.4379734183142006e-06,
+   "load_after": "19.55 29.45 31.90",
+   "reference_spread": 4.43797369942267e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.00021557137363507894,
-     "max_dfreq": 0.45907758911243945
+     "max_dH": 0.00021557153129948825,
+     "max_dfreq": 0.4590771278531065
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.00021404827728591092,
-     "max_dfreq": 0.6772555873795945
+     "max_dH": 0.0002142983207311655,
+     "max_dfreq": 0.5757650840131312
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 3.794990261951625e-05,
-     "max_dfreq": 0.6158844178522891
+     "max_dH": 3.7948179620439504e-05,
+     "max_dfreq": 0.6158706198757287
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 7.574100733154232e-06,
-     "max_dfreq": 0.08868396503996223
+     "max_dH": 6.581837176489885e-06,
+     "max_dfreq": 0.03438911014247026
     }
    }
   },
   "tyr-xab": {
    "natoms": 33,
-   "load_before": "1.89 3.81 5.60",
+   "load_before": "19.34 29.24 31.82",
    "time": {
-    "axtb analytic 1t": 0.09526583,
-    "axtb analytic 8t": 0.04040327,
-    "axtb response 1t": 0.811195696,
-    "axtb response 8t": 0.149749712,
-    "axtb numerical 1t": 2.352787658,
-    "axtb numerical 8t": 0.401793109,
-    "xtb 1t": 3.0441814339719713,
-    "xtb 8t": 0.5199672419112176,
-    "xtb --acc 0.001 8t": 0.6436005621217191,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.7849819529801607
+    "axtb analytic 1t": 0.033828381,
+    "axtb analytic 8t": 0.023961174,
+    "axtb response 1t": 0.245042963,
+    "axtb response 8t": 0.05138669,
+    "axtb numerical 1t": 1.002550542,
+    "axtb numerical 8t": 0.138974022,
+    "xtb 1t": 2.3221973441541195,
+    "xtb 8t": 0.5476291091181338,
+    "xtb --acc 0.001 8t": 0.5677831540815532,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.669933439232409
    },
    "asymmetry": {
-    "analytic": 5.551115123125783e-16,
-    "response": 1.4146402388393042e-07,
-    "numerical": 1.9723691101938834e-05
+    "analytic": 3.3306690738754696e-16,
+    "response": 1.4146411841942097e-07,
+    "numerical": 1.9723691145487332e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 4.373472917151844e-09,
-     "max_dfreq": 2.4902355335814124e-05
+     "max_dH": 4.374207440704936e-09,
+     "max_dfreq": 2.4058808904214857e-05
     },
     "response": {
-     "max_dH": 2.62533061512471e-07,
-     "max_dfreq": 0.002466182996471389
+     "max_dH": 2.625328940908389e-07,
+     "max_dfreq": 0.0024661808216848158
     },
     "numerical": {
-     "max_dH": 2.6467641030258893e-05,
-     "max_dfreq": 0.2328361370092722
+     "max_dH": 2.6467640758420785e-05,
+     "max_dfreq": 0.2328361336971625
     }
    },
-   "load_after": "2.23 3.80 5.57",
-   "reference_spread": 3.0414374268539213e-06,
+   "load_after": "21.56 29.53 31.90",
+   "reference_spread": 3.041437164674754e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.0002879242458018183,
-     "max_dfreq": 1.044992140964041
+     "max_dH": 0.000287927242797692,
+     "max_dfreq": 1.044991072249104
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.00027941241747619916,
-     "max_dfreq": 0.9501885231611595
+     "max_dH": 0.0002774182172256001,
+     "max_dfreq": 0.9439907428122751
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 2.5743264560951218e-05,
-     "max_dfreq": 0.21884332435061538
+     "max_dH": 2.574356649698295e-05,
+     "max_dfreq": 0.21882253616648484
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 8.719366633602732e-06,
-     "max_dfreq": 0.0355505753802845
+     "max_dH": 8.27223106014685e-06,
+     "max_dfreq": 0.01660324554586623
     }
    }
   },
   "taxol": {
    "natoms": 113,
-   "load_before": "2.23 3.80 5.57",
+   "load_before": "22.00 29.49 31.87",
    "time": {
-    "axtb analytic 1t": 3.846713105,
-    "axtb analytic 8t": 0.937497025,
-    "axtb response 1t": 36.299076763,
-    "axtb response 8t": 6.595029443,
-    "axtb numerical 1t": 109.484127692,
-    "axtb numerical 8t": 17.301751636,
-    "xtb 1t": 122.80022418196313,
-    "xtb 8t": 20.991619053995237,
-    "xtb --acc 0.001 8t": 45.259194063954055,
-    "xtb --acc 0.001 sccacc 0.001 8t": 41.01628906908445
+    "axtb analytic 1t": 1.436175902,
+    "axtb analytic 8t": 0.517670451,
+    "axtb response 1t": 9.834693693,
+    "axtb response 8t": 1.454121184,
+    "axtb numerical 1t": 39.739423131,
+    "axtb numerical 8t": 5.236211888,
+    "xtb 1t": 93.49475325411186,
+    "xtb 8t": 12.74613680690527,
+    "xtb --acc 0.001 8t": 14.622137305792421,
+    "xtb --acc 0.001 sccacc 0.001 8t": 18.696948923170567
    },
    "asymmetry": {
-    "analytic": 6.661338147750939e-16,
-    "response": 1.7327552412349512e-07,
-    "numerical": 3.208661437052035e-05
+    "analytic": 4.996003610813204e-16,
+    "response": 1.7327546514289693e-07,
+    "numerical": 3.2086614324248336e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 4.354331575862069e-09,
-     "max_dfreq": 9.847857199929422e-06
+     "max_dH": 4.357738850324644e-09,
+     "max_dfreq": 9.801785836316412e-06
     },
     "response": {
-     "max_dH": 2.8077934144388195e-07,
-     "max_dfreq": 0.0008017778391149477
+     "max_dH": 2.807776983138055e-07,
+     "max_dfreq": 0.0008017662180463958
     },
     "numerical": {
-     "max_dH": 3.340409433016944e-05,
-     "max_dfreq": 0.09964783583018288
+     "max_dH": 3.340409489949181e-05,
+     "max_dfreq": 0.09964788194793073
     }
    },
-   "load_after": "5.21 4.10 4.91",
-   "reference_spread": 3.6592231178467216e-06,
+   "load_after": "35.47 32.70 32.73",
+   "reference_spread": 3.659224627639013e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.0006252660274661537,
-     "max_dfreq": 3.0900670326604995
+     "max_dH": 0.000625266047332762,
+     "max_dfreq": 3.0900669442662547
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.0006168376638655548,
-     "max_dfreq": 3.0297522552505143
+     "max_dH": 0.0006171092539128398,
+     "max_dfreq": 3.0023023783619465
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 3.3216744591446634e-05,
-     "max_dfreq": 0.08284011790419754
+     "max_dH": 3.32197637608056e-05,
+     "max_dfreq": 0.0828398411526905
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 1.695459036951067e-05,
-     "max_dfreq": 0.03690293383442622
+     "max_dH": 1.3953090583773697e-05,
+     "max_dfreq": 0.06435281767062406
     }
    }
   },
   "Cu(NH3)4 2+": {
    "natoms": 17,
-   "load_before": "8.31 6.71 5.73",
+   "load_before": "41.88 36.50 34.13",
    "time": {
-    "axtb analytic 1t": 0.017554252,
-    "axtb analytic 8t": 0.010225337,
-    "axtb response 1t": 0.106347334,
-    "axtb response 8t": 0.023329577,
-    "axtb numerical 1t": 0.320370663,
-    "axtb numerical 8t": 0.064526792,
-    "xtb 1t": 0.4023902590852231,
-    "xtb 8t": 0.07943837600760162,
-    "xtb --acc 0.001 8t": 0.12318564997985959,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.1513153500854969
+    "axtb analytic 1t": 0.00597422,
+    "axtb analytic 8t": 0.007120253,
+    "axtb response 1t": 0.032150476,
+    "axtb response 8t": 0.011282467,
+    "axtb numerical 1t": 0.133670242,
+    "axtb numerical 8t": 0.02768707,
+    "xtb 1t": 0.2764973919838667,
+    "xtb 8t": 0.07080859504640102,
+    "xtb --acc 0.001 8t": 0.06898228591307998,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.08446202939376235
    },
    "asymmetry": {
     "analytic": 1.1102230246251565e-16,
-    "response": 1.3169379128874503e-07,
-    "numerical": 1.4160724078282833e-05
+    "response": 1.3169377655053438e-07,
+    "numerical": 1.4160724152160369e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 1.868708937591279e-10,
-     "max_dfreq": 1.10677018485639e-05
+     "max_dH": 1.8677153573731786e-10,
+     "max_dfreq": 3.075993234434636e-05
     },
     "response": {
-     "max_dH": 1.7364794674401551e-07,
-     "max_dfreq": 0.0014245203244342974
+     "max_dH": 1.7364825816157392e-07,
+     "max_dfreq": 0.0014245226603009087
     },
     "numerical": {
-     "max_dH": 1.7914722406087158e-05,
-     "max_dfreq": 0.1281866501743707
+     "max_dH": 1.7914722694412077e-05,
+     "max_dfreq": 0.12818667011705998
     }
    },
-   "load_after": "8.28 6.73 5.74",
-   "reference_spread": 2.0918657366308935e-06,
+   "load_after": "41.88 36.50 34.13",
+   "reference_spread": 2.09186592547983e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 3.90301319452141e-05,
-     "max_dfreq": 2.418189496936634
+     "max_dH": 3.903006216299243e-05,
+     "max_dfreq": 2.4181887972207505
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 3.765425490176444e-05,
-     "max_dfreq": 2.330775544196513
+     "max_dH": 3.756460601427036e-05,
+     "max_dfreq": 2.298793129564501
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 1.594151168110569e-05,
-     "max_dfreq": 0.12229331689491119
+     "max_dH": 1.5941532505225897e-05,
+     "max_dfreq": 0.12229302401212294
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 2.8232930448235383e-06,
-     "max_dfreq": 0.12518791902130033
+     "max_dH": 2.1980070667448892e-06,
+     "max_dfreq": 0.08433943161060142
     }
-   },
-   "note": "timings re-measured (best of 3) after the accuracy run"
+   }
   },
   "caffeine+ doublet": {
    "natoms": 24,
-   "load_before": "8.28 6.73 5.74",
+   "load_before": "39.41 36.08 34.00",
    "time": {
-    "axtb analytic 1t": 0.054131766,
-    "axtb analytic 8t": 0.027433931,
-    "axtb response 1t": 0.405240769,
-    "axtb response 8t": 0.080156947,
-    "axtb numerical 1t": 1.272386553,
-    "axtb numerical 8t": 0.217786278,
-    "xtb 1t": 1.5589873509015888,
-    "xtb 8t": 0.2617073159199208,
-    "xtb --acc 0.001 8t": 0.44147804309614,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.552329890197143
+    "axtb analytic 1t": 0.020660828,
+    "axtb analytic 8t": 0.017771581,
+    "axtb response 1t": 0.119923658,
+    "axtb response 8t": 0.03207279,
+    "axtb numerical 1t": 0.517558412,
+    "axtb numerical 8t": 0.080278453,
+    "xtb 1t": 1.0431745490059257,
+    "xtb 8t": 0.1841595722362399,
+    "xtb --acc 0.001 8t": 0.18456004513427615,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.2293658833950758
    },
    "asymmetry": {
-    "analytic": 6.661338147750939e-16,
-    "response": 1.6306797884224622e-07,
-    "numerical": 2.1725435346175992e-05
+    "analytic": 4.440892098500626e-16,
+    "response": 1.6306791333908777e-07,
+    "numerical": 2.1725435115749203e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 1.3436713630632369e-08,
-     "max_dfreq": 3.4693920497375075e-05
+     "max_dH": 1.3437571722008101e-08,
+     "max_dfreq": 3.472281923677656e-05
     },
     "response": {
-     "max_dH": 3.5124515285200886e-07,
-     "max_dfreq": 0.0027145967903550172
+     "max_dH": 3.512438299102527e-07,
+     "max_dfreq": 0.0027145350805639623
     },
     "numerical": {
-     "max_dH": 3.712927668586552e-05,
-     "max_dfreq": 0.2596576634876442
+     "max_dH": 3.712927729571103e-05,
+     "max_dfreq": 0.25965759702643965
     }
    },
-   "load_after": "7.16 6.54 5.69",
-   "reference_spread": 4.441707582514276e-06,
+   "load_after": "39.41 36.08 34.00",
+   "reference_spread": 4.441706689561897e-06,
    "reference": "Richardson numerical 0.002/0.001, acc 1e-8",
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.0005465725297509143,
-     "max_dfreq": 0.865479602189204
+     "max_dH": 0.0005465725295763536,
+     "max_dfreq": 0.8654564196885559
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.0005449381799111027,
-     "max_dfreq": 0.7648535847739595
+     "max_dH": 0.0005455528895779043,
+     "max_dfreq": 0.7742715869609142
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 3.773692889541547e-05,
-     "max_dfreq": 0.22496467779895113
+     "max_dH": 3.773744098711784e-05,
+     "max_dfreq": 0.22497775566888123
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 9.001533303916589e-06,
-     "max_dfreq": 0.035331768552623544
+     "max_dH": 1.1732321971620998e-05,
+     "max_dfreq": 0.007821963160040468
     }
-   },
-   "note": "timings re-measured (best of 3) after the accuracy run"
+   }
   },
   "caffeine ALPB(water)": {
    "natoms": 24,
-   "load_before": "7.16 6.54 5.69",
+   "load_before": "36.65 35.56 33.85",
    "time": {
-    "axtb analytic 1t": 0.055965153,
-    "axtb analytic 8t": 0.026433519,
-    "axtb response 1t": 0.44452707,
-    "axtb response 8t": 0.084707634,
-    "axtb numerical 1t": 1.252595932,
-    "axtb numerical 8t": 0.209892026,
-    "xtb 1t": 1.4894567159935832,
-    "xtb 8t": 0.25116718700155616,
-    "xtb --acc 0.001 8t": 0.44911962701007724,
-    "xtb --acc 0.001 sccacc 0.001 8t": 0.5343349052127451
+    "axtb analytic 1t": 0.019226911,
+    "axtb analytic 8t": 0.016409641,
+    "axtb response 1t": 0.126549728,
+    "axtb response 8t": 0.03261178,
+    "axtb numerical 1t": 0.474015233,
+    "axtb numerical 8t": 0.078076982,
+    "xtb 1t": 1.0081682656891644,
+    "xtb 8t": 0.17142939707264304,
+    "xtb --acc 0.001 8t": 0.17071189684793353,
+    "xtb --acc 0.001 sccacc 0.001 8t": 0.22401691460981965
    },
    "asymmetry": {
-    "analytic": 2.498001805406602e-16,
-    "response": 1.4376508072927452e-05,
-    "numerical": 3.182404017246232e-05
+    "analytic": 4.440892098500626e-16,
+    "response": 1.4376507996738397e-05,
+    "numerical": 3.1824040136546605e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 1.9626174019293785e-09,
-     "max_dfreq": 5.683033907999402e-05
+     "max_dH": 1.95305405181756e-09,
+     "max_dfreq": 5.708091769207613e-05
     },
     "response": {
-     "max_dH": 9.390746346540912e-05,
-     "max_dfreq": 9.111112800779892
+     "max_dH": 9.390746241225156e-05,
+     "max_dfreq": 9.111113040671132
     },
     "numerical": {
-     "max_dH": 0.0001444437734510473,
-     "max_dfreq": 14.102765205162797
+     "max_dH": 0.00014444377240699358,
+     "max_dfreq": 14.10276545482613
     }
    },
-   "load_after": "6.29 6.37 5.64",
-   "reference_spread": 1.6998216432257318e-05,
+   "load_after": "36.65 35.56 33.85",
+   "reference_spread": 1.6998216678689696e-05,
    "reference": "response, step 1e-5, acc 1e-8",
-   "numerical_tight_vs_reference": 0.00012081201339608771,
+   "numerical_tight_vs_reference": 0.00012081201221289528,
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.0003462636570223526,
-     "max_dfreq": 14.851775426334427
+     "max_dH": 0.0003462635774949263,
+     "max_dfreq": 14.851778145041333
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.0002542204172062412,
-     "max_dfreq": 0.7496467089858712
+     "max_dH": 0.00025300822686347146,
+     "max_dfreq": 0.7563318806439412
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 0.00015376155702234717,
-     "max_dfreq": 14.133153596855216
+     "max_dH": 0.00015376147749492086,
+     "max_dfreq": 14.13315632834372
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 6.074636677075654e-06,
-     "max_dfreq": 0.031024879506659886
+     "max_dH": 7.646859883447474e-06,
+     "max_dfreq": 0.03771006394632792
     }
-   },
-   "note": "timings re-measured (best of 3) after the accuracy run"
+   }
   },
   "taxol ALPB(water)": {
    "natoms": 113,
-   "load_before": "10.50 7.85 6.24",
+   "load_before": "34.60 35.15 33.72",
    "time": {
-    "axtb analytic 1t": 3.804241502,
-    "axtb analytic 8t": 1.022563404,
-    "axtb response 1t": 39.619859688,
-    "axtb response 8t": 6.801057001,
-    "axtb numerical 1t": 111.540596159,
-    "axtb numerical 8t": 18.39028128,
-    "xtb 1t": 129.6264606330078,
-    "xtb 8t": 21.74696339503862,
-    "xtb --acc 0.001 8t": 22.851697707083076,
-    "xtb --acc 0.001 sccacc 0.001 8t": 37.34520028089173
+    "axtb analytic 1t": 1.2879374399999999,
+    "axtb analytic 8t": 0.417195037,
+    "axtb response 1t": 9.125736615,
+    "axtb response 8t": 1.361366688,
+    "axtb numerical 1t": 41.666785124,
+    "axtb numerical 8t": 5.33000625,
+    "xtb 1t": 102.84914602572098,
+    "xtb 8t": 15.703718878794461,
+    "xtb --acc 0.001 8t": 14.819093118887395,
+    "xtb --acc 0.001 sccacc 0.001 8t": 24.661205295007676
    },
    "asymmetry": {
-    "analytic": 8.881784197001252e-16,
-    "response": 2.0900535849521784e-06,
-    "numerical": 4.876339232767757e-05
+    "analytic": 8.326672684688674e-16,
+    "response": 2.090053727740737e-06,
+    "numerical": 4.876339234555216e-05
    },
    "accuracy": {
     "analytic": {
-     "max_dH": 4.386536578415701e-09,
-     "max_dfreq": 2.2559271542377246e-05
+     "max_dH": 4.3880874489587995e-09,
+     "max_dfreq": 2.2534313984579057e-05
     },
     "response": {
-     "max_dH": 1.739529184197064e-05,
-     "max_dfreq": 0.024892497781635825
+     "max_dH": 1.739529607269752e-05,
+     "max_dfreq": 0.02489253354249854
     },
     "numerical": {
-     "max_dH": 0.0002430589174586828,
-     "max_dfreq": 0.3013022735781874
+     "max_dH": 0.0002430589243901382,
+     "max_dfreq": 0.301302294671018
     }
    },
-   "load_after": "4.95 3.90 4.71",
-   "reference_spread": 2.2751834913570246e-05,
+   "load_after": "57.80 44.09 37.35",
+   "reference_spread": 2.2751833191114734e-05,
    "reference": "response, step 1e-5, acc 1e-8",
-   "numerical_tight_vs_reference": 1.1551519092822815e-05,
+   "numerical_tight_vs_reference": 1.1551523304814681e-05,
    "vs_xtb": {
     "analytic vs xtb --acc 0.001": {
-     "max_dH": 0.000927457166640111,
-     "max_dfreq": 4.277584069358909
+     "max_dH": 0.0009274568801752592,
+     "max_dfreq": 4.277584687545641
     },
     "numerical vs xtb --acc 0.001": {
-     "max_dH": 0.0008973752138002888,
-     "max_dfreq": 4.2704754260153095
+     "max_dH": 0.0008937472264575197,
+     "max_dfreq": 4.244338242957383
     },
     "analytic vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 0.00024146404820790668,
-     "max_dfreq": 0.2947906521311552
+     "max_dH": 0.000241462446434082,
+     "max_dfreq": 0.29479105589820165
     },
     "numerical vs xtb --acc 0.001 sccacc 0.001": {
-     "max_dH": 1.5138061749694377e-05,
-     "max_dfreq": 0.07841656598816371
+     "max_dH": 1.8514973706584836e-05,
+     "max_dfreq": 0.05795584339466586
     }
    }
   }
  },
  "xtb_version": "   * xtb version 6.7.1 (26dd68d) compiled by 'froitzheim@fs7' on 2026-05-14",
- "axtb_commit": "6053ea3"
+ "axtb_commit": "3499913"
 }

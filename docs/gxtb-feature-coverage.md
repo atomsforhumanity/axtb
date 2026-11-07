@@ -176,4 +176,4 @@ geomeTRIC or Sella, or any program that takes axtb's gradients and Hessians).
   converged ones (taxol at `--acc 1`: 5.7e-5 e).
 - Restarts (`xtbrestart`, in-run optimization or MD steps) can follow another SCF solution than a
   fresh start on stretched bonds and metal clusters, at 0 K and 3000 K (N2 recompressed from 4 Å
-  at 3000 K: up to 0.53 Eh above it).
+  at 3000 K: up to 0.30 Eh above it).

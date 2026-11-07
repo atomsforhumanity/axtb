@@ -9,7 +9,7 @@
   "real": 0,
   "unparametrized": 0,
   "max_dE_ok": 4.934008757118136e-11,
-  "max_dG": 1.8359063626930152e-09,
+  "max_dG": 2.4615142287688237e-09,
   "gradient_against": "the program's analytic gradient"
  },
  {

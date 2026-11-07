@@ -42,11 +42,11 @@
   "status": "Parametrization detail; xtb 6.8.0 uses mctc-lib's (CODATA 2018) bohr, as tblite"
  },
  {
-  "program": "xtb vs tblite",
+  "program": "xtb 6.7.1 vs tblite",
   "finding": "Different D4 cutoffs (xtb: 72/40 bohr hard; tblite: 50/25 bohr smoothed), plus the constants above",
-  "consequence": "The two programs' GFN2-xTB energies differ by ~1e-8 Eh for small molecules and grow with size: 4.5e-04 Eh (0.28 kcal/mol) for (H2O)333 (999 atoms)",
+  "consequence": "The two programs disagree by ~1e-5 Eh for molecules longer than 25 bohr",
   "in_axtb": "Both reproduced; default 72/40 with a smooth switch",
-  "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs"
+  "status": "Design difference; xtb 6.8.0 uses tblite's 50/25 bohr smoothed cutoffs and agrees with tblite to 4e-12 Eh on the same molecules"
  },
  {
   "program": "xtb vs tblite",
@@ -81,14 +81,14 @@
   "finding": "For GFN2-xTB, --acc does not reach the displaced SCFs of --hess; only $hess sccacc in an xcontrol file does",
   "consequence": "Caffeine: --acc 0.001 changes the Hessian by 7.5e-06 Eh/bohr\u00b2 (reference SCF only); $hess sccacc=0.001 changes it by 2.1e-04 and the lowest mode from -26.97 to -27.55 cm\u207b\u00b9. Default GFN2 Hessians carry ~1e-4 Eh/bohr\u00b2 of SCF noise",
   "in_axtb": "Analytic Hessian: no displaced SCFs",
-  "status": "AFH lesson (research-skills #19, merged); fixed in xtb 6.8.0; xtb 6.8.0 passes --acc to them (PR #1500): --acc 0.001 is 3.7e-05 Eh/bohr\u00b2 from the analytic Hessian (6.7.1: 2.2e-04)"
+  "status": "Documented in docs/validation.md (Hessians); fixed in xtb 6.8.0; xtb 6.8.0 passes --acc to them (PR #1500): --acc 0.001 is 3.7e-05 Eh/bohr\u00b2 from the analytic Hessian (6.7.1: 2.2e-04)"
  },
  {
   "program": "g-xTB 2.0.1 program",
   "finding": "--hess at default accuracy (or plain --hess) gives badly wrong frequencies; $hess sccacc has no effect, only --acc",
-  "consequence": "Taxol: frequencies off by up to 149 cm\u207b\u00b9 (mean 78) at default accuracy, 1.1 cm\u207b\u00b9 at --acc 0.001 (AFH's setting). Displaced SCFs stop at the --acc thresholds and the gradient uses the previous iteration's potentials, so the finite difference amplifies the SCF error ~100\u00d7. An AFH skill entry that said plain --hess tightens itself was wrong for these molecules",
+  "consequence": "Taxol: frequencies off by up to 149 cm\u207b\u00b9 (mean 78) at default accuracy, 1.1 cm\u207b\u00b9 at --acc 0.001 (a common tight setting). Displaced SCFs stop at the --acc thresholds and the gradient uses the previous iteration's potentials, so the finite difference amplifies the SCF error ~100\u00d7. Plain --hess does not tighten them for these molecules",
   "in_axtb": "Analytic g-xTB 2.0.1 Hessian, ~1e-4 cm\u207b\u00b9 from tight references",
-  "status": "AFH lesson (research-skills #19, merged); not reported upstream"
+  "status": "Documented in docs/gxtb-v2.0.1-spec.md \u00a711.5; not reported upstream"
  },
  {
   "program": "g-xTB v1.1 program",
@@ -114,7 +114,7 @@
  {
   "program": "xtb",
   "finding": "Broyden mixing keeps every iteration (no history limit), so each iteration costs more than the last",
-  "consequence": "A 1000-iteration SCF retry of stretched HF (2 atoms) takes 56 s in the xtb programs that mepd's retry ladder runs; axtb reproducing xtb's loop exactly takes as long",
+  "consequence": "A 1000-iteration SCF retry of stretched HF (2 atoms) takes 47 s in the xtb programs, retried at higher electronic temperatures; axtb reproducing xtb's loop exactly takes as long",
   "in_axtb": "Default: Broyden, then DIIS as fallback, converges the same case at 300 K in 0.2 s (a different electronic temperature, so a different \u0394G_solv)",
   "status": "Documented in README; not reported upstream"
  },
@@ -128,8 +128,8 @@
  {
   "program": "xtb",
   "finding": "GFN-FF allocates a 4-byte array over all pairs of hydrogen-bond acceptors and every hydrogen (considered_ABH, N_AB\u00b2 \u00d7 N_H) in every energy evaluation",
-  "consequence": "Memory grows as N\u00b3: 9.0 GiB for a 3000-atom water cluster, and at 5100 atoms the array alone would need 37 GiB, so xtb stops with 'insufficient virtual memory'. This is what limits mepd's GFN-FF environments today",
-  "in_axtb": "No dense hydrogen-bond array: 460 MiB at 5100 atoms",
+  "consequence": "Memory grows as N\u00b3: 9.0 GiB for a 3000-atom water cluster, and at 5100 atoms the array alone would need 37 GiB, so xtb stops with 'insufficient virtual memory'. This limits xtb's GFN-FF to a few thousand atoms",
+  "in_axtb": "No dense hydrogen-bond array: 461 MiB at 5100 atoms",
   "status": "Reported: grimme-lab/xtb#1515; still in xtb 6.8.0 (8.9 GiB for 1000 waters, 6.7.1: 10.0 GiB)"
  },
  {
@@ -193,7 +193,7 @@
   "finding": "Each writes its own Molden dialect: Cartesian functions only, unnormalized primitives, and three different normalizations of the components",
   "consequence": "tblite (xtb --gxtb) writes the valence charge in the atomic-number column (O as 6); g-xTB 1.1.0 writes f functions in xtb's internal order instead of Molden's, so standard readers show wrong f orbitals; a reader must know which program wrote a file",
   "in_axtb": "Standard Molden: spherical [5D]/[7F] (or Cartesian on request), normalized contractions, atomic numbers",
-  "status": "AFH lesson (research-skills #21, merged)"
+  "status": "Documented in README (Molden files)"
  },
  {
   "program": "g-xTB 2.0.1 and 1.1.0 programs",

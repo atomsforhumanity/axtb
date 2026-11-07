@@ -15,7 +15,7 @@
   "gradient": "analytic",
   "hessian": "analytic",
   "extras": "electronic temperature, solvation correction from GFN2-xTB/ALPB, SCF restarts, bond orders, gap and quadrupole, vibrational analysis, Molden",
-  "validation": "84 reference molecules, worst \u0394E 2.2e-11 Eh with the same SCF iterations; every element H\u2013Lr: 155 of 169 molecules agree, the rest rounding-sensitive or a program gradient error"
+  "validation": "84 reference molecules, worst \u0394E 9.1e-12 Eh with the same SCF iterations; every element H\u2013Lr: 155 of 169 molecules agree, the rest rounding-sensitive or a program gradient error"
  },
  {
   "method": "g-xTB v1.1",

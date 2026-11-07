@@ -8819,14 +8819,14 @@
    "dE_default": -4.2719743760244455e-06,
    "dG_program": 0.002028609818262436,
    "fd_gxtb": {
-    "error": "error: SCF not converged in 1000 iterations (last energy change 2.715e-10 Eh, residual 1.088e-7)"
+    "error": ""
    },
    "fd_axtb": {
-    "error": "error: SCF not converged in 1000 iterations (last energy change -1.683e-11 Eh, residual 6.480e-5)"
+    "error": ""
    },
    "status": "rounding-sensitive",
    "note": "dE -5.9e-06; iterations 41 vs 59; terms es1 3.1e-04, es2_3 5.2e-04, es_multipole 4.7e-06, exchange -2.7e-04, spin_polarization -1.7e-04, electronic -5.8e-06, dispersion -1.1e-07 | shifted input: program converges, axtb fails",
-   "fd_note": "FD (axtb): error: SCF not converged in 1000 iterations (last energy change -1.683e-11 Eh, residual 6.480e-5)"
+   "fd_note": "FD (axtb): "
   },
   {
    "id": "023-V-2",
@@ -9640,14 +9640,14 @@
    "dE_default": -2.1681853468180634e-06,
    "dG_program": 0.0040282413811220455,
    "fd_gxtb": {
-    "error": "displaced geometry: error: SCF not converged in 1000 iterations (last energy change -3.930e-6 Eh, residual 6.900e-4)"
+    "error": "displaced geometry: {\"error\":{\"energy_change\":-3.929592821805272e-6,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change -3.930e-6 Eh, residual 6.900e-4)\",\"residual\":0.0006900057150942379}}"
    },
    "fd_axtb": {
-    "error": "displaced geometry: error: SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 7.162e-8)"
+    "error": "displaced geometry: {\"error\":{\"energy_change\":0.0,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 7.162e-8)\",\"residual\":7.161813807021352e-8}}"
    },
    "status": "ok",
    "note": "",
-   "fd_note": "FD (axtb): displaced geometry: error: SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 7.162e-8)"
+   "fd_note": "FD (axtb): displaced geometry: {\"error\":{\"energy_change\":0.0,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 7.162e-8)\",\"residual\":7.161813807021352e-8}}"
   },
   {
    "id": "030-Zn",
@@ -13321,14 +13321,14 @@
    "dE_default": -0.03994994508320815,
    "dG_program": 6.441866120788196e-06,
    "fd_gxtb": {
-    "error": "displaced geometry: error: SCF not converged in 1000 iterations (last energy change 4.193e-6 Eh, residual 4.952e-4)"
+    "error": "displaced geometry: {\"error\":{\"energy_change\":4.193400855001528e-6,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change 4.193e-6 Eh, residual 4.952e-4)\",\"residual\":0.0004952361116186024}}"
    },
    "fd_axtb": {
-    "error": "displaced geometry: error: SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 2.270e-10)"
+    "error": "displaced geometry: {\"error\":{\"energy_change\":0.0,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 2.270e-10)\",\"residual\":2.270292804281917e-10}}"
    },
    "status": "rounding-sensitive",
    "note": "dE 5.2e-07; iterations 108 vs 72; terms es1 3.3e-05, es2_3 1.5e-04, es_multipole 6.7e-06, exchange -4.9e-05, electronic 5.1e-07 | shifted: dE 3.9e-09; iterations 51 vs 53; terms es1 2.6e-07, es2_3 1.2e-06, es_multipole 5.0e-08, exchange -3.8e-07 | axtb's own change: dE -4.8e-07, iterations 51 vs 108, terms 1.4e-04, dG 8.5e-06",
-   "fd_note": "FD (axtb): displaced geometry: error: SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 2.270e-10)"
+   "fd_note": "FD (axtb): displaced geometry: {\"error\":{\"energy_change\":0.0,\"iterations\":1000,\"kind\":\"scf_not_converged\",\"message\":\"SCF not converged in 1000 iterations (last energy change 0.000e0 Eh, residual 2.270e-10)\",\"residual\":2.270292804281917e-10}}"
   },
   {
    "id": "071-Lu",
@@ -15422,14 +15422,14 @@
    "dE_default": -2.2647845980827697e-06,
    "dG_program": 0.0005960354062951971,
    "fd_gxtb": {
-    "error": "error: SCF not converged in 1000 iterations (last energy change -6.615e-8 Eh, residual 9.871e-5)"
+    "error": ""
    },
    "fd_axtb": {
-    "error": "error: SCF not converged in 1000 iterations (last energy change 1.293e-6 Eh, residual 8.210e-4)"
+    "error": ""
    },
    "status": "rounding-sensitive",
    "note": "dE -1.7e-05; terms es1 5.7e-05, es2_3 1.1e-04, es_multipole -4.7e-05, exchange -5.4e-05, spin_polarization 1.6e-06, electronic -1.7e-05, dispersion -7.0e-08 | shifted: dE -2.4e-05; terms es1 4.5e-05, es2_3 1.2e-04, es_multipole -6.5e-05, exchange -4.8e-05, spin_polarization 4.2e-06, electronic -2.4e-05, dispersion -7.2e-08 | axtb's own change: dE -1.4e-05, iterations 11 vs 11, terms 5.9e-05, dG 1.2e-03",
-   "fd_note": "FD (axtb): error: SCF not converged in 1000 iterations (last energy change 1.293e-6 Eh, residual 8.210e-4)"
+   "fd_note": "FD (axtb): "
   },
   {
    "id": "093-Np",
@@ -15532,7 +15532,7 @@
     "energy": null,
     "iterations": null,
     "converged": false,
-    "error": "returncode 0:     41\n UKS ?   T\nwall time for setup, EEQ and integrals    1.00 s\n \n SCF iter         E             dE                dP               gap(eV)\n (sygvr) failed to solve eigenvalue problem.           4"
+    "error": "returncode 0:     41\n UKS ?   T\nwall time for setup, EEQ and integrals    0.00 s\n \n SCF iter         E             dE                dP               gap(eV)\n (sygvr) failed to solve eigenvalue problem.           4"
    },
    "axtb": {
     "energy": null,

@@ -43,9 +43,9 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 1.454662168498544e-09,
-  "max_dG": 1.7871350607712166e-08,
-  "max_dq": 4.370063977354732e-09
+  "max_dE": 1.45464440493015e-09,
+  "max_dG": 1.7871372930133855e-08,
+  "max_dq": 4.370079520477077e-09
  },
  {
   "id": "structures|tblite",
@@ -91,9 +91,9 @@
   "expected_difference": 1,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 3.6550318327499554e-10,
-  "max_dG": 1.948294078152335e-10,
-  "max_dq": 1.2222455825217082e-09
+  "max_dE": 3.6544633985613473e-10,
+  "max_dG": 1.948296667227123e-10,
+  "max_dq": 1.2222571843523156e-09
  },
  {
   "id": "multielement|tblite",
@@ -137,11 +137,11 @@
   "fail": 0,
   "different_solution": 0,
   "expected_difference": 0,
-  "both_failed": 2,
-  "ref_failed": 2,
-  "max_dE": 3.4647449353997217e-09,
-  "max_dG": 4.402798514657746e-09,
-  "max_dq": 1.718821351914812e-08
+  "both_failed": 1,
+  "ref_failed": 3,
+  "max_dE": 3.4646809865535033e-09,
+  "max_dG": 4.402796321967273e-09,
+  "max_dq": 1.7188171996807e-08
  },
  {
   "id": "charges|tblite",
@@ -187,9 +187,9 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 1.723219789084851e-09,
-  "max_dG": 2.8339471229779645e-09,
-  "max_dq": 3.0933490213769232e-09
+  "max_dE": 1.7231980287135684e-09,
+  "max_dG": 2.833314626752431e-09,
+  "max_dq": 3.0775388903947487e-09
  },
  {
   "id": "spin|tblite",
@@ -235,9 +235,9 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 6.203329405707336e-09,
-  "max_dG": 4.592684003934533e-09,
-  "max_dq": 5.748490794488248e-09
+  "max_dE": 6.203332958421015e-09,
+  "max_dG": 4.592689333005051e-09,
+  "max_dq": 5.748442610808979e-09
  },
  {
   "id": "open_shell_metals|tblite",
@@ -283,9 +283,9 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 2.911722774001646e-08,
-  "max_dG": 5.522757248049848e-09,
-  "max_dq": 1.0123558102925756e-09
+  "max_dE": 2.91172295163733e-08,
+  "max_dG": 5.522754309428279e-09,
+  "max_dq": 1.0123585858501372e-09
  },
  {
   "id": "solvation|tblite",
@@ -332,8 +332,8 @@
   "both_failed": 0,
   "ref_failed": 0,
   "max_dE": 1.4731039499338294e-08,
-  "max_dG": 7.608921999413543e-11,
-  "max_dq": 5.906748423711861e-10
+  "max_dG": 7.608957908189495e-11,
+  "max_dq": 5.906819477985437e-10
  },
  {
   "id": "etemp_acc|tblite",
@@ -379,9 +379,9 @@
   "expected_difference": 3,
   "both_failed": 8,
   "ref_failed": 0,
-  "max_dE": 2.72038690241061e-07,
-  "max_dG": 8.436222497867907e-07,
-  "max_dq": 4.235752428627393e-05
+  "max_dE": 2.7203942920550617e-07,
+  "max_dG": 1.0922394340605324e-06,
+  "max_dq": 4.235607407276909e-05
  },
  {
   "id": "hessian|hessian",
@@ -539,9 +539,9 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 4.263256414560601e-14,
-  "max_dG": 2.0446422333009195e-12,
-  "max_dq": 4.317390889241324e-11
+  "max_dE": 2.4868995751603507e-14,
+  "max_dG": 2.0445034554228414e-12,
+  "max_dq": 4.312816770379868e-11
  },
  {
   "id": "api|cli",
@@ -555,8 +555,8 @@
   "expected_difference": 0,
   "both_failed": 0,
   "ref_failed": 0,
-  "max_dE": 5.329070518200751e-15,
-  "max_dG": 1.762479051592436e-15,
-  "max_dq": 3.2529534621517087e-14
+  "max_dE": 1.7763568394002505e-14,
+  "max_dG": 2.6213840126354526e-15,
+  "max_dq": 2.0872192862952943e-14
  }
 ]

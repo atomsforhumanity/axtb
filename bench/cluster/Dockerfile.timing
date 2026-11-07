@@ -4,7 +4,7 @@
 #   xtb-6.8.0-linux-x86_64-ifx-mkl.tar.xz, sha256-checked), the g-xTB 2.0.1 build of xtb
 #   (/opt/gxtb/bin/xtb, from the bench image's base), the g-xtb 1.1.0 program
 #   (grimme-lab/g-xtb v1.1.0 release binary + parameter files), tblite 0.8.0 + dftd4 4.3.1 (PyPI).
-# The base is the earlier bench image (Rust 1.86, tblite, dftd4, maturin, cargo registry).
+# The base is the bench image (Rust, tblite, dftd4, maturin, cargo registry).
 # Build context: bench/cluster/make_timing_context.sh (it puts the registry, $REGISTRY, for <registry>).
 FROM <registry>/axtb-bench:2026-11-04c
 
@@ -22,7 +22,7 @@ RUN rm -rf /opt/axtb
 COPY axtb /opt/axtb
 WORKDIR /opt/axtb
 RUN cargo build --release -p axtb-cli \
-    && (cd crates/axtb-py && maturin build --release -o /tmp/wheels) \
+    && (cd crates/axtb-py && maturin build --release --compatibility linux -o /tmp/wheels) \
     && pip install --no-cache-dir --force-reinstall --no-deps /tmp/wheels/*.whl && rm -rf /tmp/wheels \
     && rm -rf target/release/deps target/release/build target/release/incremental
 

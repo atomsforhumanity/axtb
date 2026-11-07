@@ -4,9 +4,9 @@
   "method": "g-xTB 2.0.1",
   "program": "the g-xTB 2.0.1 program",
   "molecules": 11,
-  "bond_orders": 1.1293355139940786e-11,
-  "gap_eV": 3.724665020854445e-11,
-  "quadrupole": 4.8956202435501694e-05,
+  "bond_orders": 9.436673664708906e-12,
+  "gap_eV": 3.7339020764193265e-11,
+  "quadrupole": 4.895620240485954e-05,
   "quadrupole_printed": 5e-05
  },
  {

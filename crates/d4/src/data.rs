@@ -18,8 +18,8 @@ pub const ELECTRON_MASS: f64 = 9.1093837015e-31;
 pub const SPEED_OF_LIGHT: f64 = 299792458.0e0;
 /// CODATA 2018 fine structure constant, mctc-lib
 pub const FINE_STRUCTURE: f64 = 7.2973525693e-3;
-/// pi as written in mctc-lib
-pub const PI: f64 = 3.1415926535897932384626433832795029;
+/// pi (mctc-lib writes 3.1415926535897932384626433832795029, which is this value)
+pub const PI: f64 = std::f64::consts::PI;
 
 /// Covalent radii (Angstrom), Pyykko & Atsumi 2009 (dftd4 data/covrad.f90)
 pub static COVALENT_RAD_2009: [f64; 118] = [

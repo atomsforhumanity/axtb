@@ -3,96 +3,120 @@
   "id": "caffeine|axtb analytic",
   "molecule": "caffeine",
   "method": "axtb analytic",
-  "max_dfreq": 3.1312973192143545e-06,
-  "mean_dfreq": 2.621308992897556e-07,
+  "max_dfreq": 3.130000891360396e-06,
+  "mean_dfreq": 2.626552067289712e-07,
   "against": "tight reference"
  },
  {
   "id": "caffeine|program --acc 0.001",
   "molecule": "caffeine",
   "method": "program --hess --acc 0.001",
-  "max_dfreq": 0.5396058774347914,
-  "mean_dfreq": 0.030446642432242637,
+  "max_dfreq": 0.5396058625627091,
+  "mean_dfreq": 0.0304466454062698,
   "against": "tight reference"
  },
  {
   "id": "caffeine|program --acc 0.0001",
   "molecule": "caffeine",
   "method": "program --hess --acc 0.0001",
-  "max_dfreq": 0.35440128970973106,
-  "mean_dfreq": 0.021362915809508703,
+  "max_dfreq": 0.354401274636178,
+  "mean_dfreq": 0.021362915351681472,
   "against": "tight reference"
  },
  {
   "id": "taxol|axtb analytic",
   "molecule": "taxol",
   "method": "axtb analytic",
-  "max_dfreq": 0.0001488829798068636,
-  "mean_dfreq": 9.175340785536332e-06,
+  "max_dfreq": 1.1393303434026336e-05,
+  "mean_dfreq": 7.157433863022797e-07,
   "against": "tight reference"
  },
  {
   "id": "taxol|program --acc 0.001",
   "molecule": "taxol",
   "method": "program --hess --acc 0.001",
-  "max_dfreq": 1.0665835734471614,
-  "mean_dfreq": 0.14197180544365973,
+  "max_dfreq": 1.0665609515600494,
+  "mean_dfreq": 0.14197093497368182,
   "against": "tight reference"
  },
  {
   "id": "taxol|program --acc 0.0001",
   "molecule": "taxol",
   "method": "program --hess --acc 0.0001",
-  "max_dfreq": 0.27779941620755455,
-  "mean_dfreq": 0.01557080019724642,
+  "max_dfreq": 0.277936024335383,
+  "mean_dfreq": 0.015572086323248344,
+  "against": "tight reference"
+ },
+ {
+  "id": "Ni(CO)4|axtb analytic",
+  "molecule": "Ni(CO)4",
+  "method": "axtb analytic",
+  "max_dfreq": 6.746905063437225e-05,
+  "mean_dfreq": 2.8556656595296338e-05,
+  "against": "tight reference"
+ },
+ {
+  "id": "Ni(CO)4|program --acc 0.001",
+  "molecule": "Ni(CO)4",
+  "method": "program --hess --acc 0.001",
+  "max_dfreq": 0.06679069396750492,
+  "mean_dfreq": 0.02235226300864889,
+  "against": "tight reference"
+ },
+ {
+  "id": "Ni(CO)4|program --acc 0.0001",
+  "molecule": "Ni(CO)4",
+  "method": "program --hess --acc 0.0001",
+  "max_dfreq": 0.05456434461950721,
+  "mean_dfreq": 0.01982756379136133,
   "against": "tight reference"
  },
  {
   "id": "Ni(CO)4|program --acc 1",
   "molecule": "Ni(CO)4",
   "method": "program --hess --acc 1",
-  "max_dfreq": 28.956127445060986,
-  "mean_dfreq": 10.736197466544038,
+  "max_dfreq": 28.95612744623469,
+  "mean_dfreq": 10.736197466568475,
   "against": "axtb analytic"
  },
  {
   "id": "Ni(CO)4|program --acc 0.01",
   "molecule": "Ni(CO)4",
   "method": "program --hess --acc 0.01",
-  "max_dfreq": 1.5320429517853995,
-  "mean_dfreq": 0.316807388248837,
+  "max_dfreq": 1.5320429529591024,
+  "mean_dfreq": 0.31680738824329613,
   "against": "axtb analytic"
  },
  {
   "id": "caffeine|program --acc 1",
   "molecule": "caffeine",
   "method": "program --hess --acc 1",
-  "max_dfreq": 103.98167578618138,
-  "mean_dfreq": 30.413941479356193,
+  "max_dfreq": 103.98167578525481,
+  "mean_dfreq": 30.413941480696586,
   "against": "axtb analytic"
  },
  {
   "id": "caffeine|program --acc 0.01",
   "molecule": "caffeine",
   "method": "program --hess --acc 0.01",
-  "max_dfreq": 4.342504520814941,
-  "mean_dfreq": 0.29102583972266266,
+  "max_dfreq": 4.3425045125992625,
+  "mean_dfreq": 0.2910258394846135,
   "against": "axtb analytic"
  },
  {
   "id": "taxol|program --acc 1",
   "molecule": "taxol",
   "method": "program --hess --acc 1",
-  "max_dfreq": 148.52959250312554,
-  "mean_dfreq": 78.14320436032109,
+  "max_dfreq": 148.5295924340271,
+  "mean_dfreq": 78.14320435954697,
   "against": "axtb analytic"
  },
  {
   "id": "taxol|program --acc 0.01",
   "molecule": "taxol",
   "method": "program --hess --acc 0.01",
-  "max_dfreq": 9.922779328048136,
-  "mean_dfreq": 1.3813719887762073,
+  "max_dfreq": 9.922779342130752,
+  "mean_dfreq": 1.3813719850647466,
   "against": "axtb analytic"
  }
 ]

@@ -1,4 +1,6 @@
 {
+ "xtb_version": "6.7.1 (26dd68d)",
+ "conventions": "xtb-6.7.1",
  "accuracy": {
   "xtb_version": "6.7.1 (26dd68d)",
   "conventions": "xtb-6.7.1",
@@ -4027,1020 +4029,6 @@
    }
   ]
  },
- "scaling": {
-  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
-  "logical_cpus": 16,
-  "xtb_version": "6.7.1 (26dd68d)",
-  "xtb_address_space_cap_gib": 10.0,
-  "axtb_threads": [
-   1,
-   8
-  ],
-  "notes": "one run at a time; xtb with OMP_NUM_THREADS=1 and unlimited stack; axtb energy+gradient with one thread; peak RSS, user+system CPU time from /usr/bin/time -v; load_before/after: 1/5/15-minute load averages of the machine around each run (other work was running)",
-  "systems": [
-   {
-    "name": "water100",
-    "natoms": 300,
-    "charge": 0,
-    "composition": {
-     "H": 200,
-     "O": 100
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 0.093,
-     "peak_rss_mib": 10.0,
-     "cpu_s": 0.02,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "energy": -32.817624080545194,
-     "setup_s": 0.012,
-     "eval_s": 0.025,
-     "timings": {
-      "hb lists": 0.01,
-      "repulsion": 0.002,
-      "cn": 0.001,
-      "eeq solve": 0.003,
-      "eeq gradient": 0.001,
-      "dispersion": 0.002,
-      "bonds": 0.001,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.005
-     }
-    },
-    "xtb_considered_ABH_gib": 0.01,
-    "xtb_hb_map": {
-     "nab": 100,
-     "nh": 200
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 0.04,
-     "peak_rss_mib": 11.6,
-     "cpu_s": 0.07,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "energy": -32.817624080545194,
-     "setup_s": 0.009,
-     "eval_s": 0.026,
-     "timings": {
-      "hb lists": 0.011,
-      "repulsion": 0.001,
-      "cn": 0.002,
-      "eeq solve": 0.005,
-      "eeq gradient": 0.0,
-      "dispersion": 0.001,
-      "bonds": 0.001,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.005
-     }
-    },
-    "xtb_grad": {
-     "ok": true,
-     "wall_s": 0.086,
-     "peak_rss_mib": 64.2,
-     "cpu_s": 0.07,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "energy": -32.817624080545
-    },
-    "energy_diff": 1.9184653865522705e-13,
-    "gradient_maxdiff": 2.768618667658984e-15,
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 0.365,
-     "peak_rss_mib": 27.0,
-     "cpu_s": 0.35,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "energy": -32.817624080545194,
-     "setup_s": 0.008,
-     "eval_s": 0.351,
-     "timings": {
-      "energy+gradient": 0.025,
-      "columns": 0.3,
-      "eeq response": 0.023
-     },
-     "max_asymmetry": 2.90878432451791e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 0.13,
-     "peak_rss_mib": 27.4,
-     "cpu_s": 0.72,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "energy": -32.817624080545194,
-     "setup_s": 0.009,
-     "eval_s": 0.115,
-     "timings": {
-      "energy+gradient": 0.022,
-      "columns": 0.081,
-      "eeq response": 0.009
-     },
-     "max_asymmetry": 2.90878432451791e-14
-    },
-    "xtb_hess": {
-     "ok": true,
-     "wall_s": 44.368,
-     "peak_rss_mib": 113.9,
-     "cpu_s": 44.34,
-     "load_before": [
-      5.18,
-      8.49,
-      7.73
-     ],
-     "load_after": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "energy": -32.817624080545
-    }
-   },
-   {
-    "name": "crambin",
-    "natoms": 640,
-    "charge": 2,
-    "composition": {
-     "H": 313,
-     "C": 202,
-     "N": 55,
-     "O": 64,
-     "S": 6
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 0.12,
-     "peak_rss_mib": 14.4,
-     "cpu_s": 0.1,
-     "load_before": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "load_after": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "energy": -107.49112767505072,
-     "setup_s": 0.044,
-     "eval_s": 0.07,
-     "timings": {
-      "hb lists": 0.018,
-      "repulsion": 0.008,
-      "cn": 0.003,
-      "eeq solve": 0.011,
-      "eeq gradient": 0.009,
-      "dispersion": 0.017,
-      "bonds": 0.0,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.004
-     }
-    },
-    "xtb_considered_ABH_gib": 0.0,
-    "xtb_hb_map": {
-     "nab": 119,
-     "nh": 69
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 0.091,
-     "peak_rss_mib": 15.4,
-     "cpu_s": 0.18,
-     "load_before": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "load_after": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "energy": -107.49112767505079,
-     "setup_s": 0.043,
-     "eval_s": 0.042,
-     "timings": {
-      "hb lists": 0.018,
-      "repulsion": 0.002,
-      "cn": 0.003,
-      "eeq solve": 0.01,
-      "eeq gradient": 0.001,
-      "dispersion": 0.003,
-      "bonds": 0.0,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.004
-     }
-    },
-    "xtb_grad": {
-     "ok": true,
-     "wall_s": 0.475,
-     "peak_rss_mib": 133.7,
-     "cpu_s": 0.46,
-     "load_before": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "load_after": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "energy": -107.491127675051
-    },
-    "energy_diff": 2.8421709430404007e-13,
-    "gradient_maxdiff": 7.101610965953853e-14,
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 1.817,
-     "peak_rss_mib": 65.6,
-     "cpu_s": 1.8,
-     "load_before": [
-      3.5,
-      7.58,
-      7.46
-     ],
-     "load_after": [
-      3.38,
-      7.49,
-      7.43
-     ],
-     "energy": -107.49112767505072,
-     "setup_s": 0.044,
-     "eval_s": 1.767,
-     "timings": {
-      "energy+gradient": 0.059,
-      "columns": 1.541,
-      "eeq response": 0.145
-     },
-     "max_asymmetry": 2.5340840537069198e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 0.436,
-     "peak_rss_mib": 66.4,
-     "cpu_s": 2.42,
-     "load_before": [
-      3.38,
-      7.49,
-      7.43
-     ],
-     "load_after": [
-      3.38,
-      7.49,
-      7.43
-     ],
-     "energy": -107.49112767505079,
-     "setup_s": 0.041,
-     "eval_s": 0.389,
-     "timings": {
-      "energy+gradient": 0.038,
-      "columns": 0.281,
-      "eeq response": 0.045
-     },
-     "max_asymmetry": 2.528532938583794e-14
-    },
-    "xtb_hess": {
-     "ok": true,
-     "wall_s": 231.883,
-     "peak_rss_mib": 334.3,
-     "cpu_s": 231.83,
-     "load_before": [
-      3.38,
-      7.49,
-      7.43
-     ],
-     "load_after": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "energy": -107.491127675051
-    }
-   },
-   {
-    "name": "water333",
-    "natoms": 999,
-    "charge": 0,
-    "composition": {
-     "H": 666,
-     "O": 333
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 0.387,
-     "peak_rss_mib": 38.2,
-     "cpu_s": 0.37,
-     "load_before": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "load_after": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "energy": -109.15501311449884,
-     "setup_s": 0.108,
-     "eval_s": 0.271,
-     "timings": {
-      "hb lists": 0.124,
-      "repulsion": 0.015,
-      "cn": 0.005,
-      "eeq solve": 0.058,
-      "eeq gradient": 0.012,
-      "dispersion": 0.023,
-      "bonds": 0.009,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.023
-     }
-    },
-    "xtb_considered_ABH_gib": 0.28,
-    "xtb_hb_map": {
-     "nab": 333,
-     "nh": 666
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 0.27,
-     "peak_rss_mib": 52.7,
-     "cpu_s": 0.54,
-     "load_before": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "load_after": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "energy": -109.15501311449826,
-     "setup_s": 0.064,
-     "eval_s": 0.197,
-     "timings": {
-      "hb lists": 0.12,
-      "repulsion": 0.003,
-      "cn": 0.005,
-      "eeq solve": 0.029,
-      "eeq gradient": 0.002,
-      "dispersion": 0.005,
-      "bonds": 0.009,
-      "bend/torsion": 0.0,
-      "batm": 0.0,
-      "hb/xb": 0.024
-     }
-    },
-    "xtb_grad": {
-     "ok": true,
-     "wall_s": 0.89,
-     "peak_rss_mib": 541.6,
-     "cpu_s": 0.87,
-     "load_before": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "load_after": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "energy": -109.155013114498
-    },
-    "energy_diff": 8.384404281969182e-13,
-    "gradient_maxdiff": 8.652800698172314e-15,
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 3.674,
-     "peak_rss_mib": 170.6,
-     "cpu_s": 3.65,
-     "load_before": [
-      2.53,
-      4.75,
-      6.31
-     ],
-     "load_after": [
-      2.49,
-      4.71,
-      6.29
-     ],
-     "energy": -109.15501311449884,
-     "setup_s": 0.104,
-     "eval_s": 3.559,
-     "timings": {
-      "energy+gradient": 0.268,
-      "columns": 2.611,
-      "eeq response": 0.633
-     },
-     "max_asymmetry": 2.8310687127941492e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 1.0,
-     "peak_rss_mib": 196.0,
-     "cpu_s": 5.13,
-     "load_before": [
-      2.49,
-      4.71,
-      6.29
-     ],
-     "load_after": [
-      2.49,
-      4.71,
-      6.29
-     ],
-     "energy": -109.15501311449826,
-     "setup_s": 0.065,
-     "eval_s": 0.923,
-     "timings": {
-      "energy+gradient": 0.218,
-      "columns": 0.462,
-      "eeq response": 0.189
-     },
-     "max_asymmetry": 2.8310687127941492e-14
-    }
-   },
-   {
-    "name": "water1000",
-    "natoms": 3000,
-    "charge": 0,
-    "composition": {
-     "H": 2000,
-     "O": 1000
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 4.12,
-     "peak_rss_mib": 189.1,
-     "cpu_s": 4.1,
-     "load_before": [
-      2.49,
-      4.71,
-      6.29
-     ],
-     "load_after": [
-      2.45,
-      4.66,
-      6.26
-     ],
-     "energy": -327.162349775628,
-     "setup_s": 1.863,
-     "eval_s": 2.247,
-     "timings": {
-      "hb lists": 0.68,
-      "repulsion": 0.066,
-      "cn": 0.021,
-      "eeq solve": 1.029,
-      "eeq gradient": 0.1,
-      "dispersion": 0.185,
-      "bonds": 0.072,
-      "bend/torsion": 0.001,
-      "batm": 0.0,
-      "hb/xb": 0.083
-     }
-    },
-    "xtb_considered_ABH_gib": 7.44,
-    "xtb_hb_map": {
-     "nab": 1000,
-     "nh": 1996
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 1.983,
-     "peak_rss_mib": 192.6,
-     "cpu_s": 5.83,
-     "load_before": [
-      2.45,
-      4.66,
-      6.26
-     ],
-     "load_after": [
-      2.42,
-      4.62,
-      6.24
-     ],
-     "energy": -327.16234977562266,
-     "setup_s": 0.654,
-     "eval_s": 1.318,
-     "timings": {
-      "hb lists": 0.683,
-      "repulsion": 0.011,
-      "cn": 0.023,
-      "eeq solve": 0.373,
-      "eeq gradient": 0.016,
-      "dispersion": 0.034,
-      "bonds": 0.075,
-      "bend/torsion": 0.001,
-      "batm": 0.0,
-      "hb/xb": 0.093
-     }
-    },
-    "xtb_grad": {
-     "ok": true,
-     "wall_s": 14.948,
-     "peak_rss_mib": 9212.4,
-     "cpu_s": 14.93,
-     "load_before": [
-      2.42,
-      4.62,
-      6.24
-     ],
-     "load_after": [
-      2.59,
-      4.58,
-      6.21
-     ],
-     "energy": -327.162349775639
-    },
-    "energy_diff": 1.0970779840135947e-11,
-    "gradient_maxdiff": 2.2468138460851605e-14,
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 40.447,
-     "peak_rss_mib": 1168.2,
-     "cpu_s": 40.43,
-     "load_before": [
-      2.54,
-      4.54,
-      6.19
-     ],
-     "load_after": [
-      2.66,
-      4.3,
-      6.04
-     ],
-     "energy": -327.162349775628,
-     "setup_s": 1.861,
-     "eval_s": 38.572,
-     "timings": {
-      "energy+gradient": 2.244,
-      "columns": 19.216,
-      "eeq response": 16.696
-     },
-     "max_asymmetry": 3.008704396734174e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 10.073,
-     "peak_rss_mib": 1203.2,
-     "cpu_s": 61.02,
-     "load_before": [
-      2.66,
-      4.3,
-      6.04
-     ],
-     "load_after": [
-      3.94,
-      4.52,
-      6.09
-     ],
-     "energy": -327.16234977562266,
-     "setup_s": 0.74,
-     "eval_s": 9.315,
-     "timings": {
-      "energy+gradient": 1.411,
-      "columns": 3.772,
-      "eeq response": 3.689
-     },
-     "max_asymmetry": 3.0309088572266774e-14
-    }
-   },
-   {
-    "name": "water1700",
-    "natoms": 5100,
-    "charge": 0,
-    "composition": {
-     "H": 3400,
-     "O": 1700
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 16.144,
-     "peak_rss_mib": 460.4,
-     "cpu_s": 16.13,
-     "load_before": [
-      3.94,
-      4.52,
-      6.09
-     ],
-     "load_after": [
-      3.51,
-      4.4,
-      6.02
-     ],
-     "energy": -557.392138151311,
-     "setup_s": 8.983,
-     "eval_s": 7.148,
-     "timings": {
-      "hb lists": 1.366,
-      "repulsion": 0.124,
-      "cn": 0.039,
-      "eeq solve": 4.496,
-      "eeq gradient": 0.281,
-      "dispersion": 0.448,
-      "bonds": 0.212,
-      "bend/torsion": 0.001,
-      "batm": 0.0,
-      "hb/xb": 0.151
-     }
-    },
-    "xtb_considered_ABH_gib": 36.56,
-    "xtb_hb_map": {
-     "nab": 1700,
-     "nh": 3396
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 5.95,
-     "peak_rss_mib": 507.6,
-     "cpu_s": 23.94,
-     "load_before": [
-      3.51,
-      4.4,
-      6.02
-     ],
-     "load_after": [
-      3.39,
-      4.36,
-      6.0
-     ],
-     "energy": -557.3921381513114,
-     "setup_s": 2.527,
-     "eval_s": 3.407,
-     "timings": {
-      "hb lists": 1.409,
-      "repulsion": 0.022,
-      "cn": 0.043,
-      "eeq solve": 1.413,
-      "eeq gradient": 0.042,
-      "dispersion": 0.072,
-      "bonds": 0.215,
-      "bend/torsion": 0.001,
-      "batm": 0.0,
-      "hb/xb": 0.161
-     }
-    },
-    "xtb_grad": {
-     "ok": false,
-     "wall_s": 35.759,
-     "peak_rss_mib": 4603.7,
-     "cpu_s": 35.74,
-     "load_before": [
-      3.39,
-      4.36,
-      6.0
-     ],
-     "load_after": [
-      3.08,
-      4.17,
-      5.88
-     ],
-     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
-    },
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 141.479,
-     "peak_rss_mib": 3192.3,
-     "cpu_s": 141.45,
-     "load_before": [
-      3.08,
-      4.17,
-      5.88
-     ],
-     "load_after": [
-      2.53,
-      3.52,
-      5.39
-     ],
-     "energy": -557.392138151311,
-     "setup_s": 8.03,
-     "eval_s": 133.428,
-     "timings": {
-      "energy+gradient": 7.057,
-      "columns": 45.257,
-      "eeq response": 79.441
-     },
-     "max_asymmetry": 3.3806291099836017e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 31.168,
-     "peak_rss_mib": 3244.2,
-     "cpu_s": 203.44,
-     "load_before": [
-      2.53,
-      3.52,
-      5.39
-     ],
-     "load_after": [
-      4.2,
-      3.83,
-      5.42
-     ],
-     "energy": -557.3921381513114,
-     "setup_s": 2.292,
-     "eval_s": 28.855,
-     "timings": {
-      "energy+gradient": 3.125,
-      "columns": 7.043,
-      "eeq response": 16.962
-     },
-     "max_asymmetry": 3.3584246494910985e-14
-    }
-   },
-   {
-    "name": "crambin-water",
-    "natoms": 5311,
-    "charge": 2,
-    "composition": {
-     "H": 3427,
-     "C": 202,
-     "N": 55,
-     "O": 1621,
-     "S": 6
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 20.577,
-     "peak_rss_mib": 457.0,
-     "cpu_s": 20.56,
-     "load_before": [
-      4.2,
-      3.83,
-      5.42
-     ],
-     "load_after": [
-      3.57,
-      3.71,
-      5.35
-     ],
-     "energy": -618.3092317637719,
-     "setup_s": 13.714,
-     "eval_s": 6.85,
-     "timings": {
-      "hb lists": 0.959,
-      "repulsion": 0.116,
-      "cn": 0.035,
-      "eeq solve": 4.617,
-      "eeq gradient": 0.321,
-      "dispersion": 0.485,
-      "bonds": 0.16,
-      "bend/torsion": 0.001,
-      "batm": 0.0,
-      "hb/xb": 0.127
-     }
-    },
-    "xtb_considered_ABH_gib": 33.31,
-    "xtb_hb_map": {
-     "nab": 1676,
-     "nh": 3183
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 6.961,
-     "peak_rss_mib": 473.2,
-     "cpu_s": 31.15,
-     "load_before": [
-      3.57,
-      3.71,
-      5.35
-     ],
-     "load_after": [
-      4.01,
-      3.8,
-      5.37
-     ],
-     "energy": -618.3092317636581,
-     "setup_s": 3.839,
-     "eval_s": 3.108,
-     "timings": {
-      "hb lists": 1.046,
-      "repulsion": 0.024,
-      "cn": 0.044,
-      "eeq solve": 1.501,
-      "eeq gradient": 0.05,
-      "dispersion": 0.102,
-      "bonds": 0.178,
-      "bend/torsion": 0.002,
-      "batm": 0.0,
-      "hb/xb": 0.135
-     }
-    },
-    "xtb_grad": {
-     "ok": false,
-     "wall_s": 174.508,
-     "peak_rss_mib": 4990.7,
-     "cpu_s": 174.46,
-     "load_before": [
-      4.01,
-      3.8,
-      5.37
-     ],
-     "load_after": [
-      1.96,
-      3.03,
-      4.8
-     ],
-     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
-    },
-    "axtb_hess_t1": {
-     "ok": true,
-     "wall_s": 180.332,
-     "peak_rss_mib": 3366.1,
-     "cpu_s": 176.32,
-     "load_before": [
-      1.96,
-      3.03,
-      4.8
-     ],
-     "load_after": [
-      13.79,
-      6.82,
-      5.83
-     ],
-     "energy": -618.3092317637719,
-     "setup_s": 13.017,
-     "eval_s": 167.295,
-     "timings": {
-      "energy+gradient": 6.439,
-      "columns": 45.526,
-      "eeq response": 112.77
-     },
-     "max_asymmetry": 3.774758283725532e-14
-    },
-    "axtb_hess_t8": {
-     "ok": true,
-     "wall_s": 37.228,
-     "peak_rss_mib": 3386.6,
-     "cpu_s": 239.56,
-     "load_before": [
-      13.79,
-      6.82,
-      5.83
-     ],
-     "load_after": [
-      10.6,
-      6.87,
-      5.89
-     ],
-     "energy": -618.3092317636581,
-     "setup_s": 4.143,
-     "eval_s": 33.064,
-     "timings": {
-      "energy+gradient": 3.207,
-      "columns": 8.514,
-      "eeq response": 19.023
-     },
-     "max_asymmetry": 3.7636560534792807e-14
-    }
-   },
-   {
-    "name": "water3300",
-    "natoms": 9900,
-    "charge": 0,
-    "composition": {
-     "H": 6600,
-     "O": 3300
-    },
-    "axtb_grad": {
-     "ok": true,
-     "wall_s": 95.605,
-     "peak_rss_mib": 1543.0,
-     "cpu_s": 95.57,
-     "load_before": [
-      10.6,
-      6.87,
-      5.89
-     ],
-     "load_after": [
-      3.97,
-      5.62,
-      5.54
-     ],
-     "energy": -1082.0515439429155,
-     "setup_s": 57.349,
-     "eval_s": 38.236,
-     "timings": {
-      "hb lists": 3.115,
-      "repulsion": 0.247,
-      "cn": 0.079,
-      "eeq solve": 31.757,
-      "eeq gradient": 0.924,
-      "dispersion": 1.045,
-      "bonds": 0.701,
-      "bend/torsion": 0.002,
-      "batm": 0.0,
-      "hb/xb": 0.273
-     }
-    },
-    "xtb_considered_ABH_gib": 267.59,
-    "xtb_hb_map": {
-     "nab": 3300,
-     "nh": 6596
-    },
-    "axtb_grad_t8": {
-     "ok": true,
-     "wall_s": 26.321,
-     "peak_rss_mib": 1564.0,
-     "cpu_s": 136.94,
-     "load_before": [
-      3.97,
-      5.62,
-      5.54
-     ],
-     "load_after": [
-      5.59,
-      5.88,
-      5.63
-     ],
-     "energy": -1082.0515439429162,
-     "setup_s": 13.782,
-     "eval_s": 12.518,
-     "timings": {
-      "hb lists": 3.279,
-      "repulsion": 0.051,
-      "cn": 0.092,
-      "eeq solve": 7.463,
-      "eeq gradient": 0.167,
-      "dispersion": 0.206,
-      "bonds": 0.818,
-      "bend/torsion": 0.002,
-      "batm": 0.0,
-      "hb/xb": 0.338
-     }
-    },
-    "xtb_grad": {
-     "ok": false,
-     "wall_s": 7.465,
-     "peak_rss_mib": 7694.7,
-     "cpu_s": 7.45,
-     "load_before": [
-      5.59,
-      5.88,
-      5.63
-     ],
-     "load_after": [
-      5.04,
-      5.75,
-      5.59
-     ],
-     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
-    }
-   }
-  ]
- },
- "xtb_version": "6.7.1 (26dd68d)",
- "conventions": "xtb-6.7.1",
  "topology_positions": {
   "summary": {
    "cases": 6,
@@ -5114,6 +4102,1018 @@
     "charges_maxdiff": 1.887379141862766e-15,
     "gradient_maxdiff": 4.385380947269368e-15,
     "pass": true
+   }
+  ]
+ },
+ "scaling": {
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "logical_cpus": 16,
+  "xtb_version": "6.7.1 (26dd68d)",
+  "xtb_address_space_cap_gib": 10.0,
+  "axtb_threads": [
+   1,
+   8
+  ],
+  "notes": "one run at a time; xtb with OMP_NUM_THREADS=1 and unlimited stack; axtb energy+gradient with one thread; peak RSS, user+system CPU time from /usr/bin/time -v; load_before/after: 1/5/15-minute load averages of the machine around each run (other work was running)",
+  "systems": [
+   {
+    "name": "water100",
+    "natoms": 300,
+    "charge": 0,
+    "composition": {
+     "H": 200,
+     "O": 100
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 0.034,
+     "peak_rss_mib": 10.7,
+     "cpu_s": 0.02,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "energy": -32.81762408054513,
+     "setup_s": 0.008,
+     "eval_s": 0.023,
+     "timings": {
+      "hb lists": 0.009,
+      "repulsion": 0.002,
+      "cn": 0.001,
+      "eeq solve": 0.003,
+      "eeq gradient": 0.001,
+      "dispersion": 0.002,
+      "bonds": 0.001,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.004
+     }
+    },
+    "xtb_considered_ABH_gib": 0.01,
+    "xtb_hb_map": {
+     "nab": 100,
+     "nh": 200
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 0.034,
+     "peak_rss_mib": 12.6,
+     "cpu_s": 0.05,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "energy": -32.81762408054513,
+     "setup_s": 0.009,
+     "eval_s": 0.022,
+     "timings": {
+      "hb lists": 0.01,
+      "repulsion": 0.001,
+      "cn": 0.001,
+      "eeq solve": 0.003,
+      "eeq gradient": 0.0,
+      "dispersion": 0.0,
+      "bonds": 0.001,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.005
+     }
+    },
+    "xtb_grad": {
+     "ok": true,
+     "wall_s": 0.079,
+     "peak_rss_mib": 64.2,
+     "cpu_s": 0.07,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "energy": -32.817624080545
+    },
+    "energy_diff": 1.2789769243681803e-13,
+    "gradient_maxdiff": 2.7599450502791e-15,
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 0.326,
+     "peak_rss_mib": 27.7,
+     "cpu_s": 0.31,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "energy": -32.81762408054513,
+     "setup_s": 0.007,
+     "eval_s": 0.315,
+     "timings": {
+      "energy+gradient": 0.022,
+      "columns": 0.271,
+      "eeq response": 0.019
+     },
+     "max_asymmetry": 2.8976820942716586e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 0.087,
+     "peak_rss_mib": 28.1,
+     "cpu_s": 0.39,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "energy": -32.81762408054513,
+     "setup_s": 0.009,
+     "eval_s": 0.073,
+     "timings": {
+      "energy+gradient": 0.02,
+      "columns": 0.041,
+      "eeq response": 0.009
+     },
+     "max_asymmetry": 2.8976820942716586e-14
+    },
+    "xtb_hess": {
+     "ok": true,
+     "wall_s": 39.84,
+     "peak_rss_mib": 114.0,
+     "cpu_s": 39.82,
+     "load_before": [
+      0.91,
+      1.19,
+      1.9
+     ],
+     "load_after": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "energy": -32.817624080545
+    }
+   },
+   {
+    "name": "crambin",
+    "natoms": 640,
+    "charge": 2,
+    "composition": {
+     "H": 313,
+     "C": 202,
+     "N": 55,
+     "O": 64,
+     "S": 6
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 0.098,
+     "peak_rss_mib": 15.1,
+     "cpu_s": 0.09,
+     "load_before": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "load_after": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "energy": -107.4911276750505,
+     "setup_s": 0.038,
+     "eval_s": 0.056,
+     "timings": {
+      "hb lists": 0.016,
+      "repulsion": 0.006,
+      "cn": 0.003,
+      "eeq solve": 0.01,
+      "eeq gradient": 0.005,
+      "dispersion": 0.012,
+      "bonds": 0.0,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.003
+     }
+    },
+    "xtb_considered_ABH_gib": 0.0,
+    "xtb_hb_map": {
+     "nab": 119,
+     "nh": 69
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 0.077,
+     "peak_rss_mib": 19.4,
+     "cpu_s": 0.15,
+     "load_before": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "load_after": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "energy": -107.49112767505085,
+     "setup_s": 0.037,
+     "eval_s": 0.036,
+     "timings": {
+      "hb lists": 0.016,
+      "repulsion": 0.001,
+      "cn": 0.003,
+      "eeq solve": 0.009,
+      "eeq gradient": 0.001,
+      "dispersion": 0.002,
+      "bonds": 0.0,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.003
+     }
+    },
+    "xtb_grad": {
+     "ok": true,
+     "wall_s": 0.456,
+     "peak_rss_mib": 133.7,
+     "cpu_s": 0.44,
+     "load_before": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "load_after": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "energy": -107.491127675051
+    },
+    "energy_diff": 4.973799150320701e-13,
+    "gradient_maxdiff": 5.335835939757061e-14,
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 1.638,
+     "peak_rss_mib": 66.6,
+     "cpu_s": 1.62,
+     "load_before": [
+      0.96,
+      1.17,
+      1.86
+     ],
+     "load_after": [
+      0.96,
+      1.16,
+      1.85
+     ],
+     "energy": -107.4911276750505,
+     "setup_s": 0.038,
+     "eval_s": 1.595,
+     "timings": {
+      "energy+gradient": 0.055,
+      "columns": 1.388,
+      "eeq response": 0.135
+     },
+     "max_asymmetry": 2.531308496145357e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 0.353,
+     "peak_rss_mib": 74.2,
+     "cpu_s": 2.06,
+     "load_before": [
+      0.96,
+      1.16,
+      1.85
+     ],
+     "load_after": [
+      0.96,
+      1.16,
+      1.85
+     ],
+     "energy": -107.49112767505085,
+     "setup_s": 0.037,
+     "eval_s": 0.31,
+     "timings": {
+      "energy+gradient": 0.035,
+      "columns": 0.215,
+      "eeq response": 0.041
+     },
+     "max_asymmetry": 2.5396351688300456e-14
+    },
+    "xtb_hess": {
+     "ok": true,
+     "wall_s": 208.932,
+     "peak_rss_mib": 334.2,
+     "cpu_s": 208.89,
+     "load_before": [
+      0.96,
+      1.16,
+      1.85
+     ],
+     "load_after": [
+      1.26,
+      1.23,
+      1.74
+     ],
+     "energy": -107.491127675051
+    }
+   },
+   {
+    "name": "water333",
+    "natoms": 999,
+    "charge": 0,
+    "composition": {
+     "H": 666,
+     "O": 333
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 0.327,
+     "peak_rss_mib": 38.6,
+     "cpu_s": 0.31,
+     "load_before": [
+      1.26,
+      1.23,
+      1.74
+     ],
+     "load_after": [
+      1.26,
+      1.23,
+      1.74
+     ],
+     "energy": -109.15501311449863,
+     "setup_s": 0.088,
+     "eval_s": 0.233,
+     "timings": {
+      "hb lists": 0.108,
+      "repulsion": 0.012,
+      "cn": 0.005,
+      "eeq solve": 0.048,
+      "eeq gradient": 0.011,
+      "dispersion": 0.021,
+      "bonds": 0.008,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.02
+     }
+    },
+    "xtb_considered_ABH_gib": 0.28,
+    "xtb_hb_map": {
+     "nab": 333,
+     "nh": 666
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 0.243,
+     "peak_rss_mib": 40.5,
+     "cpu_s": 0.47,
+     "load_before": [
+      1.26,
+      1.23,
+      1.74
+     ],
+     "load_after": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "energy": -109.15501311449843,
+     "setup_s": 0.059,
+     "eval_s": 0.177,
+     "timings": {
+      "hb lists": 0.107,
+      "repulsion": 0.002,
+      "cn": 0.005,
+      "eeq solve": 0.028,
+      "eeq gradient": 0.002,
+      "dispersion": 0.003,
+      "bonds": 0.009,
+      "bend/torsion": 0.0,
+      "batm": 0.0,
+      "hb/xb": 0.021
+     }
+    },
+    "xtb_grad": {
+     "ok": true,
+     "wall_s": 0.769,
+     "peak_rss_mib": 541.7,
+     "cpu_s": 0.75,
+     "load_before": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "load_after": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "energy": -109.155013114498
+    },
+    "energy_diff": 6.252776074688882e-13,
+    "gradient_maxdiff": 6.3265365168874155e-15,
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 3.292,
+     "peak_rss_mib": 171.0,
+     "cpu_s": 3.28,
+     "load_before": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "load_after": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "energy": -109.15501311449863,
+     "setup_s": 0.088,
+     "eval_s": 3.195,
+     "timings": {
+      "energy+gradient": 0.233,
+      "columns": 2.33,
+      "eeq response": 0.592
+     },
+     "max_asymmetry": 2.823088984804656e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 0.847,
+     "peak_rss_mib": 191.6,
+     "cpu_s": 4.41,
+     "load_before": [
+      1.24,
+      1.22,
+      1.74
+     ],
+     "load_after": [
+      1.22,
+      1.22,
+      1.73
+     ],
+     "energy": -109.15501311449843,
+     "setup_s": 0.059,
+     "eval_s": 0.777,
+     "timings": {
+      "energy+gradient": 0.19,
+      "columns": 0.396,
+      "eeq response": 0.151
+     },
+     "max_asymmetry": 2.853273173286652e-14
+    }
+   },
+   {
+    "name": "water1000",
+    "natoms": 3000,
+    "charge": 0,
+    "composition": {
+     "H": 2000,
+     "O": 1000
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 3.819,
+     "peak_rss_mib": 189.9,
+     "cpu_s": 3.8,
+     "load_before": [
+      1.22,
+      1.22,
+      1.73
+     ],
+     "load_after": [
+      1.22,
+      1.22,
+      1.73
+     ],
+     "energy": -327.1623497756259,
+     "setup_s": 1.709,
+     "eval_s": 2.102,
+     "timings": {
+      "hb lists": 0.629,
+      "repulsion": 0.054,
+      "cn": 0.019,
+      "eeq solve": 0.969,
+      "eeq gradient": 0.091,
+      "dispersion": 0.172,
+      "bonds": 0.082,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.077
+     }
+    },
+    "xtb_considered_ABH_gib": 7.44,
+    "xtb_hb_map": {
+     "nab": 1000,
+     "nh": 1996
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 1.758,
+     "peak_rss_mib": 212.0,
+     "cpu_s": 5.01,
+     "load_before": [
+      1.22,
+      1.22,
+      1.73
+     ],
+     "load_after": [
+      1.28,
+      1.23,
+      1.73
+     ],
+     "energy": -327.16234977562374,
+     "setup_s": 0.54,
+     "eval_s": 1.209,
+     "timings": {
+      "hb lists": 0.613,
+      "repulsion": 0.009,
+      "cn": 0.02,
+      "eeq solve": 0.328,
+      "eeq gradient": 0.015,
+      "dispersion": 0.035,
+      "bonds": 0.093,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.088
+     }
+    },
+    "xtb_grad": {
+     "ok": true,
+     "wall_s": 12.615,
+     "peak_rss_mib": 9212.2,
+     "cpu_s": 12.59,
+     "load_before": [
+      1.28,
+      1.23,
+      1.73
+     ],
+     "load_after": [
+      1.24,
+      1.23,
+      1.72
+     ],
+     "energy": -327.162349775639
+    },
+    "energy_diff": 1.3073986337985843e-11,
+    "gradient_maxdiff": 2.6742497105658458e-14,
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 37.405,
+     "peak_rss_mib": 1168.8,
+     "cpu_s": 37.38,
+     "load_before": [
+      1.24,
+      1.23,
+      1.72
+     ],
+     "load_after": [
+      1.12,
+      1.2,
+      1.69
+     ],
+     "energy": -327.1623497756259,
+     "setup_s": 1.702,
+     "eval_s": 35.688,
+     "timings": {
+      "energy+gradient": 2.107,
+      "columns": 17.083,
+      "eeq response": 16.111
+     },
+     "max_asymmetry": 3.019806626980426e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 7.972,
+     "peak_rss_mib": 1216.1,
+     "cpu_s": 47.93,
+     "load_before": [
+      1.12,
+      1.2,
+      1.69
+     ],
+     "load_after": [
+      1.67,
+      1.31,
+      1.73
+     ],
+     "energy": -327.16234977562374,
+     "setup_s": 0.562,
+     "eval_s": 7.394,
+     "timings": {
+      "energy+gradient": 1.161,
+      "columns": 2.686,
+      "eeq response": 3.162
+     },
+     "max_asymmetry": 3.019806626980426e-14
+    }
+   },
+   {
+    "name": "water1700",
+    "natoms": 5100,
+    "charge": 0,
+    "composition": {
+     "H": 3400,
+     "O": 1700
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 14.341,
+     "peak_rss_mib": 461.1,
+     "cpu_s": 14.33,
+     "load_before": [
+      1.67,
+      1.31,
+      1.73
+     ],
+     "load_after": [
+      1.52,
+      1.29,
+      1.72
+     ],
+     "energy": -557.3921381513136,
+     "setup_s": 7.619,
+     "eval_s": 6.711,
+     "timings": {
+      "hb lists": 1.248,
+      "repulsion": 0.102,
+      "cn": 0.035,
+      "eeq solve": 4.249,
+      "eeq gradient": 0.253,
+      "dispersion": 0.407,
+      "bonds": 0.242,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.146
+     }
+    },
+    "xtb_considered_ABH_gib": 36.56,
+    "xtb_hb_map": {
+     "nab": 1700,
+     "nh": 3396
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 4.822,
+     "peak_rss_mib": 476.7,
+     "cpu_s": 18.34,
+     "load_before": [
+      1.52,
+      1.29,
+      1.72
+     ],
+     "load_after": [
+      1.64,
+      1.32,
+      1.72
+     ],
+     "energy": -557.3921381513093,
+     "setup_s": 1.951,
+     "eval_s": 2.86,
+     "timings": {
+      "hb lists": 1.189,
+      "repulsion": 0.015,
+      "cn": 0.035,
+      "eeq solve": 1.114,
+      "eeq gradient": 0.034,
+      "dispersion": 0.061,
+      "bonds": 0.249,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.137
+     }
+    },
+    "xtb_grad": {
+     "ok": false,
+     "wall_s": 34.161,
+     "peak_rss_mib": 4603.6,
+     "cpu_s": 34.14,
+     "load_before": [
+      1.64,
+      1.32,
+      1.72
+     ],
+     "load_after": [
+      1.36,
+      1.28,
+      1.7
+     ],
+     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
+    },
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 134.087,
+     "peak_rss_mib": 3192.3,
+     "cpu_s": 134.05,
+     "load_before": [
+      1.36,
+      1.28,
+      1.7
+     ],
+     "load_after": [
+      1.13,
+      1.21,
+      1.61
+     ],
+     "energy": -557.3921381513136,
+     "setup_s": 7.522,
+     "eval_s": 126.547,
+     "timings": {
+      "energy+gradient": 6.483,
+      "columns": 40.983,
+      "eeq response": 77.693
+     },
+     "max_asymmetry": 3.36952687973735e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 27.507,
+     "peak_rss_mib": 3245.2,
+     "cpu_s": 179.6,
+     "load_before": [
+      1.13,
+      1.21,
+      1.61
+     ],
+     "load_after": [
+      3.47,
+      1.75,
+      1.78
+     ],
+     "energy": -557.3921381513093,
+     "setup_s": 1.949,
+     "eval_s": 25.539,
+     "timings": {
+      "energy+gradient": 2.85,
+      "columns": 6.476,
+      "eeq response": 14.794
+     },
+     "max_asymmetry": 3.352873534367973e-14
+    }
+   },
+   {
+    "name": "crambin-water",
+    "natoms": 5311,
+    "charge": 2,
+    "composition": {
+     "H": 3427,
+     "C": 202,
+     "N": 55,
+     "O": 1621,
+     "S": 6
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 20.15,
+     "peak_rss_mib": 457.6,
+     "cpu_s": 20.13,
+     "load_before": [
+      3.47,
+      1.75,
+      1.78
+     ],
+     "load_after": [
+      3.33,
+      1.82,
+      1.8
+     ],
+     "energy": -618.3092317637751,
+     "setup_s": 13.381,
+     "eval_s": 6.758,
+     "timings": {
+      "hb lists": 0.916,
+      "repulsion": 0.102,
+      "cn": 0.034,
+      "eeq solve": 4.617,
+      "eeq gradient": 0.291,
+      "dispersion": 0.454,
+      "bonds": 0.194,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.119
+     }
+    },
+    "xtb_considered_ABH_gib": 33.31,
+    "xtb_hb_map": {
+     "nab": 1676,
+     "nh": 3183
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 6.056,
+     "peak_rss_mib": 475.1,
+     "cpu_s": 26.14,
+     "load_before": [
+      3.33,
+      1.82,
+      1.8
+     ],
+     "load_after": [
+      3.15,
+      1.81,
+      1.79
+     ],
+     "energy": -618.3092317636526,
+     "setup_s": 3.304,
+     "eval_s": 2.74,
+     "timings": {
+      "hb lists": 0.998,
+      "repulsion": 0.016,
+      "cn": 0.039,
+      "eeq solve": 1.21,
+      "eeq gradient": 0.044,
+      "dispersion": 0.069,
+      "bonds": 0.2,
+      "bend/torsion": 0.001,
+      "batm": 0.0,
+      "hb/xb": 0.134
+     }
+    },
+    "xtb_grad": {
+     "ok": false,
+     "wall_s": 168.123,
+     "peak_rss_mib": 4990.8,
+     "cpu_s": 168.08,
+     "load_before": [
+      3.15,
+      1.81,
+      1.79
+     ],
+     "load_after": [
+      1.18,
+      1.48,
+      1.66
+     ],
+     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
+    },
+    "axtb_hess_t1": {
+     "ok": true,
+     "wall_s": 149.371,
+     "peak_rss_mib": 3366.9,
+     "cpu_s": 149.33,
+     "load_before": [
+      1.18,
+      1.48,
+      1.66
+     ],
+     "load_after": [
+      1.18,
+      1.37,
+      1.59
+     ],
+     "energy": -618.3092317637751,
+     "setup_s": 13.395,
+     "eval_s": 135.961,
+     "timings": {
+      "energy+gradient": 6.664,
+      "columns": 42.296,
+      "eeq response": 85.405
+     },
+     "max_asymmetry": 3.780309398848658e-14
+    },
+    "axtb_hess_t8": {
+     "ok": true,
+     "wall_s": 31.719,
+     "peak_rss_mib": 3419.8,
+     "cpu_s": 202.81,
+     "load_before": [
+      1.18,
+      1.37,
+      1.59
+     ],
+     "load_after": [
+      3.87,
+      2.01,
+      1.8
+     ],
+     "energy": -618.3092317636526,
+     "setup_s": 3.242,
+     "eval_s": 28.459,
+     "timings": {
+      "energy+gradient": 2.664,
+      "columns": 7.319,
+      "eeq response": 16.841
+     },
+     "max_asymmetry": 3.7636560534792807e-14
+    }
+   },
+   {
+    "name": "water3300",
+    "natoms": 9900,
+    "charge": 0,
+    "composition": {
+     "H": 6600,
+     "O": 3300
+    },
+    "axtb_grad": {
+     "ok": true,
+     "wall_s": 89.067,
+     "peak_rss_mib": 1544.1,
+     "cpu_s": 89.04,
+     "load_before": [
+      3.87,
+      2.01,
+      1.8
+     ],
+     "load_after": [
+      1.66,
+      1.75,
+      1.73
+     ],
+     "energy": -1082.0515439429203,
+     "setup_s": 52.904,
+     "eval_s": 36.146,
+     "timings": {
+      "hb lists": 2.886,
+      "repulsion": 0.213,
+      "cn": 0.071,
+      "eeq solve": 29.58,
+      "eeq gradient": 0.94,
+      "dispersion": 1.109,
+      "bonds": 0.959,
+      "bend/torsion": 0.002,
+      "batm": 0.0,
+      "hb/xb": 0.29
+     }
+    },
+    "xtb_considered_ABH_gib": 267.59,
+    "xtb_hb_map": {
+     "nab": 3300,
+     "nh": 6596
+    },
+    "axtb_grad_t8": {
+     "ok": true,
+     "wall_s": 22.655,
+     "peak_rss_mib": 1620.5,
+     "cpu_s": 116.48,
+     "load_before": [
+      1.66,
+      1.75,
+      1.73
+     ],
+     "load_after": [
+      2.79,
+      2.03,
+      1.82
+     ],
+     "energy": -1082.051543942907,
+     "setup_s": 11.209,
+     "eval_s": 11.423,
+     "timings": {
+      "hb lists": 2.972,
+      "repulsion": 0.032,
+      "cn": 0.083,
+      "eeq solve": 6.611,
+      "eeq gradient": 0.138,
+      "dispersion": 0.173,
+      "bonds": 0.978,
+      "bend/torsion": 0.002,
+      "batm": 0.0,
+      "hb/xb": 0.334
+     }
+    },
+    "xtb_grad": {
+     "ok": false,
+     "wall_s": 6.915,
+     "peak_rss_mib": 7694.8,
+     "cpu_s": 6.89,
+     "load_before": [
+      2.79,
+      2.03,
+      1.82
+     ],
+     "load_after": [
+      2.64,
+      2.01,
+      1.81
+     ],
+     "error": "exit status 41: forrtl: severe (41): insufficient virtual memory"
+    }
    }
   ]
  }

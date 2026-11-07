@@ -1575,7 +1575,7 @@ fn qmsolve(a: &Mat<f64>, nel: usize, et: f64, fermi: FermiSmearing, par: Par) ->
 fn occu(ndim: usize, nel: usize) -> (usize, usize, Vec<f64>, Vec<f64>) {
     // xtb fills focc(1:nel); only the first ndim entries are read
     let mut focc = vec![0i64; ndim];
-    if nel % 2 == 0 {
+    if nel.is_multiple_of(2) {
         let ihomo = nel / 2;
         for v in focc.iter_mut().take(ihomo) {
             *v = 2;
@@ -2457,6 +2457,11 @@ fn angle_setup(
     out
 }
 
+/// The truncated pi of xtb's near-linear torsion test (`chktors`, `3.1415926`), kept so the
+/// same torsions are set up.
+#[allow(clippy::approx_constant)]
+const PI_CHKTORS: f64 = 3.1415926e0;
+
 /// Torsions and out-of-plane terms (the torsion loops of `gfnff_ini`).
 fn torsion_setup(
     c: &Ctx,
@@ -2527,11 +2532,11 @@ fn torsion_setup(
                 }
                 // chktors: skip near-linear arrangements
                 let phi1 = geom::bangl(xyz[jj], xyz[ii], xyz[kk]);
-                if phi1 * 180. / 3.1415926e0 > 170.0e0 {
+                if phi1 * 180. / PI_CHKTORS > 170.0e0 {
                     continue;
                 }
                 let phi2 = geom::bangl(xyz[ii], xyz[jj], xyz[ll]);
-                if phi2 * 180. / 3.1415926e0 > 170.0e0 {
+                if phi2 * 180. / PI_CHKTORS > 170.0e0 {
                     continue;
                 }
                 let mut fkl = tors2(at[kk]) * tors2(at[ll]);

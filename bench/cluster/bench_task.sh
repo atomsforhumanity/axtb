@@ -3,7 +3,8 @@
 #   linalg     bench/linalg/run.sh: 6 backends x 1/8/32/64 threads x 3 interleaved rounds
 #   linalg-unpinned  the same at 32/64 threads without taskset
 #   linalg-tp  bench/linalg/throughput.sh: 64 and 128 concurrent single-thread processes
-#   suite      bench/run_benchmarks.py: axtb vs xtb 6.7.1 vs tblite 0.8.0, 1/8/32/64 threads
+#   suite      bench/run_benchmarks.py: axtb vs xtb 6.8.0 vs tblite 0.8.0, 1/8/32/64 threads (an image with
+#              xtb 6.8.0 at /opt/xtb-6.8.0, i.e. the timing image of Dockerfile.timing; AXTB_XTB680)
 # Thread counts are explicit; the pod must reserve the node ($NTHREADS >= 64). Never nproc here.
 set -euo pipefail
 KIND=$(python3 -c 'import json; print(json.load(open("task.json"))["kind"])')
@@ -11,7 +12,7 @@ D=$PWD/out   # results dir (not OUT: run.sh and throughput.sh read OUT)
 [ "${NTHREADS:-0}" -ge 64 ] || { echo "needs threads_per_task >= 64 (NTHREADS=${NTHREADS:-unset})"; exit 2; }
 {
   date -u; echo "node: ${NODE_NAME:-$(hostname)}  NTHREADS=$NTHREADS  kind=$KIND"
-  cat /opt/axtb/AXTB_REV /opt/axtb/RUST_VERSIONS /opt/aocl-5.3/SOURCES.txt
+  cat /opt/axtb/AXTB_REV; cat /opt/axtb/RUST_VERSIONS /opt/aocl-5.3/SOURCES.txt 2>/dev/null || true
   lscpu; echo "cpu0 SMT siblings: $(cat /sys/devices/system/cpu/cpu0/topology/thread_siblings_list)"
   echo "cgroup cpu.max: $(cat /sys/fs/cgroup/cpu.max 2>/dev/null || echo n/a)"
   echo "load before: $(cat /proc/loadavg)"
@@ -50,6 +51,7 @@ case $KIND in
     ;;
   suite)
     mkdir -p tmp; export AXTB_SCRATCH=$PWD/tmp
+    export AXTB_XTB680=${AXTB_XTB680:-/opt/xtb-6.8.0/bin/xtb}   # tests/programs.py
     python3 /opt/axtb/bench/run_benchmarks.py --threads 1,8,32,64 --hess-threads 1,8,32,64 \
       --throughput 128x64,512x64,1024x128 --out "$D/results.json" 2>&1 | tee "$D/run.log"
     ;;

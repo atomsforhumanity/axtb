@@ -162,9 +162,12 @@ def run_xtb(xtb, numbers, positions, charge, hess, mem_gib, timeout, workdir):
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def run_axtb(numbers, positions, charge, mode, threads, timeout):
-    req = json.dumps({"numbers": [int(z) for z in numbers], "positions": np.asarray(positions).tolist(),
-                      "charge": charge, "threads": threads, "mode": mode})
+def run_axtb(numbers, positions, charge, mode, threads, timeout, conventions=None):
+    req = {"numbers": [int(z) for z in numbers], "positions": np.asarray(positions).tolist(),
+           "charge": charge, "threads": threads, "mode": mode}
+    if conventions:  # the force field of the xtb compared with (gfnff_bench's default is 6.8.0's)
+        req["conventions"] = conventions
+    req = json.dumps(req)
     r = timed([str(BENCH)], stdin=req, timeout=timeout)
     stdout = r.pop("stdout", "")
     if r["ok"]:
@@ -206,7 +209,7 @@ def scaling(args) -> dict:
         n = len(numbers)
         entry = {"name": name, "natoms": n, "charge": charge, "composition": composition(numbers)}
         print(f"{name} ({n} atoms)", flush=True)
-        ax = run_axtb(numbers, positions, charge, "grad", 1, args.timeout)
+        ax = run_axtb(numbers, positions, charge, "grad", 1, args.timeout, args.conventions)
         entry["axtb_grad"] = {k: v for k, v in ax.items() if k not in ("gradient", "xtb_hb_map")}
         if ax.get("xtb_hb_map"):
             # xtb allocates considered_ABH(NAB, NAB, NH) as 4-byte logicals in every energy
@@ -217,7 +220,7 @@ def scaling(args) -> dict:
         print("  axtb grad", entry["axtb_grad"].get("wall_s"), "s", entry["axtb_grad"].get("peak_rss_mib"), "MiB",
               flush=True)
         if args.threads > 1:
-            a8 = run_axtb(numbers, positions, charge, "grad", args.threads, args.timeout)
+            a8 = run_axtb(numbers, positions, charge, "grad", args.threads, args.timeout, args.conventions)
             entry[f"axtb_grad_t{args.threads}"] = {k: v for k, v in a8.items() if k not in ("gradient", "xtb_hb_map")}
             print(f"  axtb grad t{args.threads}", a8.get("wall_s"), "s", a8.get("peak_rss_mib"), "MiB", flush=True)
         if not args.skip_xtb:
@@ -229,7 +232,7 @@ def scaling(args) -> dict:
                 entry["gradient_maxdiff"] = float(np.max(np.abs(np.array(xt["gradient"]) - np.array(ax["gradient"]))))
         if n <= args.hess_max:
             for th in sorted({1, args.threads}):
-                h = run_axtb(numbers, positions, charge, "hess", th, args.timeout)
+                h = run_axtb(numbers, positions, charge, "hess", th, args.timeout, args.conventions)
                 entry[f"axtb_hess_t{th}"] = {k: v for k, v in h.items() if k not in ("gradient", "xtb_hb_map")}
                 print(f"  axtb hess t{th}", h.get("wall_s"), "s", h.get("peak_rss_mib"), "MiB", flush=True)
         if not args.skip_xtb and n <= args.xtb_hess_max:

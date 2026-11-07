@@ -19,6 +19,7 @@ Each timing is the minimum over `repeats` runs. Run on an otherwise idle machine
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import platform
@@ -131,22 +132,27 @@ def tblite_run(nums, pos, charge, threads, acc, param):
 def xtb_path_conventions() -> str:
     """axtb's conventions for `XTB`: `xtb-6.7.1` for xtb 6.7.x (also the g-xTB 2.0.1 build),
     `xtb` for 6.8.0."""
-    import re as _re
-    import subprocess as _sp
+    return _conventions_of(XTB)
+
+
+@functools.cache
+def _conventions_of(xtb) -> str:
+    # runs `xtb --version` once per binary: never inside a timed region
     try:
-        v = _sp.run([XTB, "--version"], capture_output=True, text=True).stdout
+        v = subprocess.run([xtb, "--version"], capture_output=True, text=True).stdout
     except (OSError, TypeError):
         return "xtb"
-    m = _re.search(r"xtb version (\S+)", v)
+    m = re.search(r"xtb version (\S+)", v)
     return "xtb-6.7.1" if m and m.group(1).startswith("6.7.") else "xtb"
 
 
 # ---------------------------------------------------------------------------- axtb
 def axtb_run(nums, pos, charge, threads, acc, conventions=None, **kw):
     import axtb
+    conventions = conventions or xtb_path_conventions()  # resolved before the timer (it may run `xtb --version`)
     t = time.perf_counter()
     r = axtb.singlepoint(nums, pos, charge=float(charge), uhf=uhf_for(nums, charge), gradient=True,
-                         threads=threads, accuracy=acc, conventions=conventions or xtb_path_conventions(), **kw)
+                         threads=threads, accuracy=acc, conventions=conventions, **kw)
     r = dict(r)
     r["wall"] = time.perf_counter() - t
     return r

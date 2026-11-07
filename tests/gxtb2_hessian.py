@@ -144,8 +144,9 @@ def run_axtb(nums, pos, charge, uhf, method, threads, step=None, acc=None, conve
     """One axtb CLI run; its peak RSS (MB, through /usr/bin/time -v) goes to LAST_PEAK_RSS_MB."""
     global LAST_PEAK_RSS_MB
     req = {"numbers": [int(x) for x in nums], "positions": pos.tolist(), "charge": charge, "uhf": uhf,
-           "method": "gxtb-v2.0.1", "threads": threads, "conventions": conventions, "hessian": hessian,
-           "hessian_method": method}
+           "method": "gxtb-v2.0.1", "threads": threads, "conventions": conventions, "hessian": hessian}
+    if hessian:  # the CLI rejects Hessian options in a request without a Hessian
+        req["hessian_method"] = method
     if step is not None:
         req["hessian_step"] = step
     if acc is not None:

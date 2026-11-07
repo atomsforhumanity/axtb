@@ -165,7 +165,7 @@ impl Setup {
         }
         let nel = nelf.round() as usize;
         let uhf = mol.uhf.unwrap_or(nel % 2);
-        if uhf > nel || (nel - uhf) % 2 != 0 {
+        if uhf > nel || !(nel - uhf).is_multiple_of(2) {
             return Err(Error::Input(format!("g-xTB: {nel} electrons with {uhf} unpaired")));
         }
         let nbeta = (nel - uhf) / 2;

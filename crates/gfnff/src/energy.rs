@@ -714,7 +714,7 @@ pub fn evaluate_full(
     // triple-bond torsions: xtb evaluates the last entry once per entry
     if let Some(last) = topo.stors.last() {
         let m = topo.stors.len();
-        if !last.iter().any(|&a| a == usize::MAX) {
+        if !last.contains(&usize::MAX) {
             let c = [last[0], last[1], last[4], last[5]];
             let (ev, g) = terms::stors([xyz[c[0]], xyz[c[1]], xyz[c[2]], xyz[c[3]]]);
             for _ in 0..m {

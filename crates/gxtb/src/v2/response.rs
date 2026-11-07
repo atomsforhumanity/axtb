@@ -58,9 +58,8 @@ pub fn from_mat(m: &Mat<f64>) -> Vec<f64> {
 #[inline]
 pub fn dot(a: &[f64], b: &[f64]) -> f64 {
     let mut acc = [0.0; 8];
-    let (ca, cb) = (a.chunks_exact(8), b.chunks_exact(8));
-    let (ra, rb) = (ca.remainder(), cb.remainder());
-    for (x, y) in ca.zip(cb) {
+    let ((ca, ra), (cb, rb)) = (a.as_chunks::<8>(), b.as_chunks::<8>());
+    for (x, y) in ca.iter().zip(cb) {
         for k in 0..8 {
             acc[k] += x[k] * y[k];
         }

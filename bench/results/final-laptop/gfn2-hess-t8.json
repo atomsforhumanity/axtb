@@ -1,0 +1,1240 @@
+{
+ "meta": {
+  "task": "gfn2-hess-t8",
+  "machine": "laptop (Intel i9-11900H)",
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "cores": 8,
+  "threads_per_core": 2,
+  "hw_threads_visible": 16,
+  "pod_cpu_quota": null,
+  "threads": 8,
+  "axtb_commit": "349991343381",
+  "versions": {
+   "xtb 6.8.0": "xtb 6.8.0 (4b8c987)",
+   "g-xTB 2.0.1 build of xtb": "xtb 6.7.1 (26dd68d)",
+   "g-xtb 1.1.0": "g-xTB 1.1.0 (grimme-lab/g-xtb v1.1.0 release binary)",
+   "tblite": "0.8.0",
+   "axtb (Python)": "0.1.0"
+  },
+  "date": "2026-11-07 14:04 UTC",
+  "load1_start": 0.78,
+  "rounds_eg": 5,
+  "rounds_hess": 3,
+  "how": "- Every calculation is a fresh process, one at a time, in a scratch directory of its own:\n  the programs, the axtb CLI (JSON request on stdin), and Python processes for tblite and for\n  axtb's Python module. `seconds` is the wall time of the process from start to exit;\n  `inner_seconds` is, for tblite and axtb's Python module, the calculation inside the process\n  (without Python start-up and imports), for the axtb CLI its own `seconds` and, for axtb\n  Hessians, axtb's own Hessian time. Before the timings of a method, every program runs once\n  on water unrecorded (binaries and libraries into the page cache).\n- Programs and axtb alternate: per molecule, `rounds` rounds that run every program once, the\n  order rotated from round to round. Summaries give min and median over the rounds.\n- Every run records the node's 1-minute load before and after, the average number of busy\n  hardware threads on the node while it ran (/proc/stat, node-wide inside a pod) and that\n  number minus the run's own CPU use (other work on the node), its CPU time and `max_rss_mb`\n  (wait4 rusage). `max_rss_mb` is NOT the program's peak memory: Linux carries the high-water\n  RSS of the (v)forked driver into the child at exec, so it is max(driver's peak so far,\n  program's peak), i.e. mostly the driver's (it grows with the Hessians it keeps).\n- Threads: the programs get OMP_NUM_THREADS = MKL_NUM_THREADS = threads (tblite and the\n  Python processes too, which keeps numpy's BLAS at that count); axtb gets the count in its\n  request and reads no environment.\n- Hessians come with their accuracy against a tight reference: axtb's analytic Hessian with\n  SCF accuracy 1e-6 in the program's conventions, projected as that program projects its\n  `hessian` file (xtb 6.8.0: mass-weighted; the 6.7.1-based g-xTB 2.0.1 build: Cartesian, about\n  the geometric centre, after its tiny `rotmol` rotation), max |dH| (Eh/bohr\u00b2) and the largest\n  harmonic-frequency difference; axtb's own Hessian against the same in its own conventions;\n  and, for molecules up to `richardson_max_atoms`, the tight analytic Hessian against a\n  Richardson-extrapolated finite-difference one ((4 H(0.001) - H(0.002)) / 3, tight SCFs).",
+  "harness_check": {
+   "columns": {
+    "gfn2 | xtb 6.8.0 --hess": {
+     "binary": [
+      [
+       "xtb",
+       "95d82a623580bb1e"
+      ]
+     ],
+     "args": [
+      "coord --gfn 2 --hess"
+     ],
+     "env": [
+      "{}"
+     ],
+     "request": [
+      "null"
+     ]
+    },
+    "gfn2 | xtb 6.8.0 --hess --acc 0.001": {
+     "binary": [
+      [
+       "xtb",
+       "95d82a623580bb1e"
+      ]
+     ],
+     "args": [
+      "coord --gfn 2 --hess --acc 0.001"
+     ],
+     "env": [
+      "{}"
+     ],
+     "request": [
+      "null"
+     ]
+    },
+    "gfn2 | axtb analytic": {
+     "binary": [
+      [
+       "axtb",
+       "f72f56d87f3918f2"
+      ]
+     ],
+     "args": [
+      "--json"
+     ],
+     "env": [
+      "{}"
+     ],
+     "request": [
+      "{\"hessian\": true, \"method\": \"gfn2\", \"threads\": 8}"
+     ]
+    }
+   },
+   "checks": {
+    "one_binary_env_request_per_column": true,
+    "programs_and_axtb_different_binaries": true,
+    "every_run_its_own_process": true,
+    "lapack_variable_only_in_library_columns": true
+   }
+  },
+  "load1_end": 6.06
+ },
+ "molecules": {
+  "water": {
+   "atoms": 3,
+   "source": "tests/structures/water.xyz",
+   "nbf": {}
+  },
+  "caffeine": {
+   "atoms": 24,
+   "source": "tests/structures/caffeine.xyz",
+   "nbf": {
+    "gfn2": 66
+   }
+  },
+  "taxol": {
+   "atoms": 113,
+   "source": "tests/structures/taxol.xyz",
+   "nbf": {
+    "gfn2": 299
+   }
+  }
+ },
+ "runs": [
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 0,
+   "ok": true,
+   "seconds": 0.12960402699536644,
+   "cpu_seconds": 0.9623,
+   "cores_used": 7.42,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 7.6,
+   "other_busy_threads": 0.2,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245209,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.15442201403,
+   "iterations": 12
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 0,
+   "ok": true,
+   "seconds": 0.16301746100361925,
+   "cpu_seconds": 1.2348,
+   "cores_used": 7.57,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 7.7,
+   "other_busy_threads": 0.1,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245217,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.154422014167,
+   "iterations": 17
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 0,
+   "ok": true,
+   "seconds": 0.02182932999858167,
+   "cpu_seconds": 0.0759,
+   "cores_used": 3.47,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 4.3,
+   "other_busy_threads": 0.8,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245225,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -42.15442201439555,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.000147527,
+    "integrals": 0.000156901,
+    "cholesky": 1.3535e-05,
+    "scf: potentials": 5.6851e-05,
+    "scf: fock": 2.224e-05,
+    "scf: diagonalization": 0.0007131259999999999,
+    "scf: density": 2.6818e-05,
+    "scf: mulliken": 7.0185e-05,
+    "scf: energy+mixing": 7.3527e-05,
+    "gradient": 0.000281586
+   },
+   "inner_seconds": 0.01726592,
+   "hessian_phases": {
+    "reference scf": 0.010105062,
+    "chi0": 0.000992353,
+    "kernel+potential derivatives": 0.001336348,
+    "skeleton responses": 0.001181524,
+    "solve": 0.001359918,
+    "response terms": 0.000195964,
+    "explicit: integrals": 0.000885922,
+    "explicit: electrostatics+repulsion": 0.000277851,
+    "total": 0.01726592
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 1,
+   "ok": true,
+   "seconds": 0.16781612100021448,
+   "cpu_seconds": 1.2746,
+   "cores_used": 7.59,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 8.1,
+   "other_busy_threads": 0.5,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245234,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.154422014167,
+   "iterations": 17
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 1,
+   "ok": true,
+   "seconds": 0.022827991997473873,
+   "cpu_seconds": 0.0807,
+   "cores_used": 3.54,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 4.4,
+   "other_busy_threads": 0.9,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245260,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -42.15442201439555,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.000141782,
+    "integrals": 0.000170569,
+    "cholesky": 1.3881e-05,
+    "scf: potentials": 6.1959e-05,
+    "scf: fock": 2.3984e-05,
+    "scf: diagonalization": 0.000706795,
+    "scf: density": 2.5661e-05,
+    "scf: mulliken": 6.1736e-05,
+    "scf: energy+mixing": 6.4254e-05,
+    "gradient": 0.000315635
+   },
+   "inner_seconds": 0.018131441,
+   "hessian_phases": {
+    "reference scf": 0.010386515,
+    "chi0": 0.001058938,
+    "kernel+potential derivatives": 0.001363718,
+    "skeleton responses": 0.001455791,
+    "solve": 0.00138199,
+    "response terms": 0.000190852,
+    "explicit: integrals": 0.000945732,
+    "explicit: electrostatics+repulsion": 0.000265423,
+    "total": 0.018131441
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 1,
+   "ok": true,
+   "seconds": 0.16253136700106552,
+   "cpu_seconds": 1.231,
+   "cores_used": 7.57,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 8.3,
+   "other_busy_threads": 0.7,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245290,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.15442201403,
+   "iterations": 12
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 2,
+   "ok": true,
+   "seconds": 0.02190897800028324,
+   "cpu_seconds": 0.0772,
+   "cores_used": 3.52,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 4.3,
+   "other_busy_threads": 0.8,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245313,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -42.15442201439555,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.000149615,
+    "integrals": 0.000171418,
+    "cholesky": 1.2618e-05,
+    "scf: potentials": 4.9698e-05,
+    "scf: fock": 2.3512e-05,
+    "scf: diagonalization": 0.000627032,
+    "scf: density": 3.2439e-05,
+    "scf: mulliken": 6.998200000000001e-05,
+    "scf: energy+mixing": 6.0957e-05,
+    "gradient": 0.000302171
+   },
+   "inner_seconds": 0.017334846,
+   "hessian_phases": {
+    "reference scf": 0.010040411,
+    "chi0": 0.001041761,
+    "kernel+potential derivatives": 0.001349454,
+    "skeleton responses": 0.001279048,
+    "solve": 0.001324823,
+    "response terms": 0.000213737,
+    "explicit: integrals": 0.000822281,
+    "explicit: electrostatics+repulsion": 0.000274242,
+    "total": 0.017334846
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 2,
+   "ok": true,
+   "seconds": 0.11110450999694876,
+   "cpu_seconds": 0.8223,
+   "cores_used": 7.4,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 7.5,
+   "other_busy_threads": 0.1,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245322,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.15442201403,
+   "iterations": 12
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 2,
+   "ok": true,
+   "seconds": 0.14891945300041698,
+   "cpu_seconds": 1.1271,
+   "cores_used": 7.57,
+   "max_rss_mb": 98.7,
+   "load1_before": 0.78,
+   "load1_after": 0.78,
+   "node_busy_threads": 7.6,
+   "other_busy_threads": 0.0,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245330,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -42.154422014167,
+   "iterations": 17
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 0,
+   "ok": true,
+   "seconds": 7.9695847050024895,
+   "cpu_seconds": 63.0531,
+   "cores_used": 7.91,
+   "max_rss_mb": 262.7,
+   "load1_before": 0.78,
+   "load1_after": 1.89,
+   "node_busy_threads": 8.1,
+   "other_busy_threads": 0.2,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245375,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896801,
+   "iterations": 14
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 0,
+   "ok": true,
+   "seconds": 14.362056468999072,
+   "cpu_seconds": 113.9755,
+   "cores_used": 7.94,
+   "max_rss_mb": 261.4,
+   "load1_before": 1.89,
+   "load1_after": 3.39,
+   "node_busy_threads": 8.2,
+   "other_busy_threads": 0.3,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245403,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896987,
+   "iterations": 19
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 0,
+   "ok": true,
+   "seconds": 0.8859475179997389,
+   "cpu_seconds": 4.9201,
+   "cores_used": 5.55,
+   "max_rss_mb": 142.9,
+   "load1_before": 3.39,
+   "load1_after": 3.39,
+   "node_busy_threads": 5.7,
+   "other_busy_threads": 0.1,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245537,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -186.50044925602182,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.002340312,
+    "integrals": 0.001747557,
+    "cholesky": 0.001041913,
+    "scf: potentials": 0.001173645,
+    "scf: fock": 0.00034659700000000003,
+    "scf: diagonalization": 0.011379783000000001,
+    "scf: density": 0.0005978439999999999,
+    "scf: mulliken": 0.000163589,
+    "scf: energy+mixing": 0.000341082,
+    "gradient": 0.003927365
+   },
+   "inner_seconds": 0.819326,
+   "hessian_phases": {
+    "reference scf": 0.169928328,
+    "chi0": 0.153611826,
+    "kernel+potential derivatives": 0.081353117,
+    "skeleton responses": 0.323408017,
+    "solve": 0.04046556,
+    "response terms": 0.005660587,
+    "explicit: integrals": 0.012271265,
+    "explicit: electrostatics+repulsion": 0.020094509,
+    "total": 0.819326
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 1,
+   "ok": true,
+   "seconds": 14.873313394993602,
+   "cpu_seconds": 118.3075,
+   "cores_used": 7.95,
+   "max_rss_mb": 258.1,
+   "load1_before": 3.39,
+   "load1_after": 4.41,
+   "node_busy_threads": 8.3,
+   "other_busy_threads": 0.3,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245547,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896987,
+   "iterations": 19
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 1,
+   "ok": true,
+   "seconds": 0.8551480300011463,
+   "cpu_seconds": 4.8048,
+   "cores_used": 5.62,
+   "max_rss_mb": 141.2,
+   "load1_before": 4.41,
+   "load1_after": 4.41,
+   "node_busy_threads": 5.9,
+   "other_busy_threads": 0.3,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245752,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -186.50044925602182,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.002508521,
+    "integrals": 0.001451784,
+    "cholesky": 0.000530688,
+    "scf: potentials": 0.000443507,
+    "scf: fock": 0.000275072,
+    "scf: diagonalization": 0.010701001,
+    "scf: density": 0.000437977,
+    "scf: mulliken": 0.000151192,
+    "scf: energy+mixing": 0.00030754,
+    "gradient": 0.003557692
+   },
+   "inner_seconds": 0.793452961,
+   "hessian_phases": {
+    "reference scf": 0.163155169,
+    "chi0": 0.136678241,
+    "kernel+potential derivatives": 0.075598258,
+    "skeleton responses": 0.325558512,
+    "solve": 0.042804682,
+    "response terms": 0.00588657,
+    "explicit: integrals": 0.011667714,
+    "explicit: electrostatics+repulsion": 0.020538863,
+    "total": 0.793452961
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 1,
+   "ok": true,
+   "seconds": 8.992486713999824,
+   "cpu_seconds": 70.7083,
+   "cores_used": 7.86,
+   "max_rss_mb": 261.3,
+   "load1_before": 4.41,
+   "load1_after": 4.96,
+   "node_busy_threads": 8.4,
+   "other_busy_threads": 0.5,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1245770,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896801,
+   "iterations": 14
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "axtb analytic",
+   "round": 2,
+   "ok": true,
+   "seconds": 0.873671398992883,
+   "cpu_seconds": 4.8289,
+   "cores_used": 5.53,
+   "max_rss_mb": 142.3,
+   "load1_before": 4.96,
+   "load1_after": 4.96,
+   "node_busy_threads": 5.7,
+   "other_busy_threads": 0.2,
+   "rc": 0,
+   "cmd": [
+    "axtb",
+    "--json"
+   ],
+   "binary": "axtb",
+   "binary_sha256": "f72f56d87f3918f2",
+   "pid": 1245986,
+   "env": {},
+   "request": {
+    "method": "gfn2",
+    "threads": 8,
+    "hessian": true
+   },
+   "energy": -186.50044925602182,
+   "iterations": 2,
+   "phases": {
+    "classical": 0.00266641,
+    "integrals": 0.001842183,
+    "cholesky": 0.000981809,
+    "scf: potentials": 0.00132692,
+    "scf: fock": 0.00037125799999999996,
+    "scf: diagonalization": 0.011726461,
+    "scf: density": 0.000606154,
+    "scf: mulliken": 0.00022416500000000002,
+    "scf: energy+mixing": 0.000387265,
+    "gradient": 0.00398954
+   },
+   "inner_seconds": 0.808874151,
+   "hessian_phases": {
+    "reference scf": 0.168859576,
+    "chi0": 0.135327683,
+    "kernel+potential derivatives": 0.079251289,
+    "skeleton responses": 0.328355485,
+    "solve": 0.045615798,
+    "response terms": 0.005904986,
+    "explicit: integrals": 0.011860365,
+    "explicit: electrostatics+repulsion": 0.021182207,
+    "total": 0.808874151
+   }
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "round": 2,
+   "ok": true,
+   "seconds": 8.89642175699555,
+   "cpu_seconds": 70.3383,
+   "cores_used": 7.91,
+   "max_rss_mb": 259.7,
+   "load1_before": 4.96,
+   "load1_after": 5.5,
+   "node_busy_threads": 8.2,
+   "other_busy_threads": 0.3,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1246002,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896801,
+   "iterations": 14
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "method": "gfn2",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "round": 2,
+   "ok": true,
+   "seconds": 15.271075860000565,
+   "cpu_seconds": 121.1353,
+   "cores_used": 7.93,
+   "max_rss_mb": 259.4,
+   "load1_before": 5.5,
+   "load1_after": 6.06,
+   "node_busy_threads": 8.3,
+   "other_busy_threads": 0.4,
+   "rc": 0,
+   "cmd": [
+    "xtb",
+    "coord",
+    "--gfn",
+    "2",
+    "--hess",
+    "--acc",
+    "0.001"
+   ],
+   "binary": "xtb",
+   "binary_sha256": "95d82a623580bb1e",
+   "pid": 1246104,
+   "env": {
+    "OMP_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8"
+   },
+   "energy": -186.500439896987,
+   "iterations": 19
+  }
+ ],
+ "hessian_accuracy": {
+  "gfn2": {
+   "caffeine": {
+    "reference": "axtb analytic Hessian, SCF accuracy 1e-6, in the program's conventions ('xtb') for the program's Hessians, in axtb's default conventions for axtb's",
+    "xtb 6.8.0 --hess": {
+     "max_dH": 0.0002715776922464219,
+     "max_dfreq": 0.839421262319167,
+     "mean_dfreq": 0.192193158380277,
+     "max_dfreq_above_100": 0.7208923981094131,
+     "lowest_freqs": [
+      -26.09,
+      68.76,
+      81.91
+     ]
+    },
+    "xtb 6.8.0 --hess --acc 0.001": {
+     "max_dH": 3.725487335481947e-05,
+     "max_dfreq": 0.64229831767652,
+     "mean_dfreq": 0.025388202990842674,
+     "max_dfreq_above_100": 0.04081452052832901,
+     "lowest_freqs": [
+      -27.57,
+      68.22,
+      81.52
+     ]
+    },
+    "axtb analytic": {
+     "max_dH": 1.4821548433019416e-09,
+     "max_dfreq": 2.7203192900060458e-05,
+     "mean_dfreq": 1.4487222278110796e-06,
+     "max_dfreq_above_100": 5.441713426534989e-06,
+     "lowest_freqs": [
+      -26.93,
+      68.34,
+      81.7
+     ]
+    },
+    "tight analytic vs Richardson finite differences": {
+     "max_dH": 2.670769438939402e-10,
+     "max_dfreq": 1.778448392997234e-06,
+     "mean_dfreq": 9.209425583077119e-08,
+     "max_dfreq_above_100": 1.778448392997234e-06,
+     "lowest_freqs": [
+      -26.93,
+      68.34,
+      81.7
+     ],
+     "fd_spread_0.002_0.001": 4.437974731152927e-06
+    }
+   },
+   "taxol": {
+    "reference": "axtb analytic Hessian, SCF accuracy 1e-6, in the program's conventions ('xtb') for the program's Hessians, in axtb's default conventions for axtb's",
+    "xtb 6.8.0 --hess": {
+     "max_dH": 0.0008567558244037543,
+     "max_dfreq": 4.882724830395091,
+     "mean_dfreq": 0.28924108627516165,
+     "max_dfreq_above_100": 4.882724830395091,
+     "lowest_freqs": [
+      -65.16,
+      -30.62,
+      -16.94
+     ]
+    },
+    "xtb 6.8.0 --hess --acc 0.001": {
+     "max_dH": 3.484762600336477e-05,
+     "max_dfreq": 0.0856529938150743,
+     "mean_dfreq": 0.012057804553507637,
+     "max_dfreq_above_100": 0.0856529938150743,
+     "lowest_freqs": [
+      -66.07,
+      -31.2,
+      -17.66
+     ]
+    },
+    "axtb analytic": {
+     "max_dH": 4.357891270068137e-09,
+     "max_dfreq": 9.853928645497945e-06,
+     "mean_dfreq": 9.846349321417346e-07,
+     "max_dfreq_above_100": 9.853928645497945e-06,
+     "lowest_freqs": [
+      -66.03,
+      -30.96,
+      -17.55
+     ]
+    }
+   }
+  }
+ },
+ "summary": [
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "n": 3,
+   "min": 0.11110450999694876,
+   "median": 0.12960402699536644,
+   "max": 0.16253136700106552,
+   "median_cores_used": 7.42,
+   "median_max_rss_mb": 98.7,
+   "median_other_busy_threads": 0.2,
+   "max_load1": 0.78,
+   "iterations": [
+    12
+   ]
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "n": 3,
+   "min": 0.14891945300041698,
+   "median": 0.16301746100361925,
+   "max": 0.16781612100021448,
+   "median_cores_used": 7.57,
+   "median_max_rss_mb": 98.7,
+   "median_other_busy_threads": 0.1,
+   "max_load1": 0.78,
+   "iterations": [
+    17
+   ]
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "nbf": 66,
+   "threads": 8,
+   "program": "axtb analytic",
+   "n": 3,
+   "min": 0.02182932999858167,
+   "median": 0.02190897800028324,
+   "max": 0.022827991997473873,
+   "median_cores_used": 3.52,
+   "median_max_rss_mb": 98.7,
+   "median_other_busy_threads": 0.8,
+   "max_load1": 0.78,
+   "inner_min": 0.01726592,
+   "inner_median": 0.017334846,
+   "phases_median": {
+    "classical": 0.000147527,
+    "integrals": 0.000170569,
+    "cholesky": 1.3535e-05,
+    "scf: potentials": 5.6851e-05,
+    "scf: fock": 2.3512e-05,
+    "scf: diagonalization": 0.000706795,
+    "scf: density": 2.6818e-05,
+    "scf: mulliken": 6.998200000000001e-05,
+    "scf: energy+mixing": 6.4254e-05,
+    "gradient": 0.000302171
+   },
+   "hessian_phases_median": {
+    "reference scf": 0.010105062,
+    "chi0": 0.001041761,
+    "kernel+potential derivatives": 0.001349454,
+    "skeleton responses": 0.001279048,
+    "solve": 0.001359918,
+    "response terms": 0.000195964,
+    "explicit: integrals": 0.000885922,
+    "explicit: electrostatics+repulsion": 0.000274242,
+    "total": 0.017334846
+   },
+   "iterations": [
+    2
+   ]
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "n": 3,
+   "min": 7.9695847050024895,
+   "median": 8.89642175699555,
+   "max": 8.992486713999824,
+   "median_cores_used": 7.91,
+   "median_max_rss_mb": 261.3,
+   "median_other_busy_threads": 0.3,
+   "max_load1": 5.5,
+   "iterations": [
+    14
+   ]
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "n": 3,
+   "min": 14.362056468999072,
+   "median": 14.873313394993602,
+   "max": 15.271075860000565,
+   "median_cores_used": 7.94,
+   "median_max_rss_mb": 259.4,
+   "median_other_busy_threads": 0.3,
+   "max_load1": 6.06,
+   "iterations": [
+    19
+   ]
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "taxol",
+   "atoms": 113,
+   "nbf": 299,
+   "threads": 8,
+   "program": "axtb analytic",
+   "n": 3,
+   "min": 0.8551480300011463,
+   "median": 0.873671398992883,
+   "max": 0.8859475179997389,
+   "median_cores_used": 5.55,
+   "median_max_rss_mb": 142.3,
+   "median_other_busy_threads": 0.2,
+   "max_load1": 4.96,
+   "inner_min": 0.793452961,
+   "inner_median": 0.808874151,
+   "phases_median": {
+    "classical": 0.002508521,
+    "integrals": 0.001747557,
+    "cholesky": 0.000981809,
+    "scf: potentials": 0.001173645,
+    "scf: fock": 0.00034659700000000003,
+    "scf: diagonalization": 0.011379783000000001,
+    "scf: density": 0.0005978439999999999,
+    "scf: mulliken": 0.000163589,
+    "scf: energy+mixing": 0.000341082,
+    "gradient": 0.003927365
+   },
+   "hessian_phases_median": {
+    "reference scf": 0.168859576,
+    "chi0": 0.136678241,
+    "kernel+potential derivatives": 0.079251289,
+    "skeleton responses": 0.325558512,
+    "solve": 0.042804682,
+    "response terms": 0.00588657,
+    "explicit: integrals": 0.011860365,
+    "explicit: electrostatics+repulsion": 0.020538863,
+    "total": 0.808874151
+   },
+   "iterations": [
+    2
+   ]
+  }
+ ],
+ "speedups": [
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "axtb": "axtb analytic",
+   "program_median": 0.12960402699536644,
+   "axtb_median": 0.02190897800028324,
+   "speedup_median": 5.915566987820742,
+   "speedup_min": 5.08968942263311
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "caffeine",
+   "atoms": 24,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "axtb": "axtb analytic",
+   "program_median": 0.16301746100361925,
+   "axtb_median": 0.02190897800028324,
+   "speedup_median": 7.440669345759156,
+   "speedup_min": 6.821989177409146
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "taxol",
+   "atoms": 113,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess",
+   "axtb": "axtb analytic",
+   "program_median": 8.89642175699555,
+   "axtb_median": 0.873671398992883,
+   "speedup_median": 10.182800727196543,
+   "speedup_min": 9.319538168136582
+  },
+  {
+   "part": "gfn2",
+   "kind": "Hessian",
+   "molecule": "taxol",
+   "atoms": 113,
+   "threads": 8,
+   "program": "xtb 6.8.0 --hess --acc 0.001",
+   "axtb": "axtb analytic",
+   "program_median": 14.873313394993602,
+   "axtb_median": 0.873671398992883,
+   "speedup_median": 17.023921593563305,
+   "speedup_min": 16.794819101647022
+  }
+ ]
+}

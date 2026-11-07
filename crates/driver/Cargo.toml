@@ -38,6 +38,8 @@ serde = { version = "1", features = ["derive"] }
 [dev-dependencies]
 # exact decimal-to-double parsing of JSON requests (the default parser can be 1 ulp off)
 serde_json = { version = "1", features = ["float_roundtrip"] }
+# tests/threads.rs disables faer's global parallelism (same version as crates/axtb)
+faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
 
 [lints]
 workspace = true

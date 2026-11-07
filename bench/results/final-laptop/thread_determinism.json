@@ -1,0 +1,199 @@
+{
+ "machine": "laptop (Intel i9-11900H)",
+ "axtb_commit": "3499913",
+ "how": "the axtb CLI (energy + gradient; GFN-FF also the analytic Hessian) on 1, 2, 4 and 8 threads, three runs per thread count, with faer and with MKL (AXTB_LAPACK): largest differences against 1 thread, SCF iterations, and whether the three runs of a thread count gave identical bits (2026-11-07, ad-hoc script of the release rerun, while the validation gates ran)",
+ "rows": [
+  {
+   "method": "gfn2",
+   "molecule": "taxol",
+   "solver": "faer",
+   "eigensolver": "faer",
+   "max_dE_vs_1thread": 0.0,
+   "max_dG_vs_1thread": 0.0,
+   "iterations": {
+    "1": 12,
+    "2": 12,
+    "4": 12,
+    "8": 12
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gfn2",
+   "molecule": "taxol",
+   "solver": "MKL",
+   "eigensolver": "mkl (Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications | CNR AUTO,STRICT)",
+   "max_dE_vs_1thread": 5.684341886080802e-14,
+   "max_dG_vs_1thread": 1.4840559336981585e-15,
+   "iterations": {
+    "1": 12,
+    "2": 12,
+    "4": 12,
+    "8": 12
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gfn2",
+   "molecule": "(H2O)200",
+   "solver": "faer",
+   "eigensolver": "faer",
+   "max_dE_vs_1thread": 1.1368683772161603e-13,
+   "max_dG_vs_1thread": 2.733924198139448e-15,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gfn2",
+   "molecule": "(H2O)200",
+   "solver": "MKL",
+   "eigensolver": "mkl (Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications | CNR AUTO,STRICT)",
+   "max_dE_vs_1thread": 3.410605131648481e-13,
+   "max_dG_vs_1thread": 1.6523241108679088e-15,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "taxol",
+   "solver": "faer",
+   "eigensolver": "faer",
+   "max_dE_vs_1thread": 0.0,
+   "max_dG_vs_1thread": 0.0,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "taxol",
+   "solver": "MKL",
+   "eigensolver": "mkl (Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications | CNR AUTO,STRICT)",
+   "max_dE_vs_1thread": 4.547473508864641e-13,
+   "max_dG_vs_1thread": 2.1241688963336003e-15,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "(H2O)200",
+   "solver": "faer",
+   "eigensolver": "faer",
+   "max_dE_vs_1thread": 1.8189894035458565e-12,
+   "max_dG_vs_1thread": 6.1201044232461754e-15,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "(H2O)200",
+   "solver": "MKL",
+   "eigensolver": "mkl (Intel(R) oneAPI Math Kernel Library Version 2025.3-Product Build 20251007 for Intel(R) 64 architecture applications | CNR AUTO,STRICT)",
+   "max_dE_vs_1thread": 0.0,
+   "max_dG_vs_1thread": 4.9057979900624105e-15,
+   "iterations": {
+    "1": 9,
+    "2": 9,
+    "4": 9,
+    "8": 9
+   },
+   "three_runs_identical": {
+    "1": true,
+    "2": true,
+    "4": true,
+    "8": true
+   }
+  },
+  {
+   "method": "gfnff",
+   "molecule": "C50H102",
+   "atoms": 152,
+   "max_dE_vs_1thread": 0.0,
+   "max_dG_vs_1thread": 0.0,
+   "max_dH_vs_1thread": 0.0
+  },
+  {
+   "method": "gfnff",
+   "molecule": "(H2O)200",
+   "atoms": 600,
+   "max_dE_vs_1thread": 2.1316282072803006e-13,
+   "max_dG_vs_1thread": 9.697104230710352e-15,
+   "max_dH_vs_1thread": 1.9817480989559044e-14
+  },
+  {
+   "method": "gfnff",
+   "molecule": "(H2O)333",
+   "atoms": 999,
+   "max_dE_vs_1thread": 4.405364961712621e-13,
+   "max_dG_vs_1thread": 1.3612375115990005e-14,
+   "max_dH_vs_1thread": 2.731148640577885e-14
+  },
+  {
+   "method": "gfnff",
+   "molecule": "crambin",
+   "atoms": 640,
+   "max_dE_vs_1thread": 2.2737367544323206e-13,
+   "max_dG_vs_1thread": 7.549690039798662e-14,
+   "max_dH_vs_1thread": 2.2554180745260055e-13
+  }
+ ]
+}

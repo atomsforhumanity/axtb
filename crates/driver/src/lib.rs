@@ -220,13 +220,13 @@ pub fn cpu_mismatch() -> Option<&'static std::ffi::CStr> {
 fn x86_64_v3() -> bool {
     use std::arch::x86_64::{__cpuid, __cpuid_count, _xgetbv};
     let bit = |reg: u32, b: u32| reg & (1 << b) != 0;
-    // SAFETY: cpuid exists on every x86-64 CPU; leaves above the maximum are not asked
-    let (max, max_ext) = unsafe { (__cpuid(0).eax, __cpuid(0x8000_0000).eax) };
+    // leaves above the maximum are not asked
+    let (max, max_ext) = (__cpuid(0).eax, __cpuid(0x8000_0000).eax);
     if max < 7 || max_ext < 0x8000_0001 {
         return false;
     }
-    // SAFETY: leaves 1, 7 and 0x80000001 exist (checked above)
-    let (l1, l7, ext) = unsafe { (__cpuid(1), __cpuid_count(7, 0), __cpuid(0x8000_0001)) };
+    // leaves 1, 7 and 0x80000001 exist (checked above)
+    let (l1, l7, ext) = (__cpuid(1), __cpuid_count(7, 0), __cpuid(0x8000_0001));
     // leaf 1 ECX: FMA 12, MOVBE 22, XSAVE 26, OSXSAVE 27, AVX 28, F16C 29
     if ![12, 22, 26, 27, 28, 29].iter().all(|&b| bit(l1.ecx, b)) {
         return false;
@@ -242,4 +242,4 @@ fn x86_64_v3() -> bool {
 const CPU_MISMATCH: &std::ffi::CStr = c"this axtb was built for x86-64-v3 CPUs (AVX2, FMA, BMI2: Intel since Haswell (2013), AMD \
 since Excavator (2015); not many low-end Intel Atom, Celeron and Pentium N-series CPUs), and this CPU (or its operating \
 system) does not support them. Build axtb from source for any x86-64 CPU with RUSTFLAGS=\"-C target-cpu=x86-64\" (CLI: \
-cargo build --release -p axtb-cli; Python: maturin build --release in crates/axtb-py)";
+cargo install axtb-cli; Python: pip install --no-binary axtb axtb)";
