@@ -1,11 +1,11 @@
-description: axtb final timings, 1 thread - GFN2 vs xtb 6.8.0/tblite 0.8.0, g-xTB 2.0.1 and v1.1 vs their programs, E+G and Hessians, interleaved, one calculation at a time (bench/final_timings.py)
-image: <registry>/axtb-timing:2026-11-05d   # <registry>: the cluster's image registry
+description: axtb 0.1.0 release run (e6b4a18), 1 thread - energy + gradient (tasks-eg.jsonl, the t1 lines) and Hessians (tasks-t1.jsonl), GFN2 vs xtb 6.8.0, g-xTB 2.0.1 and v1.1 vs their programs, interleaved, one calculation at a time (bench/final_timings.py)
+image: <registry>/axtb-timing:2026-11-07b   # <registry>: the cluster's image registry
 command: bash $RUN_DIR/timing_task.sh
 threads_per_task: 2      # 1-thread runs in a 2-CPU pod (both SMT siblings of one core free for us)
 cpus_per_pod: 2
 memory_per_pod: 6Gi
-shards: 1                # the tasks run one after the other in one pod
-task_timeout: 10800
+shards: 1                # the tasks of a run one after the other in one pod (E+G and Hessians were two runs)
+task_timeout: 21600
 max_attempts: 1
 priority: high
 notify: never

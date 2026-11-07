@@ -1,0 +1,18 @@
+{
+ "machine": "laptop (Intel i9-11900H)",
+ "axtb_commit": "e6b4a18",
+ "date": "2026-11-07 10:46 UTC",
+ "how": "axtb.vibrational_analysis(numbers, positions, hessian) on the GFN2-xTB analytic Hessian (Calculator(threads=1).hessian), symmetry detection and thermochemistry included, best of 7, started at a 1-minute load below 1.5 (ad-hoc script of the release rerun)",
+ "rows": [
+  {
+   "molecule": "caffeine",
+   "atoms": 24,
+   "best_of_7_s": 0.0007301149962586351
+  },
+  {
+   "molecule": "taxol",
+   "atoms": 113,
+   "best_of_7_s": 0.016079865003121085
+  }
+ ]
+}

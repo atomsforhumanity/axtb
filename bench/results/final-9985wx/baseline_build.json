@@ -1,0 +1,88 @@
+{
+ "machine": "64-core node (AMD Threadripper PRO 9985WX), 16-CPU pod",
+ "axtb_commit": "e6b4a18",
+ "how": "the release CLI (x86-64-v3, .cargo/config.toml) against the same sources built with RUSTFLAGS='-C target-cpu=x86-64' (cargo build --release -p axtb-cli); energy + gradient on 1 thread, whole processes, the two builds alternating, median of 9; bit_identical: energy and gradient equal to the last bit (2026-11-07, ad-hoc script of the release rerun)",
+ "rows": [
+  {
+   "method": "gfn2",
+   "molecule": "caffeine.xyz",
+   "v3_median_s": 0.006905230227857828,
+   "base_median_s": 0.010103326290845871,
+   "base_over_v3": 1.4631411202027613,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gfn2",
+   "molecule": "taxol.xyz",
+   "v3_median_s": 0.09250340377911925,
+   "base_median_s": 0.13269855175167322,
+   "base_over_v3": 1.4345261507190852,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gfn2",
+   "molecule": "large/water200.xyz",
+   "v3_median_s": 2.1864545489661396,
+   "base_median_s": 2.673375593032688,
+   "base_over_v3": 1.22269890965572,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "caffeine.xyz",
+   "v3_median_s": 0.013274903874844313,
+   "base_median_s": 0.02284918539226055,
+   "base_over_v3": 1.7212317021413102,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "taxol.xyz",
+   "v3_median_s": 0.20317248301580548,
+   "base_median_s": 0.3470621481537819,
+   "base_over_v3": 1.708214335928467,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gxtb-v2.0.1",
+   "molecule": "large/water200.xyz",
+   "v3_median_s": 5.109337332192808,
+   "base_median_s": 6.831205739174038,
+   "base_over_v3": 1.3370042522211474,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gfnff",
+   "molecule": "caffeine.xyz",
+   "v3_median_s": 0.001425163820385933,
+   "base_median_s": 0.0016045738011598587,
+   "base_over_v3": 1.1258872686827972,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gfnff",
+   "molecule": "taxol.xyz",
+   "v3_median_s": 0.0062894499860703945,
+   "base_median_s": 0.006578704807907343,
+   "base_over_v3": 1.045990479688618,
+   "bit_identical": true,
+   "dE": 0.0
+  },
+  {
+   "method": "gfnff",
+   "molecule": "large/water200.xyz",
+   "v3_median_s": 0.08880328200757504,
+   "base_median_s": 0.09055251209065318,
+   "base_over_v3": 1.0196978089495492,
+   "bit_identical": true,
+   "dE": 0.0
+  }
+ ]
+}

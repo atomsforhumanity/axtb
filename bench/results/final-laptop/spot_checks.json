@@ -1,0 +1,69 @@
+{
+ "machine": "laptop (Intel i9-11900H)",
+ "axtb_commit": "e6b4a18",
+ "how": "bench/spot_check.sh on the inputs of bench/spot_check_inputs.py: each binary run directly with bash's `time` (wall s), alternating, 3 rounds per cell, outside bench/final_timings.py; xtb-like programs from a coord file with OMP_NUM_THREADS=MKL_NUM_THREADS=threads, axtb from the same JSON request as the harness, AXTB_LAPACK unset (faer). Binaries identified by the first 16 hex digits of their sha256, as the harness records them. 2026-11-07 10:19 UTC, started at a 1-minute load below 1.5; the harness medians are those of the first energy + gradient session.",
+ "binaries": {
+  "xtb 6.8.0": "95d82a623580bb1e",
+  "g-xTB 2.0.1 program": "1b4e30b68ed4e88b",
+  "axtb": "21953fc2fd7be25e"
+ },
+ "cells": [
+  {
+   "part": "gfn2",
+   "molecule": "(H2O)100",
+   "threads": 1,
+   "program_s": [
+    0.559,
+    0.554,
+    0.56
+   ],
+   "axtb_s": [
+    0.515,
+    0.521,
+    0.535
+   ],
+   "harness_median": {
+    "program": 0.579,
+    "axtb": 0.533
+   }
+  },
+  {
+   "part": "gfn2",
+   "molecule": "(H2O)200",
+   "threads": 8,
+   "program_s": [
+    1.025,
+    1.046,
+    1.023
+   ],
+   "axtb_s": [
+    1.434,
+    1.469,
+    1.482
+   ],
+   "harness_median": {
+    "program": 1.37,
+    "axtb": 1.689
+   }
+  },
+  {
+   "part": "gxtb2",
+   "molecule": "taxol",
+   "threads": 4,
+   "program_s": [
+    0.347,
+    0.339,
+    0.339
+   ],
+   "axtb_s": [
+    0.135,
+    0.135,
+    0.132
+   ],
+   "harness_median": {
+    "program": 0.361,
+    "axtb": 0.136
+   }
+  }
+ ]
+}
