@@ -1,6 +1,7 @@
 {
  "accuracy": {
   "xtb_version": "6.8.0 (4b8c987066c7e9bd0c2b727ce026fb9a581c273a)",
+  "conventions": "xtb-6.7.1",
   "summary": {
    "cases": 269,
    "reproduced": 32,
@@ -4036,71 +4037,7 @@
     "gradient_maxdiff": 1.5348639637036143e-08,
     "pass": false
    }
-  ],
-  "comparison": {
-   "what": "axtb's GFN-FF (crate axtb-gfnff, a port of xtb 6.7.1's: it reproduces the g-xTB 2.0.1 build 6.7.1 (26dd68d) to the tolerances) against xtb 6.8.0 --gfnff on the 269-structure set; measurement only, no GFN-FF code changed",
-   "cases": 269,
-   "within_6.7.1_tolerances": 32,
-   "topology_lists_differ": {
-    "el-07-N-alt": [
-     "tlist"
-    ]
-   },
-   "topology_parameters_differ_above_1e-10": [
-    "struct-tyr-xab",
-    "mb16-06",
-    "mb16-13",
-    "mb16-14",
-    "mbheavy-100",
-    "mbheavy-101",
-    "mbheavy-102",
-    "mbheavy-103",
-    "mbheavy-104",
-    "mbheavy-107",
-    "mbheavy-108",
-    "mbheavy-109",
-    "mbheavy-112",
-    "mbheavy-113",
-    "mbheavy-115",
-    "tm-Fe2-septet",
-    "tm-Fe2-singlet",
-    "tm-Co2-quintet",
-    "tm-Ni2-triplet",
-    "tm-ferrocenium",
-    "tm-Pt3",
-    "tm-Au4",
-    "tm-Fe4-quintet-T1000",
-    "crambin_h"
-   ],
-   "energy_diff": {
-    "median": 1.4489969224484867e-09,
-    "p90": 4.090846201787461e-08,
-    "max": 8.9188657922179e-05,
-    "n_above_1e-10": 206,
-    "n_above_1e-6": 1
-   },
-   "terms_maxdiff": {
-    "median": 1.9503660353414887e-09,
-    "p90": 3.960121116031173e-08,
-    "max": 8.764688526952114e-05,
-    "n_above_1e-10": 215,
-    "n_above_1e-6": 1
-   },
-   "charges_maxdiff": {
-    "median": 8.222299230364882e-10,
-    "p90": 2.3785717484514653e-08,
-    "max": 3.622044317808104e-07,
-    "n_above_1e-10": 218,
-    "n_above_1e-6": 0
-   },
-   "gradient_maxdiff": {
-    "median": 2.645317942126524e-09,
-    "p90": 2.3970287446606355e-08,
-    "max": 0.09446880156701509,
-    "n_above_1e-10": 230,
-    "n_above_1e-6": 2
-   }
-  }
+  ]
  },
  "xtb_issues": {
   "1516 (linear C=O...H hydrogen bond)": {
@@ -4142,5 +4079,6 @@
    "verdict": "still present: gfnff_eg.f90:571 allocates considered_ABH(NAB, NAB, NH) (7.5 GiB here) in every evaluation",
    "note": "one thread, address space capped at 12 GiB, /usr/bin/time -v; 1-minute load 1.9-2.6 (shared machine)"
   }
- }
+ },
+ "accuracy_how": "tests/gfnff_reproduction.py --part accuracy --conventions xtb-6.7.1 against xtb 6.8.0 (axtb e6b4a18): the 6.7.1 force field against the 6.8.0 program; xtb_issues: the programs' own outputs, recorded by hand"
 }

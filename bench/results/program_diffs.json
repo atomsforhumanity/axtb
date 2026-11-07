@@ -11,10 +11,10 @@
    "model": "ALPB",
    "molecule": "water",
    "xtb_minus_tblite": -7.255636091940687e-10,
-   "axtb_minus_tblite": 1.0468959033005376e-11,
+   "axtb_minus_tblite": 1.0473399925103877e-11,
    "E_xtb": -5.084867617684,
    "E_tblite": -5.084867616958436,
-   "E_axtb": -5.084867616947967
+   "E_axtb": -5.084867616947963
   },
   {
    "topic": "solvation reference state",
@@ -23,10 +23,10 @@
    "model": "ALPB",
    "molecule": "water",
    "xtb_minus_tblite": 1.2783659464332686e-08,
-   "axtb_minus_tblite": 1.0487610779819079e-11,
+   "axtb_minus_tblite": 1.049116349349788e-11,
    "E_xtb": -5.081836371348,
    "E_tblite": -5.08183638413166,
-   "E_axtb": -5.081836384121172
+   "E_axtb": -5.081836384121169
   },
   {
    "topic": "solvation reference state",
@@ -35,10 +35,10 @@
    "model": "ALPB",
    "molecule": "water",
    "xtb_minus_tblite": -0.005010596818472379,
-   "axtb_minus_tblite": 1.0489387136658479e-11,
+   "axtb_minus_tblite": 1.049205167191758e-11,
    "E_xtb": -5.083053828222,
    "E_tblite": -5.0780432314035275,
-   "E_axtb": -5.078043231393038
+   "E_axtb": -5.0780432313930355
   },
   {
    "topic": "solvation reference state",
@@ -47,10 +47,10 @@
    "model": "ALPB",
    "molecule": "acetic_acid",
    "xtb_minus_tblite": 3.775351586909892e-09,
-   "axtb_minus_tblite": -2.2222224060897133e-11,
+   "axtb_minus_tblite": -2.2220447704057733e-11,
    "E_xtb": -14.470242053304,
    "E_tblite": -14.470242057079352,
-   "E_axtb": -14.470242057101574
+   "E_axtb": -14.470242057101572
   },
   {
    "topic": "solvation reference state",
@@ -71,10 +71,10 @@
    "model": "ALPB",
    "molecule": "acetic_acid",
    "xtb_minus_tblite": -0.0050105923175589595,
-   "axtb_minus_tblite": -2.220446049250313e-11,
+   "axtb_minus_tblite": -2.220268413566373e-11,
    "E_xtb": -14.468428263842,
    "E_tblite": -14.463417671524441,
-   "E_axtb": -14.463417671546646
+   "E_axtb": -14.463417671546644
   },
   {
    "topic": "solvation reference state",
@@ -83,10 +83,10 @@
    "model": "ALPB",
    "molecule": "acetate",
    "xtb_minus_tblite": -4.760444483054016e-09,
-   "axtb_minus_tblite": 3.857891783809464e-11,
+   "axtb_minus_tblite": 3.858779962229164e-11,
    "E_xtb": -14.273088396292,
    "E_tblite": -14.273088391531555,
-   "E_axtb": -14.273088391492976
+   "E_axtb": -14.273088391492967
   },
   {
    "topic": "solvation reference state",
@@ -95,10 +95,10 @@
    "model": "ALPB",
    "molecule": "acetate",
    "xtb_minus_tblite": 8.748779478651159e-09,
-   "axtb_minus_tblite": 3.859845776332804e-11,
+   "axtb_minus_tblite": 3.860378683384624e-11,
    "E_xtb": -14.270057149956,
    "E_tblite": -14.270057158704779,
-   "E_axtb": -14.27005715866618
+   "E_axtb": -14.270057158666175
   },
   {
    "topic": "solvation reference state",
@@ -107,10 +107,10 @@
    "model": "ALPB",
    "molecule": "acetate",
    "xtb_minus_tblite": -0.0050106008533550295,
-   "axtb_minus_tblite": 3.859668140648864e-11,
+   "axtb_minus_tblite": 3.8605563190685643e-11,
    "E_xtb": -14.27127460683,
    "E_tblite": -14.266264005976645,
-   "E_axtb": -14.266264005938048
+   "E_axtb": -14.266264005938039
   },
   {
    "topic": "solvation reference state",
@@ -119,10 +119,10 @@
    "model": "ALPB",
    "molecule": "methylammonium",
    "xtb_minus_tblite": -4.347366910906203e-10,
-   "axtb_minus_tblite": 7.676526081468182e-12,
+   "axtb_minus_tblite": 7.675637903048482e-12,
    "E_xtb": -7.784139057018,
    "E_tblite": -7.784139056583263,
-   "E_axtb": -7.784139056575587
+   "E_axtb": -7.7841390565755875
   },
   {
    "topic": "solvation reference state",
@@ -131,10 +131,10 @@
    "model": "ALPB",
    "molecule": "methylammonium",
    "xtb_minus_tblite": 1.3074485494257715e-08,
-   "axtb_minus_tblite": 7.694289649862185e-12,
+   "axtb_minus_tblite": 7.695177828281885e-12,
    "E_xtb": -7.781107810682,
    "E_tblite": -7.781107823756486,
-   "E_axtb": -7.781107823748791
+   "E_axtb": -7.7811078237487905
   },
   {
    "topic": "solvation reference state",
@@ -143,10 +143,10 @@
    "model": "ALPB",
    "molecule": "methylammonium",
    "xtb_minus_tblite": -0.005010596527645461,
-   "axtb_minus_tblite": 7.697842363540985e-12,
+   "axtb_minus_tblite": 7.695177828281885e-12,
    "E_xtb": -7.782325267556,
    "E_tblite": -7.777314671028354,
-   "E_axtb": -7.777314671020656
+   "E_axtb": -7.777314671020659
   },
   {
    "topic": "solvation reference state",
@@ -155,10 +155,10 @@
    "model": "GBSA",
    "molecule": "water",
    "xtb_minus_tblite": 8.672147444599432e-10,
-   "axtb_minus_tblite": -3.0331293032759277e-12,
+   "axtb_minus_tblite": -3.035793838535028e-12,
    "E_xtb": -5.079993366521,
    "E_tblite": -5.079993367388215,
-   "E_axtb": -5.079993367391248
+   "E_axtb": -5.079993367391251
   },
   {
    "topic": "solvation reference state",
@@ -167,10 +167,10 @@
    "model": "GBSA",
    "molecule": "water",
    "xtb_minus_tblite": 1.4376438706165118e-08,
-   "axtb_minus_tblite": -3.015365734881925e-12,
+   "axtb_minus_tblite": -3.0171420917213254e-12,
    "E_xtb": -5.076962120185,
    "E_tblite": -5.076962134561438,
-   "E_axtb": -5.076962134564454
+   "E_axtb": -5.0769621345644556
   },
   {
    "topic": "solvation reference state",
@@ -179,10 +179,10 @@
    "model": "GBSA",
    "molecule": "water",
    "xtb_minus_tblite": -0.005010595225694914,
-   "axtb_minus_tblite": -3.014477556462225e-12,
+   "axtb_minus_tblite": -3.0180302701410255e-12,
    "E_xtb": -5.078179577059,
    "E_tblite": -5.073168981833305,
-   "E_axtb": -5.07316898183632
+   "E_axtb": -5.073168981836323
   },
   {
    "topic": "solvation reference state",
@@ -191,10 +191,10 @@
    "model": "GBSA",
    "molecule": "acetic_acid",
    "xtb_minus_tblite": 5.0562736220172155e-09,
-   "axtb_minus_tblite": -3.2720492981752614e-11,
+   "axtb_minus_tblite": -3.2722269338592014e-11,
    "E_xtb": -14.467936919504,
    "E_tblite": -14.467936924560274,
-   "E_axtb": -14.467936924592994
+   "E_axtb": -14.467936924592996
   },
   {
    "topic": "solvation reference state",
@@ -203,10 +203,10 @@
    "model": "GBSA",
    "molecule": "acetic_acid",
    "xtb_minus_tblite": 1.856549403100871e-08,
-   "axtb_minus_tblite": -3.270450577019801e-11,
+   "axtb_minus_tblite": -3.270628212703741e-11,
    "E_xtb": -14.464905673168,
    "E_tblite": -14.464905691733493,
-   "E_axtb": -14.464905691766198
+   "E_axtb": -14.4649056917662
   },
   {
    "topic": "solvation reference state",
@@ -215,10 +215,10 @@
    "model": "GBSA",
    "molecule": "acetic_acid",
    "xtb_minus_tblite": -0.005010591036638701,
-   "axtb_minus_tblite": -3.270272941335861e-11,
+   "axtb_minus_tblite": -3.270450577019801e-11,
    "E_xtb": -14.466123130042,
    "E_tblite": -14.461112539005361,
-   "E_axtb": -14.461112539038064
+   "E_axtb": -14.461112539038066
   },
   {
    "topic": "solvation reference state",
@@ -239,10 +239,10 @@
    "model": "GBSA",
    "molecule": "acetate",
    "xtb_minus_tblite": 8.886015478992704e-09,
-   "axtb_minus_tblite": 3.765876499528531e-11,
+   "axtb_minus_tblite": 3.766231770896411e-11,
    "E_xtb": -14.269354928948,
    "E_tblite": -14.269354937834015,
-   "E_axtb": -14.269354937796356
+   "E_axtb": -14.269354937796352
   },
   {
    "topic": "solvation reference state",
@@ -263,10 +263,10 @@
    "model": "GBSA",
    "molecule": "methylammonium",
    "xtb_minus_tblite": -2.1531869620616817e-09,
-   "axtb_minus_tblite": 1.8883561381244363e-11,
+   "axtb_minus_tblite": 1.8886225916503463e-11,
    "E_xtb": -7.773324947825,
    "E_tblite": -7.773324945671813,
-   "E_axtb": -7.77332494565293
+   "E_axtb": -7.773324945652927
   },
   {
    "topic": "solvation reference state",
@@ -275,10 +275,10 @@
    "model": "GBSA",
    "molecule": "methylammonium",
    "xtb_minus_tblite": 1.1357041529436174e-08,
-   "axtb_minus_tblite": 1.8906654020156566e-11,
+   "axtb_minus_tblite": 1.8908430376995966e-11,
    "E_xtb": -7.770293701488,
    "E_tblite": -7.770293712845041,
-   "E_axtb": -7.770293712826135
+   "E_axtb": -7.770293712826133
   },
   {
    "topic": "solvation reference state",
@@ -287,35 +287,35 @@
    "model": "GBSA",
    "molecule": "methylammonium",
    "xtb_minus_tblite": -0.005010598245094755,
-   "axtb_minus_tblite": 1.8903101306477765e-11,
+   "axtb_minus_tblite": 1.8906654020156566e-11,
    "E_xtb": -7.771511158362,
    "E_tblite": -7.7665005601169055,
-   "E_axtb": -7.766500560098002
+   "E_axtb": -7.766500560097999
   },
   {
    "topic": "atom-order dependence",
    "case": "compressed CsOH in water (ALPB): E(H,O,Cs) \u2212 E(Cs,O,H)",
    "xtb": 0.002885937479999434,
    "tblite": 0.0028859373326861615,
-   "axtb": -3.552713678800501e-15
+   "axtb": 2.6645352591003757e-15
   },
   {
    "topic": "occupations at low electronic temperature",
    "case": "O2 singlet (degenerate \u03c0*), 0.1 K",
    "xtb_minus_tblite": -0.0025197264836664957,
-   "axtb_minus_tblite": -3.063416187387702e-11,
+   "axtb_minus_tblite": 8.188116851215455e-12,
    "E_xtb": -7.906638884154,
    "E_tblite": -7.904119157670333,
-   "E_axtb": -7.9041191577009675
+   "E_axtb": -7.904119157662145
   },
   {
    "topic": "occupations at low electronic temperature",
    "case": "O2 singlet (degenerate \u03c0*), 1.0 K",
    "xtb_minus_tblite": 4.090305871784494e-09,
-   "axtb_minus_tblite": -3.420197458581242e-11,
+   "axtb_minus_tblite": -3.809041970725957e-11,
    "E_xtb": -7.904127055812,
    "E_tblite": -7.904127059902306,
-   "E_axtb": -7.904127059936508
+   "E_axtb": -7.9041270599403965
   }
  ]
 }

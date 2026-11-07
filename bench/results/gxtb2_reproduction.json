@@ -48,7 +48,7 @@
    "E_default": -228.55150111901793,
    "dE_default": 6.608047442568932e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.011512237,
+   "seconds_axtb": 0.002854562,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 4.2305568770384383e-16,
    "max_dgrad_default_vs_program_tight": 7.416526673872156e-07
@@ -71,7 +71,7 @@
    "E_default": -56.88571891172118,
    "dE_default": 5.0825121888919966e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.012514574,
+   "seconds_axtb": 0.001749793,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 2.265915753640879e-12,
    "max_dgrad_default_vs_program_tight": 1.7505384725981232e-08
@@ -94,7 +94,7 @@
    "E_default": -232.22709462362542,
    "dE_default": 1.8258106138091534e-10,
    "iter_default": 7,
-   "seconds_axtb": 0.02366922,
+   "seconds_axtb": 0.005020446,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 1.2289431625123193e-15,
    "max_dgrad_default_vs_program_tight": 6.153622031362244e-07
@@ -117,7 +117,7 @@
    "E_default": -680.4192315276675,
    "dE_default": 8.742517820792273e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.037029946,
+   "seconds_axtb": 0.016701294,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 7.456925701920802e-15,
    "max_dgrad_default_vs_program_tight": 7.125593765174021e-05
@@ -140,7 +140,7 @@
    "E_default": -3143.956680036357,
    "dE_default": 8.822098607197404e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.052033648,
+   "seconds_axtb": 0.011175347,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 1.6835491334354913e-15,
    "max_dgrad_default_vs_program_tight": 2.8863003799458643e-06
@@ -163,7 +163,7 @@
    "E_default": -1866.120130573329,
    "dE_default": -1.318767317570746e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.021437341,
+   "seconds_axtb": 0.008184506,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 3.723677616251919e-12,
    "max_dgrad_default_vs_program_tight": 3.3542844076251722e-06
@@ -186,7 +186,7 @@
    "E_default": -150.34083895141336,
    "dE_default": 1.6484591469634324e-12,
    "iter_default": 7,
-   "seconds_axtb": 0.003670261,
+   "seconds_axtb": 0.001580053,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 2.797415077360199e-14,
    "max_dgrad_default_vs_program_tight": 3.5719758777544297e-07
@@ -209,7 +209,7 @@
    "E_default": -155.03145720601836,
    "dE_default": 8.563461051380727e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.006981069,
+   "seconds_axtb": 0.002963936,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 1.0178489995293916e-15,
    "max_dgrad_default_vs_program_tight": 3.50485514699541e-06
@@ -232,7 +232,7 @@
    "E_default": -1650.7318260069226,
    "dE_default": 1.2937562132719904e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.040479147,
+   "seconds_axtb": 0.013574584,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 1.8283985436795547e-15,
    "max_dgrad_default_vs_program_tight": 1.3210620670182829e-06
@@ -255,7 +255,7 @@
    "E_default": -284.45622757372627,
    "dE_default": 1.9775825421675108e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.009748426,
+   "seconds_axtb": 0.004411751,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 2.1744758771369277e-15,
    "max_dgrad_default_vs_program_tight": 1.2031418230664531e-05
@@ -278,7 +278,7 @@
    "E_default": -75.79836026611618,
    "dE_default": 1.382716163789155e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.00356252,
+   "seconds_axtb": 0.001350397,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 2.570860191397628e-15,
    "max_dgrad_default_vs_program_tight": 4.297666493513486e-09
@@ -301,7 +301,7 @@
    "E_default": -337.58958724274777,
    "dE_default": 1.6257217794191092e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.005324752,
+   "seconds_axtb": 0.002166045,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 4.375839968151496e-16,
    "max_dgrad_default_vs_program_tight": 1.167011423160863e-06
@@ -324,7 +324,7 @@
    "E_default": -1048.7439458349538,
    "dE_default": 1.311946107307449e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.010302618,
+   "seconds_axtb": 0.004439346,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 2.0582494042464816e-15,
    "max_dgrad_default_vs_program_tight": 6.620367246454317e-06
@@ -347,7 +347,7 @@
    "E_default": -40.49443544016875,
    "dE_default": 4.8252957185468404e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.004378472,
+   "seconds_axtb": 0.001641981,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 1.5075484263715744e-13,
    "max_dgrad_default_vs_program_tight": 1.0679848300729558e-07
@@ -370,7 +370,7 @@
    "E_default": -1961.7281923809514,
    "dE_default": 1.4551915228366852e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.013682678,
+   "seconds_axtb": 0.005902699,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 1.1777811365076829e-11,
    "max_dgrad_default_vs_program_tight": 2.3918252359880765e-06
@@ -393,7 +393,7 @@
    "E_default": -633.7920652859292,
    "dE_default": 1.0800249583553523e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.006590432,
+   "seconds_axtb": 0.002880841,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 3.4954678040932663e-16,
    "max_dgrad_default_vs_program_tight": 5.2916849924758685e-06
@@ -416,7 +416,7 @@
    "E_default": -3481.3961128348187,
    "dE_default": -1.7462298274040222e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.014571143,
+   "seconds_axtb": 0.007376706,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 2.914335439641036e-16,
    "max_dgrad_default_vs_program_tight": 2.79777838700819e-06
@@ -439,7 +439,7 @@
    "E_default": -76.43742765287564,
    "dE_default": 3.136335635645082e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.00397052,
+   "seconds_axtb": 0.001637266,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 2.688821387764051e-16,
    "max_dgrad_default_vs_program_tight": 2.1052788609643436e-08
@@ -462,7 +462,7 @@
    "E_default": -3620.3628916807934,
    "dE_default": -1.1641532182693481e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.02315693,
+   "seconds_axtb": 0.004411391,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 8.340481083557449e-13,
    "max_dgrad_default_vs_program_tight": 4.771519605201516e-07
@@ -485,7 +485,7 @@
    "E_default": -1756.3788005062497,
    "dE_default": -2.0577317627612501e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.011775311,
+   "seconds_axtb": 0.005023274,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 6.904199434387692e-16,
    "max_dgrad_default_vs_program_tight": 8.09836472777381e-08
@@ -508,7 +508,7 @@
    "E_default": -607.1506346667602,
    "dE_default": -7.014477887423709e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.004610762,
+   "seconds_axtb": 0.002214337,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 5.32380687433034e-17,
    "max_dgrad_default_vs_program_tight": 7.405274987486166e-08
@@ -531,7 +531,7 @@
    "E_default": -1623.2166395458178,
    "dE_default": -1.2073542166035622e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.008674411,
+   "seconds_axtb": 0.003861019,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.3480163086352377e-16,
    "max_dgrad_default_vs_program_tight": 1.946901621524902e-06
@@ -554,7 +554,7 @@
    "E_default": -1976.0888683837964,
    "dE_default": 2.3646862246096134e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.022092654,
+   "seconds_axtb": 0.00767107,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 4.0848019600025497e-16,
    "max_dgrad_default_vs_program_tight": 3.445284933099174e-06
@@ -577,7 +577,7 @@
    "E_default": -595.8474702489937,
    "dE_default": -1.1164047464262694e-10,
    "iter_default": 30,
-   "seconds_axtb": 0.024421726,
+   "seconds_axtb": 0.003193018,
    "iter_axtb_tight": 34,
    "max_dgrad_tight": 8.954642582992278e-15,
    "max_dgrad_default_vs_program_tight": 9.404710553731488e-08
@@ -600,7 +600,7 @@
    "E_default": -324.63437391063974,
    "dE_default": -7.071321306284517e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.005133812,
+   "seconds_axtb": 0.002293448,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 6.592623129300526e-16,
    "max_dgrad_default_vs_program_tight": 1.1956483337745294e-06
@@ -623,7 +623,7 @@
    "E_default": -15.880403409140484,
    "dE_default": -1.0248513149235805e-10,
    "iter_default": 8,
-   "seconds_axtb": 0.003674112,
+   "seconds_axtb": 0.001555028,
    "iter_axtb_tight": 10,
    "max_dgrad_tight": 1.2376627500643167e-12,
    "max_dgrad_default_vs_program_tight": 1.964713051971767e-09
@@ -646,7 +646,7 @@
    "E_default": -216.30927942784214,
    "dE_default": -3.015543370565865e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.004395084,
+   "seconds_axtb": 0.001932426,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 2.224782857940255e-16,
    "max_dgrad_default_vs_program_tight": 5.8968601508628884e-06
@@ -669,7 +669,7 @@
    "E_default": -39.82104450146038,
    "dE_default": 4.362021854831255e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.0100203,
+   "seconds_axtb": 0.00186598,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 2.2089444729799315e-16,
    "max_dgrad_default_vs_program_tight": 4.284139964484679e-07
@@ -692,7 +692,7 @@
    "E_default": -1598.1210700244787,
    "dE_default": -9.868017514236271e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.012549426,
+   "seconds_axtb": 0.002840767,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 2.785323369847757e-16,
    "max_dgrad_default_vs_program_tight": 1.1571268536923751e-07
@@ -715,7 +715,7 @@
    "E_default": -1855.850484691249,
    "dE_default": -1.2960299500264227e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.031295027,
+   "seconds_axtb": 0.007200557,
    "iter_axtb_tight": 45,
    "max_dgrad_tight": 3.994063311747557e-09,
    "max_dgrad_default_vs_program_tight": 0.0002422479375658327
@@ -738,7 +738,7 @@
    "E_default": -2019.7308120046973,
    "dE_default": -4.934008757118136e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.037119828,
+   "seconds_axtb": 0.007945302,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 2.1293730667615307e-16,
    "max_dgrad_default_vs_program_tight": 2.065009437414488e-06
@@ -761,7 +761,7 @@
    "E_default": -1836.2512942841392,
    "dE_default": 4.774847184307873e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.037463199,
+   "seconds_axtb": 0.006557643,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 1.2271324581480947e-11,
    "max_dgrad_default_vs_program_tight": 1.4850856561998693e-06
@@ -784,7 +784,7 @@
    "E_default": -1724.611282846943,
    "dE_default": 2.4419932742603123e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.022540787,
+   "seconds_axtb": 0.010804174,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.424122096973292e-12,
    "max_dgrad_default_vs_program_tight": 1.2331285134451614e-05
@@ -807,7 +807,7 @@
    "E_default": -2265.75844897823,
    "dE_default": -6.502887117676437e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.048453141,
+   "seconds_axtb": 0.007255121,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 3.748086910282389e-16,
    "max_dgrad_default_vs_program_tight": 1.1857365831434473e-06
@@ -830,7 +830,7 @@
    "E_default": -1314.8224964803344,
    "dE_default": 2.4556356947869062e-11,
    "iter_default": 12,
-   "seconds_axtb": 0.011498403,
+   "seconds_axtb": 0.005059108,
    "iter_axtb_tight": 22,
    "max_dgrad_tight": 1.56472057533108e-15,
    "max_dgrad_default_vs_program_tight": 8.87716507075656e-07
@@ -853,7 +853,7 @@
    "E_default": -2090.992532219883,
    "dE_default": -2.5920599000528455e-11,
    "iter_default": 13,
-   "seconds_axtb": 0.043335752,
+   "seconds_axtb": 0.009592783,
    "iter_axtb_tight": 19,
    "max_dgrad_tight": 7.259817746962938e-16,
    "max_dgrad_default_vs_program_tight": 6.287439200539438e-07
@@ -876,7 +876,7 @@
    "E_default": -19.614600387928043,
    "dE_default": -1.2604317589648417e-10,
    "iter_default": 11,
-   "seconds_axtb": 0.003708667,
+   "seconds_axtb": 0.001503455,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 1.0949574580365606e-14,
    "max_dgrad_default_vs_program_tight": 8.897681202935104e-12
@@ -899,7 +899,7 @@
    "E_default": -2146.3491249785247,
    "dE_default": -1.0095391189679503e-10,
    "iter_default": 15,
-   "seconds_axtb": 0.021455615,
+   "seconds_axtb": 0.009805774,
    "iter_axtb_tight": 23,
    "max_dgrad_tight": 3.7526369992214715e-16,
    "max_dgrad_default_vs_program_tight": 3.7479077896808785e-06
@@ -922,7 +922,7 @@
    "E_default": -767.2531677050832,
    "dE_default": -1.5234036254696548e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.018605021,
+   "seconds_axtb": 0.003213331,
    "iter_axtb_tight": 19,
    "max_dgrad_tight": 2.9956506025774488e-16,
    "max_dgrad_default_vs_program_tight": 9.691098111568822e-07
@@ -945,7 +945,7 @@
    "E_default": -1.1630588222271858,
    "dE_default": -3.1858959914643492e-12,
    "iter_default": 4,
-   "seconds_axtb": 0.003142472,
+   "seconds_axtb": 0.001440553,
    "iter_axtb_tight": 4,
    "max_dgrad_tight": 2.168404344971009e-18,
    "max_dgrad_default_vs_program_tight": 1.9232976886454645e-10
@@ -968,7 +968,7 @@
    "E_default": -2402.5998656585734,
    "dE_default": -2.7284841053187847e-11,
    "iter_default": 7,
-   "seconds_axtb": 0.004263275,
+   "seconds_axtb": 0.00166658,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 4.557985933129061e-16,
    "max_dgrad_default_vs_program_tight": 4.085597820946418e-06
@@ -991,7 +991,7 @@
    "E_default": -2574.604731765712,
    "dE_default": -2.7284841053187847e-11,
    "iter_default": 7,
-   "seconds_axtb": 0.003871735,
+   "seconds_axtb": 0.001462326,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 1.6089560239684886e-16,
    "max_dgrad_default_vs_program_tight": 4.471008351481648e-07
@@ -1014,7 +1014,7 @@
    "E_default": -1889.028471617125,
    "dE_default": 5.7980287238024175e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.012139391,
+   "seconds_axtb": 0.004946066,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 6.323698845885896e-13,
    "max_dgrad_default_vs_program_tight": 1.9533820434791682e-07
@@ -1037,7 +1037,7 @@
    "E_default": -1073.8464985262065,
    "dE_default": -1.0049916454590857e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.005760402,
+   "seconds_axtb": 0.002332732,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 3.4622933115972106e-16,
    "max_dgrad_default_vs_program_tight": 2.7460694852852324e-07
@@ -1060,7 +1060,7 @@
    "E_default": -2865.564812673136,
    "dE_default": -2.6921043172478676e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.036344011,
+   "seconds_axtb": 0.010070992,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 3.4431138495882863e-12,
    "max_dgrad_default_vs_program_tight": 3.0323640781738936e-06
@@ -1083,7 +1083,7 @@
    "E_default": -1060.1687166994964,
    "dE_default": -1.0732037480920553e-10,
    "iter_default": 10,
-   "seconds_axtb": 0.00725431,
+   "seconds_axtb": 0.001829589,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 2.3245294578089215e-16,
    "max_dgrad_default_vs_program_tight": 8.314565747707947e-09
@@ -1106,7 +1106,7 @@
    "E_default": -2953.159539401438,
    "dE_default": -2.000888343900442e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.007269922,
+   "seconds_axtb": 0.002215855,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 3.86843335142828e-16,
    "max_dgrad_default_vs_program_tight": 3.581913652506846e-07
@@ -1129,7 +1129,7 @@
    "E_default": -1412.330940839829,
    "dE_default": -7.116796041373163e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.008897455,
+   "seconds_axtb": 0.004046067,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 4.0182249077519964e-16,
    "max_dgrad_default_vs_program_tight": 4.065203979431581e-09
@@ -1152,7 +1152,7 @@
    "E_default": -33.20314595714095,
    "dE_default": 7.055689366097795e-12,
    "iter_default": 9,
-   "seconds_axtb": 0.005206065,
+   "seconds_axtb": 0.002030708,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 5.854691731421724e-17,
    "max_dgrad_default_vs_program_tight": 7.460679933989252e-07
@@ -1175,7 +1175,7 @@
    "E_default": -107.45516301307988,
    "dE_default": -5.0889070735138375e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.003791709,
+   "seconds_axtb": 0.001771081,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 1.986258379993444e-16,
    "max_dgrad_default_vs_program_tight": 7.050347543193641e-08
@@ -1198,7 +1198,7 @@
    "E_default": -2388.0391124148027,
    "dE_default": -3.183231456205249e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.013314112,
+   "seconds_axtb": 0.006345493,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 3.872770160118222e-16,
    "max_dgrad_default_vs_program_tight": 2.193024756817416e-07
@@ -1221,7 +1221,7 @@
    "E_default": -2616.264275549762,
    "dE_default": -8.776623872108757e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.013925987,
+   "seconds_axtb": 0.006031166,
    "iter_axtb_tight": 18,
    "max_dgrad_tight": 2.740516072821683e-16,
    "max_dgrad_default_vs_program_tight": 5.173811568521831e-07
@@ -1244,7 +1244,7 @@
    "E_default": -201.20886703491982,
    "dE_default": -1.0180656317970715e-10,
    "iter_default": 7,
-   "seconds_axtb": 0.009543976,
+   "seconds_axtb": 0.001846548,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 3.608224830031759e-16,
    "max_dgrad_default_vs_program_tight": 1.8454737346212946e-06
@@ -1267,7 +1267,7 @@
    "E_default": -748.3755460934733,
    "dE_default": 5.336460162652656e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.063559975,
+   "seconds_axtb": 0.011641586,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 8.979764848371374e-12,
    "max_dgrad_default_vs_program_tight": 2.1701146872624144e-06
@@ -1290,7 +1290,7 @@
    "E_default": -622.5426826923905,
    "dE_default": -9.15179043659009e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.010590982,
+   "seconds_axtb": 0.002018285,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 2.393918396847994e-16,
    "max_dgrad_default_vs_program_tight": 2.7551636330030993e-08
@@ -1313,7 +1313,7 @@
    "E_default": -1868.5406380056504,
    "dE_default": -3.433342499192804e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.010342684,
+   "seconds_axtb": 0.004553393,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 4.7683211545912485e-16,
    "max_dgrad_default_vs_program_tight": 5.855691105833075e-07
@@ -1336,7 +1336,7 @@
    "E_default": -1113.7556143007357,
    "dE_default": -2.5079316401388496e-10,
    "iter_default": 10,
-   "seconds_axtb": 0.017873552,
+   "seconds_axtb": 0.008671505,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 7.235071916578129e-13,
    "max_dgrad_default_vs_program_tight": 1.1602642928315934e-06
@@ -1359,7 +1359,7 @@
    "E_default": -391.5226851468816,
    "dE_default": 2.3737811716273427e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.016226229,
+   "seconds_axtb": 0.00374471,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 1.0618526891104096e-11,
    "max_dgrad_default_vs_program_tight": 3.5689492062819517e-06
@@ -1382,7 +1382,7 @@
    "E_default": -2742.6167113308384,
    "dE_default": -7.639755494892597e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.043798873,
+   "seconds_axtb": 0.01045321,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 9.880430320445488e-15,
    "max_dgrad_default_vs_program_tight": 9.543442390323037e-07
@@ -1405,7 +1405,7 @@
    "E_default": -195.1003462559706,
    "dE_default": 4.439471013029106e-11,
    "iter_default": 8,
-   "seconds_axtb": 0.004826801,
+   "seconds_axtb": 0.002294041,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 7.000251073252528e-13,
    "max_dgrad_default_vs_program_tight": 2.0102013518780854e-07
@@ -1428,7 +1428,7 @@
    "E_default": -1968.8246063191784,
    "dE_default": -1.6848389350343496e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.027877247,
+   "seconds_axtb": 0.005916491,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.8735652830198906e-16,
    "max_dgrad_default_vs_program_tight": 1.857185607155587e-06
@@ -1451,7 +1451,7 @@
    "E_default": -1897.734895633765,
    "dE_default": -1.4097167877480388e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.015486675,
+   "seconds_axtb": 0.007410748,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 3.7675386608525542e-16,
    "max_dgrad_default_vs_program_tight": 1.6650914503911832e-06
@@ -1474,7 +1474,7 @@
    "E_default": -1960.2624142674608,
    "dE_default": -1.9190338207408786e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.012047482,
+   "seconds_axtb": 0.005954519,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 7.758092368783906e-16,
    "max_dgrad_default_vs_program_tight": 1.9982723037086786e-06
@@ -1497,7 +1497,7 @@
    "E_default": -704.2773740073181,
    "dE_default": -3.410605131648481e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.008920341,
+   "seconds_axtb": 0.004087465,
    "iter_axtb_tight": 17,
    "max_dgrad_tight": 5.624492114068812e-15,
    "max_dgrad_default_vs_program_tight": 8.52609217780729e-06
@@ -1520,7 +1520,7 @@
    "E_default": -25.00306760847538,
    "dE_default": -4.473790227166319e-10,
    "iter_default": 11,
-   "seconds_axtb": 0.009829505,
+   "seconds_axtb": 0.002085725,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 5.273559366969494e-16,
    "max_dgrad_default_vs_program_tight": 6.521390013669581e-06
@@ -1543,7 +1543,7 @@
    "E_default": -24.578592470601166,
    "dE_default": -8.816414265311323e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.006492174,
+   "seconds_axtb": 0.001590089,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 1.1350555911837645e-13,
    "max_dgrad_default_vs_program_tight": 3.274081146033628e-07
@@ -1566,7 +1566,7 @@
    "E_default": -488.2794286680639,
    "dE_default": 3.9108272176235914e-11,
    "iter_default": 10,
-   "seconds_axtb": 0.011341177,
+   "seconds_axtb": 0.002508053,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 8.604228440844963e-16,
    "max_dgrad_default_vs_program_tight": 2.6494482718852908e-09
@@ -1589,7 +1589,7 @@
    "E_default": -395.63932499258607,
    "dE_default": 9.691802915767767e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.007309379,
+   "seconds_axtb": 0.003570708,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 5.928875446148396e-11,
    "max_dgrad_default_vs_program_tight": 7.705862190478946e-07
@@ -1612,7 +1612,7 @@
    "E_default": -2141.4659589745283,
    "dE_default": -4.547473508864641e-12,
    "iter_default": 9,
-   "seconds_axtb": 0.03614529,
+   "seconds_axtb": 0.004338174,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.5735303605122226e-16,
    "max_dgrad_default_vs_program_tight": 6.705700946792875e-07
@@ -1635,7 +1635,7 @@
    "E_default": -216.59778916660127,
    "dE_default": 1.3727685654885136e-11,
    "iter_default": 7,
-   "seconds_axtb": 0.00769517,
+   "seconds_axtb": 0.002288261,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 1.0169223425448254e-13,
    "max_dgrad_default_vs_program_tight": 1.5054650166126254e-06
@@ -1658,7 +1658,7 @@
    "E_default": -2205.176970553309,
    "dE_default": -1.3869794202037156e-10,
    "iter_default": 31,
-   "seconds_axtb": 0.075090526,
+   "seconds_axtb": 0.018017355,
    "iter_axtb_tight": 38,
    "max_dgrad_tight": 2.95350127829021e-13,
    "max_dgrad_default_vs_program_tight": 1.7958824923630744e-06
@@ -1681,7 +1681,7 @@
    "E_default": -2248.6606992767406,
    "dE_default": -7.776179700158536e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.023422406,
+   "seconds_axtb": 0.007363828,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 5.670930124358838e-13,
    "max_dgrad_default_vs_program_tight": 7.399913154096773e-08
@@ -1704,7 +1704,7 @@
    "E_default": -2690.4411807155334,
    "dE_default": -8.230927051045e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.017815077,
+   "seconds_axtb": 0.005758267,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 2.958997445732138e-12,
    "max_dgrad_default_vs_program_tight": 1.0960084783646212e-06
@@ -1727,7 +1727,7 @@
    "E_default": -1086.807355545199,
    "dE_default": 4.7066350816749036e-11,
    "iter_default": 11,
-   "seconds_axtb": 0.025804012,
+   "seconds_axtb": 0.003559944,
    "tight": "both tight SCFs fail (250 iterations)"
   },
   {
@@ -1748,7 +1748,7 @@
    "E_default": -1076.3494473156777,
    "dE_default": -5.070432962384075e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.027187117,
+   "seconds_axtb": 0.006417645,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.930874722946065e-12,
    "max_dgrad_default_vs_program_tight": 4.140804545152421e-07
@@ -1771,7 +1771,7 @@
    "E_default": -666.571486404069,
    "dE_default": 2.7705482352757826e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.017600345,
+   "seconds_axtb": 0.004809055,
    "iter_axtb_tight": 13,
    "max_dgrad_tight": 6.378113315275158e-12,
    "max_dgrad_default_vs_program_tight": 1.7451099101617462e-06
@@ -1794,7 +1794,7 @@
    "E_default": -528.9505323029289,
    "dE_default": -3.490185918053612e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.028066627,
+   "seconds_axtb": 0.002310173,
    "iter_axtb_tight": 11,
    "max_dgrad_tight": 7.248805388253861e-16,
    "max_dgrad_default_vs_program_tight": 3.25896504671519e-07
@@ -1817,7 +1817,7 @@
    "E_default": -1419.0801629028604,
    "dE_default": -7.935341272968799e-11,
    "iter_default": 9,
-   "seconds_axtb": 0.018292786,
+   "seconds_axtb": 0.003834261,
    "iter_axtb_tight": 14,
    "max_dgrad_tight": 3.7469735671195176e-16,
    "max_dgrad_default_vs_program_tight": 3.0260755113969886e-07
@@ -1840,7 +1840,7 @@
    "E_default": -2539.402585065156,
    "dE_default": -1.0686562745831907e-10,
    "iter_default": 10,
-   "seconds_axtb": 0.016243104,
+   "seconds_axtb": 0.008242781,
    "iter_axtb_tight": 16,
    "max_dgrad_tight": 3.972516759986888e-16,
    "max_dgrad_default_vs_program_tight": 2.786048595966942e-07
@@ -1863,7 +1863,7 @@
    "E_default": -2699.789740742004,
    "dE_default": -1.0595613275654614e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.011579721,
+   "seconds_axtb": 0.002470762,
    "iter_axtb_tight": 12,
    "max_dgrad_tight": 1.0148132334464322e-16,
    "max_dgrad_default_vs_program_tight": 1.7363918415960744e-07
@@ -1886,7 +1886,7 @@
    "E_default": -1840.8089061426024,
    "dE_default": -8.683400665177032e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.025298458,
+   "seconds_axtb": 0.012653481,
    "iter_axtb_tight": 28,
    "max_dgrad_tight": 1.4727524755286936e-12,
    "max_dgrad_default_vs_program_tight": 1.6348912698360696e-05
@@ -1909,7 +1909,7 @@
    "E_default": -1609.1195130473327,
    "dE_default": -7.057678885757923e-10,
    "iter_default": 9,
-   "seconds_axtb": 0.024315598,
+   "seconds_axtb": 0.012852464,
    "iter_axtb_tight": 15,
    "max_dgrad_tight": 7.7021722333370235e-16,
    "max_dgrad_default_vs_program_tight": 1.1505012120259853e-06
@@ -1924,18 +1924,18 @@
    "iter_program": 8,
    "iter_program_tight": 12,
    "error": null,
-   "E_axtb": -1965.7834479158453,
-   "dE": 1.8189894035458565e-12,
+   "E_axtb": -1965.783447915845,
+   "dE": 2.0463630789890885e-12,
    "iter_axtb": 8,
-   "max_dterm": 6.641909244819999e-14,
-   "max_dgrad_default": 2.805047860654497e-15,
+   "max_dterm": 7.926992395823618e-14,
+   "max_dgrad_default": 3.1155633628543455e-15,
    "E_default": -1965.7834479686096,
    "dE_default": -5.2762516133952886e-08,
    "iter_default": 8,
-   "seconds_axtb": 0.629821384,
+   "seconds_axtb": 0.287897416,
    "iter_axtb_tight": 12,
-   "max_dgrad_tight": 1.4155343563970746e-15,
-   "max_dgrad_default_vs_program_tight": 6.47646220270498e-06
+   "max_dgrad_tight": 1.9012569296705806e-15,
+   "max_dgrad_default_vs_program_tight": 6.476462202795186e-06
   },
   {
    "molecule": "water100",
@@ -1950,15 +1950,15 @@
    "E_axtb": -7643.9518244695755,
    "dE": 9.094947017729282e-12,
    "iter_axtb": 8,
-   "max_dterm": 9.947598300641403e-14,
-   "max_dgrad_default": 2.3158558404290375e-15,
+   "max_dterm": 1.4210854715202004e-13,
+   "max_dgrad_default": 3.0808688933348094e-15,
    "E_default": -7643.9518263244045,
    "dE_default": -1.8548198568169028e-06,
    "iter_default": 8,
-   "seconds_axtb": 9.015133064,
+   "seconds_axtb": 1.726272211,
    "iter_axtb_tight": 13,
-   "max_dgrad_tight": 2.5145900986456304e-15,
-   "max_dgrad_default_vs_program_tight": 2.6731874602919925e-05
+   "max_dgrad_tight": 2.44281591482709e-15,
+   "max_dgrad_default_vs_program_tight": 2.6731874605182004e-05
   }
  ],
  "energy_differences": [
@@ -2009,8 +2009,8 @@
   },
   {
    "quantity": "c50h102 2 % expansion",
-   "program_conventions_kcal": -93.80396996369088,
-   "default_minus_program_Eh": 2.2600033844355494e-08
+   "program_conventions_kcal": -93.80396996383355,
+   "default_minus_program_Eh": 2.2600261218030937e-08
   }
  ]
 }

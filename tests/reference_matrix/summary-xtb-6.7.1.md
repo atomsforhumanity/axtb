@@ -1,6 +1,6 @@
 # axtb reference matrix against xtb 6.7.1 (26dd68d)
 
-Generated 2026-11-05T16:00:59 — xtb 6.7.1 (26dd68d) (axtb conventions "xtb-6.7.1"), tblite 0.8.0, axtb 0.1.0 (git 704ce46).
+Generated 2026-11-07T03:20:55 — xtb 6.7.1 (26dd68d) (axtb conventions "xtb-6.7.1"), tblite 0.8.0, axtb 0.1.0 (git e6b4a18).
 
 Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb mode vs xtb |ΔE| ≤ 1e-7 Eh, max|ΔG| ≤ 1e-7 Eh/bohr, |Δq| ≤ 1e-6 e, |Δμ| ≤ 1e-5 e·bohr; tblite mode vs tblite 1e-9 / 1e-8 / 1e-7 / 1e-6; axtb vs xtb mode 1e-7 / 1e-6 / 1e-5 / 1e-4 (all scaled up with the SCF accuracy above 1e-4). Statuses: pass, fail, different_solution (another SCF solution of the same equations, verified by restarting each program from the other's converged moments), expected_difference (documented fixes of the default conventions), both_failed (consistent failure), axtb_failed / ref_failed, info (not meant to match).
 
@@ -16,7 +16,7 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 |  |  | axtb_vs_xtbmode | 12 | 0 | different_solution 1 | 1.2e-07 | 6.1e-09 | 1.7e-07 | 8.9e-08 |
 | multielement | 32 | xtb | 28 | 0 | both_failed 3, ref_failed 1 | 1.0e-09 | 2.0e-08 | 6.0e-09 | 7.7e-08 |
 |  |  | tblite | 29 | 0 | both_failed 3 | 6.4e-14 | 3.9e-13 | 2.0e-11 | 2.7e-10 |
-|  |  | axtb_vs_xtbmode | 29 | 0 | both_failed 2, ref_failed 1 | 3.1e-08 | 6.1e-08 | 1.6e-07 | 4.1e-07 |
+|  |  | axtb_vs_xtbmode | 29 | 0 | both_failed 1, ref_failed 2 | 3.1e-08 | 6.1e-08 | 1.6e-07 | 4.1e-07 |
 | charges | 47 | xtb | 47 | 0 |  | 3.7e-09 | 1.5e-10 | 5.3e-09 | 4.9e-09 |
 |  |  | tblite | 47 | 0 |  | 5.0e-14 | 6.1e-12 | 1.7e-10 | 5.3e-11 |
 |  |  | axtb_vs_xtbmode | 47 | 0 |  | 3.5e-08 | 7.1e-09 | 7.4e-08 | 1.1e-08 |
@@ -31,9 +31,9 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 |  |  | axtb_vs_xtbmode | 325 | 0 | expected_difference 158 | 6.9e-03 | 1.1e-08 | 8.2e-08 | 8.9e-08 |
 | etemp_acc | 100 | xtb | 88 | 0 | both_failed 8, different_solution 4 | 9.0e-10 | 1.3e-07 | 2.3e-05 | 4.7e-05 |
 |  |  | tblite | 88 | 0 | both_failed 8, different_solution 4 | 4.0e-11 | 1.2e-06 | 3.4e-05 | 1.0e-04 |
-|  |  | axtb_vs_xtbmode | 85 | 0 | both_failed 8, different_solution 4, expected_difference 3 | 2.6e-07 | 9.5e-06 | 4.4e-05 | 2.3e-04 |
+|  |  | axtb_vs_xtbmode | 84 | 0 | both_failed 8, different_solution 5, expected_difference 3 | 2.6e-07 | 8.2e-07 | 2.1e-05 | 4.4e-05 |
 | hessian | 7 | hessian | 7 | 0 |  | max|ΔH| 1.3e-04, max|Δν| 9.1e-01 cm⁻¹ | | |  |
-| hessian_analytic | 45 | analytic_ref | 45 | 0 |  | max|ΔH| 1.4e-10, max|Δν| 5.5e-05 cm⁻¹ | | |  |
+| hessian_analytic | 45 | analytic_ref | 45 | 0 |  | max|ΔH| 1.4e-10, max|Δν| 5.9e-05 cm⁻¹ | | |  |
 |  |  | analytic_xtb | 45 | 0 |  | max|ΔH| 2.6e-04, max|Δν| 6.6e+00 cm⁻¹ | | |  |
 |  |  | analytic_numref | 10 | 0 |  | max|ΔH| 3.0e-06, max|Δν| 1.6e-02 cm⁻¹ | | |  |
 |  |  | analytic_threads | 3 | 0 |  | max|ΔH| 0.0e+00 | | |  |
@@ -41,8 +41,8 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 |  |  | threads_hessian | 2 | 0 |  | max|ΔH| 0.0e+00 | | |  |
 | nodisp | 10 | tblite | 10 | 0 |  | 2.5e-14 | 1.5e-12 | 8.3e-11 | 4.4e-11 |
 | failures | 21 | failure | 21 | 0 |  | — | — | — | — |
-| api | 23 | calculator | 2 | 0 |  | 4.3e-14 | 2.0e-12 | 4.3e-11 | 1.0e-10 |
-|  |  | cli | 21 | 0 |  | 5.3e-15 | 1.8e-15 | 3.3e-14 | 2.3e-14 |
+| api | 23 | calculator | 2 | 0 |  | 2.5e-14 | 2.0e-12 | 4.3e-11 | 1.0e-10 |
+|  |  | cli | 21 | 0 |  | 1.8e-14 | 2.6e-15 | 2.1e-14 | 4.0e-14 |
 
 ## Expected differences (documented fixes of the default conventions)
 
@@ -65,7 +65,8 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 
 | case | check | status | details |
 |---|---|---|---|
-| mbheavy-112 (random molecule with heavy elements) | axtb_vs_xtbmode | ref_failed | ref_error: RuntimeError: SCF not converged in 250 iterations (last energy change -3.405e-3 Eh, residual 1.659e-1) |
+| mbheavy-101 (random molecule with heavy elements) | axtb_vs_xtbmode | ref_failed | ref_error: ScfNotConvergedError: SCF not converged in 250 iterations (last energy change -1.017e-2 Eh, residual 1.384e0) |
+| mbheavy-112 (random molecule with heavy elements) | axtb_vs_xtbmode | ref_failed | ref_error: ScfNotConvergedError: SCF not converged in 250 iterations (last energy change -3.405e-3 Eh, residual 1.659e-1) |
 | mbheavy-113 (random molecule with heavy elements) | xtb | ref_failed | ref_error: [ERROR] Program stopped due to fatal error / -3- Single point calculation terminated / -2- xtb_calculator_singlepoint: Electronic structure method terminated /  |
 
 ### etemp_acc
@@ -74,16 +75,17 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 |---|---|---|---|
 | eta-Cu5-T0-acc1 (Cu5 cluster (doublet), 0 K, acc 1) | xtb | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00; xtb from axtb moments: dE -6.7e-10; axtb from xtb moments: dE -8.4e-10; lower: xtb |
 | eta-Cu5-T0-acc1 (Cu5 cluster (doublet), 0 K, acc 1) | tblite | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00; axtb[tblite] from xtb moments: dE 6.7e-13, dq 6.9e-06; axtb[tblite] from xtb 6.8.0 (4b8c987) moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from axtb[xtb] moments: dE 3.0e-04, dq 2.3e-01; tblite from EEQ guess: dE -2.6e-10; lower: tblite |
+| eta-Cu5-T0-acc1 (Cu5 cluster (doublet), 0 K, acc 1) | axtb_vs_xtbmode | different_solution | dE -3.0e-04; dG 2.2e-02; dq 1.1e-01; ddip 5.4e-01 |
 | eta-Cu5-T0-acc0.01 (Cu5 cluster (doublet), 0 K, acc 0.01) | xtb | different_solution | dE -3.0e-04; dG 2.3e-02; dq 1.1e-01; ddip 4.0e-01; xtb from axtb moments: dE -7.0e-10; axtb from xtb moments: dE -7.0e-10; lower: axtb |
 | eta-Cu5-T0-acc0.01 (Cu5 cluster (doublet), 0 K, acc 0.01) | tblite | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00; axtb[tblite] from xtb moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from xtb 6.8.0 (4b8c987) moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from axtb[xtb] moments: dE -1.1e-14, dq 1.4e-07; tblite from EEQ guess: dE -2.5e-14; lower: tblite |
-| eta-Cu5-T0-acc0.01 (Cu5 cluster (doublet), 0 K, acc 0.01) | axtb_vs_xtbmode | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00 |
+| eta-Cu5-T0-acc0.01 (Cu5 cluster (doublet), 0 K, acc 0.01) | axtb_vs_xtbmode | different_solution | dE 3.1e-09; dG 3.8e-02; dq 1.8e-01; ddip 9.4e-01 |
 | eta-Cu5-T0-acc0.0001 (Cu5 cluster (doublet), 0 K, acc 0.0001) | xtb | different_solution | dE -3.0e-04; dG 2.3e-02; dq 1.1e-01; ddip 4.0e-01; xtb from axtb moments: dE -7.0e-10; axtb from xtb moments: dE -7.0e-10; lower: axtb |
 | eta-Cu5-T0-acc0.0001 (Cu5 cluster (doublet), 0 K, acc 0.0001) | tblite | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00; axtb[tblite] from xtb moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from xtb 6.8.0 (4b8c987) moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from axtb[xtb] moments: dE -7.1e-15, dq 4.3e-09; tblite from EEQ guess: dE -1.8e-14; lower: tblite |
-| eta-Cu5-T0-acc0.0001 (Cu5 cluster (doublet), 0 K, acc 0.0001) | axtb_vs_xtbmode | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00 |
+| eta-Cu5-T0-acc0.0001 (Cu5 cluster (doublet), 0 K, acc 0.0001) | axtb_vs_xtbmode | different_solution | dE 3.1e-09; dG 3.8e-02; dq 1.8e-01; ddip 9.4e-01 |
 | eta-Cu5-T0-acc1e-06 (Cu5 cluster (doublet), 0 K, acc 1e-06) | xtb | different_solution | dE -3.0e-04; dG 2.3e-02; dq 1.1e-01; ddip 4.0e-01; xtb from axtb moments: dE -7.0e-10; axtb from xtb moments: dE -7.0e-10; lower: axtb |
 | eta-Cu5-T0-acc1e-06 (Cu5 cluster (doublet), 0 K, acc 1e-06) | tblite | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00; axtb[tblite] from xtb moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from xtb 6.8.0 (4b8c987) moments: dE 3.0e-04, dq 1.1e-01; axtb[tblite] from axtb[xtb] moments: dE -1.8e-14, dq 1.0e-11; tblite from EEQ guess: dE -2.1e-14; lower: tblite |
-| eta-Cu5-T0-acc1e-06 (Cu5 cluster (doublet), 0 K, acc 1e-06) | axtb_vs_xtbmode | different_solution | dE 3.0e-04; dG 3.3e-02; dq 2.3e-01; ddip 1.1e+00 |
-| eta-O2-singlet-T0.1 (O2 singlet (degenerate π*), 0.1 K) | axtb_vs_xtbmode | different_solution | dE 2.5e-03; dG 4.2e-04; dq 8.9e-16; ddip 1.1e-15 |
+| eta-Cu5-T0-acc1e-06 (Cu5 cluster (doublet), 0 K, acc 1e-06) | axtb_vs_xtbmode | different_solution | dE 3.1e-09; dG 3.8e-02; dq 1.8e-01; ddip 9.4e-01 |
+| eta-O2-singlet-T0.1 (O2 singlet (degenerate π*), 0.1 K) | axtb_vs_xtbmode | different_solution | dE 2.5e-03; dG 4.2e-04; dq 4.4e-11; ddip 8.9e-16 |
 
 ## Failure behaviour
 
@@ -106,7 +108,7 @@ Value comparisons at SCF accuracy 1e-6 (xtb: 1e-4, its minimum). Tolerances: xtb
 | water with etemp -5 K | error | ok | ok | error | error | error | pass |
 | water with accuracy 0 | error | ok | error | error | error | error | pass |
 | water with accuracy 1e-12 (xtb clamps to 1e-4) | any | ok | error | error | error | error | pass |
-| H2 with charge +0.5 at 300 K (no Fermi level in the gap) | error | garbage | garbage | error | error | error | pass |
+| H2 with charge +0.5 (a non-integer charge is an input error) | error | garbage | garbage | error | error | error | pass |
 | water in ALPB 'octane' (not parametrized) | error | error | error | error | error | error | pass |
 | water in GBSA 'aniline' (ALPB-only solvent) | error | error | error | error | error | error | pass |
 | two H atoms at the same position | error | error | error | error | error | error | pass |

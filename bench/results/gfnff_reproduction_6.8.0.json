@@ -3928,7 +3928,7 @@
      "hessian_max_asymmetry": 0.0013408775171365739
     },
     "analytic": {
-     "error": "error: invalid input: Hessian and positions must be finite"
+     "error": "numerical failure: the analytic Hessian is not finite (rows of atoms 1, 2, 3, 4, 11, 12): the hydrogen bond C1=O2...H11 lies on the C=O axis, where GFN-FF's R-C=O...H torsions are undefined (grimme-lab/xtb#1516); use the numerical Hessian, which is defined there"
     }
    },
    {
