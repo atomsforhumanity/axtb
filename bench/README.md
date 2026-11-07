@@ -16,7 +16,7 @@ start only when the 1-minute load is below ~1.5 (laptop) or the node is reserved
 
 ## On a laptop or workstation
 
-Prerequisites: Rust >= 1.86 (>= 1.89 for faer's AVX-512 build), Python 3.12 with
+Prerequisites: Rust 1.99 or newer, Python 3.12 with
 `numpy tblite==0.8.0 dftd4==4.3.1 maturin`, and the reference programs in the variables of
 `tests/programs.py` (`AXTB_XTB680`, `AXTB_GXTB2`, `AXTB_XTB671`, `AXTB_GXTB11_DIR`; the README's
 "Checks" section says where to get them). Scripts that compare with one xtb take `--xtb` and

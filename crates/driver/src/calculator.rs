@@ -11,13 +11,13 @@ use std::time::Instant;
 
 /// The calculator of a method.
 enum Engine {
-    Gfn2(axtb::Calculator),
+    Gfn2(Box<axtb::Calculator>),
     #[cfg(feature = "gxtb")]
-    Gxtb(axtb_gxtb::Calculator),
+    Gxtb(Box<axtb_gxtb::Calculator>),
     /// g-xTB in implicit solvent (the solvation composite).
     #[cfg(feature = "gxtb")]
     Composite(Box<axtb_gxtb::CompositeCalculator>),
-    Gfnff(axtb_gfnff::Calculator),
+    Gfnff(Box<axtb_gfnff::Calculator>),
 }
 
 /// A converged wavefunction of one calculator, to start another calculator's SCF from it
@@ -161,7 +161,7 @@ impl Calculator {
                 opts.solvation = solvation(req)?;
                 let calc =
                     axtb::Calculator::new(axtb::Method::Gfn2, &req.numbers, &req.positions, req.charge, uhf, opts)?;
-                (Engine::Gfn2(calc), conventions.label(), conventions.into(), fresh_guess == Some(false))
+                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into(), fresh_guess == Some(false))
             }
             Method::Gfnff => {
                 let mut bad = Vec::new();
@@ -196,7 +196,7 @@ impl Calculator {
                     ..Default::default()
                 };
                 let calc = axtb_gfnff::Calculator::new(&req.numbers, setup, req.charge, opts)?;
-                (Engine::Gfnff(calc), label, analysis, false)
+                (Engine::Gfnff(Box::new(calc)), label, analysis, false)
             }
             Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
                 #[cfg(feature = "gxtb")]
@@ -582,7 +582,7 @@ fn gxtb_engine(
     }
     o.guess = guess.map(|p| if p { axtb_gxtb::Guess::Previous } else { axtb_gxtb::Guess::EeqBc });
     let calc = axtb_gxtb::Calculator::new(version, &req.numbers, &req.positions, req.charge, uhf, o)?;
-    Ok((Engine::Gxtb(calc), conventions))
+    Ok((Engine::Gxtb(Box::new(calc)), conventions))
 }
 
 /// A Hessian of an SCF method in the response.

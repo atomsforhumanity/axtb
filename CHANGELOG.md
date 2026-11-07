@@ -78,7 +78,7 @@ wrong; the program modes keep it.
 
 ### Requirements
 
-- Rust 1.86 or newer to build.
+- Rust 1.99 or newer to build.
 - x86-64 Linux is the developed and tested platform. The builds from this repository, the
   release binary and the wheels target x86-64-v3 (AVX2, FMA; Intel Haswell and AMD Excavator
   or newer). The CLI stops with an error and `import axtb` raises `ImportError` on a CPU

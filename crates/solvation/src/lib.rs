@@ -741,15 +741,15 @@ fn dot(a: &[f64], b: &[f64]) -> f64 {
     let n = a.len().min(b.len());
     let (a, b) = (&a[..n], &b[..n]);
     let mut acc = [0.0f64; 4];
-    let mut ca = a.chunks_exact(4);
-    let mut cb = b.chunks_exact(4);
-    for (x, y) in (&mut ca).zip(&mut cb) {
+    let (ca, ra) = a.as_chunks::<4>();
+    let (cb, rb) = b.as_chunks::<4>();
+    for (x, y) in ca.iter().zip(cb) {
         for k in 0..4 {
             acc[k] += x[k] * y[k];
         }
     }
     let mut s = (acc[0] + acc[1]) + (acc[2] + acc[3]);
-    for (x, y) in ca.remainder().iter().zip(cb.remainder()) {
+    for (x, y) in ra.iter().zip(rb) {
         s += x * y;
     }
     s

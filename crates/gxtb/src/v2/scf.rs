@@ -200,7 +200,7 @@ impl Setup {
         }
         let nround = nel.round() as usize;
         let uhf = mol.uhf.unwrap_or(nround % 2);
-        if uhf > nround || (nround - uhf) % 2 != 0 {
+        if uhf > nround || !(nround - uhf).is_multiple_of(2) {
             return Err(Error::Input(format!("g-xTB 2.0.1: {nround} electrons with {uhf} unpaired")));
         }
         let (nalpha, nbeta) = (0.5 * (nel + uhf as f64), 0.5 * (nel - uhf as f64));

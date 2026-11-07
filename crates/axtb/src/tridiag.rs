@@ -582,7 +582,7 @@ fn inverse_iteration(
 fn dot(a: &[f64], b: &[f64]) -> f64 {
     let m = a.len() / 8 * 8;
     let mut acc = [0.0f64; 8];
-    for (x, y) in a[..m].chunks_exact(8).zip(b[..m].chunks_exact(8)) {
+    for (x, y) in a[..m].as_chunks::<8>().0.iter().zip(b[..m].as_chunks::<8>().0) {
         for i in 0..8 {
             acc[i] += x[i] * y[i];
         }

@@ -23,10 +23,9 @@ RUN bash /tmp/build_aocl.sh /opt/aocl-5.3 /tmp/aocl-src 16 && rm -rf /tmp/aocl-s
 RUN pip install --no-cache-dir tblite==0.8.0 dftd4==4.3.1 maturin==1.16.0 \
         mkl==2026.2.0 scipy-openblas32==0.3.34.481.3
 
-# Rust 1.86 (as on the laptop) for axtb and the harness; stable for the faer AVX-512 build
+# Rust stable for axtb, the harness and faer's AVX-512 build
 ENV RUSTUP_HOME=/opt/rustup CARGO_HOME=/opt/cargo PATH=/opt/cargo/bin:$PATH
-RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain 1.86.0 \
-    && rustup toolchain install stable --profile minimal
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
 
 COPY . /opt/axtb
 WORKDIR /opt/axtb
@@ -34,9 +33,9 @@ RUN cargo build --release -p axtb-cli \
     && (cd crates/axtb-py && maturin build --release --compatibility linux -o /tmp/wheels) \
     && pip install --no-cache-dir /tmp/wheels/*.whl && rm -rf /tmp/wheels \
     && (cd bench/linalg && cargo build --release \
-        && cargo +stable build --release --features faer-avx512 --target-dir target-v4) \
+        && cargo build --release --features faer-avx512 --target-dir target-v4) \
     && rm -rf target/release/deps target/release/build target/release/incremental \
               bench/linalg/target*/release/deps bench/linalg/target*/release/build \
-    && rustc --version > /opt/axtb/RUST_VERSIONS && rustc +stable --version >> /opt/axtb/RUST_VERSIONS
+    && rustc --version > /opt/axtb/RUST_VERSIONS
 
 RUN python3 -c "import axtb, tblite, dftd4; print('axtb', axtb.__version__)" && xtb --version | grep version

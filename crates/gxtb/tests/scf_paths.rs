@@ -71,8 +71,8 @@ fn uf6_v11_degenerate_iteration_two() {
     let printed = floats(&d["printed_energies"]);
     let conv = Some(Conventions::Gxtb);
     // the program's printed iteration energies (8 decimals) are our energies of its densities
-    let e1 = setup.evaluate(&[p1.clone()], conv).unwrap();
-    let e2 = setup.evaluate(&[p2.clone()], conv).unwrap();
+    let e1 = setup.evaluate(std::slice::from_ref(&p1), conv).unwrap();
+    let e2 = setup.evaluate(std::slice::from_ref(&p2), conv).unwrap();
     assert!((e1.energies.total - printed[0]).abs() < 5.1e-9, "iteration 1: {}", e1.energies.total);
     assert!((e2.energies.total - printed[1]).abs() < 5.1e-9, "iteration 2: {}", e2.energies.total);
     // the damped Fock matrix of iteration 2 from the program's P1 (F~1 = a F(P0), F~2 = F~1 + a (F(P1) - F~1))

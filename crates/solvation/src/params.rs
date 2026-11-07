@@ -13,8 +13,8 @@ pub const DEFAULT_NANG: usize = 230;
 pub const AUTOAA: f64 = 0.52917726;
 /// Hartree -> kcal/mol (xtb mctc convert.f90)
 pub const AUTOKCAL: f64 = 627.50947428;
-/// pi (xtb mctc_constants.f90)
-pub const PI: f64 = 3.1415926535897932384626433832795029;
+/// pi (xtb mctc_constants.f90 writes 3.1415926535897932384626433832795029, which is this value)
+pub const PI: f64 = std::f64::consts::PI;
 /// Boltzmann constant in Eh/K (xtb mctc_constants.f90)
 pub const KB: f64 = 3.166808578545117e-06;
 /// g/cm^3 / (g/mol) -> au density conversion (model.f90)

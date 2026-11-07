@@ -36,7 +36,7 @@ during development; the report's GPU rows come from it).
 
 ## Install
 
-axtb is built with Rust 1.86 or newer ([rustup](https://rustup.rs)) and needs nothing outside
+axtb is built with Rust 1.99 or newer ([rustup](https://rustup.rs)) and needs nothing outside
 Cargo: no Fortran compiler, no BLAS or LAPACK. It is developed and tested on x86-64 Linux;
 other platforms are untested.
 
@@ -915,10 +915,8 @@ The benchmarks (`bench/`, timings) are not checks; `bench/README.md` describes t
 
 Two GitHub Actions workflows (Linux x86-64):
 
-- `.github/workflows/ci.yml`, on every push and pull request: `scripts/check.sh fast` on Rust
-  1.86, the minimum supported version (the gate); and on the newest stable Rust the workspace
-  tests, the LGPL-only build, `cargo package` of the published crates and an informational
-  clippy run.
+- `.github/workflows/ci.yml`, on every push and pull request, on the newest stable Rust:
+  `scripts/check.sh fast` and `cargo package` of the published crates.
 - `.github/workflows/release.yml`, on a tag `vX.Y.Z` that matches the workspace version, or by
   hand (then it builds only, unless its `publish` input is set): the manylinux_2_28 wheel (abi3,
   x86-64-v3, stripped) and the sdist with maturin, checked by installing each and running a
