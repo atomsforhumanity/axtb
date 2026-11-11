@@ -3,9 +3,9 @@ resolver = "2"
 members = ["crates/axtb", "crates/axtb-py", "crates/axtb-cli", "crates/driver", "crates/d4", "crates/solvation", "crates/gxtb", "crates/gfnff"]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
-rust-version = "1.99"
+rust-version = "1.89"
 # the core crates; axtb-gxtb, axtb-driver, axtb-cli and axtb-py set GPL-3.0-only (LICENSE)
 license = "LGPL-3.0-or-later"
 authors = ["Colton Hicks"]
@@ -15,13 +15,13 @@ homepage = "https://github.com/atomsforhumanity/axtb"
 # The crates of the workspace, by path here and by version on crates.io (published in this
 # order: axtb-d4, axtb-solvation, axtb, axtb-gfnff, axtb-gxtb, axtb-driver, axtb-cli).
 [workspace.dependencies]
-axtb = { path = "crates/axtb", version = "0.1.0" }
-axtb-d4 = { path = "crates/d4", version = "0.1.0" }
-axtb-solvation = { path = "crates/solvation", version = "0.1.0" }
-axtb-gfnff = { path = "crates/gfnff", version = "0.1.0" }
-axtb-gxtb = { path = "crates/gxtb", version = "0.1.0" }
+axtb = { path = "crates/axtb", version = "0.1.1" }
+axtb-d4 = { path = "crates/d4", version = "0.1.1" }
+axtb-solvation = { path = "crates/solvation", version = "0.1.1" }
+axtb-gfnff = { path = "crates/gfnff", version = "0.1.1" }
+axtb-gxtb = { path = "crates/gxtb", version = "0.1.1" }
 # the front ends choose g-xTB with their own feature `gxtb`
-axtb-driver = { path = "crates/driver", version = "0.1.0", default-features = false }
+axtb-driver = { path = "crates/driver", version = "0.1.1", default-features = false }
 
 # Lints for every crate ([lints] workspace = true in each). Allowed on purpose: index loops over
 # several arrays at once and long argument lists are the clearest form of the numerical kernels,

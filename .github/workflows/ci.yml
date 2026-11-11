@@ -1,7 +1,8 @@
 # Checks on every push and pull request (Linux x86-64; no reference programs needed), on the
 # newest stable Rust: scripts/check.sh fast (rustfmt, clippy and rustdoc with warnings as errors,
 # the workspace tests, the LGPL-only build, a wheel with the Python tests in a fresh venv, the
-# privacy grep, the license-file copies), then `cargo package` of the crates.io packages.
+# privacy grep, the license-file copies), a build check on the minimum supported Rust (1.89, the
+# workspace's rust-version), then `cargo package` of the crates.io packages.
 #
 # The privacy grep adds the repository secret AXTB_PRIVATE_PATTERN (a regular expression of the
 # site's host names) to its built-in patterns; without the secret (forks, or not set up) that
@@ -37,6 +38,10 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: scripts/check.sh fast
         run: scripts/check.sh fast
+      - name: the minimum supported Rust (rust-version, 1.89) builds everything
+        run: |
+          rustup toolchain install 1.89.0 --profile minimal
+          cargo +1.89.0 check --workspace --all-targets
       - name: cargo package (the crates.io packages, in publishing order)
         run: >-
           cargo package -p axtb-d4 -p axtb-solvation -p axtb -p axtb-gfnff -p axtb-gxtb

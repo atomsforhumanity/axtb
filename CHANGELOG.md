@@ -3,6 +3,12 @@
 All notable changes to axtb. Versions follow [Semantic Versioning](https://semver.org); the
 Rust crates, the CLI and the Python package share one version.
 
+## 0.1.1 (unreleased)
+
+- The minimum supported Rust is 1.89 for every crate (`rust-version`; 0.1.0 declared 1.99, which
+  made Cargo refuse the crates in projects that support older compilers). CI checks the build on
+  1.89. Nothing computed changes: the results and timings in this repository are those of 0.1.0.
+
 ## 0.1.0 (2026-11-07)
 
 The first release: the Rust crates `axtb`, `axtb-d4`, `axtb-solvation`, `axtb-gfnff`,
@@ -78,7 +84,7 @@ wrong; the program modes keep it.
 
 ### Requirements
 
-- Rust 1.99 or newer to build.
+- Rust 1.89 or newer to build.
 - x86-64 Linux is the developed and tested platform. The builds from this repository, the
   release binary and the wheels target x86-64-v3 (AVX2, FMA; Intel Haswell and AMD Excavator
   or newer). The CLI stops with an error and `import axtb` raises `ImportError` on a CPU

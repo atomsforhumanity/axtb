@@ -29,7 +29,7 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "axtb"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "axtb-d4",
  "axtb-solvation",
@@ -39,14 +39,14 @@ dependencies = [
 
 [[package]]
 name = "axtb-d4"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "rayon",
 ]
 
 [[package]]
 name = "axtb-solvation"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "bitflags"

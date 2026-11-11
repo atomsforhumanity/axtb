@@ -28,7 +28,7 @@ runs axtb like any other program.
 **Requirements.** The wheels are for x86-64 Linux with glibc 2.28 or newer and Python 3.10 or
 newer, and need an x86-64-v3 CPU (AVX2, FMA: Intel since Haswell, AMD since Excavator).
 `import axtb` checks the CPU and raises `ImportError` on one without these instructions. On
-other platforms pip builds the package from the source distribution, which needs Rust 1.99 or
+other platforms pip builds the package from the source distribution, which needs Rust 1.89 or
 newer.
 
 **Documentation.** The [README](https://github.com/atomsforhumanity/axtb#readme) describes the
