@@ -20,6 +20,7 @@ use crate::disp::{nref, scaled_cn_weights};
 use crate::eeqbc::erf_f64;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
+use axtb_base::ncoord::{CnModel, Cutoff, Erf, Smooth, Unweighted};
 use axtb_d4::data::{ALPHAIW, ASCALE, HCOUNT, NFREQ, REFSYS, SECAIW, SSCALE};
 use axtb_d4::{ChargeModel, D4Model, ElementReferences, MAX_REF};
 
@@ -83,54 +84,33 @@ pub fn element_references(z: usize) -> ElementReferences {
     }
 }
 
-/// revD4 coordination numbers (erf, 7.5, Rc = R_A + R_B of `covalent_rad_d3`) and the pair
-/// list of their derivatives.
+/// The revD4 coordination number of `mol` (`axtb-base`'s [`CnModel`]): dftd4's count
+/// ([`Erf::D4`]: erf, 7.5) without the electronegativity factor, Rc = R_A + R_B of
+/// `covalent_rad_d3`, times the cutoff factor [`Model::cut`] (product rule in the gradient);
+/// pairs with R beyond [`Model::reach`] or R² < 1e-12 bohr² skipped, and in the gradient the
+/// pairs whose dE/dCN sum to zero.
+#[allow(clippy::type_complexity)] // the parts are closures, which have no nameable type
+fn revd4_cn<'a>(
+    model: &'a Model,
+    mol: &'a Molecule,
+) -> CnModel<Erf, impl Fn(usize, usize) -> f64 + 'a, Unweighted, Smooth<impl Fn(f64) -> (f64, f64) + 'a>> {
+    CnModel::new(Erf::D4, move |i: usize, j: usize| {
+        model.covalent_rad_d3(mol.numbers[i]) + model.covalent_rad_d3(mol.numbers[j])
+    })
+    .with_cutoff(Cutoff::Squared(model.reach(CUTOFF_CN).powi(2)))
+    .with_min_r2(1e-12)
+    .with_switch(Smooth(move |r: f64| model.cut(r, CUTOFF_CN)))
+    .skipping_zero_weights()
+}
+
+/// revD4 coordination numbers (erf, 7.5, Rc = R_A + R_B of `covalent_rad_d3`, cutoff factor).
 pub fn coordination_numbers(model: &Model, mol: &Molecule) -> Vec<f64> {
-    let n = mol.nat();
-    let reach2 = model.reach(CUTOFF_CN).powi(2);
-    let mut cn = vec![0.0; n];
-    for i in 0..n {
-        for j in 0..i {
-            let r2 = norm2_sq(sub3(mol.positions[i], mol.positions[j]));
-            if r2 > reach2 || r2 < 1e-12 {
-                continue;
-            }
-            let r = r2.sqrt();
-            let rc = model.covalent_rad_d3(mol.numbers[i]) + model.covalent_rad_d3(mol.numbers[j]);
-            let c = axtb_d4::cn_count(rc, r) * model.cut(r, CUTOFF_CN).0;
-            cn[i] += c;
-            cn[j] += c;
-        }
-    }
-    cn
+    revd4_cn(model, mol).compute(&mol.positions)
 }
 
 /// Adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `g`.
 pub fn add_cn_gradient(model: &Model, mol: &Molecule, dedcn: &[f64], g: &mut [[f64; 3]]) {
-    let n = mol.nat();
-    let reach2 = model.reach(CUTOFF_CN).powi(2);
-    for i in 0..n {
-        for j in 0..i {
-            let w = dedcn[i] + dedcn[j];
-            if w == 0.0 {
-                continue;
-            }
-            let v = sub3(mol.positions[i], mol.positions[j]);
-            let r2 = norm2_sq(v);
-            if r2 > reach2 || r2 < 1e-12 {
-                continue;
-            }
-            let r = r2.sqrt();
-            let rc = model.covalent_rad_d3(mol.numbers[i]) + model.covalent_rad_d3(mol.numbers[j]);
-            let (sw, dsw) = model.cut(r, CUTOFF_CN);
-            let d = axtb_d4::cn_dcount(rc, r) * sw + axtb_d4::cn_count(rc, r) * dsw;
-            let f = w * d / r;
-            for x in 0..3 {
-                g[i][x] += f * v[x];
-                g[j][x] -= f * v[x];
-            }
-        }
-    }
+    revd4_cn(model, mol).add_gradient(&mol.positions, dedcn, g);
 }
 
 /// Screened damping radius of a pair and its R derivative.

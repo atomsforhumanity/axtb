@@ -32,11 +32,11 @@
 
 use crate::data::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
 use crate::params::GxtbParams;
-use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
+use axtb_base::ncoord::{CnModel, Cutoff, Erf};
 use axtb_d4::data::{ALPHAIW, ASCALE, HCOUNT, NFREQ, REFN, REFSYS, SECAIW, SSCALE};
 use axtb_d4::{
-    cn_count, ChargeModel, D4Cache, D4Dispersion, D4Model, ElementReferences, RationalDamping, RealspaceCutoff, MAX_REF,
+    ChargeModel, D4Cache, D4Dispersion, D4Model, ElementReferences, RationalDamping, RealspaceCutoff, MAX_REF,
 };
 
 /// Three-body scaling s9.
@@ -112,23 +112,18 @@ pub fn element_references(z: usize) -> ElementReferences {
     }
 }
 
+/// The revD4 coordination number of `mol`: dftd4's count ([`Erf::D4`]) without the
+/// electronegativity factor, radii [`D4_RCOV`], pairs with R² > 30² or R² < 1e-12 bohr² skipped
+/// (`axtb-base`'s [`CnModel`]).
+fn revd4_cn(mol: &Molecule) -> CnModel<Erf, impl Fn(usize, usize) -> f64 + '_> {
+    CnModel::new(Erf::D4, |i: usize, j: usize| D4_RCOV[mol.numbers[i] - 1] + D4_RCOV[mol.numbers[j] - 1])
+        .with_cutoff(Cutoff::Squared(CUTOFF.cn * CUTOFF.cn))
+        .with_min_r2(1e-12)
+}
+
 /// revD4 coordination numbers (no electronegativity factor, 30 bohr cutoff).
 pub fn coordination_numbers(mol: &Molecule) -> Vec<f64> {
-    let n = mol.nat();
-    let cut2 = CUTOFF.cn * CUTOFF.cn;
-    let mut cn = vec![0.0; n];
-    for i in 0..n {
-        for j in 0..i {
-            let r2 = norm2_sq(sub3(mol.positions[i], mol.positions[j]));
-            if r2 > cut2 || r2 < 1e-12 {
-                continue;
-            }
-            let c = cn_count(D4_RCOV[mol.numbers[i] - 1] + D4_RCOV[mol.numbers[j] - 1], r2.sqrt());
-            cn[i] += c;
-            cn[j] += c;
-        }
-    }
-    cn
+    revd4_cn(mol).compute(&mol.positions)
 }
 
 /// Charge-independent Gaussian CN weights of the references of an atom (element `z`,
@@ -328,24 +323,7 @@ impl RevD4 {
 
     /// Adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `grad`.
     pub fn add_cn_gradient(mol: &Molecule, dedcn: &[f64], grad: &mut [[f64; 3]]) {
-        let n = mol.nat();
-        let cut2 = CUTOFF.cn * CUTOFF.cn;
-        for i in 0..n {
-            for j in 0..i {
-                let v = sub3(mol.positions[i], mol.positions[j]);
-                let r2 = norm2_sq(v);
-                if r2 > cut2 || r2 < 1e-12 {
-                    continue;
-                }
-                let r = r2.sqrt();
-                let dc = axtb_d4::cn_dcount(D4_RCOV[mol.numbers[i] - 1] + D4_RCOV[mol.numbers[j] - 1], r);
-                let g = (dedcn[i] + dedcn[j]) * dc / r;
-                for k in 0..3 {
-                    grad[i][k] += g * v[k];
-                    grad[j][k] -= g * v[k];
-                }
-            }
-        }
+        revd4_cn(mol).add_gradient(&mol.positions, dedcn, grad);
     }
 
     /// Three-body (ATM) energy, C6 at q = 0.

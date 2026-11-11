@@ -15,7 +15,6 @@
 //! gradient, i.e. what finite differences of xtb's or axtb's gradient converge to; it is
 //! symmetrized at the end (`max_asymmetry` reports how far it was from symmetric).
 
-use crate::cn::{derf_count, dlog_cn, erf_count, log_cn};
 use crate::data;
 use crate::energy::{self, bond_par, hb2_eval, hb2_kind, Hb2Kind, Model, State};
 use crate::error::{Error, Result};
@@ -24,6 +23,7 @@ use crate::real::{Dual, Real, V3};
 use crate::terms;
 use crate::topology::Topology;
 use axtb_base::fd;
+use axtb_base::ncoord::{dlog_cap, log_cap, XtbErf};
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -155,7 +155,7 @@ impl<'a> Ctx<'a> {
             hb2_of,
             xb_of,
             wts_dual,
-            ddlog: (0..n).map(|a| dlog_cn(Dual::new(st.lcn.cn_raw[a], 1.0), model.param.cnmax).d).collect(),
+            ddlog: (0..n).map(|a| dlog_cap(Dual::new(st.lcn.cn_raw[a], 1.0), model.param.cnmax).d).collect(),
             hb_entries_of_h,
         }
     }
@@ -217,7 +217,7 @@ impl<'a> Ctx<'a> {
             let xi = self.xd(i, k, c);
             let xj = self.xd(j, k, c);
             let r = crate::real::norm2(crate::real::sub(xi, xj));
-            let e = erf_count(r, r0);
+            let e = XtbErf::GFNFF.count_of(r, r0);
             rawd[i] += e.d;
             rawd[j] += e.d;
             // partners whose CN moves by less than 1e-14 per bohr are left out (their
@@ -236,7 +236,7 @@ impl<'a> Ctx<'a> {
         }
         let cn_dual = |a: usize| -> Dual {
             if in_a[a] {
-                log_cn(Dual::new(st.lcn.cn_raw[a], rawd[a]), p.cnmax)
+                log_cap(Dual::new(st.lcn.cn_raw[a], rawd[a]), p.cnmax)
             } else {
                 Dual::new(st.lcn.cn[a], 0.0)
             }
@@ -429,7 +429,7 @@ impl<'a> Ctx<'a> {
                 let d = crate::real::sub(xi, xj);
                 let r = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
                 let r0 = p.rcov[at[i] - 1] + p.rcov[at[j] - 1];
-                let der = derf_count(r, r0);
+                let der = XtbErf::GFNFF.dcount_of(r, r0);
                 for cc in 0..3 {
                     let dv = der * (xj[cc] - xi[cc]) / r;
                     let v = sd * dv.v + s * dv.d;

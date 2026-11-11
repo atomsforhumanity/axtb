@@ -271,6 +271,27 @@ impl Real for Dual {
     }
 }
 
+/// The CN counting function and cap of `axtb-base` evaluate on duals for the Hessian, with the
+/// operations of [`Real`].
+impl axtb_base::ncoord::Scalar for Dual {
+    #[inline]
+    fn cst(v: f64) -> Self {
+        <Dual as Real>::cst(v)
+    }
+    #[inline]
+    fn exp(self) -> Self {
+        Real::exp(self)
+    }
+    #[inline]
+    fn ln(self) -> Self {
+        Real::ln(self)
+    }
+    #[inline]
+    fn erf(self) -> Self {
+        Real::erf(self)
+    }
+}
+
 /// 3-vector helpers on generic scalars.
 pub type V3<T> = [T; 3];
 

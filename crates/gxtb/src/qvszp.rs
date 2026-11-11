@@ -15,30 +15,21 @@
 //! All of this is verified against the 1.1.0 program to ~1e-15 (reference tests).
 
 use crate::data::RCOV_BASIS_CN;
-use crate::eeqbc::erf_f64;
 use crate::params::QvszpParams;
 use axtb::basis::{Cgto, MAXPRIM};
-use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
+use axtb_base::ncoord::{CnModel, Erf};
 use std::f64::consts::PI;
 
 /// Steepness of the basis coordination number.
 pub const KCN_BASIS: f64 = 3.75;
 
-/// Coordination number of the q-vSZP effective charge (printed as "CN(basis)").
+/// Coordination number of the q-vSZP effective charge (printed as "CN(basis)"):
+/// CN_A = sum_B 1/2 [1 + erf(-3.75 (R_AB - Rc_AB) / Rc_AB)], Rc_AB = R_A + R_B, all pairs, no
+/// cutoff (`axtb-base`'s [`CnModel`] with [`Erf`]).
 pub fn basis_cn(mol: &Molecule) -> Vec<f64> {
-    let n = mol.nat();
-    let mut cn = vec![0.0; n];
-    for i in 0..n {
-        for j in 0..i {
-            let r = norm2_sq(sub3(mol.positions[i], mol.positions[j])).sqrt();
-            let rc = RCOV_BASIS_CN[mol.numbers[i] - 1] + RCOV_BASIS_CN[mol.numbers[j] - 1];
-            let count = 0.5 * (1.0 + erf_f64(-KCN_BASIS * (r - rc) / rc));
-            cn[i] += count;
-            cn[j] += count;
-        }
-    }
-    cn
+    let rc = |i: usize, j: usize| RCOV_BASIS_CN[mol.numbers[i] - 1] + RCOV_BASIS_CN[mol.numbers[j] - 1];
+    CnModel::new(Erf { k: KCN_BASIS }, rc).compute(&mol.positions)
 }
 
 /// The three contributions to the effective charge and their sum (the program prints them

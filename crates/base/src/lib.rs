@@ -8,8 +8,11 @@
 //!   programs' parametrizations were tabulated with (never to be updated);
 //! - [`elements`]: the element tables the method crates share (Pauling electronegativities,
 //!   covalent radii);
-//! - [`math`]: the C library's error function (the reference programs' bits) and 3-vector
-//!   helpers;
+//! - [`math`]: the C library's error function (the reference programs' bits), 3-vector
+//!   helpers and the Cartesian Hessian block of a pair term;
+//! - [`ncoord`]: coordination numbers (the counting functions of GFN2-xTB, dftd4 and GFN-FF,
+//!   pair tests, cutoff factors and the logarithmic cap) with their gradients, Jacobians and
+//!   second derivatives;
 //! - [`occupations`]: the Aufbau filling, tblite's and xtb's Fermi smearing and tblite's
 //!   electronic entropy term;
 //! - [`timing`]: wall time per named phase;
@@ -34,6 +37,7 @@ pub mod fd;
 pub mod linalg;
 pub mod math;
 mod molecule;
+pub mod ncoord;
 pub mod occupations;
 pub mod timing;
 pub mod units;

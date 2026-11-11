@@ -10,16 +10,7 @@
 use crate::data::MAX_REF;
 use crate::disp::{smooth_cutoff, D4Cache, D4Dispersion};
 use crate::model::D4Model;
-use crate::ncoord::{dcount, en_factor, KCN};
-
-const SQRTPI: f64 = 1.7724538509055159;
-
-/// Second radial derivative of the D4 counting function.
-#[inline]
-fn d2count(rc: f64, r: f64) -> f64 {
-    let e = KCN * (r - rc) / rc;
-    2.0 * e * KCN * KCN * (-(e * e)).exp() / (SQRTPI * rc * rc)
-}
+use axtb_base::math::add_radial_hessian;
 
 /// `zeta`, `dzeta/dq` and `d²zeta/dq²`.
 #[inline]
@@ -32,23 +23,6 @@ fn zeta2(a: f64, c: f64, qref: f64, qmod: f64) -> (f64, f64, f64) {
         let u = c * qref / (qmod * qmod);
         let du = -2.0 * c * qref / (qmod * qmod * qmod);
         (z, -a * z * e * u, a * z * e * ((a * e - 1.0) * u * u - du))
-    }
-}
-
-/// Add the Hessian of a pair function `E(r)` (`dE/dr = e1`, `d²E/dr² = e2`,
-/// `v = R_i - R_j`) to `h` (row-major `n3 x n3`).
-#[inline]
-fn add_radial(h: &mut [f64], n3: usize, i: usize, j: usize, v: [f64; 3], r: f64, e1: f64, e2: f64) {
-    let u = [v[0] / r, v[1] / r, v[2] / r];
-    for a in 0..3 {
-        for b in 0..3 {
-            let d = if a == b { 1.0 } else { 0.0 };
-            let blk = e2 * u[a] * u[b] + e1 / r * (d - u[a] * u[b]);
-            h[(3 * i + a) * n3 + 3 * i + b] += blk;
-            h[(3 * j + a) * n3 + 3 * j + b] += blk;
-            h[(3 * i + a) * n3 + 3 * j + b] -= blk;
-            h[(3 * j + a) * n3 + 3 * i + b] -= blk;
-        }
     }
 }
 
@@ -169,59 +143,12 @@ impl D4Model {
 
     /// Jacobian `dCN_i/dR_x` of the D4 coordination numbers (row-major `nat x 3 nat`).
     pub fn coordination_number_jacobian(&self, positions: &[[f64; 3]], cutoff: f64) -> Vec<f64> {
-        let nat = self.natoms();
-        let n3 = 3 * nat;
-        let mut jac = vec![0.0; nat * n3];
-        let cutoff2 = cutoff * cutoff;
-        for iat in 0..nat {
-            let isp = self.id[iat];
-            for jat in 0..iat {
-                let jsp = self.id[jat];
-                let v = sub(positions[iat], positions[jat]);
-                let r2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-                if r2 > cutoff2 || r2 < 1.0e-12 {
-                    continue;
-                }
-                let r = r2.sqrt();
-                let den = en_factor(self.en[isp], self.en[jsp]);
-                let rc = self.rcov[isp] + self.rcov[jsp];
-                let dc = den * dcount(rc, r) / r;
-                for k in 0..3 {
-                    let d = dc * v[k];
-                    jac[iat * n3 + 3 * iat + k] += d;
-                    jac[iat * n3 + 3 * jat + k] -= d;
-                    jac[jat * n3 + 3 * iat + k] += d;
-                    jac[jat * n3 + 3 * jat + k] -= d;
-                }
-            }
-        }
-        jac
+        self.cn_model(cutoff).jacobian(&positions[..self.natoms()])
     }
 
     /// Add `sum_i w_i d²CN_i/dR dR` of the D4 coordination numbers to `hess`.
     pub fn add_coordination_number_hessian(&self, positions: &[[f64; 3]], cutoff: f64, w: &[f64], hess: &mut [f64]) {
-        let nat = self.natoms();
-        let n3 = 3 * nat;
-        let cutoff2 = cutoff * cutoff;
-        for iat in 0..nat {
-            let isp = self.id[iat];
-            for jat in 0..iat {
-                let wij = w[iat] + w[jat];
-                if wij == 0.0 {
-                    continue;
-                }
-                let jsp = self.id[jat];
-                let v = sub(positions[iat], positions[jat]);
-                let r2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-                if r2 > cutoff2 || r2 < 1.0e-12 {
-                    continue;
-                }
-                let r = r2.sqrt();
-                let den = en_factor(self.en[isp], self.en[jsp]);
-                let rc = self.rcov[isp] + self.rcov[jsp];
-                add_radial(hess, n3, iat, jat, v, r, wij * den * dcount(rc, r), wij * den * d2count(rc, r));
-            }
-        }
+        self.cn_model(cutoff).add_hessian(&positions[..self.natoms()], w, hess);
     }
 }
 
@@ -422,7 +349,7 @@ impl D4Dispersion {
                 let c6 = m.c6x(iat, jat, &w.gw[iat], &w.gw[jat]);
                 let dci = m.c6x(iat, jat, &w.dcn[iat], &w.gw[jat]);
                 let dcj = m.c6x(iat, jat, &w.gw[iat], &w.dcn[jat]);
-                add_radial(hess, n3, iat, jat, v, r, -c6 * e1, -c6 * e2);
+                add_radial_hessian(hess, n3, iat, jat, v, r, -c6 * e1, -c6 * e2);
                 for k in 0..3 {
                     let de = e1 * v[k] / r;
                     x[(3 * iat + k) * nat + iat] -= dci * de;

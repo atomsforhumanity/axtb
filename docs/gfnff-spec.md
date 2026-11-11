@@ -57,7 +57,7 @@ constants, projection, and the GFN-FF frequency scale 1.03 of xtb's thermochemis
 | `param.rs` | `gfnff_param.f90` (`newGFNFFGenerator`, `gfnff_set_param`, `gfnff_thresholds`), `gfnff_rab.f` | global constants, derived parameters, cutoffs |
 | `setup.rs`, `setup_util.rs` | `gfnff_ini.f90`, `gfnff_ini2.F90`, `getring36.f90`, `mrec.f90`, `gfnff_qm.f90` | topology (§4) |
 | `topology.rs` | `topology.f90` (`TGFFTopology`), `neighbor.f90` (`TNeigh`) | the topology data |
-| `cn.rs` | `gfnff_eg.f90` (`gfnff_dlogcoord`, `dncoord_erf`, `erfCount`) | coordination numbers |
+| `cn.rs` | `gfnff_eg.f90` (`gfnff_dlogcoord`, `dncoord_erf`, `erfCount`) | coordination numbers (the counting function and the cap are `axtb_base::ncoord`'s `XtbErf::GFNFF`, `log_cap`) |
 | `energy.rs` | `gfnff_eg.f90` (`gfnff_eg`, `goed_gfnff`), `gdisp0.f90` | energy, gradient, EEQ, dispersion, HB lists (§5) |
 | `terms.rs` | `gfnff_eg.f90` (`egbond*`, `egbend*`, `egtors*`, `abhgfnff_eg*`, `rbxgfnff_eg`, `batmgfnff_eg`, `sTors_eg`) | local terms, generic over `f64`/`Dual` |
 | `geom.rs` | `gfnff_helpers` / `math.f` (`bangl`, `valijklff`, `dphidr`, `omega`, `domegadr`, `impsc`, `vecnorm`) | geometry helpers |

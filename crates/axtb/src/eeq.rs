@@ -7,14 +7,14 @@ use crate::molecule::{norm2_sq, sub3, Molecule};
 use crate::param::covalent_rad_d3;
 use crate::param::eeq_data::{EEQ_CHI, EEQ_ETA, EEQ_KCNCHI, EEQ_RAD};
 use crate::{Error, Result};
+use axtb_base::ncoord::{log_cap, CnModel, Cutoff, Erf};
 use axtb_d4::erf;
 use faer::{Mat, Par};
 use std::f64::consts::PI;
 
-const CN_EXP: f64 = 7.5;
-
-/// The coordination number of the EEQ model: error-function counting with covalent radii
-/// `rcov` (bohr) up to `cutoff` (bohr), optionally capped smoothly at `cap`.
+/// The coordination number of the EEQ model: error-function counting ([`Erf::D4`], k = 7.5) with
+/// covalent radii `rcov` (bohr) up to `cutoff` (bohr; r² > cutoff² and r² < 1e-12 bohr²
+/// skipped), optionally capped smoothly at `cap` ([`log_cap`]).
 #[derive(Clone, Copy, Debug)]
 pub struct EeqCn {
     pub rcov: fn(usize) -> f64,
@@ -25,6 +25,13 @@ pub struct EeqCn {
 impl EeqCn {
     /// multicharge's EEQ 2019 (dftd4, tblite): D3 radii, 25 bohr, capped at 8.
     pub const MULTICHARGE: EeqCn = EeqCn { rcov: covalent_rad_d3, cutoff: 25.0, cap: Some(8.0) };
+
+    /// The (uncapped) coordination number of `mol`'s atoms as a [`CnModel`].
+    fn model<'a>(&'a self, mol: &'a Molecule) -> CnModel<Erf, impl Fn(usize, usize) -> f64 + 'a> {
+        CnModel::new(Erf::D4, move |i: usize, j: usize| (self.rcov)(mol.numbers[i]) + (self.rcov)(mol.numbers[j]))
+            .with_cutoff(Cutoff::Squared(self.cutoff * self.cutoff))
+            .with_min_r2(1e-12)
+    }
 }
 
 /// EEQ 2019 partial charges (summing to the molecular charge) with the coordination number
@@ -35,24 +42,10 @@ pub fn eeq_charges_with(mol: &Molecule, cnm: &EeqCn) -> Result<Vec<f64>> {
     if let Some(&z) = mol.numbers.iter().find(|&&z| z > EEQ_CHI.len()) {
         return Err(Error::UnsupportedElement { method: "EEQ", z });
     }
-    // error-function coordination number, optionally capped smoothly
-    let mut cn = vec![0.0; n];
-    for i in 0..n {
-        for j in 0..i {
-            let r2 = norm2_sq(sub3(mol.positions[i], mol.positions[j]));
-            if r2 > cnm.cutoff * cnm.cutoff || r2 < 1e-12 {
-                continue;
-            }
-            let r = r2.sqrt();
-            let rc = (cnm.rcov)(mol.numbers[i]) + (cnm.rcov)(mol.numbers[j]);
-            let c = 0.5 * (1.0 + erf(-CN_EXP * (r - rc) / rc));
-            cn[i] += c;
-            cn[j] += c;
-        }
-    }
+    let mut cn = cnm.model(mol).compute(&mol.positions);
     if let Some(cap) = cnm.cap {
         for c in cn.iter_mut() {
-            *c = (1.0 + cap.exp()).ln() - (1.0 + (cap - *c).exp()).ln();
+            *c = log_cap(*c, cap);
         }
     }
     let sqrt2pi = (2.0 / PI).sqrt();

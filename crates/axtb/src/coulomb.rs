@@ -3,6 +3,7 @@
 
 use crate::molecule::{dot3, norm2_sq, sub3, Molecule};
 use crate::ncoord::Ncoord;
+use axtb_base::math::add_radial_hessian;
 
 /// Isotropic second-order electrostatics with the generalized Mataga–Nishimoto–Ohno–Klopman
 /// kernel `γ = 1 / (r^g + η^-g)^(1/g)`, shell resolved.
@@ -165,32 +166,6 @@ impl EffectiveCoulomb {
                 }
                 add_radial_hessian(h, n3, iat, jat, vec, r1, e1, e2);
             }
-        }
-    }
-}
-
-/// Add the Cartesian Hessian of a pair term `E(r)` with `dE/dr = e1`, `d²E/dr² = e2`
-/// (`vec = R_i - R_j`, `r1 = |vec|`) to `h` (row-major `n3 x n3`).
-#[inline]
-pub(crate) fn add_radial_hessian(
-    h: &mut [f64],
-    n3: usize,
-    iat: usize,
-    jat: usize,
-    vec: [f64; 3],
-    r1: f64,
-    e1: f64,
-    e2: f64,
-) {
-    let u = [vec[0] / r1, vec[1] / r1, vec[2] / r1];
-    for a in 0..3 {
-        for b in 0..3 {
-            let d = if a == b { 1.0 } else { 0.0 };
-            let blk = e2 * u[a] * u[b] + e1 / r1 * (d - u[a] * u[b]);
-            h[(3 * iat + a) * n3 + 3 * iat + b] += blk;
-            h[(3 * jat + a) * n3 + 3 * jat + b] += blk;
-            h[(3 * iat + a) * n3 + 3 * jat + b] -= blk;
-            h[(3 * jat + a) * n3 + 3 * iat + b] -= blk;
         }
     }
 }

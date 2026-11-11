@@ -4,29 +4,21 @@
 //! Decoded from the 1.1.0 program (`scf_`, `repuls_`) and verified against its printed
 //! "nuclear repulsion" and "atomic core increments" (reference tests).
 
-use crate::eeqbc::erf_f64;
 use crate::params::GxtbParams;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
+use axtb_base::ncoord::{CnModel, Erf};
 
 /// The g-xTB coordination number (used by H0, repulsion, Hubbard parameters, ...):
 /// CN_A = sum_B 1/2 [1 + erf(k (R_AB - Rc_AB) / Rc_AB)], Rc_AB = (rad_A + rad_B)/2 with the
-/// element radii `rad` (bohr) and k = glob(11) (negative), all pairs, no cutoff.
+/// element radii `rad` (bohr) and k = glob(11) (negative), all pairs, no cutoff. The pair loop
+/// and the counting function are `axtb-base`'s ([`CnModel`], [`Erf`] with steepness −k: IEEE
+/// rounding is symmetric in sign, so its −((−k)(R − Rc))/Rc is the program's k (R − Rc)/Rc
+/// bit for bit).
 pub fn gxtb_cn(param: &GxtbParams, mol: &Molecule) -> Result<Vec<f64>> {
-    let n = mol.nat();
     let k = param.glob[10];
     let rad: Vec<f64> = mol.numbers.iter().map(|&z| param.element(z).map(|e| e.rad)).collect::<Result<_>>()?;
-    let mut cn = vec![0.0; n];
-    for i in 0..n {
-        for j in 0..i {
-            let r = norm2_sq(sub3(mol.positions[i], mol.positions[j])).sqrt();
-            let rc = 0.5 * (rad[i] + rad[j]);
-            let count = 0.5 * (1.0 + erf_f64(k * (r - rc) / rc));
-            cn[i] += count;
-            cn[j] += count;
-        }
-    }
-    Ok(cn)
+    Ok(CnModel::new(Erf { k: -k }, |i: usize, j: usize| 0.5 * (rad[i] + rad[j])).compute(&mol.positions))
 }
 
 /// Semi-classical repulsion energy (Eh):

@@ -88,7 +88,7 @@ impl Repulsion {
                 let e = self.zeff[jsp][isp] * (-alpha * r1.powf(kexp)).exp() / r1.powf(self.rexp);
                 let t = -alpha * kexp * r1.powf(kexp - 1.0) - self.rexp / r1;
                 let dt = -alpha * kexp * (kexp - 1.0) * r1.powf(kexp - 2.0) + self.rexp / r2;
-                crate::coulomb::add_radial_hessian(hess, n3, i, j, rij, r1, e * t, e * (t * t + dt));
+                axtb_base::math::add_radial_hessian(hess, n3, i, j, rij, r1, e * t, e * (t * t + dt));
             }
         }
     }
