@@ -6,7 +6,9 @@ slowdowns.
 
 Each cell runs both binaries alternately (order swapped every round) at a quiet machine
 (1-minute load below 1.5 before each pair); whole-process wall seconds, medians over rounds.
-A cell fails when median(new) / median(baseline) exceeds --limit.
+A cell fails when median(new) / median(baseline) exceeds --limit both in its first pass and
+in a confirming pass with three times the rounds (identical binaries differ by up to ~4% on
+the shortest cells over 5 rounds on the laptop).
 """
 import argparse
 import json
@@ -69,17 +71,26 @@ def main():
     cs = cells()
     if a.only:
         cs = [c for c in cs if any(k in c[0] for k in a.only.split(","))]
-    rows, failed = [], 0
-    for name, req in cs:
+    def measure(req, rounds):
         tb, tn = [], []
-        for r in range(a.rounds):
+        for r in range(rounds):
             while load1() > 1.5:
                 time.sleep(3)
             pair = [(a.baseline, tb), (a.new, tn)]
             for binary, out in (pair if r % 2 == 0 else pair[::-1]):
                 out.append(timed(binary, req))
+        return tb, tn
+
+    rows, failed = [], 0
+    for name, req in cs:
+        tb, tn = measure(req, a.rounds)
         mb, mn = statistics.median(tb), statistics.median(tn)
         ratio = mn / mb
+        if ratio > a.limit:
+            # confirm with three times the rounds before calling it a slowdown
+            tb, tn = measure(req, 3 * a.rounds)
+            mb, mn = statistics.median(tb), statistics.median(tn)
+            ratio = mn / mb
         flag = "SLOWER" if ratio > a.limit else ""
         failed += bool(flag)
         rows.append({"cell": name, "baseline_s": mb, "new_s": mn, "ratio": ratio, "baseline_runs": tb, "new_runs": tn})
