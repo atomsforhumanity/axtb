@@ -473,7 +473,11 @@ little, −0.5 % to +2.3 % for caffeine and taxol with all three methods (1-minu
 ## Running the scripts by hand
 
 `scripts/check.sh programs` runs the gates below with their outputs in `target/check/programs/`;
-run by hand, most scripts write the result files in `bench/results/` that this page quotes.
+run by hand, most scripts write the result files in `bench/results/` that this page quotes. Each
+script fails (exit status 1) when a quantity exceeds the limit that this page or the specs quote
+for it, at the two significant digits they give, or a calculation fails, except the known
+differences explained here; the limits and known differences are in the script (`LIMITS`,
+`KNOWN_DIFFERENCES`, `tests/gate.py`), and `scripts/check.sh list` prints them.
 The programs come from `AXTB_XTB680`, `AXTB_GXTB2`, `AXTB_XTB671` and `AXTB_GXTB11_DIR`
 (`tests/programs.py`); `--xtb PATH` selects another xtb where a script takes it.
 
@@ -490,7 +494,7 @@ python -m pytest tests/reference_matrix  # fast subset of the matrix
 python tests/reference_matrix/cli_dump.py target/release/axtb after.jsonl  # every case through the CLI; --compare before.jsonl after.jsonl (bytes), --compare-numbers (numbers only)
 python tests/scf_hard_set.py             # SCF convergence on hard cases vs xtb/tblite (bench/results/scf_hard.json)
 cargo test --release -p axtb-gxtb        # g-xTB v1.1 and 2.0.1 against their programs (reference data in crates/gxtb/tests)
-python tests/gxtb2_reproduction.py       # g-xTB 2.0.1 report: both conventions vs the program
+python tests/gxtb2_reproduction.py       # g-xTB 2.0.1: both conventions vs the program
 python tests/gxtb_etemp_reproduction.py  # g-xTB 2.0.1 and v1.1 at 300-5000 K vs the programs (--etemp, -tel)
 python tests/gxtb_elements.py            # g-xTB both versions, every element H-Lr vs the programs (bench/results/gxtb_elements.json)
 python tests/gxtb_energy_differences.py  # g-xTB energy differences, default vs program conventions [--optimize: rebuild the structures]
@@ -504,7 +508,7 @@ python tests/vibrational_check.py        # frequencies, IR, thermochemistry vs x
 python -m pytest crates/axtb-py/tests/test_vibrations.py  # vibrational analysis: Python, CLI and codec
 python -m pytest crates/axtb-py/tests/test_molden.py  # Molden round trips, g-xTB 1.1.0 files, codec, CLI
 cargo test --release -p axtb-gfnff       # GFN-FF topology, charges, energies, gradients vs xtb; Hessians vs FD
-python tests/gfnff_reproduction.py       # GFN-FF report: test set, Hessians and scaling vs xtb --gfnff
+python tests/gfnff_reproduction.py       # GFN-FF: test set, Hessians and scaling (timings, not gated) vs xtb --gfnff
 python -m pytest crates/axtb-py/tests/test_gfnff.py   # GFN-FF through Python, CLI and codec
 cargo test --release -p axtb-gxtb --test parity_features  # restarts as the g-xTB programs', bond orders, gap, quadrupole
 python tests/gxtb_parity_features.py     # bond orders, gap, quadrupole vs every program; restarts; guess reuse along paths and optimizers
