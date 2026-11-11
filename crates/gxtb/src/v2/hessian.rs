@@ -144,7 +144,17 @@ impl Setup {
 /// Settings of the analytic Hessian.
 #[derive(Clone, Copy, Debug)]
 pub struct AnalyticOptions {
+    /// The response solver; the default tolerance is 1e-6, which with `symmetric` gives the
+    /// Hessian of a 1e-10 solve (tests/gxtb2_hessian_symmetric.py).
     pub cpks: CpksOptions,
+    /// The response terms in their symmetric form: H - (M + M^T) with M_xy = z_x . r_y, z_x the
+    /// solution of displacement x's symmetric system and r_y the final residual of y's. The
+    /// Hessian's error is then quadratic in the solver's instead of linear, so a looser
+    /// tolerance gives the same Hessian in fewer iterations (about 1.35x faster from ~100 atoms
+    /// on). Costs one product Z R^T after all displacements and keeps z and r of every
+    /// displacement in single precision: 2 * 3N * n_occ * n_virt * 4 bytes (taxol 55 MB,
+    /// (H2O)100 0.58 GB).
+    pub symmetric: bool,
     /// Displacements per block. Each displacement x is one task: its perturbation F^(x), S^x,
     /// the coupled-perturbed response dP^x, dW^x and their contraction into Hessian column x,
     /// after which its n x n matrices are freed; a block's tasks run in parallel and their
@@ -156,7 +166,7 @@ pub struct AnalyticOptions {
 
 impl Default for AnalyticOptions {
     fn default() -> Self {
-        Self { cpks: CpksOptions::default(), block: 64 }
+        Self { cpks: CpksOptions { tol: 1e-6, ..CpksOptions::default() }, symmetric: true, block: 64 }
     }
 }
 
@@ -169,7 +179,9 @@ impl Setup {
         let n3 = 3 * nat;
         let seq = self;
         let an = super::analytic::Analytic::new(seq, &r.state)?;
-        let cp = Cpks::new(seq, r, opts.cpks, Par::Seq);
+        let mut cp = Cpks::new(seq, r, opts.cpks, Par::Seq);
+        cp.keep_solution = opts.symmetric;
+        let cp = cp;
         timings.push(("tangents", t0.elapsed().as_secs_f64()));
         let t0 = std::time::Instant::now();
         let dim = an.lay.dim();
@@ -183,44 +195,64 @@ impl Setup {
         let mut h = vec![0.0; n3 * n3];
         let mut dipd = vec![[0.0; 3]; n3];
         let (mut t_pert, mut t_resp) = (0.0, 0.0);
-        let task =
-            |x: usize| -> Result<(super::analytic::Displacement, super::analytic::ResponseColumn, [f64; 3], f64, f64)> {
-                let t = std::time::Instant::now();
-                let mut d = an.displacement(x)?;
-                let tp = t.elapsed().as_secs_f64();
-                let t = std::time::Instant::now();
-                let fy: Vec<Mat<f64>> = d.f.iter().map(|f| to_mat(n, f)).collect();
-                let sy = to_mat(n, &d.s);
-                (d.f, d.s) = (Vec::new(), Vec::new());
-                let (rs, kd) = cp.solve_parts(&fy, &sy)?;
-                drop((fy, sy));
-                // dipole derivative: fixed-density part plus the Mulliken analysis of dP^x
-                let mut dmu = d.dmu;
-                for (a, p) in seq.mol.positions.iter().enumerate() {
-                    for c in 0..3 {
-                        dmu[c] += p[c] * kd.ds.qa[a] + kd.ds.dip[a][c];
-                    }
+        #[allow(clippy::type_complexity)]
+        let task = |x: usize| -> Result<(
+            super::analytic::Displacement,
+            super::analytic::ResponseColumn,
+            [f64; 3],
+            f64,
+            f64,
+            Option<(Vec<f32>, Vec<f32>)>,
+        )> {
+            let t = std::time::Instant::now();
+            let mut d = an.displacement(x)?;
+            let tp = t.elapsed().as_secs_f64();
+            let t = std::time::Instant::now();
+            let fy: Vec<Mat<f64>> = d.f.iter().map(|f| to_mat(n, f)).collect();
+            let sy = to_mat(n, &d.s);
+            (d.f, d.s) = (Vec::new(), Vec::new());
+            let (mut rs, kd) = cp.solve_parts(&fy, &sy)?;
+            drop((fy, sy));
+            // dipole derivative: fixed-density part plus the Mulliken analysis of dP^x
+            let mut dmu = d.dmu;
+            for (a, p) in seq.mol.positions.iter().enumerate() {
+                for c in 0..3 {
+                    dmu[c] += p[c] * kd.ds.qa[a] + kd.ds.dip[a][c];
                 }
-                let mut dw = vec![0.0; n * n];
-                for m in &rs.dw {
-                    for (a, b) in dw.iter_mut().zip(from_mat(m)) {
-                        *a += b;
-                    }
+            }
+            let mut dw = vec![0.0; n * n];
+            for m in &rs.dw {
+                for (a, b) in dw.iter_mut().zip(from_mat(m)) {
+                    *a += b;
                 }
-                drop(rs);
-                let col = an.response_column(&kd, &dw);
-                Ok((d, col, dmu, tp, t.elapsed().as_secs_f64()))
-            };
+            }
+            let zr = rs.zr.take();
+            drop(rs);
+            let col = an.response_column(&kd, &dw);
+            Ok((d, col, dmu, tp, t.elapsed().as_secs_f64(), zr))
+        };
         let block = opts.block.max(1);
+        // symmetric form: z_x and the final residual r_x of every displacement (rows of two
+        // n3 x len matrices, single precision)
+        let (mut zm, mut rm, mut len): (Vec<f32>, Vec<f32>, usize) = (Vec::new(), Vec::new(), 0);
         let mut y0 = 0;
         while y0 < n3 {
             let k = block.min(n3 - y0);
             let res = map_items(k, parallel, |j| task(y0 + j));
             for (j, r) in res.into_iter().enumerate() {
-                let (d, col, dmu, tp, tr) = r?;
+                let (d, col, dmu, tp, tr, zr) = r?;
                 t_pert += tp;
                 t_resp += tr;
                 let x = y0 + j;
+                if let Some((z, r)) = zr {
+                    if zm.is_empty() {
+                        len = z.len();
+                        zm = vec![0.0; n3 * len];
+                        rm = vec![0.0; n3 * len];
+                    }
+                    zm[x * len..(x + 1) * len].copy_from_slice(&z);
+                    rm[x * len..(x + 1) * len].copy_from_slice(&r);
+                }
                 dipd[x] = dmu;
                 // row x: d^2E_x/dS dS and the overlap-kernel cross terms; column x: the
                 // overlap-kernel cross terms of the other index, the kernel terms at fixed s
@@ -240,6 +272,24 @@ impl Setup {
             }
             y0 += k;
         }
+        if len > 0 {
+            // H -= M + M^T, M = Z R^T: the response terms' error becomes quadratic in the solver's
+            let mut m = Mat::<f32>::zeros(n3, n3);
+            faer::linalg::matmul::matmul(
+                m.as_mut(),
+                faer::Accum::Replace,
+                MatRef::from_row_major_slice(&zm, n3, len),
+                MatRef::from_row_major_slice(&rm, n3, len).transpose(),
+                1.0f32,
+                if parallel { Par::rayon(0) } else { Par::Seq },
+            );
+            for x in 0..n3 {
+                for y in 0..n3 {
+                    h[x * n3 + y] -= m[(x, y)] as f64 + m[(y, x)] as f64;
+                }
+            }
+        }
+        drop((zm, rm));
         let wall = t0.elapsed().as_secs_f64();
         let f = if t_pert + t_resp > 0.0 { t_pert / (t_pert + t_resp) } else { 0.0 };
         timings.push(("perturbations", wall * f));

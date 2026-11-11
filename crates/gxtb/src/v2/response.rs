@@ -323,6 +323,10 @@ pub struct Perturbed {
     /// Total first-order Fock matrices F^(y) + K(dP).
     pub df: Vec<Mat<f64>>,
     pub iterations: usize,
+    /// With [`Cpks::keep_solution`]: the solution z and the final residual of the symmetric
+    /// system on the response columns [v0, n) of every channel, in single precision (the
+    /// analytic Hessian's symmetric form, [`AnalyticOptions::symmetric`](super::hessian::AnalyticOptions)).
+    pub zr: Option<(Vec<f32>, Vec<f32>)>,
 }
 
 impl Setup {
@@ -488,6 +492,8 @@ pub struct Cpks<'a> {
     pub opts: CpksOptions,
     /// Parallelism of the linear algebra inside one perturbation.
     pub par: Par,
+    /// Return the solution and the final residual of every solve ([`Perturbed::zr`]).
+    pub keep_solution: bool,
 }
 
 impl<'a> Cpks<'a> {
@@ -498,7 +504,7 @@ impl<'a> Cpks<'a> {
             .map(|s| Channel::new(n, &r.coefficients[s], &r.orbital_energies[s], &r.occupations[s], r.kt, nmax))
             .collect();
         let base = setup.response_base(&r.state, par);
-        Self { setup, state: &r.state, base, ch, opts, par }
+        Self { setup, state: &r.state, base, ch, opts, par, keep_solution: false }
     }
 
     /// K(dP) for AO density changes (faer matrices per channel).
@@ -623,6 +629,7 @@ impl<'a> Cpks<'a> {
         let bnorm = Self::dot(&rhs, &rhs).sqrt();
         let mut z: Vec<Mat<f64>> = rhs.iter().map(|r| Mat::<f64>::zeros(r.nrows(), r.ncols())).collect();
         let mut iterations = 0;
+        let mut res: Vec<Mat<f64>> = Vec::new();
         if bnorm > 0.0 {
             let mut r = rhs.clone();
             let mut p = r.clone();
@@ -668,7 +675,22 @@ impl<'a> Cpks<'a> {
                     }
                 }
             }
+            res = r;
         }
+        let zr = self.keep_solution.then(|| {
+            let flat = |ms: &[Mat<f64>]| -> Vec<f32> {
+                let mut out = Vec::new();
+                for (ch, m) in self.ch.iter().zip(ms) {
+                    for j in ch.v0..m.ncols() {
+                        out.extend(m.col_as_slice(j).iter().map(|&v| v as f32));
+                    }
+                }
+                out
+            };
+            // a zero right-hand side: z = 0 and no residual
+            let r = if res.is_empty() { flat(&z).iter().map(|_| 0.0).collect() } else { flat(&res) };
+            (flat(&z), r)
+        });
         // dP = dP^S - C (d^1/2 z) C^T
         let dp: Vec<Mat<f64>> = self
             .ch
@@ -712,7 +734,7 @@ impl<'a> Cpks<'a> {
                 ch.to_ao(&a, par)
             })
             .collect();
-        Ok((Perturbed { dp, dw, df, iterations }, kd))
+        Ok((Perturbed { dp, dw, df, iterations, zr }, kd))
     }
 }
 
