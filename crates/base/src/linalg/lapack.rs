@@ -665,7 +665,7 @@ mod tests {
 
     /// The pthreads build of OpenBLAS (Debian/Ubuntu `libopenblas0-pthread`) has no per-thread
     /// thread count and would run on every core. Loads the library into the test process, so
-    /// on request only: `cargo test --release -p axtb pthreads_openblas -- --ignored`.
+    /// on request only: `cargo test --release -p axtb-base --features linalg pthreads_openblas -- --ignored`.
     #[test]
     #[ignore = "needs Debian/Ubuntu's libopenblas0-pthread"]
     fn pthreads_openblas_is_refused() {

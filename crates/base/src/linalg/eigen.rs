@@ -1,4 +1,5 @@
-//! Dense linear algebra for the SCF: the generalized symmetric eigenproblem F C = S C ε.
+//! The SCF eigensolver of the tight-binding methods (GFN2-xTB, g-xTB v1.1 and 2.0.1): the
+//! generalized symmetric eigenproblem F C = S C ε.
 //!
 //! The overlap is Cholesky-factorized once per geometry (S = L Lᵀ); every SCF iteration
 //! then reduces F to standard form, A = L⁻¹ F L⁻ᵀ, solves the symmetric eigenproblem of A and
@@ -16,7 +17,8 @@
 //! time when the environment variable `AXTB_LAPACK` names one (see [`runtime_lapack`] and the
 //! README's Threads section); faer solves them otherwise, and when the library fails.
 
-use crate::lapack::{Lapack, LapackEig};
+use super::lapack::{Lapack, LapackEig};
+use super::tridiag;
 use crate::{Error, Result};
 use faer::dyn_stack::{MemBuffer, MemStack, StackReq};
 use faer::linalg::cholesky::llt::factor::{cholesky_in_place, cholesky_in_place_scratch, LltRegularization};
@@ -60,7 +62,7 @@ pub struct GenEigSolver {
     /// Work space of [`GenEigSolver::solve_lowest`] (allocated on first use).
     lowest: Option<Lowest>,
     /// `solve_lowest` uses the full solver: the last spectrum had clusters too large for
-    /// inverse iteration ([`cluster_cost`](crate::tridiag::cluster_cost) above 1, or above 1/2
+    /// inverse iteration ([`cluster_cost`](tridiag::cluster_cost) above 1, or above 1/2
     /// while on the full solver).
     full_next: bool,
     /// The last `solve_lowest` call used the full solver.
@@ -129,6 +131,7 @@ impl GenEigSolver {
 
     /// Forget the spectra of earlier [`solve_lowest`](Self::solve_lowest) calls, for a new SCF
     /// with the same overlap: its calls then choose their paths as those of a new solver.
+    #[inline]
     pub fn restart(&mut self) {
         self.full_next = false;
     }
@@ -231,7 +234,7 @@ impl GenEigSolver {
             self.solve_full_reduced(f, eps, c)?;
             // ||T||_1 of the tridiagonal form is not at hand: its lower bound max |eps|
             let tnorm = eps[0].abs().max(eps[n - 1].abs());
-            self.full_next = crate::tridiag::cluster_cost(&eps[..n], k(&eps[..n]), tnorm) > 0.5;
+            self.full_next = tridiag::cluster_cost(&eps[..n], k(&eps[..n]), tnorm) > 0.5;
             return Ok(n);
         }
         let par = self.par;
@@ -268,15 +271,15 @@ impl GenEigSolver {
         let e: Vec<f64> = (0..n - 1).map(|i| lw.trid[(i + 1, i)]).collect();
         eps[..n].copy_from_slice(&d);
         let mut e2 = e.clone();
-        crate::tridiag::eigenvalues(&mut eps[..n], &mut e2)?;
+        tridiag::eigenvalues(&mut eps[..n], &mut e2)?;
         let k = k(&eps[..n]).min(n);
         self.last_full = false;
         if k == 0 {
             return Ok(0);
         }
-        self.full_next = crate::tridiag::cluster_cost(&eps[..n], k, crate::tridiag::one_norm(&d, &e)) > 1.0;
+        self.full_next = tridiag::cluster_cost(&eps[..n], k, tridiag::one_norm(&d, &e)) > 1.0;
         let mut z = vec![0.0; n * k];
-        if crate::tridiag::eigenvectors(&d, &e, &eps[..k], &mut z, !matches!(par, Par::Seq)).is_err() {
+        if tridiag::eigenvectors(&d, &e, &eps[..k], &mut z, !matches!(par, Par::Seq)).is_err() {
             // inverse iteration did not converge: every eigenpair from the full solver
             self.last_full = true;
             self.solve_full_reduced(f, eps, c)?;
@@ -343,6 +346,7 @@ impl GenEigSolver {
     }
 
     /// Whether the last [`solve_lowest`](Self::solve_lowest) call used the full solver.
+    #[inline]
     pub fn used_full(&self) -> bool {
         self.last_full
     }
@@ -526,107 +530,6 @@ fn sygs2(mut a: MatMut<'_, f64>, l: MatRef<'_, f64>) {
     }
 }
 
-thread_local! {
-    /// The two n x k matrices of [`weighted_columns`], kept on the thread between calls (their
-    /// memory lives as long as the thread). Made afresh in every SCF iteration, their pages
-    /// were faulted in every time: glibc gives each block of this size back to the system when
-    /// it is freed, unless a larger block was freed before (the n x n matrix that the run-time
-    /// LAPACK path allocated per call until 83b5bd8 was one, by accident). GFN2 (H2O)200, MKL:
-    /// `scf: density` 0.116 -> 0.084 s per run on 8 threads, 0.038 -> 0.030 s for (H2O)100 on 1.
-    static WEIGHTED_COLUMNS: std::cell::RefCell<Option<(Mat<f64>, Mat<f64>)>> = const { std::cell::RefCell::new(None) };
-}
-
-/// The columns of `c` with a weight above 1e-300 times their weights (`cw`) and as they are
-/// (`cc`), n x m each, passed to `f`: in the thread's kept matrices, or in new ones while those
-/// are in use (a task of the pool run by this thread while it waits inside `f`). The kept
-/// matrices are made anew when n changes, so their layout is that of new ones.
-fn weighted_columns<T>(c: MatRef<'_, f64>, w: &[f64], f: impl FnOnce(MatRef<'_, f64>, MatRef<'_, f64>) -> T) -> T {
-    let n = c.nrows();
-    let cols: Vec<usize> = (0..w.len()).filter(|&i| w[i].abs() > 1e-300).collect();
-    let m = cols.len();
-    let fill = |cw: &mut Mat<f64>, cc: &mut Mat<f64>| {
-        for (k, &i) in cols.iter().enumerate() {
-            for r in 0..n {
-                cc[(r, k)] = c[(r, i)];
-                cw[(r, k)] = c[(r, i)] * w[i];
-            }
-        }
-    };
-    WEIGHTED_COLUMNS.with(|kept| match kept.try_borrow_mut() {
-        Ok(mut kept) => {
-            let (cw, cc) = kept.get_or_insert_with(|| (Mat::new(), Mat::new()));
-            if cw.nrows() == n {
-                cw.resize_with(n, m, |_, _| 0.0);
-                cc.resize_with(n, m, |_, _| 0.0);
-            } else {
-                (*cw, *cc) = (Mat::zeros(n, m), Mat::zeros(n, m));
-            }
-            fill(cw, cc);
-            f(cw.as_ref(), cc.as_ref())
-        }
-        Err(_) => {
-            let (mut cw, mut cc) = (Mat::zeros(n, m), Mat::zeros(n, m));
-            fill(&mut cw, &mut cc);
-            f(cw.as_ref(), cc.as_ref())
-        }
-    })
-}
-
-/// `P = C diag(w) Cᵀ` for the columns of `c` with non-negligible weight.
-pub(crate) fn weighted_outer(c: MatRef<'_, f64>, w: &[f64], out: &mut Mat<f64>, par: Par) {
-    weighted_columns(c, w, |cw, cc| {
-        faer::linalg::matmul::matmul(out.as_mut(), faer::Accum::Replace, cw, cc.transpose(), 1.0, par)
-    });
-}
-
-/// [`weighted_outer`] computing the lower triangle alone (half the flops, the syrk of
-/// grimme-lab/xtb#1466) and mirroring it: symmetric to the last bit, its elements rounded as a
-/// triangular product rounds them (not as `weighted_outer`'s).
-pub(crate) fn weighted_outer_sym(c: MatRef<'_, f64>, w: &[f64], out: &mut Mat<f64>, par: Par) {
-    use faer::linalg::matmul::triangular::{matmul, BlockStructure};
-    let n = c.nrows();
-    weighted_columns(c, w, |cw, cc| {
-        let rect = BlockStructure::Rectangular;
-        matmul(
-            out.as_mut(),
-            BlockStructure::TriangularLower,
-            faer::Accum::Replace,
-            cw,
-            rect,
-            cc.transpose(),
-            rect,
-            1.0,
-            par,
-        )
-    });
-    for j in 1..n {
-        for i in 0..j {
-            out[(i, j)] = out[(j, i)];
-        }
-    }
-}
-
-/// Solve `A X = B` in place (`b` becomes X) by LU decomposition with partial pivoting.
-pub(crate) fn lu_solve(mut a: Mat<f64>, b: &mut Mat<f64>, par: Par) -> Result<()> {
-    use faer::linalg::lu::partial_pivoting::{factor, solve};
-    use faer::perm::PermRef;
-    let n = a.nrows();
-    let mut fwd = vec![0usize; n];
-    let mut bwd = vec![0usize; n];
-    let req = StackReq::any_of(&[
-        factor::lu_in_place_scratch::<usize, f64>(n, n, par, Default::default()),
-        solve::solve_in_place_scratch::<usize, f64>(n, b.ncols(), par),
-    ]);
-    let mut mem = MemBuffer::new(req);
-    factor::lu_in_place(a.as_mut(), &mut fwd, &mut bwd, par, MemStack::new(&mut mem), Default::default());
-    if (0..n).any(|i| !a[(i, i)].is_finite() || a[(i, i)] == 0.0) {
-        return Err(Error::Numerical("singular response matrix".into()));
-    }
-    let perm = PermRef::new_checked(&fwd, &bwd, n);
-    solve::solve_in_place(a.as_ref(), a.as_ref(), perm, b.as_mut(), par, MemStack::new(&mut mem));
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -731,11 +634,11 @@ mod tests {
     /// A library named by `AXTB_LAPACK`: both solver paths against faer's eigenvalues, and
     /// residuals and S-orthonormality of the eigenvectors. Needs the library, so it runs on
     /// request only, e.g.
-    /// `AXTB_LAPACK=libmkl_rt.so.2 cargo test --release -p axtb runtime_lapack -- --ignored`.
+    /// `AXTB_LAPACK=libmkl_rt.so.2 cargo test --release -p axtb-base --features linalg runtime_lapack -- --ignored`.
     #[test]
     #[ignore = "needs AXTB_LAPACK naming a LAPACK library"]
     fn runtime_lapack_matches_faer() {
-        let lib = crate::lapack::Lapack::from_env().unwrap().expect("AXTB_LAPACK names no library");
+        let lib = Lapack::from_env().unwrap().expect("AXTB_LAPACK names no library");
         eprintln!("library: {}", lib.describe());
         let n = 240;
         let mut seed = 7u64;

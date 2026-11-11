@@ -4,7 +4,7 @@
 //! (unit diagonal, off-diagonal elements decaying with |i - j|). faer, or from 200 rows on the
 //! library that `AXTB_LAPACK` names. Prints the median over the repeats (after one unrecorded
 //! call that allocates the work space). For the block sizes of the reduction to standard form
-//! (`SYGST_BLOCK` and its neighbours in `src/linalg.rs`): edit, rebuild, rerun.
+//! (`SYGST_BLOCK` and its neighbours in `crates/base/src/linalg/eigen.rs`): edit, rebuild, rerun.
 //!
 //!     cargo run --release -p axtb --example eigensolver -- N THREADS [REPEATS]
 

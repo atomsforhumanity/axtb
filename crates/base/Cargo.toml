@@ -1,6 +1,6 @@
 [package]
 name = "axtb-base"
-description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, orbital occupations, timers and finite differences"
+description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, orbital occupations, timers, finite differences and (feature linalg) dense linear algebra"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -21,6 +21,16 @@ path = "src/lib.rs"
 [dependencies]
 # the parallel loops of the finite differences (`fd`), on the caller's pool
 rayon = "1.10"
+# the dense linear algebra of `linalg` (feature `linalg`)
+faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"], optional = true }
+
+[features]
+# `axtb_base::linalg`: the SCF eigensolver, its run-time LAPACK library, density matrices and
+# linear solves, on faer. Off by default, so that axtb-d4 and axtb-solvation stay without faer.
+linalg = ["dep:faer"]
+
+[package.metadata.docs.rs]
+features = ["linalg"]
 
 [lints]
 workspace = true

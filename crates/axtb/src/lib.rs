@@ -1,6 +1,7 @@
 //! axtb: extended tight-binding quantum chemistry. This crate holds GFN2-xTB and what the
-//! methods of the workspace share (molecule, basis, integrals, eigensolver, Molden files,
-//! properties, vibrational analysis); g-xTB is `axtb-gxtb`, GFN-FF `axtb-gfnff`.
+//! methods of the workspace share (basis, integrals, Molden files, properties, vibrational
+//! analysis; the molecule and the eigensolver from `axtb-base`, re-exported); g-xTB is
+//! `axtb-gxtb`, GFN-FF `axtb-gfnff`.
 //!
 //! Design rules:
 //! - no implicit threading: every parallel region runs on the calculator's own rayon pool of
@@ -23,8 +24,6 @@ pub(crate) mod hamiltonian;
 mod hessian;
 pub mod integrals;
 pub mod io;
-pub(crate) mod lapack;
-pub mod linalg;
 mod mixer;
 pub mod molden;
 pub(crate) mod ncoord;
@@ -36,7 +35,6 @@ mod solvation;
 #[cfg(test)]
 mod tests_response;
 pub mod threads;
-pub(crate) mod tridiag;
 pub mod vibrations;
 mod xtb;
 
@@ -49,6 +47,7 @@ pub use properties::{GapRule, OrbitalLevels, QuadrupoleForm};
 pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
 pub use xtb::{EnergyTerms, InitialGuess, ScfGuess, ScfOptions, SinglePoint};
 
+pub use axtb_base::linalg;
 pub use axtb_base::units;
 pub use axtb_base::{Error, Molecule, Result, MIN_ATOM_DISTANCE};
 

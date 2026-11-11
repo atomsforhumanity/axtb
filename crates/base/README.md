@@ -9,5 +9,9 @@ smearing, tblite's entropy term), phase timers and the finite differences of eve
 dispersion, solvation and force-field crates can share it with the tight-binding framework
 instead of keeping copies.
 
+The feature `linalg` (off by default) adds the dense linear algebra of the methods on
+[faer](https://crates.io/crates/faer): the SCF eigensolver with its optional LAPACK library
+loaded at run time (`AXTB_LAPACK`), density matrices and linear solves.
+
 License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`). `NOTICE` credits the upstream
 work.

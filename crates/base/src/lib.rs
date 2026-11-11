@@ -14,11 +14,14 @@
 //!   electronic entropy term;
 //! - [`timing`]: wall time per named phase;
 //! - [`fd`]: finite differences (stencils, columns over coordinates, symmetrization and the
-//!   numerical Hessian of every method).
+//!   numerical Hessian of every method);
+//! - `linalg`, with the feature `linalg`: dense linear algebra on faer (the SCF eigensolver
+//!   with its optional run-time LAPACK library, density matrices, linear solves).
 //!
-//! Its only dependency is rayon (the parallel loops of [`fd`], on the caller's pool), so that
-//! `axtb-d4`, `axtb-solvation` and `axtb-gfnff` can use it as well as the tight-binding
-//! framework `axtb`.
+//! Without features its only dependency is rayon (the parallel loops of [`fd`], on the
+//! caller's pool), so that `axtb-d4` and `axtb-solvation` can use it as well as the
+//! tight-binding framework `axtb`; the feature `linalg` adds faer, for `axtb`, `axtb-gfnff`
+//! and `axtb-gxtb`.
 
 /// Element tables of mctc-lib that several crates use (axtb, axtb-d4, axtb-gfnff), generated
 /// from the Fortran sources by `crates/axtb/scripts/gen_data.py`: the literals are mctc-lib's
@@ -27,6 +30,8 @@
 pub mod elements;
 mod error;
 pub mod fd;
+#[cfg(feature = "linalg")]
+pub mod linalg;
 pub mod math;
 mod molecule;
 pub mod occupations;
