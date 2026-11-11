@@ -11,9 +11,10 @@ settings of `crates/gxtb/examples/hessian_symmetric.rs`, all on one tightly conv
 - plain 1e-6: tolerance 1e-6 without the symmetric form;
 - default: tolerance 1e-6 with the symmetric form.
 
-Accuracy: the largest |dH| (Eh/bohr^2) and |dfrequency| (cm^-1; eigenvalues of the
-mass-weighted Hessian with the standard atomic weights below, rigid-body modes included) of
-each setting against `current`.
+Accuracy: the largest |dH| (Eh/bohr^2) and |dfrequency| (cm^-1) of each setting against
+`current`. Frequencies: eigenvalues of the mass-weighted Hessian (standard atomic weights below)
+without the 6 (linear: 5) closest to zero, the translations and rotations, whose square roots
+magnify rounding.
 Cost: wall seconds of the analytic Hessian (after the SCF) and peak resident memory
 (/usr/bin/time), taxol on 1 and 8 threads and (H2O)100 on 8.
 
@@ -87,7 +88,9 @@ def frequencies(xyz: Path, h):
     syms = [l.split()[0].capitalize() for l in lines[2:2 + int(lines[0])]]
     m = np.repeat([MASS[s] * AMU_TO_ME for s in syms], 3)
     w = np.linalg.eigvalsh(h / np.sqrt(np.outer(m, m)))
-    return np.sign(w) * np.sqrt(np.abs(w)) * HARTREE_TO_CM
+    rigid = 5 if len(syms) == 2 else 6
+    vib = np.sort(w[np.argsort(np.abs(w))[rigid:]])
+    return np.sign(vib) * np.sqrt(np.abs(vib)) * HARTREE_TO_CM
 
 
 def git(*args):
@@ -103,6 +106,8 @@ def main():
                     "cpu": next((l.split(":", 1)[1].strip() for l in Path("/proc/cpuinfo").read_text().splitlines() if l.startswith("model name")), platform.machine()),
                     "accuracy_threads": 8, "settings": {k: {"tol": float(t), "symmetric": s == "1"} for k, (t, s) in SETTINGS.items()}},
            "accuracy": [], "cost": []}
+    if args.skip_cost and OUT.exists():
+        out["cost"] = json.loads(OUT.read_text()).get("cost", [])
     for label, (xyz, charge, uhf, etemp, conv) in CASES.items():
         res = {k: run(xyz, charge, uhf, etemp, conv, t, s, 8) for k, (t, s) in SETTINGS.items()}
         ref = res["current"]
