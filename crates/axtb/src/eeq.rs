@@ -2,13 +2,12 @@
 //! (E. Caldeweyher et al., J. Chem. Phys. 150, 154122 (2019); parameters from the
 //! multicharge library). Used as the SCF starting guess, as the xtb program does.
 
+use crate::linalg::Lu;
 use crate::molecule::{norm2_sq, sub3, Molecule};
 use crate::param::covalent_rad_d3;
 use crate::param::eeq_data::{EEQ_CHI, EEQ_ETA, EEQ_KCNCHI, EEQ_RAD};
 use crate::{Error, Result};
 use axtb_d4::erf;
-use faer::dyn_stack::{MemBuffer, MemStack, StackReq};
-use faer::linalg::lu::partial_pivoting::{factor, solve};
 use faer::{Mat, Par};
 use std::f64::consts::PI;
 
@@ -77,17 +76,9 @@ pub fn eeq_charges_with(mol: &Molecule, cnm: &EeqCn) -> Result<Vec<f64>> {
     b[(n, 0)] = mol.charge;
     // Sequential LU on purpose. faer's high-level `a.partial_piv_lu().solve(..)` runs on faer's
     // *global* parallelism (default: rayon's global pool, one thread per visible CPU), so every
-    // process started rayon's pool even at threads=1: 126 threads in a 126-CPU cluster pod.
-    let m = n + 1;
-    let par = Par::Seq;
-    let (mut perm, mut perm_inv) = (vec![0usize; m], vec![0usize; m]);
-    let mut mem = MemBuffer::new(StackReq::any_of(&[
-        factor::lu_in_place_scratch::<usize, f64>(m, m, par, Default::default()),
-        solve::solve_in_place_scratch::<usize, f64>(m, 1, par),
-    ]));
-    let (_, p) =
-        factor::lu_in_place(a.as_mut(), &mut perm, &mut perm_inv, par, MemStack::new(&mut mem), Default::default());
-    solve::solve_in_place(a.as_ref(), a.as_ref(), p, b.as_mut(), par, MemStack::new(&mut mem));
+    // process started rayon's pool even at threads=1: 126 threads in a 126-CPU cluster pod. A
+    // singular matrix gives charges that are not finite, the error below.
+    Lu::new(a, Par::Seq).solve(b.as_mut());
     let q: Vec<f64> = (0..n).map(|i| b[(i, 0)]).collect();
     if q.iter().any(|v| !v.is_finite()) {
         return Err(Error::Numerical("EEQ charges are not finite".into()));

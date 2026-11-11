@@ -2,6 +2,7 @@
 //! (D. D. Johnson, PRB 38, 12807 (1988)) with the weights and damping used by xtb/tblite,
 //! and Pulay (DIIS) mixing with restarts.
 
+use crate::linalg::gauss_last_max;
 use crate::{Error, Result};
 use std::collections::VecDeque;
 
@@ -158,7 +159,7 @@ impl Broyden {
             beta[ih][ih] += OMEGA0 * OMEGA0;
         }
         // beta is symmetric, so solving beta^T x = c is solving beta x = c
-        if !solve_dense(&mut beta, &mut c) {
+        if !gauss_last_max(&mut beta, &mut c) {
             return false;
         }
         for k in 0..n {
@@ -182,36 +183,6 @@ impl Broyden {
 #[inline]
 fn dot(a: &[f64], b: &[f64]) -> f64 {
     a.iter().zip(b).map(|(x, y)| x * y).sum()
-}
-
-/// Solve `a x = b` in place (Gaussian elimination with partial pivoting); false if singular.
-fn solve_dense(a: &mut [Vec<f64>], b: &mut [f64]) -> bool {
-    let n = b.len();
-    for col in 0..n {
-        let piv = (col..n).max_by(|&i, &j| a[i][col].abs().total_cmp(&a[j][col].abs())).unwrap();
-        if a[piv][col] == 0.0 {
-            return false;
-        }
-        a.swap(col, piv);
-        b.swap(col, piv);
-        for row in col + 1..n {
-            let f = a[row][col] / a[col][col];
-            if f != 0.0 {
-                for k in col..n {
-                    a[row][k] -= f * a[col][k];
-                }
-                b[row] -= f * b[col];
-            }
-        }
-    }
-    for col in (0..n).rev() {
-        let mut s = b[col];
-        for k in col + 1..n {
-            s -= a[col][k] * b[k];
-        }
-        b[col] = s / a[col][col];
-    }
-    true
 }
 
 /// Number of past iterations the DIIS mixer combines.

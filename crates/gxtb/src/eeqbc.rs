@@ -23,8 +23,7 @@ use crate::data::{CN_AVG, PAULING_EN, VDW_RAD_PACKED};
 use crate::params::{EeqBcParams, MAX_ELEM};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
-use faer::dyn_stack::{MemBuffer, MemStack, StackReq};
-use faer::linalg::lu::partial_pivoting::{factor, solve};
+use axtb_base::linalg::Lu;
 use faer::{Mat, Par};
 
 /// libm's error function (gfortran's `ERF`), the workspace's one wrapper.
@@ -47,20 +46,12 @@ pub fn vdw_rad_pair(za: usize, zb: usize) -> f64 {
     VDW_RAD_PACKED[hi * (hi - 1) / 2 + lo - 1]
 }
 
-/// Solve `a x = b` in place (`b` becomes `x`; `a` is overwritten by its LU factors) with a
-/// sequential partially pivoted LU. faer's high-level `a.partial_piv_lu()` would run on faer's
-/// global parallelism, i.e. start rayon's global pool (one thread per CPU) in every process.
-pub(crate) fn solve_in_place(a: &mut Mat<f64>, b: &mut Mat<f64>) {
-    let m = a.nrows();
-    let par = Par::Seq;
-    let (mut perm, mut perm_inv) = (vec![0usize; m], vec![0usize; m]);
-    let mut mem = MemBuffer::new(StackReq::any_of(&[
-        factor::lu_in_place_scratch::<usize, f64>(m, m, par, Default::default()),
-        solve::solve_in_place_scratch::<usize, f64>(m, b.ncols(), par),
-    ]));
-    let (_, p) =
-        factor::lu_in_place(a.as_mut(), &mut perm, &mut perm_inv, par, MemStack::new(&mut mem), Default::default());
-    solve::solve_in_place(a.as_ref(), a.as_ref(), p, b.as_mut(), par, MemStack::new(&mut mem));
+/// Solve `a x = b` in place (`b` becomes `x`; `a` is consumed) with a sequential partially
+/// pivoted LU (`axtb_base::linalg::Lu`, faer's). Sequential: faer's high-level
+/// `a.partial_piv_lu()` would run on faer's global parallelism, i.e. start rayon's global pool
+/// (one thread per CPU) in every process. A singular `a` gives a solution that is not finite.
+pub(crate) fn solve_in_place(a: Mat<f64>, b: &mut Mat<f64>) {
+    Lu::new(a, Par::Seq).solve(b.as_mut());
 }
 
 /// EEQ-BC results.
@@ -137,7 +128,7 @@ pub fn eeqbc_charges(param: &EeqBcParams, mol: &Molecule) -> Result<EeqBcCharges
         amat[(i, n)] = 1.0;
         amat[(n, i)] = 1.0;
     }
-    solve_in_place(&mut amat, &mut rhs);
+    solve_in_place(amat, &mut rhs);
     let charges: Vec<f64> = (0..n).map(|i| rhs[(i, 0)]).collect();
     if charges.iter().any(|q| !q.is_finite()) {
         return Err(Error::Numerical("EEQ-BC: singular charge equations".into()));
@@ -227,15 +218,13 @@ pub fn eeqbc_charge_gradient(param: &EeqBcParams, mol: &Molecule, dedq: &[f64], 
         amat[(i, n)] = 1.0;
         amat[(n, i)] = 1.0;
     }
-    let mut lu = amat.clone();
     let mut y = rhs.clone();
-    solve_in_place(&mut lu, &mut y);
+    solve_in_place(amat.clone(), &mut y);
     let mut w = Mat::<f64>::zeros(m, 1);
     for i in 0..n {
         w[(i, 0)] = dedq[i];
     }
-    let mut lu = amat;
-    solve_in_place(&mut lu, &mut w);
+    solve_in_place(amat, &mut w);
     let (w, y): (Vec<f64>, Vec<f64>) = ((0..m).map(|i| w[(i, 0)]).collect(), (0..m).map(|i| y[(i, 0)]).collect());
     // C^T w (C symmetric)
     let ctw: Vec<f64> = (0..m).map(|i| (0..m).map(|k| cmat[k * m + i] * w[k]).sum()).collect();

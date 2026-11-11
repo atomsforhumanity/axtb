@@ -36,10 +36,10 @@
 
 use crate::basis::Basis;
 use crate::hamiltonian::AtomBlocks;
-use crate::linalg::lu_solve;
+use crate::linalg::Lu;
 use crate::molecule::Molecule;
 use crate::xtb::{mulliken, ChargeDependentTerm, ScfState, XtbModel};
-use crate::Result;
+use crate::{Error, Result};
 use axtb_base::occupations::fermi;
 use faer::{Accum, Mat, MatRef, Par};
 use rayon::prelude::*;
@@ -720,7 +720,8 @@ impl<'a> Response<'a> {
             a[(i, i)] += 1.0;
         }
         let mut x = rhs.clone();
-        lu_solve(a, &mut x, par)?;
+        let lu = Lu::try_new(a, par).ok_or_else(|| Error::Numerical("singular response matrix".into()))?;
+        lu.solve(x.as_mut());
         Ok(x)
     }
 }

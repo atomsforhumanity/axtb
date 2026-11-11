@@ -11,13 +11,13 @@
 use crate::cells::CellList;
 use crate::cn::LogCn;
 use crate::data;
-use crate::error::Result;
-use crate::linalg::Lu;
+use crate::error::{Error, Result};
 use crate::param::{self, Gen, Param, Thresholds, TSQRT2PI};
 use crate::real::{erf, V3};
 use crate::setup_util::jth_nb;
 use crate::terms::{self, BondPar, HbPar};
 use crate::topology::Topology;
+use axtb_base::linalg::Lu;
 use axtb_d4::data::{MAX_REF, NFREQ};
 use faer::{Mat, Par};
 use rayon::prelude::*;
@@ -955,7 +955,7 @@ pub fn eeq(topo: &Topology, xyz: &[[f64; 3]], cn: &[f64], par: Par) -> Result<(V
             }
         }
     }
-    let lu = Lu::new(a, par)?;
+    let lu = Lu::try_new(a, par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))?;
     let sol = lu.solve_vec(&x);
     let mut q: Vec<f64> = sol[..n].to_vec();
     if n == 1 {

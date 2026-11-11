@@ -1,21 +1,7 @@
-//! The SCF eigensolver of the tight-binding methods (GFN2-xTB, g-xTB v1.1 and 2.0.1): the
-//! generalized symmetric eigenproblem F C = S C ε.
-//!
-//! The overlap is Cholesky-factorized once per geometry (S = L Lᵀ); every SCF iteration
-//! then reduces F to standard form, A = L⁻¹ F L⁻ᵀ, solves the symmetric eigenproblem of A and
-//! back-transforms its eigenvectors, C = L⁻ᵀ U. The reduction and the back-transformation
-//! never form L⁻¹: they are triangular solves, or (in [`GenEigSolver::solve_lowest`], from
-//! 200 rows on) the two-sided reduction of LAPACK's `dsygst` (ported to faer's kernels, or the
-//! run-time library's own), which takes half the flops of two triangular solves with n
-//! right-hand sides. Parallelism is explicit (`Par`), never taken from the environment.
-//! faer's parallel tridiagonalization (matrices above ~313 rows) sums one partial
-//! matrix-vector product per thread of the pool: the results repeat bit for bit on a given
-//! thread count and differ between thread counts by round-off, as xtb's with MKL do; the rest
-//! of the faer path gives the same bits on every thread count.
-//!
-//! The symmetric eigenproblems of 200 or more rows run in a LAPACK library loaded at run
-//! time when the environment variable `AXTB_LAPACK` names one (see [`runtime_lapack`] and the
-//! README's Threads section); faer solves them otherwise, and when the library fails.
+//! Symmetric eigenproblems: the generalized one of the SCF, F C = S C ε ([`GenEigSolver`], with
+//! ports of LAPACK's `dsygst` here and of `dsterf`/`dstein` in `tridiag`, and the run-time
+//! library of `lapack`; the method is described in the documentation of [`crate::linalg`]),
+//! and the standard one A U = U Λ ([`sym_eig`], faer's).
 
 use super::lapack::{Lapack, LapackEig};
 use super::tridiag;
@@ -367,6 +353,21 @@ impl GenEigSolver {
         (self.full_next, self.last_full) = (full_next, last_full);
         r.map(|_| ())
     }
+}
+
+/// Eigenvalues (ascending) and orthonormal eigenvectors (columns) of the symmetric matrix `a`
+/// (its lower triangle is read): faer's `self_adjoint_evd` (tridiagonalization, divide and
+/// conquer) on the parallelism `par`. For the small eigenproblems outside an SCF (GFN-FF's
+/// Hückel systems, the vibrational analysis): the results and the work space are allocated
+/// in every call.
+pub fn sym_eig(a: MatRef<'_, f64>, par: Par) -> Result<(Vec<f64>, Mat<f64>)> {
+    let n = a.nrows();
+    let mut s = faer::diag::Diag::<f64>::zeros(n);
+    let mut u = Mat::<f64>::zeros(n, n);
+    let mut mem = MemBuffer::new(self_adjoint_evd_scratch::<f64>(n, ComputeEigenvectors::Yes, par, Default::default()));
+    self_adjoint_evd(a, s.as_mut(), Some(u.as_mut()), par, MemStack::new(&mut mem), Default::default())
+        .map_err(|_| Error::Numerical("eigensolver failed to converge".into()))?;
+    Ok(((0..n).map(|i| s[i]).collect(), u))
 }
 
 /// A = L⁻¹ F L⁻ᵀ, its lower triangle into `a`: the reduction of

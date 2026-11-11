@@ -14,13 +14,13 @@ use crate::conventions::{ConventionParams, Conventions, FermiSmearing, UnpairedN
 use crate::data;
 use crate::error::{Error, Result};
 use crate::geom;
-use crate::linalg;
 use crate::param::{
     self, en, group, metal, nofs, normcn, pilist, rad, repz, xatom, Gen, Param, Thresholds, PI, TSQRT2PI,
 };
 use crate::real::erf;
 use crate::setup_util::*;
 use crate::topology::*;
+use axtb_base::linalg::{sym_eig, Lu};
 use axtb_base::occupations::{self, Newton};
 use faer::{Mat, Par};
 use std::collections::HashMap;
@@ -1343,7 +1343,7 @@ fn goedeckera(
             }
         }
     }
-    let lu = linalg::Lu::new(a, c.par)?;
+    let lu = Lu::try_new(a, c.par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))?;
     let sol = lu.solve_vec(&x);
     let mut q: Vec<f64> = sol[..n].to_vec();
     if n == 1 {
@@ -1514,7 +1514,8 @@ type QmSolution = (Mat<f64>, f64, Vec<f64>, Vec<f64>);
 /// (eigenvalues scaled by 0.1 x 27.2113957), density matrix.
 fn qmsolve(a: &Mat<f64>, nel: usize, et: f64, fermi: FermiSmearing, par: Par) -> Result<QmSolution> {
     let ndim = a.nrows();
-    let (mut e, u) = linalg::symmetric_eigen(a.as_ref(), par)?;
+    let (mut e, u) =
+        sym_eig(a.as_ref(), par).map_err(|_| Error::Numerical("Hueckel eigensolver failed to converge".into()))?;
     for v in e.iter_mut() {
         *v = *v * 0.1 * 27.2113957;
     }

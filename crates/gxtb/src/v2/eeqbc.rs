@@ -141,8 +141,8 @@ fn matrices(g: &Geometry) -> (Mat<f64>, Mat<f64>) {
 /// EEQ-BC partial charges of `mol` (positions in bohr; total charge `mol.charge`).
 pub fn eeqbc_charges(model: &Model, mol: &Molecule) -> Result<EeqBcCharges> {
     let g = geometry(model, mol)?;
-    let (mut amat, mut rhs) = matrices(&g);
-    solve_in_place(&mut amat, &mut rhs);
+    let (amat, mut rhs) = matrices(&g);
+    solve_in_place(amat, &mut rhs);
     let charges: Vec<f64> = (0..g.n).map(|i| rhs[(i, 0)]).collect();
     if charges.iter().any(|q| !q.is_finite()) {
         return Err(Error::Numerical("EEQ-BC: singular charge equations".into()));
@@ -156,15 +156,13 @@ pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: 
     let g = geometry(model, mol)?;
     let (n, m) = (g.n, g.n + 1);
     let (amat, rhs) = matrices(&g);
-    let mut lu = amat.clone();
     let mut y = rhs;
-    solve_in_place(&mut lu, &mut y);
+    solve_in_place(amat.clone(), &mut y);
     let mut w = Mat::<f64>::zeros(m, 1);
     for i in 0..n {
         w[(i, 0)] = dedq[i];
     }
-    let mut lu = amat;
-    solve_in_place(&mut lu, &mut w);
+    solve_in_place(amat, &mut w);
     let (w, y): (Vec<f64>, Vec<f64>) = ((0..m).map(|i| w[(i, 0)]).collect(), (0..m).map(|i| y[(i, 0)]).collect());
     let cmat = &g.cmat;
     let ctw: Vec<f64> = (0..m).map(|i| (0..m).map(|k| cmat[k * m + i] * w[k]).sum()).collect();

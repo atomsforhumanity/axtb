@@ -36,7 +36,6 @@ mod energy;
 mod error;
 mod geom;
 mod hessian;
-mod linalg;
 mod param;
 mod real;
 mod setup;

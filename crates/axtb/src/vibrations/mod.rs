@@ -47,10 +47,9 @@ pub mod masses;
 pub mod symmetry;
 pub mod thermo;
 
+use crate::linalg::sym_eig;
 use crate::units;
 use crate::{Error, Result};
-use faer::dyn_stack::{MemBuffer, MemStack};
-use faer::linalg::evd::{self_adjoint_evd, self_adjoint_evd_scratch, ComputeEigenvectors};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatRef, Par};
 
@@ -258,16 +257,10 @@ pub struct VibAnalysis {
     pub thermo: Option<Thermo>,
 }
 
-/// Symmetric eigendecomposition (ascending) of an n x n matrix.
+/// Symmetric eigendecomposition (ascending) of an n x n matrix, on this thread (the analysis
+/// runs outside the calculator's pool).
 fn eigh(a: &Mat<f64>) -> Result<(Vec<f64>, Mat<f64>)> {
-    let n = a.nrows();
-    let par = Par::Seq;
-    let mut s = faer::diag::Diag::<f64>::zeros(n);
-    let mut u = Mat::<f64>::zeros(n, n);
-    let mut mem = MemBuffer::new(self_adjoint_evd_scratch::<f64>(n, ComputeEigenvectors::Yes, par, Default::default()));
-    self_adjoint_evd(a.as_ref(), s.as_mut(), Some(u.as_mut()), par, MemStack::new(&mut mem), Default::default())
-        .map_err(|_| Error::Numerical("eigensolver failed to converge".into()))?;
-    Ok(((0..n).map(|i| s[i]).collect(), u))
+    sym_eig(a.as_ref(), Par::Seq)
 }
 
 /// The product `a b` on this thread. faer's `*` runs on its global parallelism, which is every

@@ -799,7 +799,7 @@ fn diis_coefficients(hist: &[(Vec<Vec<f64>>, Vec<f64>)], s: usize, npk: usize) -
     }
     let mut rhs = Mat::<f64>::zeros(m + 1, 1);
     rhs[(m, 0)] = -1.0;
-    crate::eeqbc::solve_in_place(&mut b, &mut rhs);
+    crate::eeqbc::solve_in_place(b, &mut rhs);
     if (0..m).any(|i| !rhs[(i, 0)].is_finite()) {
         let mut c = vec![0.0; m];
         c[m - 1] = 1.0;

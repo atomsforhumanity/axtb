@@ -62,7 +62,7 @@ constants, projection, and the GFN-FF frequency scale 1.03 of xtb's thermochemis
 | `terms.rs` | `gfnff_eg.f90` (`egbond*`, `egbend*`, `egtors*`, `abhgfnff_eg*`, `rbxgfnff_eg`, `batmgfnff_eg`, `sTors_eg`) | local terms, generic over `f64`/`Dual` |
 | `geom.rs` | `gfnff_helpers` / `math.f` (`bangl`, `valijklff`, `dphidr`, `omega`, `domegadr`, `impsc`, `vecnorm`) | geometry helpers |
 | `cells.rs` | — | linked cells replacing xtb's all-pairs loops |
-| `linalg.rs` | LAPACK `dgetrf`/`dgetrs`/`dsytrf`, `dsyev` (MKL) | faer's low-level LU and eigensolver |
+| (`axtb_base::linalg`) | LAPACK `dgetrf`/`dgetrs`/`dsytrf`, `dsyev` (MKL) | `Lu` and `sym_eig`: faer's low-level LU and eigensolver |
 | `hessian.rs` | — (xtb: finite differences) | analytic Hessian, dipole derivatives (§6) |
 | `calculator.rs` | `calculator.f90` | fixed-topology calculator, threads |
 | `conventions.rs` | — | xtb 6.8.0 vs 6.7.1: the settings that differ (§11) |
