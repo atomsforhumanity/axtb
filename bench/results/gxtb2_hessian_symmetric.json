@@ -1,0 +1,245 @@
+{
+ "meta": {
+  "axtb_commit": "3c17aa2",
+  "dirty": false,
+  "cpu": "11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz",
+  "accuracy_threads": 8,
+  "settings": {
+   "current": {
+    "tol": 1e-10,
+    "symmetric": false
+   },
+   "plain 1e-6": {
+    "tol": 1e-06,
+    "symmetric": false
+   },
+   "default": {
+    "tol": 1e-06,
+    "symmetric": true
+   }
+  }
+ },
+ "accuracy": [
+  {
+   "case": "water",
+   "atoms": 3,
+   "max_dH_plain 1e-6": 3.81775883129265e-08,
+   "max_dfreq_plain 1e-6": 0.00021776343010060373,
+   "max_dH_default": 4.2299497238218464e-14,
+   "max_dfreq_default": 1.1868905858136714e-10,
+   "asymmetry_current": 9.333367412267535e-13,
+   "asymmetry_default": 7.00425972655766e-08
+  },
+  {
+   "case": "O2 triplet",
+   "atoms": 2,
+   "max_dH_plain 1e-6": 0.0,
+   "max_dfreq_plain 1e-6": 0.0,
+   "max_dH_default": 1.97805312882e-18,
+   "max_dfreq_default": 6.821210263296962e-13,
+   "asymmetry_current": 6.52834985116338e-17,
+   "asymmetry_default": 6.52834985116338e-17
+  },
+  {
+   "case": "caffeine",
+   "atoms": 24,
+   "max_dH_plain 1e-6": 2.5479278382501205e-07,
+   "max_dfreq_plain 1e-6": 0.0036332818273336898,
+   "max_dH_default": 2.1442264630522345e-11,
+   "max_dfreq_default": 1.7662254947481415e-07,
+   "asymmetry_current": 2.3600475740348514e-11,
+   "asymmetry_default": 5.452736177823103e-07
+  },
+  {
+   "case": "[Cu(NH3)4]2+ doublet",
+   "atoms": 17,
+   "max_dH_plain 1e-6": 9.936058946620474e-08,
+   "max_dfreq_plain 1e-6": 0.0037603201608078507,
+   "max_dH_default": 5.954967855631432e-12,
+   "max_dfreq_default": 2.4901748929551104e-07,
+   "asymmetry_current": 1.725181109080154e-11,
+   "asymmetry_default": 2.2779533637162785e-07
+  },
+  {
+   "case": "ferrocene",
+   "atoms": 21,
+   "max_dH_plain 1e-6": 6.200992968413699e-08,
+   "max_dfreq_plain 1e-6": 0.0005481750809934738,
+   "max_dH_default": 4.552871968321881e-12,
+   "max_dfreq_default": 8.951140273438796e-08,
+   "asymmetry_current": 4.764685174185601e-12,
+   "asymmetry_default": 1.1957725415477193e-07
+  },
+  {
+   "case": "Ni(CO)4",
+   "atoms": 9,
+   "max_dH_plain 1e-6": 1.3870428801354695e-07,
+   "max_dfreq_plain 1e-6": 0.0009952158001169664,
+   "max_dH_default": 6.408294034310202e-12,
+   "max_dfreq_default": 7.666668011552247e-08,
+   "asymmetry_current": 1.3023859768424018e-11,
+   "asymmetry_default": 8.916823683591257e-08
+  },
+  {
+   "case": "UF6",
+   "atoms": 7,
+   "max_dH_plain 1e-6": 3.0567919251378584e-08,
+   "max_dfreq_plain 1e-6": 0.00024110086766881977,
+   "max_dH_default": 5.547206628504081e-12,
+   "max_dfreq_default": 4.074408366250282e-08,
+   "asymmetry_current": 1.0258655036565756e-11,
+   "asymmetry_default": 6.540692720768959e-08
+  },
+  {
+   "case": "GdCl3 octet",
+   "atoms": 4,
+   "max_dH_plain 1e-6": 3.195617084839064e-08,
+   "max_dfreq_plain 1e-6": 0.00017992650488452,
+   "max_dH_default": 1.6995502227779014e-12,
+   "max_dfreq_default": 2.1764890334452502e-08,
+   "asymmetry_current": 5.474523612214455e-12,
+   "asymmetry_default": 2.6418953465645253e-08
+  },
+  {
+   "case": "taxol",
+   "atoms": 113,
+   "max_dH_plain 1e-6": 1.8034866558058055e-07,
+   "max_dfreq_plain 1e-6": 0.00093952931598551,
+   "max_dH_default": 1.3726283998316546e-11,
+   "max_dfreq_default": 7.465069984391448e-08,
+   "asymmetry_current": 2.3458499445532747e-11,
+   "asymmetry_default": 3.07889174974707e-07
+  },
+  {
+   "case": "caffeine, 3000 K",
+   "atoms": 24,
+   "max_dH_plain 1e-6": 2.547926001026171e-07,
+   "max_dfreq_plain 1e-6": 0.0036332842880852922,
+   "max_dH_default": 2.1534787841837044e-11,
+   "max_dfreq_default": 1.771782507375974e-07,
+   "asymmetry_current": 2.350061117928348e-11,
+   "asymmetry_default": 5.45273581505773e-07
+  },
+  {
+   "case": "O2 triplet, 3000 K",
+   "atoms": 2,
+   "max_dH_plain 1e-6": 1.887379141862766e-15,
+   "max_dfreq_plain 1e-6": 2.2737367544323206e-13,
+   "max_dH_default": 1.887379141862766e-15,
+   "max_dfreq_default": 2.2737367544323206e-13,
+   "asymmetry_current": 4.440892098500626e-16,
+   "asymmetry_default": 4.440892098500626e-16
+  },
+  {
+   "case": "[Cu(NH3)4]2+, 3000 K",
+   "atoms": 17,
+   "max_dH_plain 1e-6": 9.935709984875557e-08,
+   "max_dfreq_plain 1e-6": 0.0037604773810926417,
+   "max_dH_default": 5.94893665578633e-12,
+   "max_dfreq_default": 2.4933729037002195e-07,
+   "asymmetry_current": 1.7370577198860815e-11,
+   "asymmetry_default": 2.2787266684698437e-07
+  },
+  {
+   "case": "ferrocene, 5000 K",
+   "atoms": 21,
+   "max_dH_plain 1e-6": 6.204019239411818e-08,
+   "max_dfreq_plain 1e-6": 0.0005487808984696585,
+   "max_dH_default": 4.55910309504759e-12,
+   "max_dfreq_default": 8.912766702451336e-08,
+   "asymmetry_current": 4.645230380906362e-12,
+   "asymmetry_default": 1.196178872534101e-07
+  },
+  {
+   "case": "caffeine, program conventions",
+   "atoms": 24,
+   "max_dH_plain 1e-6": 2.5479278182097276e-07,
+   "max_dfreq_plain 1e-6": 0.003633283557036293,
+   "max_dH_default": 2.1430156260660027e-11,
+   "max_dfreq_default": 1.7686923570181534e-07,
+   "asymmetry_current": 2.3720671260551995e-11,
+   "asymmetry_default": 5.452738201378038e-07
+  },
+  {
+   "case": "O2 triplet, program conventions",
+   "atoms": 2,
+   "max_dH_plain 1e-6": 4.655035624784041e-15,
+   "max_dfreq_plain 1e-6": 0.0,
+   "max_dH_default": 3.2751579226442118e-15,
+   "max_dfreq_default": 2.2737367544323206e-13,
+   "asymmetry_current": 1.1102230246251565e-16,
+   "asymmetry_default": 1.459028204421476e-17
+  }
+ ],
+ "cost": [
+  {
+   "case": "taxol",
+   "atoms": 113,
+   "threads": 1,
+   "seconds_current": 94.52887474200001,
+   "seconds_default": 69.49818971,
+   "speedup": 1.3601631227582662,
+   "peak_mb_current": 139.06640625,
+   "peak_mb_default": 192.47265625,
+   "max_dH": 1.3726283998316546e-11,
+   "phases_current": {
+    "tangents": 0.694957502,
+    "perturbations": 12.500199146409592,
+    "response": 71.75623560559042,
+    "explicit integrals": 9.577482488
+   },
+   "phases_default": {
+    "tangents": 0.732771161,
+    "perturbations": 12.520474958207132,
+    "response": 47.17601419879287,
+    "explicit integrals": 9.068929392
+   }
+  },
+  {
+   "case": "taxol",
+   "atoms": 113,
+   "threads": 8,
+   "seconds_current": 19.239458405,
+   "seconds_default": 14.040930951999998,
+   "speedup": 1.3702409384941474,
+   "peak_mb_current": 342.2734375,
+   "peak_mb_default": 422.1328125,
+   "max_dH": 1.3726283998316546e-11,
+   "phases_current": {
+    "tangents": 0.739131461,
+    "perturbations": 2.348588576077382,
+    "response": 14.362969938922618,
+    "explicit integrals": 1.788768429
+   },
+   "phases_default": {
+    "tangents": 0.724509746,
+    "perturbations": 2.2749343061505467,
+    "response": 9.367894952849452,
+    "explicit integrals": 1.673591947
+   }
+  },
+  {
+   "case": "(H2O)100",
+   "atoms": 300,
+   "threads": 8,
+   "seconds_current": 267.511692226,
+   "seconds_default": 201.06750325700003,
+   "speedup": 1.3304571245611603,
+   "peak_mb_current": 1412.46484375,
+   "peak_mb_default": 2086.4296875,
+   "max_dH": 9.084317336999909e-12,
+   "phases_current": {
+    "tangents": 7.300710814,
+    "perturbations": 37.313174847155345,
+    "response": 206.09684524484464,
+    "explicit integrals": 16.80096132
+   },
+   "phases_default": {
+    "tangents": 7.189713813,
+    "perturbations": 36.2300403792063,
+    "response": 140.84182334079372,
+    "explicit integrals": 16.805925724
+   }
+  }
+ ]
+}

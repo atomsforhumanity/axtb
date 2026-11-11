@@ -1034,6 +1034,31 @@ def scf_hard() -> dict:
     return {m["method"]: m for m in summ}
 
 
+def gxtb2_hessian_symmetric() -> None:
+    """The analytic g-xTB 2.0.1 Hessian's symmetric response terms: accuracy of each setting against
+    the 0.1.x Hessian (tolerance 1e-10) and its time and memory (tests/gxtb2_hessian_symmetric.py)."""
+    path = ROOT / "bench/results/gxtb2_hessian_symmetric.json"
+    if not path.exists():
+        return
+    d = json.loads(path.read_text())
+    acc = [{"case": r["case"], "atoms": r["atoms"], "max_dH_plain": r["max_dH_plain 1e-6"],
+            "max_dH_default": r["max_dH_default"], "max_dfreq_default": r["max_dfreq_default"],
+            "asymmetry_default": r["asymmetry_default"]} for r in d["accuracy"]]
+    write("hess_sym_accuracy", acc)
+    cost = [{"id": f"{r['case']}|{r['threads']}", "case": r["case"], "atoms": r["atoms"], "threads": r["threads"],
+             "seconds_current": r["seconds_current"], "seconds_default": r["seconds_default"], "speedup": r["speedup"],
+             "peak_mb_current": r["peak_mb_current"], "peak_mb_default": r["peak_mb_default"],
+             "memory_increase": r["peak_mb_default"] / r["peak_mb_current"] - 1.0, "max_dH": r["max_dH"]}
+            for r in d.get("cost", [])]
+    write("hess_sym_cost", cost)
+    m = d["meta"]
+    write("hess_sym_summary", [{
+        "commit": m["axtb_commit"], "cpu": m["cpu"].replace("11th Gen ", "").replace("(TM)", "").replace("(R)", ""),
+        "cases": len(acc), "max_dH_default": max(r["max_dH_default"] for r in acc),
+        "max_dH_plain": max(r["max_dH_plain"] for r in acc), "max_dfreq_default": max(r["max_dfreq_default"] for r in acc),
+        "min_speedup": min((r["speedup"] for r in cost), default=None), "max_speedup": max((r["speedup"] for r in cost), default=None)}])
+
+
 def gxtb2_hess_memory() -> None:
     """Peak memory and time of the g-xTB 2.0.1 analytic Hessian before and after the O(N^2) rewrite,
     and the time of each speed change (tests/gxtb2_hessian.py --memory/--speed)."""
@@ -1692,6 +1717,7 @@ def main() -> None:
     gxtb2_hessian()
     scf_hard()
     gxtb2_hess_memory()
+    gxtb2_hessian_symmetric()
     gxtb_etemp()
     vibrational()
     molden()

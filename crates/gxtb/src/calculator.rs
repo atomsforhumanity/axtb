@@ -555,11 +555,12 @@ impl Calculator {
             let state = GuessState::V2_0_1(Box::new(r.state.clone()));
             let gradient = setup.gradient(&r)?;
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
-            let cpks = v2::response::CpksOptions::default();
+            // the analytic Hessian's defaults: the symmetric response terms at tolerance 1e-6
+            // (v2::hessian::AnalyticOptions); the response Hessian solves to 1e-10
             let (mut h, dipd, t) = if method == HessianMethod::Analytic {
-                setup.analytic_hessian(&r, &v2::hessian::AnalyticOptions { cpks, ..Default::default() })
+                setup.analytic_hessian(&r, &v2::hessian::AnalyticOptions::default())
             } else {
-                setup.response_hessian(&r, step, cpks)
+                setup.response_hessian(&r, step, v2::response::CpksOptions::default())
             }?;
             timings.extend(t);
             let max_asymmetry = v2::hessian::symmetrize(&mut h, 3 * mol.nat());

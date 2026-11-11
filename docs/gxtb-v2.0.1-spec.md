@@ -1023,6 +1023,19 @@ density. Default h = 2e-4 bohr; error O(h²).
   SCC layout, the Hessian) plus a few n×n matrices per thread, and the result depends neither on the
   block size nor on the thread count. The ACP part of the integral local Hessian (one dense block
   over each projector's variables) is summed in chunks of projectors.
+- **Symmetric response terms** (`AnalyticOptions::symmetric`, the default). The response enters
+  column y once, through z_y, the solution of displacement y's symmetric system, so the error of a
+  solve to tolerance τ shows up linearly: about 1e-7 Eh/bohr² at τ = 1e-6. The Hessian minus
+  M + M^T, M_xy = z_x · r_y with r_y the final residual of y's solve, is the stationary
+  (Hylleraas-type) form of the same response terms and its error is quadratic in τ: the
+  symmetrized H_xy gains -(z_x · r_y + z_y · r_x), a factor fitted on 15 cases and exact in all of
+  them. The default τ is therefore 1e-6, which takes fewer conjugate-gradient iterations than
+  1e-10. The residuals come free from the solver; z and
+  r of every displacement are kept on the response columns in single precision (2 · 3N · n_occ ·
+  n_virt · 4 bytes, the only O(N³) memory of the Hessian; rounding adds ~1e-13 to the correction)
+  and M is one matrix product after the displacement loop. The correction removes the symmetric
+  part of the response error; the antisymmetric part, ~τ in size, is removed by the symmetrization
+  every calculator applies, so the reported asymmetry before symmetrization is ~1e-7.
 
 ### 11.4 Accuracy and cost
 
@@ -1047,7 +1060,11 @@ two references then differ from each other by that much; the analytic Hessian is
 
 The analytic Hessian agrees with one of the two references to ≤ 5.3e-9 for every molecule (with
 tight SCFs in `tests/hessian_v2.rs`, both conventions: ≤ 7.6e-9); asymmetry before symmetrization
-≤ 2.4e-11. Its error is first order in the reference SCF residual, hence the default reference
+≤ 2.4e-11 at a response tolerance of 1e-10. With the symmetric response terms at the default
+1e-6 (§11.3) the symmetrized Hessian equals the 1e-10 one to ≤ 2.2e-11 Eh/bohr² over 15 cases
+(vibrational frequencies ≤ 2.5e-7 cm⁻¹; the same tolerance without them: up to 2.5e-7 Eh/bohr²)
+and is 1.33-1.37x faster for taxol and (H2O)100 (`tests/gxtb2_hessian_symmetric.py`,
+`bench/results/gxtb2_hessian_symmetric.json`, laptop). Its error is first order in the reference SCF residual, hence the default reference
 accuracy 1e-5 (1e-3 leaves 1.8e-7 on caffeine at the same cost). The response Hessian's O(h²)
 error is ~3e-8 at h = 2e-4; the default numerical Hessian (h = 0.005, displacement SCFs at
 accuracy 0.01) is off by 3e-6 to 6e-5 (frequencies up to 0.3 cm⁻¹).
