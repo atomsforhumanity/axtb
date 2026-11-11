@@ -31,16 +31,7 @@ use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;
-use rayon::prelude::*;
-
-/// Map `f` over 0..n, in parallel on the current rayon pool when `parallel` (results in order).
-fn map<T: Send>(n: usize, parallel: bool, f: impl Fn(usize) -> T + Sync + Send) -> Vec<T> {
-    if parallel {
-        (0..n).into_par_iter().map(f).collect()
-    } else {
-        (0..n).map(f).collect()
-    }
-}
+use axtb_base::fd;
 
 /// Map `f` over 0..n in chunks of `chunk` (each chunk in parallel when `parallel`) and pass the
 /// results to `sink` in order: the memory of pending results is bounded by the chunk, and
@@ -56,7 +47,7 @@ fn for_each_ordered<T: Send>(
     let mut k0 = 0;
     while k0 < n {
         let k = chunk.min(n - k0);
-        for r in map(k, parallel, |j| f(k0 + j)) {
+        for r in crate::parallel::map_items(k, parallel, |j| f(k0 + j)) {
             sink(r);
         }
         k0 += k;
@@ -73,8 +64,9 @@ fn add_block(hl: &mut [f64], nl: usize, b: &Block) {
     }
 }
 
-/// Step of the local differences (bohr, and units of charge).
-const STEP: f64 = 1e-3;
+/// Step of the 4-point differences of the analytic Hessian (bohr, and units of charge and CN):
+/// the local differences here and the kernel terms of [`super::analytic`].
+pub(crate) const STEP: f64 = 1e-3;
 
 /// Smallest primitive exponent of a set of shells (the q-vSZP exponents do not depend on q).
 fn min_exponent(shells: &[Cgto]) -> f64 {
@@ -94,23 +86,16 @@ fn screened(a: f64, b: f64, r: f64) -> bool {
 fn fd_hessian<const K: usize>(mut g: impl FnMut(&[f64; K]) -> [f64; K]) -> [[f64; K]; K] {
     let mut h = [[0.0; K]; K];
     for v in 0..K {
-        let mut at = |d: f64| {
+        let col = fd::derivative(fd::Stencil::Central4, STEP, |d| {
             let mut x = [0.0; K];
             x[v] = d;
             g(&x)
-        };
-        let (a, b, c, d) = (at(STEP), at(-STEP), at(2.0 * STEP), at(-2.0 * STEP));
+        });
         for i in 0..K {
-            h[i][v] = (8.0 * (a[i] - b[i]) - (c[i] - d[i])) / (12.0 * STEP);
+            h[i][v] = col[i];
         }
     }
-    for i in 0..K {
-        for j in 0..i {
-            let m = 0.5 * (h[i][j] + h[j][i]);
-            h[i][j] = m;
-            h[j][i] = m;
-        }
-    }
+    fd::symmetrize(h.as_flattened_mut(), K);
     h
 }
 
@@ -625,9 +610,8 @@ impl Setup {
                 gamma[a] += w * k[2] * s2;
             }
         }
-        let h = STEP;
         let column = |x: usize| -> Result<Vec<f64>> {
-            let at = |d: f64| -> Result<Vec<f64>> {
+            fd::try_derivative(fd::Stencil::Central4, STEP, |d| -> Result<Vec<f64>> {
                 let mut m = mol.clone();
                 m.positions[x / 3][x % 3] += d;
                 let mut g = vec![[0.0; 3]; nat];
@@ -635,18 +619,10 @@ impl Setup {
                 basis_cn_gradient(&self.model, &m, &v, &mut g);
                 gxtb_cn_gradient(&self.model, &m, dcn, &mut g);
                 Ok(g.concat())
-            };
-            let (a, b, c, d) = (at(h)?, at(-h)?, at(2.0 * h)?, at(-2.0 * h)?);
-            Ok((0..n3).map(|k| (8.0 * (a[k] - b[k]) - (c[k] - d[k])) / (12.0 * h)).collect())
+            })
         };
-        let cols = map(n3, parallel, column);
-        let mut out = vec![0.0; n3 * n3];
-        for (x, col) in cols.into_iter().enumerate() {
-            let col = col?;
-            for y in 0..n3 {
-                out[y * n3 + x] = col[y];
-            }
-        }
+        let cols = fd::columns(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let mut out = fd::from_columns(&cols, n3);
         // second derivatives of the q_eff formula itself
         for a in 0..nat {
             let (je, jb) = (&jac.eeq[a * n3..(a + 1) * n3], &jac.cnb[a * n3..(a + 1) * n3]);
@@ -688,27 +664,13 @@ impl Setup {
             out.extend(dedcn);
             Ok(out)
         };
-        let h = STEP;
         let column = |c: usize| -> Result<Vec<f64>> {
             let (a, v) = if c < n3 { (c / 3, c % 3) } else { (c - n3, 3) };
-            let (p1, m1, p2, m2) = (local(a, v, h)?, local(a, v, -h)?, local(a, v, 2.0 * h)?, local(a, v, -2.0 * h)?);
-            Ok((0..nl).map(|k| (8.0 * (p1[k] - m1[k]) - (p2[k] - m2[k])) / (12.0 * h)).collect())
+            fd::try_derivative(fd::Stencil::Central4, STEP, |d| local(a, v, d))
         };
-        let cols = map(nl, parallel, column);
-        let mut hl = vec![0.0; nl * nl];
-        for (c, col) in cols.into_iter().enumerate() {
-            let col = col?;
-            for k in 0..nl {
-                hl[k * nl + c] = col[k];
-            }
-        }
-        for i in 0..nl {
-            for j in 0..i {
-                let m = 0.5 * (hl[i * nl + j] + hl[j * nl + i]);
-                hl[i * nl + j] = m;
-                hl[j * nl + i] = m;
-            }
-        }
+        let cols = fd::columns(nl, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let mut hl = fd::from_columns(&cols, nl);
+        fd::symmetrize(&mut hl, nl);
         // chain: J = [I; dCN/dR]
         let mut j = vec![0.0; nl * n3];
         for x in 0..n3 {
@@ -732,17 +694,15 @@ impl Setup {
         let mut dummy = vec![[0.0; 3]; nat];
         let (_, dedcn) = self.disp.three_body(model, mol, Some(&mut dummy));
         let cncol = |x: usize| -> Vec<f64> {
-            let at = |d: f64| {
+            fd::derivative(fd::Stencil::Central4, STEP, |d| {
                 let mut m = mol.clone();
                 m.positions[x / 3][x % 3] += d;
                 let mut g = vec![[0.0; 3]; nat];
                 super::disp::add_cn_gradient(model, &m, &dedcn, &mut g);
                 g.concat()
-            };
-            let (a, b, c, d) = (at(h), at(-h), at(2.0 * h), at(-2.0 * h));
-            (0..n3).map(|k| (8.0 * (a[k] - b[k]) - (c[k] - d[k])) / (12.0 * h)).collect()
+            })
         };
-        let cc = map(n3, parallel, cncol);
+        let cc = fd::columns(n3, parallel, cncol);
         let mut out = vec![0.0; n3 * n3];
         for x in 0..n3 {
             for y in 0..n3 {

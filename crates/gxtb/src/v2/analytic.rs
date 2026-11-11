@@ -34,6 +34,7 @@ use super::cn::gxtb_cn;
 use super::coulomb::Coulomb;
 use super::disp::RevD4;
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
+use super::explicit::STEP;
 use super::gradient::{exchange_kernel_weights, Chain, KernelRef, Potentials};
 use super::h0::{anisotropy, anisotropy_gradient};
 use super::repulsion::Repulsion;
@@ -44,6 +45,7 @@ use super::Model;
 use crate::fock::add_charge_potential;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
+use axtb_base::fd;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
 
 /// Index layout of the SCC variables: shell charges, atomic dipoles, atomic quadrupoles
@@ -241,8 +243,6 @@ pub struct Analytic<'a> {
     pub tat: Vec<f64>,
     /// b^x of every displacement (row-major 3N x dim, packed SCC layout).
     pub bmat: Vec<f64>,
-    /// Step (bohr) of the 4-point differences of the kernel terms.
-    pub step: f64,
     rows: LocalRows,
 }
 
@@ -425,7 +425,7 @@ impl<'a> Analytic<'a> {
             }
         }
         let rows = LocalRows { f_disp, f_qeff, acp_cols, acp_first, dgr, dkr };
-        Ok(Self { setup, st, tan, pot, vd_tot, base, lay, tsh, tat, bmat, step: 1e-3, rows })
+        Ok(Self { setup, st, tan, pot, vd_tot, base, lay, tsh, tat, bmat, rows })
     }
 
     /// SCC-variable changes of the integral derivatives `t` at fixed density.
@@ -608,16 +608,7 @@ impl<'a> Analytic<'a> {
         let mut f0 = sym(n, &fr0);
         drop(fr0);
         // kernel terms by 4-point differences at fixed SCC variables
-        let h = self.step;
-        let (v1, g1) = self.kernel_at(x, h)?;
-        let (v2, g2) = self.kernel_at(x, -h)?;
-        let (v3, g3) = self.kernel_at(x, 2.0 * h)?;
-        let (v4, g4) = self.kernel_at(x, -2.0 * h)?;
-        let d4 = |a: &[f64], b: &[f64], c: &[f64], d: &[f64]| -> Vec<f64> {
-            (0..a.len()).map(|k| (8.0 * (a[k] - b[k]) - (c[k] - d[k])) / (12.0 * h)).collect()
-        };
-        let mut c = d4(&v1, &v2, &v3, &v4);
-        let hk = d4(&g1, &g2, &g3, &g4);
+        let (mut c, hk) = fd::try_derivative(fd::Stencil::Central4, STEP, |d| self.kernel_at(x, d))?;
         // exchange: exact overlap tangents (Fock, shell potential, dE/dG, dE/dK, dE/dS)
         let ot = s.exch.overlap_tangent(&s.s, &self.st.p, &self.base, &sx, par);
         for (k, v) in ot.vx.iter().enumerate() {

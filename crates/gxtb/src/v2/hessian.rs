@@ -23,10 +23,11 @@ use super::scf::{ScfResult, Setup};
 use crate::parallel::map_items;
 use crate::timing::Timings;
 use axtb::{Error, Result};
+use axtb_base::fd;
 use faer::{Mat, MatMut, MatRef, Par};
 
 /// A Hessian of [`Setup::response_hessian`] or [`Setup::analytic_hessian`]: the row-major
-/// 3N x 3N matrix (not symmetrized; [`symmetrize`]), the dipole derivatives ∂μ/∂R_x (3N rows,
+/// 3N x 3N matrix (not symmetrized; [`fd::symmetrize`]), the dipole derivatives ∂μ/∂R_x (3N rows,
 /// e) and the wall time per phase.
 pub type HessianParts = (Vec<f64>, Vec<[f64; 3]>, Timings);
 
@@ -83,6 +84,7 @@ impl Setup {
         let mut timings = vec![("response setup", t0.elapsed().as_secs_f64())];
         let t0 = std::time::Instant::now();
         let column = |y: usize| -> Result<(Vec<f64>, [f64; 3])> {
+            // the setups at R + h e_y and R - h e_y (in that order)
             let displaced = |d: f64| -> Result<Setup> {
                 let mut m = seq.mol.clone();
                 m.positions[y / 3][y % 3] += d;
@@ -90,12 +92,8 @@ impl Setup {
             };
             let (sp, sm) = (displaced(step)?, displaced(-step)?);
             let (fp, fm) = (sp.fock_of_density(&r.density), sm.fock_of_density(&r.density));
-            let d = |a: &[f64], b: &[f64]| -> Mat<f64> {
-                let v: Vec<f64> = a.iter().zip(b).map(|(x, y)| (x - y) / (2.0 * step)).collect();
-                to_mat(n, &v)
-            };
-            let fy: Vec<Mat<f64>> = fp.iter().zip(&fm).map(|(a, b)| d(a, b)).collect();
-            let sy = d(&sp.s, &sm.s);
+            let fy: Vec<Mat<f64>> = fd::central2(&fp, &fm, step).iter().map(|v| to_mat(n, v)).collect();
+            let sy = to_mat(n, &fd::central2(&sp.s, &sm.s, step));
             let resp = cp.solve(&fy, &sy)?;
             let dp: Vec<Vec<f64>> = resp.dp.iter().map(from_mat).collect();
             let mut dw = vec![0.0; n * n];
@@ -104,10 +102,8 @@ impl Setup {
                     *a += b;
                 }
             }
-            let mut g = Vec::with_capacity(2);
-            let mut mu = [[0.0; 3]; 2];
-            for (i, (s, sign)) in [(&sp, 1.0), (&sm, -1.0)].into_iter().enumerate() {
-                let hs = sign * step;
+            // gradient and dipole of the setup `s` at offset `hs` with the extrapolated densities
+            let at = |s: &Setup, hs: f64| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
                 let p: Vec<Vec<f64>> = r
                     .density
                     .iter()
@@ -116,26 +112,20 @@ impl Setup {
                     .collect();
                 let wneg: Vec<f64> = w.iter().zip(&dw).map(|(a, b)| -(a + hs * b)).collect();
                 let st = s.state(&p);
+                let mut mu = [0.0; 3];
                 for (a, pos) in s.mol.positions.iter().enumerate() {
                     for k in 0..3 {
-                        mu[i][k] += st.qa[a] * pos[k] + st.dip[a][k];
+                        mu[k] += st.qa[a] * pos[k] + st.dip[a][k];
                     }
                 }
-                g.push(s.explicit_gradient(&st, Some(&wneg))?);
-            }
-            let dmu = [0, 1, 2].map(|k| (mu[0][k] - mu[1][k]) / (2.0 * step));
-            Ok(((0..n3).map(|x| (g[0][x / 3][x % 3] - g[1][x / 3][x % 3]) / (2.0 * step)).collect(), dmu))
+                Ok((s.explicit_gradient(&st, Some(&wneg))?, mu))
+            };
+            let (g, dmu) = fd::central2(&at(&sp, step)?, &at(&sm, -step)?, step);
+            Ok((g.into_flattened(), dmu))
         };
-        let cols = map_items(n3, parallel, column);
-        let mut h = vec![0.0; n3 * n3];
-        let mut dipd = Vec::with_capacity(n3);
-        for (y, col) in cols.into_iter().enumerate() {
-            let (col, dmu) = col?;
-            for x in 0..n3 {
-                h[x * n3 + y] = col[x];
-            }
-            dipd.push(dmu);
-        }
+        let cols = fd::columns(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let (cols, dipd): (Vec<Vec<f64>>, Vec<[f64; 3]>) = cols.into_iter().unzip();
+        let h = fd::from_columns(&cols, n3);
         timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
         Ok((h, dipd, timings))
     }
@@ -351,19 +341,4 @@ impl Setup {
         timings.push(("explicit integrals", t0.elapsed().as_secs_f64()));
         Ok((h, dipd, timings))
     }
-}
-
-/// Symmetrize a row-major n x n matrix in place; returns the largest |H_ij - H_ji|.
-pub fn symmetrize(h: &mut [f64], n: usize) -> f64 {
-    let mut asym: f64 = 0.0;
-    for i in 0..n {
-        for j in 0..i {
-            let (a, b) = (h[i * n + j], h[j * n + i]);
-            asym = asym.max((a - b).abs());
-            let m = 0.5 * (a + b);
-            h[i * n + j] = m;
-            h[j * n + i] = m;
-        }
-    }
-    asym
 }

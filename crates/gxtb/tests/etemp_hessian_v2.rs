@@ -4,7 +4,8 @@
 //!
 //! `V2_ETEMP_HESS=reference/water:1000,...` selects molecule:temperature pairs.
 
-use axtb_gxtb::v2::hessian::{symmetrize, AnalyticOptions};
+use axtb_base::fd::symmetrize;
+use axtb_gxtb::v2::hessian::AnalyticOptions;
 use axtb_gxtb::v2::response::CpksOptions;
 use axtb_gxtb::v2::scf::{ScfResult, Setup};
 use axtb_gxtb::{Conventions, ScfOptions};

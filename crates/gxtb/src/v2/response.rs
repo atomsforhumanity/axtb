@@ -34,6 +34,7 @@ use super::scf::{ScfResult, Setup, State};
 use crate::fock::add_charge_potential;
 use crate::parallel::TILE;
 use axtb::{Error, Result};
+use axtb_base::fd;
 use faer::{Accum, Mat, MatRef, Par};
 
 /// Row-major (or symmetric) n x n slice as a faer matrix.
@@ -753,20 +754,11 @@ pub struct KernelData {
 /// geometry-dependent setup (no SCF): 4-point stencil with step `h` (bohr).
 pub fn rhs_finite_difference(setup: &Setup, p: &[Vec<f64>], y: usize, h: f64) -> Result<(Vec<Mat<f64>>, Mat<f64>)> {
     let n = setup.nao;
-    let at = |d: f64| -> Result<(Vec<Vec<f64>>, Vec<f64>)> {
+    let (fy, sy) = fd::try_derivative(fd::Stencil::Central4, h, |d| {
         let mut m = setup.mol.clone();
         m.positions[y / 3][y % 3] += d;
         let s = Setup::new(&m, setup.model.conventions)?;
-        Ok((s.fock_of_density(p), s.s.clone()))
-    };
-    let (fp1, sp1) = at(h)?;
-    let (fm1, sm1) = at(-h)?;
-    let (fp2, sp2) = at(2.0 * h)?;
-    let (fm2, sm2) = at(-2.0 * h)?;
-    let d = |a1: &[f64], b1: &[f64], a2: &[f64], b2: &[f64]| -> Mat<f64> {
-        let v: Vec<f64> = (0..n * n).map(|k| (8.0 * (a1[k] - b1[k]) - (a2[k] - b2[k])) / (12.0 * h)).collect();
-        to_mat(n, &v)
-    };
-    let fy = (0..fp1.len()).map(|s| d(&fp1[s], &fm1[s], &fp2[s], &fm2[s])).collect();
-    Ok((fy, d(&sp1, &sm1, &sp2, &sm2)))
+        Ok::<_, Error>((s.fock_of_density(p), s.s.clone()))
+    })?;
+    Ok((fy.iter().map(|f| to_mat(n, f)).collect(), to_mat(n, &sy)))
 }

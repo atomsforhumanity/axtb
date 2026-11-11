@@ -11,7 +11,8 @@
 //! analytic Hessian's phases (s). The reference SCF is converged tightly (1e-12 Eh, residual
 //! 1e-11) and is not timed.
 
-use axtb_gxtb::v2::hessian::{symmetrize, AnalyticOptions};
+use axtb_base::fd::symmetrize;
+use axtb_gxtb::v2::hessian::AnalyticOptions;
 use axtb_gxtb::v2::response::CpksOptions;
 use axtb_gxtb::v2::scf::Setup;
 use axtb_gxtb::{Conventions, ScfOptions};

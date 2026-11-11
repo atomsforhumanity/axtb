@@ -25,8 +25,8 @@ use crate::v2;
 use axtb::molden::{MoSet, Orbitals, Spin};
 use axtb::properties::{homo_lumo_gap, mayer_bond_orders, GapRule, OrbitalLevels};
 use axtb::{EnergyTerms, Error, HessianMethod, HessianOptions, Molecule, Result, SinglePoint};
+use axtb_base::fd;
 use faer::Par;
-use rayon::prelude::*;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -494,35 +494,25 @@ impl Calculator {
             Ok((energy, g, mu))
         };
         let (energy, gradient, _) = point(mol)?;
-        let n3 = 3 * mol.nat();
-        let column = |idx: usize| -> Result<(Vec<f64>, [f64; 3])> {
-            let (atom, dir) = (idx / 3, idx % 3);
+        // every atom moved forward by the step and back by twice the step, as axtb::Calculator does
+        let displaced = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
             let mut m = mol.clone();
-            m.positions[atom][dir] += step;
-            let (_, gp, mp) = point(&m)?;
-            m.positions[atom][dir] -= 2.0 * step;
-            let (_, gm, mm) = point(&m)?;
-            let dmu = [0, 1, 2].map(|k| (mp[k] - mm[k]) / (2.0 * step));
-            Ok(((0..n3).map(|j| (gp[j / 3][j % 3] - gm[j / 3][j % 3]) / (2.0 * step)).collect(), dmu))
+            m.positions.copy_from_slice(x);
+            let (_, g, mu) = point(&m)?;
+            Ok((g, mu))
         };
-        let cols: Vec<Result<(Vec<f64>, [f64; 3])>> = match &self.pool {
-            Some(pool) => pool.install(|| (0..n3).into_par_iter().map(column).collect()),
-            None => (0..n3).map(column).collect(),
-        };
-        let mut h = vec![0.0; n3 * n3];
-        let mut dipd = Vec::with_capacity(n3);
-        for (i, col) in cols.into_iter().enumerate() {
-            let (col, dmu) = col?;
-            h[i * n3..(i + 1) * n3].copy_from_slice(&col);
-            dipd.push(dmu);
-        }
-        let max_asymmetry = v2::hessian::symmetrize(&mut h, n3);
+        let numerical =
+            |parallel| fd::numerical_hessian(&mol.positions, step, fd::Displacement::ForwardBack, parallel, displaced);
+        let nh = match &self.pool {
+            Some(pool) => pool.install(|| numerical(true)),
+            None => numerical(false),
+        }?;
         Ok(axtb::Hessian {
             energy,
             gradient,
-            hessian: h,
-            max_asymmetry,
-            dipole_derivatives: Some(dipd),
+            hessian: nh.hessian,
+            max_asymmetry: nh.max_asymmetry,
+            dipole_derivatives: Some(nh.dipole_derivatives),
             method: HessianMethod::Numerical,
             timings: Vec::new(),
         })
@@ -572,7 +562,7 @@ impl Calculator {
                 setup.response_hessian(&r, step, v2::response::CpksOptions::default())
             }?;
             timings.extend(t);
-            let max_asymmetry = v2::hessian::symmetrize(&mut h, 3 * mol.nat());
+            let max_asymmetry = fd::symmetrize(&mut h, 3 * mol.nat());
             let hess = axtb::Hessian {
                 energy: r.energies.total,
                 gradient,

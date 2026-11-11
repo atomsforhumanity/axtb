@@ -4,7 +4,8 @@
 //! tolerance without the symmetric form is visibly off. Closed and open shells, 0 K and a
 //! finite electronic temperature, both conventions.
 
-use axtb_gxtb::v2::hessian::{symmetrize, AnalyticOptions};
+use axtb_base::fd::symmetrize;
+use axtb_gxtb::v2::hessian::AnalyticOptions;
 use axtb_gxtb::v2::response::CpksOptions;
 use axtb_gxtb::v2::scf::Setup;
 use axtb_gxtb::{Conventions, ScfOptions};
