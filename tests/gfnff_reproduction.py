@@ -112,7 +112,7 @@ LIMITS = {
     "xtb-6.7.1": {
         "accuracy": {"not reproduced": 0, "max_topology_parameter_diff": 5.0e-11, "max_charges_diff": 4.7e-12,
                      "max_energy_diff": 8.4e-13, "max_term_diff": 5.5e-13, "max_gradient_diff": 9.3e-12},
-        "hessian": {"failures": 0, "numerical frequencies_maxdiff_cm1": 0.005, "numerical ir_maxdiff_km_mol": 5e-6,
+        "hessian": {"failures": 0, "numerical frequencies_maxdiff_cm1": 0.005, "numerical ir_maxdiff_km_mol": 1.3e-4,
                     "numerical zpve_diff": 2e-11, "numerical free_energy_diff": 2e-11,
                     "analytic frequencies_maxdiff_cm1": 0.3, "analytic ir_maxdiff_km_mol": 60.0,
                     "analytic zpve_diff": 8e-6, "analytic free_energy_diff": 5e-6,

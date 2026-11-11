@@ -868,7 +868,7 @@ molecules H–Lr, 23 with lanthanides or actinides, two of them longer than 50 b
 | quantity | result |
 |---|---|
 | every term at the program's density (12 molecules incl. CeCl3, GdCl3, UF6, AuCl, 4 open shells) | ≤ 1.3e-14 Eh; electronic energy to print precision; Mulliken charges 4e-15 |
-| total energy (12-decimal printout) | ≤ 1.8e-12 Eh for 83 molecules; 9.1e-12 Eh for (H2O)100 (7644 Eh, 1.2e-15 relative) |
+| total energy (12-decimal printout) | ≤ 2.1e-12 Eh for 83 molecules (C50H102 2.05e-12 of 1966 Eh); 9.1e-12 Eh for (H2O)100 (7644 Eh, 1.2e-15 relative) |
 | SCF iterations, default and tight thresholds | identical for all 84 (TmH3's tight SCF fails in both at 250 iterations) |
 | per-term energies after the SCF | ≤ 9.1e-12 Eh except TbCl3 2.6e-11: one orbital of a (near-)degenerate HOMO set carries the program's fractional remainder (Σ n⁰ is not an integer), so the unconverged part of the final density depends on the eigensolver and the summation order at round-off level (methane, hydroxide, AuCl move between 1e-12 and 2e-10 with them); the totals agree to ≤ 9e-13 |
 | analytic gradient vs the program's, default thresholds | ≤ 2e-11 Eh/bohr |
