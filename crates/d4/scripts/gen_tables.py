@@ -8,16 +8,22 @@ Rust compiler rounds it to the same IEEE double as gfortran does.
 
 Usage (from anywhere)::
 
-    python crates/d4/scripts/gen_tables.py [--dftd4 DIR] [--mctc DIR] [--out FILE]
+    python crates/d4/scripts/gen_tables.py [--dftd4 DIR] [--mctc DIR] [--base FILE] [--out FILE]
 
 Defaults point to ``reference/dftd4`` and ``reference/mctc-lib`` of the
 workspace.  The sources used for the committed file are dftd4 v4.3.1
 (commit 1107ea7c, identical to upstream main at the time) and mctc-lib
 v0.7.0 data modules.
+
+The covalent radii and Pauling electronegativities are not written again: the
+crate re-exports them from ``axtb_base::elements`` (``crates/base/src/elements.rs``,
+generated from mctc-lib by ``crates/axtb/scripts/gen_data.py``), and this script
+checks that dftd4's ``data/covrad.f90`` and ``data/en.f90`` hold the same values.
 """
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -131,6 +137,16 @@ def parse_data_statements(path: Path):
     return out
 
 
+def rust_table(path: Path, name: str) -> list[float]:
+    """Values of the table ``name`` in a generated Rust file (comments removed)."""
+    text = path.read_text()
+    m = re.search(rf"\b{name}\s*:[^=]*=\s*\[", text)
+    if not m:
+        raise RuntimeError(f"{name} not found in {path}")
+    body = re.sub(r"//[^\n]*", "", text[m.end() : text.index("];", m.end())])
+    return [float(t) for t in re.findall(r"[-+]?\d+\.?\d*(?:[eE][-+]?\d+)?", body)]
+
+
 def fmt_list(vals, per_line=6, indent="    "):
     lines = []
     for i in range(0, len(vals), per_line):
@@ -142,6 +158,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--dftd4", type=Path, default=ROOT / "reference" / "dftd4")
     ap.add_argument("--mctc", type=Path, default=ROOT / "reference" / "mctc-lib")
+    ap.add_argument("--base", type=Path, default=ROOT / "crates" / "base" / "src" / "elements.rs")
     ap.add_argument("--out", type=Path, default=HERE.parent / "src" / "data.rs")
     args = ap.parse_args()
 
@@ -204,6 +221,12 @@ def main():
     zeff = [rust_real(t) for t in parse_array_constructor(data / "zeff.f90", "effective_nuclear_charge")]
     r4r2 = [rust_real(t) for t in parse_array_constructor(data / "r4r2.f90", "r4_over_r2")]
 
+    # one copy of these element tables, in axtb-base (from mctc-lib, which dftd4 copied)
+    for name, base_name, vals in (("covalent_rad_2009", "COVALENT_RAD_2009_AA", covrad),
+                                  ("pauling_en", "PAULING_EN", en)):
+        if [float(v) for v in vals] != rust_table(args.base, base_name):
+            raise RuntimeError(f"dftd4's {name} differs from axtb_base::elements::{base_name}")
+
     codata = args.mctc / "src" / "mctc" / "io" / "codata2018.f90"
     consts = args.mctc / "src" / "mctc" / "io" / "constants.f90"
     planck = rust_real(parse_scalar_parameter(codata, "Planck_constant"))
@@ -211,6 +234,7 @@ def main():
     clight = rust_real(parse_scalar_parameter(codata, "speed_of_light_in_vacuum"))
     alpha = rust_real(parse_scalar_parameter(codata, "fine_structure_constant"))
     pi = rust_real(parse_scalar_parameter(consts, "pi"))
+    assert float(pi) == math.pi, pi
 
     def git_rev(path: Path) -> str:
         try:
@@ -242,8 +266,8 @@ def main():
     w(f"pub const SPEED_OF_LIGHT: f64 = {clight};")
     w("/// CODATA 2018 fine structure constant, mctc-lib")
     w(f"pub const FINE_STRUCTURE: f64 = {alpha};")
-    w("/// pi as written in mctc-lib")
-    w(f"pub const PI: f64 = {pi};")
+    w(f"/// pi (mctc-lib writes {pi}, which is this value)")
+    w("pub const PI: f64 = std::f64::consts::PI;")
     w("")
 
     def arr1(name, doc, vals, ty="f64"):
@@ -253,11 +277,16 @@ def main():
         w("];")
         w("")
 
-    arr1("COVALENT_RAD_2009", "Covalent radii (Angstrom), Pyykko & Atsumi 2009 (dftd4 data/covrad.f90)", covrad)
-    arr1("PAULING_EN", "Pauling electronegativities (dftd4 data/en.f90)", en)
+    w("/// Covalent radii (Angstrom), Pyykko & Atsumi 2009 (dftd4 data/covrad.f90, the values of")
+    w("/// mctc-lib's; one copy in `axtb_base::elements`)")
+    w("pub use axtb_base::elements::COVALENT_RAD_2009_AA as COVALENT_RAD_2009;")
+    w("/// Pauling electronegativities (dftd4 data/en.f90, the values of mctc-lib's; one copy in")
+    w("/// `axtb_base::elements`)")
+    w("pub use axtb_base::elements::PAULING_EN;")
+    w("")
     arr1("CHEMICAL_HARDNESS", "Chemical hardnesses (dftd4 data/hardness.f90)", hard)
     arr1("EFFECTIVE_NUCLEAR_CHARGE", "Effective nuclear charges (dftd4 data/zeff.f90)", zeff)
-    arr1("R4_OVER_R2", "<r4>/<r2> expectation values (dftd4 data/r4r2.f90)", r4r2)
+    arr1("R4_OVER_R2", "`<r4>/<r2>` expectation values (dftd4 data/r4r2.f90)", r4r2)
     arr1("REFN", "Number of reference systems per element (reference.inc refn)", refn, "u8")
 
     def arr2(name, doc, table, ty="f64"):

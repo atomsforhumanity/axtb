@@ -185,20 +185,31 @@ def gen_sto(ref: Path, dst: Path) -> None:
 def gen_elements(ref: Path, dst: Path) -> None:
     out = [h.format(src="mctc-lib data/{paulingen,covrad,atomicrad}.f90") for h in HEADER]
     out += ["use crate::units::reference::MCTC_AATOAU as AATOAU;", ""]
-    src = (ref / "mctc-lib/src/mctc/data/paulingen.f90").read_text()
-    vals, wrap = extract(src, "pauling_en", {})
-    emit(out, "PAULING_EN", vals, wrap, doc="Pauling electronegativities (mctc-lib).")
+    # the Pauling electronegativities and the covalent radii in Ångström are axtb-base's
+    # (gen_base_elements); the bohr radii apply the operation of mctc-lib's declaration to them
+    out += ["/// Pauling electronegativities (mctc-lib; `axtb_base::elements`).",
+            "pub use axtb_base::elements::PAULING_EN;",
+            "/// Covalent radii of Pyykko and Atsumi (metals -10%), Ångström (mctc-lib; `axtb_base::elements`).",
+            "pub use axtb_base::elements::COVALENT_RAD_2009_AA;", ""]
     src = (ref / "mctc-lib/src/mctc/data/covrad.f90").read_text()
-    vals, wrap = extract(src, "covalent_rad_2009", {"aatoau": "AATOAU"})
-    emit(out, "COVALENT_RAD_2009", vals, wrap,
-         doc="Covalent radii of Pyykko and Atsumi (metals -10%), bohr (mctc-lib).")
+    _, wrap = extract(src, "covalent_rad_2009", {"aatoau": "AATOAU"})
+    bohr = wrap("COVALENT_RAD_2009_AA[i]")
+    if bohr != "AATOAU * COVALENT_RAD_2009_AA[i]":
+        raise ValueError(f"covalent_rad_2009: unexpected array operation {bohr!r}")
+    out += ["/// Covalent radii of Pyykko and Atsumi (metals -10%), bohr (mctc-lib: `aatoau *` the Ångström values).",
+            "pub const COVALENT_RAD_2009: [f64; 118] = {",
+            "    let mut r = [0.0; 118];",
+            "    let mut i = 0;",
+            "    while i < 118 {",
+            f"        r[i] = {bohr};",
+            "        i += 1;",
+            "    }",
+            "    r",
+            "};", ""]
     src = (ref / "mctc-lib/src/mctc/data/atomicrad.f90").read_text()
     vals, wrap = extract(src, "atomic_rad", {"aatoau": "AATOAU"})
     emit(out, "ATOMIC_RAD", vals, wrap, doc="Atomic radii, bohr (mctc-lib).")
     # raw Ångström values for conventions that convert with a different bohr constant
-    src = (ref / "mctc-lib/src/mctc/data/covrad.f90").read_text()
-    vals, _ = extract(src, "covalent_rad_2009", {"aatoau": "AATOAU"})
-    emit(out, "COVALENT_RAD_2009_AA", vals, lambda v: v, doc="Covalent radii of Pyykko and Atsumi (metals -10%), Ångström.")
     src = (ref / "mctc-lib/src/mctc/data/atomicrad.f90").read_text()
     vals, _ = extract(src, "atomic_rad", {"aatoau": "AATOAU"})
     emit(out, "ATOMIC_RAD_AA", vals, lambda v: v, doc="Atomic radii, Ångström (mctc-lib).")

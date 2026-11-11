@@ -5,73 +5,21 @@
 
 use crate::units::reference::MCTC_AATOAU as AATOAU;
 
-/// Pauling electronegativities (mctc-lib).
-pub const PAULING_EN: [f64; 118] = [
-    2.20, 3.00, 0.98, 1.57,
-    2.04, 2.55, 3.04, 3.44,
-    3.98, 4.50, 0.93, 1.31,
-    1.61, 1.90, 2.19, 2.58,
-    3.16, 3.50, 0.82, 1.00,
-    1.36, 1.54, 1.63, 1.66,
-    1.55, 1.83, 1.88, 1.91,
-    1.90, 1.65, 1.81, 2.01,
-    2.18, 2.55, 2.96, 3.00,
-    0.82, 0.95, 1.22, 1.33,
-    1.60, 2.16, 1.90, 2.20,
-    2.28, 2.20, 1.93, 1.69,
-    1.78, 1.96, 2.05, 2.10,
-    2.66, 2.60, 0.79, 0.89,
-    1.10, 1.12, 1.13, 1.14,
-    1.15, 1.17, 1.18, 1.20,
-    1.21, 1.22, 1.23, 1.24,
-    1.25, 1.26, 1.27, 1.30,
-    1.50, 2.36, 1.90, 2.20,
-    2.20, 2.28, 2.54, 2.00,
-    1.62, 2.33, 2.02, 2.00,
-    2.20, 2.20, 0.79, 0.90,
-    1.10, 1.30, 1.50, 1.38,
-    1.36, 1.28, 1.30, 1.30,
-    1.30, 1.30, 1.30, 1.30,
-    1.30, 1.30, 1.30, 1.50,
-    1.50, 1.50, 1.50, 1.50,
-    1.50, 1.50, 1.50, 1.50,
-    1.50, 1.50, 1.50, 1.50,
-    1.50, 1.50,
-];
+/// Pauling electronegativities (mctc-lib; `axtb_base::elements`).
+pub use axtb_base::elements::PAULING_EN;
+/// Covalent radii of Pyykko and Atsumi (metals -10%), Ångström (mctc-lib; `axtb_base::elements`).
+pub use axtb_base::elements::COVALENT_RAD_2009_AA;
 
-/// Covalent radii of Pyykko and Atsumi (metals -10%), bohr (mctc-lib).
-pub const COVALENT_RAD_2009: [f64; 118] = [
-    AATOAU * 0.32, AATOAU * 0.46, AATOAU * 1.20, AATOAU * 0.94,
-    AATOAU * 0.77, AATOAU * 0.75, AATOAU * 0.71, AATOAU * 0.63,
-    AATOAU * 0.64, AATOAU * 0.67, AATOAU * 1.40, AATOAU * 1.25,
-    AATOAU * 1.13, AATOAU * 1.04, AATOAU * 1.10, AATOAU * 1.02,
-    AATOAU * 0.99, AATOAU * 0.96, AATOAU * 1.76, AATOAU * 1.54,
-    AATOAU * 1.33, AATOAU * 1.22, AATOAU * 1.21, AATOAU * 1.10,
-    AATOAU * 1.07, AATOAU * 1.04, AATOAU * 1.00, AATOAU * 0.99,
-    AATOAU * 1.01, AATOAU * 1.09, AATOAU * 1.12, AATOAU * 1.09,
-    AATOAU * 1.15, AATOAU * 1.10, AATOAU * 1.14, AATOAU * 1.17,
-    AATOAU * 1.89, AATOAU * 1.67, AATOAU * 1.47, AATOAU * 1.39,
-    AATOAU * 1.32, AATOAU * 1.24, AATOAU * 1.15, AATOAU * 1.13,
-    AATOAU * 1.13, AATOAU * 1.08, AATOAU * 1.15, AATOAU * 1.23,
-    AATOAU * 1.28, AATOAU * 1.26, AATOAU * 1.26, AATOAU * 1.23,
-    AATOAU * 1.32, AATOAU * 1.31, AATOAU * 2.09, AATOAU * 1.76,
-    AATOAU * 1.62, AATOAU * 1.47, AATOAU * 1.58, AATOAU * 1.57,
-    AATOAU * 1.56, AATOAU * 1.55, AATOAU * 1.51, AATOAU * 1.52,
-    AATOAU * 1.51, AATOAU * 1.50, AATOAU * 1.49, AATOAU * 1.49,
-    AATOAU * 1.48, AATOAU * 1.53, AATOAU * 1.46, AATOAU * 1.37,
-    AATOAU * 1.31, AATOAU * 1.23, AATOAU * 1.18, AATOAU * 1.16,
-    AATOAU * 1.11, AATOAU * 1.12, AATOAU * 1.13, AATOAU * 1.32,
-    AATOAU * 1.30, AATOAU * 1.30, AATOAU * 1.36, AATOAU * 1.31,
-    AATOAU * 1.38, AATOAU * 1.42, AATOAU * 2.01, AATOAU * 1.81,
-    AATOAU * 1.67, AATOAU * 1.58, AATOAU * 1.52, AATOAU * 1.53,
-    AATOAU * 1.54, AATOAU * 1.55, AATOAU * 1.49, AATOAU * 1.49,
-    AATOAU * 1.51, AATOAU * 1.51, AATOAU * 1.48, AATOAU * 1.50,
-    AATOAU * 1.56, AATOAU * 1.58, AATOAU * 1.45, AATOAU * 1.41,
-    AATOAU * 1.34, AATOAU * 1.29, AATOAU * 1.27, AATOAU * 1.21,
-    AATOAU * 1.16, AATOAU * 1.15, AATOAU * 1.09, AATOAU * 1.22,
-    AATOAU * 1.36, AATOAU * 1.43, AATOAU * 1.46, AATOAU * 1.58,
-    AATOAU * 1.48, AATOAU * 1.57,
-];
+/// Covalent radii of Pyykko and Atsumi (metals -10%), bohr (mctc-lib: `aatoau *` the Ångström values).
+pub const COVALENT_RAD_2009: [f64; 118] = {
+    let mut r = [0.0; 118];
+    let mut i = 0;
+    while i < 118 {
+        r[i] = AATOAU * COVALENT_RAD_2009_AA[i];
+        i += 1;
+    }
+    r
+};
 
 /// Atomic radii, bohr (mctc-lib).
 pub const ATOMIC_RAD: [f64; 118] = [
@@ -105,40 +53,6 @@ pub const ATOMIC_RAD: [f64; 118] = [
     AATOAU * 1.29, AATOAU * 1.28, AATOAU * 1.21, AATOAU * 1.22,
     AATOAU * 1.36, AATOAU * 1.43, AATOAU * 1.62, AATOAU * 1.75,
     AATOAU * 1.65, AATOAU * 1.57,
-];
-
-/// Covalent radii of Pyykko and Atsumi (metals -10%), Ångström.
-pub const COVALENT_RAD_2009_AA: [f64; 118] = [
-    0.32, 0.46, 1.20, 0.94,
-    0.77, 0.75, 0.71, 0.63,
-    0.64, 0.67, 1.40, 1.25,
-    1.13, 1.04, 1.10, 1.02,
-    0.99, 0.96, 1.76, 1.54,
-    1.33, 1.22, 1.21, 1.10,
-    1.07, 1.04, 1.00, 0.99,
-    1.01, 1.09, 1.12, 1.09,
-    1.15, 1.10, 1.14, 1.17,
-    1.89, 1.67, 1.47, 1.39,
-    1.32, 1.24, 1.15, 1.13,
-    1.13, 1.08, 1.15, 1.23,
-    1.28, 1.26, 1.26, 1.23,
-    1.32, 1.31, 2.09, 1.76,
-    1.62, 1.47, 1.58, 1.57,
-    1.56, 1.55, 1.51, 1.52,
-    1.51, 1.50, 1.49, 1.49,
-    1.48, 1.53, 1.46, 1.37,
-    1.31, 1.23, 1.18, 1.16,
-    1.11, 1.12, 1.13, 1.32,
-    1.30, 1.30, 1.36, 1.31,
-    1.38, 1.42, 2.01, 1.81,
-    1.67, 1.58, 1.52, 1.53,
-    1.54, 1.55, 1.49, 1.49,
-    1.51, 1.51, 1.48, 1.50,
-    1.56, 1.58, 1.45, 1.41,
-    1.34, 1.29, 1.27, 1.21,
-    1.16, 1.15, 1.09, 1.22,
-    1.36, 1.43, 1.46, 1.58,
-    1.48, 1.57,
 ];
 
 /// Atomic radii, Ångström (mctc-lib).

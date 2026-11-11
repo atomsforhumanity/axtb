@@ -3,8 +3,8 @@
 Every geometry is built here from a few rules instead of typed coordinates:
 
 * bond lengths default to the sum of the Pyykkö-Atsumi covalent radii (metals -10 %), read
-  from axtb's generated table `crates/axtb/src/param/element_data.rs` (literal copy of
-  mctc-lib's `covrad.f90`), so every element 1-86 gets a sensible bond length;
+  from the generated table `crates/base/src/elements.rs` (literal copy of mctc-lib's
+  `covrad.f90`), so every element 1-86 gets a sensible bond length;
 * ligand-field shapes (linear, bent, trigonal, pyramidal, tetrahedral, square planar,
   trigonal bipyramidal, octahedral) give the bond directions around a centre;
 * polyatomic ligands (H2O, NH3, CO, CN, OH) are attached donor-first along the bond
@@ -43,8 +43,8 @@ def z_of(sym: str) -> int:
 
 @lru_cache(maxsize=None)
 def covalent_radii() -> np.ndarray:
-    """Pyykkö-Atsumi covalent radii in Å (index Z-1) from axtb's generated element table."""
-    src = (ROOT / "crates/axtb/src/param/element_data.rs").read_text()
+    """Pyykkö-Atsumi covalent radii in Å (index Z-1) from axtb-base's generated element table."""
+    src = (ROOT / "crates/base/src/elements.rs").read_text()
     body = src[src.index("pub const COVALENT_RAD_2009_AA"):]
     body = body[body.index("[", body.index("=")) + 1:body.index("];")]
     vals = np.array([float(x) for x in re.findall(r"\d+\.\d+", body)])

@@ -3,9 +3,11 @@
 //! Port of `newGFNFFGenerator` and `gfnff_set_param` (xtb `src/gfnff/gfnff_param.f90`),
 //! `gfnff_thresholds`, `itabrow6`, `zeta` and the factors of `gfnffrab`. xtb compiles with
 //! `-fdefault-real-8`/`-r8`, so every literal of the Fortran is a double; the digits are
-//! kept as written there. Element tables are generated (`data.rs`).
+//! kept as written there. Element tables are generated (`data.rs`); the covalent radii are
+//! axtb-base's (`axtb_base::elements`, the same literals as xtb's `covalentRadD3`).
 
 use crate::data;
+use axtb_base::elements::COVALENT_RAD_2009_AA;
 
 /// Bohr radius in Angstrom written into GFN-FF's own setup code (`gfnff_ini`'s `bohr`, the
 /// topological distances of the charge model; unchanged in xtb 6.8.0). The covalent radii
@@ -329,8 +331,9 @@ impl Param {
         p.xbaci[z(52)] = 1.2e0;
         p.xbaci[z(53)] = 1.2e0;
         for i in 0..118 {
-            // covalentRadD3 = r * aatoau * 4/3 with the conventions' bohr
-            p.rcov[i] = data::COVRAD_D3_AA[i] * conv.rcov_aatoau * 4.0 / 3.0;
+            // covalentRadD3 = r * aatoau * 4/3 with the conventions' bohr; xtb's radii in Å are
+            // mctc-lib's (axtb-base)
+            p.rcov[i] = COVALENT_RAD_2009_AA[i] * conv.rcov_aatoau * 4.0 / 3.0;
             // sqrt(0.5*(r4Overr2*sqrt(Z)))
             p.sqrtzr4r2[i] = (0.5 * (data::R4_OVER_R2[i] * ((i + 1) as f64).sqrt())).sqrt();
         }
@@ -502,12 +505,5 @@ mod tests {
         assert_eq!(t.disp, 2500.0);
         assert_eq!(t.hb1, 250.0);
         assert_eq!(t.hb2, 450.0);
-    }
-
-    /// axtb-base's covalent radii (Å) equal xtb's `covalentRadD3` literals bit for bit.
-    #[test]
-    fn base_covalent_radii_equal_the_gfnff_copy() {
-        let bits = |v: &[f64]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
-        assert_eq!(bits(&axtb_base::elements::COVALENT_RAD_2009_AA), bits(&data::COVRAD_D3_AA));
     }
 }

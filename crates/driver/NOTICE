@@ -32,8 +32,8 @@ simple-dftd3 (https://github.com/dftd3/simple-dftd3), LGPL-3.0-or-later
 
 mctc-lib (https://github.com/grimme-lab/mctc-lib), Apache-2.0
   Element data (Pauling electronegativities, covalent and atomic radii) and the CODATA 2018
-  constants of src/mctc in crates/axtb and crates/d4; the Angstrom-to-bohr factor of the
-  programs that read structures through it.
+  constants of src/mctc in crates/base, crates/axtb and crates/d4; the Angstrom-to-bohr
+  factor of the programs that read structures through it.
 
 multicharge (https://github.com/grimme-lab/multicharge), Apache-2.0
   The EEQ 2019 parameters (param/eeq2019.f90) in crates/axtb; the EEQ-BC 2025 model that
