@@ -87,18 +87,8 @@ impl From<axtb::Error> for Error {
             axtb::Error::ScfNotConverged { iterations, energy_change, residual } => {
                 Error::ScfNotConverged { iterations, energy_change, residual }
             }
+            axtb::Error::Topology(msg) => Error::Topology(msg),
             axtb::Error::Numerical(msg) => Error::Numerical(msg),
-        }
-    }
-}
-
-impl From<axtb_gfnff::Error> for Error {
-    fn from(e: axtb_gfnff::Error) -> Self {
-        match e {
-            axtb_gfnff::Error::Input(msg) => Error::Input(msg),
-            axtb_gfnff::Error::UnsupportedElement(z) => Error::UnsupportedElement { z, message: e.to_string() },
-            axtb_gfnff::Error::Topology(msg) => Error::Topology(msg),
-            axtb_gfnff::Error::Numerical(msg) => Error::Numerical(msg),
         }
     }
 }

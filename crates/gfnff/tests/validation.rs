@@ -98,7 +98,7 @@ fn settings_are_checked() {
     input_error(Calculator::new(&[], &[], 0.0, Options::default()), "no atoms");
     assert!(matches!(
         Calculator::new(&[8, 1, 104], &WATER, 0.0, Options::default()),
-        Err(Error::UnsupportedElement(104))
+        Err(Error::UnsupportedElement { z: 104, .. })
     ));
     let calc = Calculator::new(&numbers, &WATER, 0.0, Options::default()).unwrap();
     for step in [0.0, -0.005, f64::NAN, f64::INFINITY] {

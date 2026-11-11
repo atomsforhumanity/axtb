@@ -129,7 +129,7 @@ pub(crate) fn setup(numbers: &[usize], positions: &[[f64; 3]], charge: f64, opts
         return Err(Error::Input("no atoms".into()));
     }
     if let Some(&z) = numbers.iter().find(|&&z| z == 0 || z > param::MAX_ELEM) {
-        return Err(Error::UnsupportedElement(z));
+        return Err(Error::UnsupportedElement { method: "GFN-FF", z });
     }
     check_positions(positions, n)?;
     // charges beyond the nuclear charge have no meaning (and would overflow the pi-electron
