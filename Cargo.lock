@@ -133,6 +133,7 @@ name = "axtb-gfnff"
 version = "0.1.1"
 dependencies = [
  "axtb-base",
+ "axtb-d4",
  "faer",
  "rayon",
  "serde_json",

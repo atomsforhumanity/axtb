@@ -181,24 +181,23 @@ fn reference_ngw(z: usize) -> [u32; MAX_REF] {
     ngw
 }
 
-/// Reference polarizabilities with the hydrogen contributions removed
-/// (`set_refalpha_eeq` / `set_refalpha_gfn2`).
-fn reference_alpha(z: usize, ga: f64, gc: f64, model: ChargeModel) -> [[f64; NFREQ]; MAX_REF] {
+/// Reference polarizabilities of element `z` (1-based) on the imaginary frequency grid, with
+/// the hydrogen contributions of the secondary systems removed (the loop of dftd4's
+/// `set_refalpha_eeq` / `set_refalpha_gfn2`):
+/// `max(0, ascale (alpha_iw - hcount sscale secaiw s))` for each of the `data::REFN[z - 1]`
+/// references, where `s = secondary_scale(is, ir)` is the charge scaling of the secondary
+/// system `is` (1-based) of reference `ir`: dftd4's `zeta` for D4 ([`D4Model`]), 1 for the
+/// D3-type dispersion of GFN-FF (whose `s · x` is then `x` exactly). Entries of references
+/// without a secondary system and beyond `REFN` are zero.
+pub fn reference_alpha(z: usize, secondary_scale: impl Fn(usize, usize) -> f64) -> [[f64; NFREQ]; MAX_REF] {
     let mut alpha = [[0.0; NFREQ]; MAX_REF];
     let nref = data::REFN[z - 1] as usize;
-    let refh = match model {
-        ChargeModel::Eeq => &data::REFH_EEQ,
-        ChargeModel::Gfn2 => &data::REFH_GFN2,
-    };
     for ir in 0..nref {
         let is = data::REFSYS[z - 1][ir] as usize;
         if is == 0 {
             continue;
         }
-        // NB: dftd4 evaluates zeff and hardness of the *secondary system index*
-        let iz = tab(&data::EFFECTIVE_NUCLEAR_CHARGE, is);
-        let gam = tab(&data::CHEMICAL_HARDNESS, is) * gc;
-        let zv = zeta(ga, gam, iz, refh[z - 1][ir] + iz);
+        let zv = secondary_scale(is, ir);
         let ascale = data::ASCALE[z - 1][ir];
         let hcount = data::HCOUNT[z - 1][ir];
         for k in 0..NFREQ {
@@ -210,9 +209,27 @@ fn reference_alpha(z: usize, ga: f64, gc: f64, model: ChargeModel) -> [[f64; NFR
     alpha
 }
 
-/// Reference C6 coefficients of all species pairs by Casimir-Polder integration of the
-/// reference polarizabilities, block `[isp*nsp + jsp][iref][jref]`.
-fn reference_c6_table(nref: &[usize], aiw: &[[[f64; NFREQ]; MAX_REF]]) -> Vec<[[f64; MAX_REF]; MAX_REF]> {
+/// dftd4's reference polarizabilities: [`reference_alpha`] with the `zeta` charge scaling of
+/// the secondary systems (`set_refalpha_eeq` / `set_refalpha_gfn2`).
+fn dftd4_reference_alpha(z: usize, ga: f64, gc: f64, model: ChargeModel) -> [[f64; NFREQ]; MAX_REF] {
+    let refh = match model {
+        ChargeModel::Eeq => &data::REFH_EEQ,
+        ChargeModel::Gfn2 => &data::REFH_GFN2,
+    };
+    reference_alpha(z, |is, ir| {
+        // NB: dftd4 evaluates zeff and hardness of the *secondary system index*
+        let iz = tab(&data::EFFECTIVE_NUCLEAR_CHARGE, is);
+        let gam = tab(&data::CHEMICAL_HARDNESS, is) * gc;
+        zeta(ga, gam, iz, refh[z - 1][ir] + iz)
+    })
+}
+
+/// Reference C6 coefficients of all pairs of species by Casimir-Polder integration of their
+/// reference polarizabilities `aiw[isp][iref]` (e.g. from [`reference_alpha`]):
+/// `3/pi * trapzd(alpha_A * alpha_B)` on the 23-point grid ([`trapzd`]), each product formed
+/// with the species of the larger index first. `nref[isp]` references per species; returns the
+/// blocks `[isp * nsp + jsp][iref][jref]`, zero beyond `nref`.
+pub fn reference_c6_table(nref: &[usize], aiw: &[[[f64; NFREQ]; MAX_REF]]) -> Vec<[[f64; MAX_REF]; MAX_REF]> {
     let nsp = nref.len();
     let thopi = 3.0 / data::PI;
     let mut c6ref = vec![[[0.0; MAX_REF]; MAX_REF]; nsp * nsp];
@@ -310,7 +327,7 @@ impl D4Model {
             })
             .collect();
         let aiw: Vec<[[f64; NFREQ]; MAX_REF]> =
-            species.iter().map(|&z| reference_alpha(z, ga, gc, charge_model)).collect();
+            species.iter().map(|&z| dftd4_reference_alpha(z, ga, gc, charge_model)).collect();
 
         let c6ref = reference_c6_table(&nref, &aiw);
         let mref = nref.iter().copied().max().unwrap_or(0);

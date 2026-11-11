@@ -39,8 +39,8 @@ mod ncoord;
 pub use data::MAX_REF;
 pub use disp::{smooth_cutoff, D4Cache, D4Dispersion, RationalDamping, RealspaceCutoff};
 pub use model::{
-    covalent_radius, r4r2_value, trapzd, zeta, zeta_dzeta, AtomicC6, ChargeModel, D4Model, ElementReferences,
-    RefWeights, AATOAU, DEFAULT_GA, DEFAULT_GC, DEFAULT_WF,
+    covalent_radius, r4r2_value, reference_alpha, reference_c6_table, trapzd, zeta, zeta_dzeta, AtomicC6, ChargeModel,
+    D4Model, ElementReferences, RefWeights, AATOAU, DEFAULT_GA, DEFAULT_GC, DEFAULT_WF,
 };
 pub use ncoord::{count as cn_count, dcount as cn_dcount, en_factor, erf, KCN};
 
