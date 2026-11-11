@@ -1,0 +1,122 @@
+[
+ {
+  "case": "water",
+  "atoms": 3,
+  "max_dH_plain": 3.81775883129265e-08,
+  "max_dH_default": 4.2299497238218464e-14,
+  "max_dfreq_default": 1.1868905858136714e-10,
+  "asymmetry_default": 7.00425972655766e-08
+ },
+ {
+  "case": "O2 triplet",
+  "atoms": 2,
+  "max_dH_plain": 0.0,
+  "max_dH_default": 1.97805312882e-18,
+  "max_dfreq_default": 6.821210263296962e-13,
+  "asymmetry_default": 6.52834985116338e-17
+ },
+ {
+  "case": "caffeine",
+  "atoms": 24,
+  "max_dH_plain": 2.5479278382501205e-07,
+  "max_dH_default": 2.1442264630522345e-11,
+  "max_dfreq_default": 1.7662254947481415e-07,
+  "asymmetry_default": 5.452736177823103e-07
+ },
+ {
+  "case": "[Cu(NH3)4]2+ doublet",
+  "atoms": 17,
+  "max_dH_plain": 9.936058946620474e-08,
+  "max_dH_default": 5.954967855631432e-12,
+  "max_dfreq_default": 2.4901748929551104e-07,
+  "asymmetry_default": 2.2779533637162785e-07
+ },
+ {
+  "case": "ferrocene",
+  "atoms": 21,
+  "max_dH_plain": 6.200992968413699e-08,
+  "max_dH_default": 4.552871968321881e-12,
+  "max_dfreq_default": 8.951140273438796e-08,
+  "asymmetry_default": 1.1957725415477193e-07
+ },
+ {
+  "case": "Ni(CO)4",
+  "atoms": 9,
+  "max_dH_plain": 1.3870428801354695e-07,
+  "max_dH_default": 6.408294034310202e-12,
+  "max_dfreq_default": 7.666668011552247e-08,
+  "asymmetry_default": 8.916823683591257e-08
+ },
+ {
+  "case": "UF6",
+  "atoms": 7,
+  "max_dH_plain": 3.0567919251378584e-08,
+  "max_dH_default": 5.547206628504081e-12,
+  "max_dfreq_default": 4.074408366250282e-08,
+  "asymmetry_default": 6.540692720768959e-08
+ },
+ {
+  "case": "GdCl3 octet",
+  "atoms": 4,
+  "max_dH_plain": 3.195617084839064e-08,
+  "max_dH_default": 1.6995502227779014e-12,
+  "max_dfreq_default": 2.1764890334452502e-08,
+  "asymmetry_default": 2.6418953465645253e-08
+ },
+ {
+  "case": "taxol",
+  "atoms": 113,
+  "max_dH_plain": 1.8034866558058055e-07,
+  "max_dH_default": 1.3726283998316546e-11,
+  "max_dfreq_default": 7.465069984391448e-08,
+  "asymmetry_default": 3.07889174974707e-07
+ },
+ {
+  "case": "caffeine, 3000 K",
+  "atoms": 24,
+  "max_dH_plain": 2.547926001026171e-07,
+  "max_dH_default": 2.1534787841837044e-11,
+  "max_dfreq_default": 1.771782507375974e-07,
+  "asymmetry_default": 5.45273581505773e-07
+ },
+ {
+  "case": "O2 triplet, 3000 K",
+  "atoms": 2,
+  "max_dH_plain": 1.887379141862766e-15,
+  "max_dH_default": 1.887379141862766e-15,
+  "max_dfreq_default": 2.2737367544323206e-13,
+  "asymmetry_default": 4.440892098500626e-16
+ },
+ {
+  "case": "[Cu(NH3)4]2+, 3000 K",
+  "atoms": 17,
+  "max_dH_plain": 9.935709984875557e-08,
+  "max_dH_default": 5.94893665578633e-12,
+  "max_dfreq_default": 2.4933729037002195e-07,
+  "asymmetry_default": 2.2787266684698437e-07
+ },
+ {
+  "case": "ferrocene, 5000 K",
+  "atoms": 21,
+  "max_dH_plain": 6.204019239411818e-08,
+  "max_dH_default": 4.55910309504759e-12,
+  "max_dfreq_default": 8.912766702451336e-08,
+  "asymmetry_default": 1.196178872534101e-07
+ },
+ {
+  "case": "caffeine, program conventions",
+  "atoms": 24,
+  "max_dH_plain": 2.5479278182097276e-07,
+  "max_dH_default": 2.1430156260660027e-11,
+  "max_dfreq_default": 1.7686923570181534e-07,
+  "asymmetry_default": 5.452738201378038e-07
+ },
+ {
+  "case": "O2 triplet, program conventions",
+  "atoms": 2,
+  "max_dH_plain": 4.655035624784041e-15,
+  "max_dH_default": 3.2751579226442118e-15,
+  "max_dfreq_default": 2.2737367544323206e-13,
+  "asymmetry_default": 1.459028204421476e-17
+ }
+]

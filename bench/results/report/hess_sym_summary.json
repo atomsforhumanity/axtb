@@ -1,0 +1,12 @@
+[
+ {
+  "commit": "3c17aa2",
+  "cpu": "Intel Core i9-11900H @ 2.50GHz",
+  "cases": 15,
+  "max_dH_default": 2.1534787841837044e-11,
+  "max_dH_plain": 2.5479278382501205e-07,
+  "max_dfreq_default": 2.4933729037002195e-07,
+  "min_speedup": 1.3304571245611603,
+  "max_speedup": 1.3702409384941474
+ }
+]

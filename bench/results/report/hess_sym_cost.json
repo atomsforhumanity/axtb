@@ -1,0 +1,41 @@
+[
+ {
+  "id": "taxol|1",
+  "case": "taxol",
+  "atoms": 113,
+  "threads": 1,
+  "seconds_current": 94.52887474200001,
+  "seconds_default": 69.49818971,
+  "speedup": 1.3601631227582662,
+  "peak_mb_current": 139.06640625,
+  "peak_mb_default": 192.47265625,
+  "memory_increase": 0.3840341563439229,
+  "max_dH": 1.3726283998316546e-11
+ },
+ {
+  "id": "taxol|8",
+  "case": "taxol",
+  "atoms": 113,
+  "threads": 8,
+  "seconds_current": 19.239458405,
+  "seconds_default": 14.040930951999998,
+  "speedup": 1.3702409384941474,
+  "peak_mb_current": 342.2734375,
+  "peak_mb_default": 422.1328125,
+  "memory_increase": 0.233320398986556,
+  "max_dH": 1.3726283998316546e-11
+ },
+ {
+  "id": "(H2O)100|8",
+  "case": "(H2O)100",
+  "atoms": 300,
+  "threads": 8,
+  "seconds_current": 267.511692226,
+  "seconds_default": 201.06750325700003,
+  "speedup": 1.3304571245611603,
+  "peak_mb_current": 1412.46484375,
+  "peak_mb_default": 2086.4296875,
+  "memory_increase": 0.47715512830795004,
+  "max_dH": 9.084317336999909e-12
+ }
+]
