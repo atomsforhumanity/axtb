@@ -1,6 +1,6 @@
 [package]
 name = "axtb-base"
-description = "Shared foundation of the axtb crates: molecules, errors, units, the error function, timers and finite differences"
+description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, timers and finite differences"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

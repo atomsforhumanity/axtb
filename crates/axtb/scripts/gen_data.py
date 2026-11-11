@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Generate Rust parameter tables from the Fortran reference sources.
 
-Usage: python crates/axtb/scripts/gen_data.py <reference dir> <crates/axtb/src/param>
+Usage: python crates/axtb/scripts/gen_data.py <reference dir> <crates/axtb/src/param> [<crates/base/src>]
 
 <reference dir> holds clones of tblite (as tblite-main), mctc-lib, multicharge, xtb 6.7.1
-(the g-xTB 2.0.1 build, as xtb-gxtb) and grimme-lab/xtb at tag v6.8.0 (as xtb). Fortran literals
+(the g-xTB 2.0.1 build, as xtb-gxtb) and grimme-lab/xtb at tag v6.8.0 (as xtb). The element
+tables that every crate shares go to axtb-base (``elements.rs``; the third argument, by default
+``crates/base/src`` of this script's checkout), the rest to axtb's ``param``. Fortran literals
 are copied verbatim (no float round trip) and whole-array operations written in the
 Fortran declaration (``* evtoau``, ``0.1_wp *``, ``1.0_wp +``, ``aatoau *``) become the
 same single IEEE operation on every element, so each value is bit-identical to the
@@ -213,6 +215,20 @@ def gen_elements(ref: Path, dst: Path) -> None:
     (dst / "element_data.rs").write_text("\n".join(out))
 
 
+def gen_base_elements(ref: Path, dst: Path) -> None:
+    """The element tables of mctc-lib that the method crates share (``axtb_base::elements``;
+    axtb, axtb-d4 and axtb-gfnff use or re-export them)."""
+    out = [h.format(src="mctc-lib data/{paulingen,covrad}.f90 (Apache-2.0)") for h in HEADER]
+    src = (ref / "mctc-lib/src/mctc/data/paulingen.f90").read_text()
+    vals, wrap = extract(src, "pauling_en", {})
+    emit(out, "PAULING_EN", vals, wrap, doc="Pauling electronegativities (mctc-lib).")
+    src = (ref / "mctc-lib/src/mctc/data/covrad.f90").read_text()
+    vals, _ = extract(src, "covalent_rad_2009", {"aatoau": "AATOAU"})
+    emit(out, "COVALENT_RAD_2009_AA", vals, lambda v: v,
+         doc="Covalent radii of Pyykko and Atsumi (metals -10%), Ångström (mctc-lib).")
+    (dst / "elements.rs").write_text("\n".join(out))
+
+
 def gen_xtb(ref: Path, dst: Path) -> None:
     """Tables exactly as the xtb program defines them, for 6.7.1 (`XTB671_*`: its own bohr
     constant, and the default-real (single precision) literals of its D4 coordination
@@ -264,6 +280,8 @@ def gen_eeq(ref: Path, dst: Path) -> None:
 
 def main() -> None:
     ref, dst = Path(sys.argv[1]), Path(sys.argv[2])
+    base = Path(sys.argv[3]) if len(sys.argv) > 3 else Path(__file__).resolve().parents[2] / "base/src"
+    gen_base_elements(ref, base)
     gen_gfn2(ref, dst)
     gen_sto(ref, dst)
     gen_elements(ref, dst)

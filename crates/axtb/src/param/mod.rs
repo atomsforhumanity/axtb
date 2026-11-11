@@ -42,3 +42,33 @@ pub fn covalent_rad_d3_codata2022(z: usize) -> f64 {
 pub fn atomic_rad_codata2022(z: usize) -> f64 {
     element_data::ATOMIC_RAD_AA[z - 1] * crate::units::AATOAU
 }
+
+#[cfg(test)]
+mod tests {
+    use super::element_data;
+    use crate::units::reference::MCTC_AATOAU as AATOAU;
+    use axtb_base::elements;
+
+    fn bits(v: &[f64]) -> Vec<u64> {
+        v.iter().map(|x| x.to_bits()).collect()
+    }
+
+    /// axtb-base's element tables equal the core's copies bit for bit, and the bohr radii
+    /// derived from the Ångström table as `aatoau * r` (the operation of mctc-lib's declaration)
+    /// equal the core's literal products.
+    #[test]
+    fn base_element_tables_equal_the_core_copies() {
+        const DERIVED: [f64; 118] = {
+            let mut r = [0.0; 118];
+            let mut i = 0;
+            while i < 118 {
+                r[i] = AATOAU * elements::COVALENT_RAD_2009_AA[i];
+                i += 1;
+            }
+            r
+        };
+        assert_eq!(bits(&elements::PAULING_EN), bits(&element_data::PAULING_EN));
+        assert_eq!(bits(&elements::COVALENT_RAD_2009_AA), bits(&element_data::COVALENT_RAD_2009_AA));
+        assert_eq!(bits(&DERIVED), bits(&element_data::COVALENT_RAD_2009));
+    }
+}

@@ -71,6 +71,14 @@ fn constants_match_fortran_folding() {
     assert_eq!(AATOAU, 1.8897261246204404); // h/(2 pi)/(me c alpha) folded in IEEE double
 }
 
+/// axtb-base's element tables equal axtb-d4's copies bit for bit.
+#[test]
+fn base_element_tables_equal_the_d4_copies() {
+    let bits = |v: &[f64]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
+    assert_eq!(bits(&axtb_base::elements::PAULING_EN), bits(&data::PAULING_EN));
+    assert_eq!(bits(&axtb_base::elements::COVALENT_RAD_2009_AA), bits(&data::COVALENT_RAD_2009));
+}
+
 #[test]
 fn unsupported_elements() {
     assert!(D4Model::new(&[1, 105], ChargeModel::Eeq).is_err());

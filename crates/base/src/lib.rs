@@ -6,6 +6,8 @@
 //! - [`Error`] and [`Result`]: one error type with the kinds every front end reports;
 //! - [`units`]: CODATA 2022 constants, and in [`units::reference`] the factors the reference
 //!   programs' parametrizations were tabulated with (never to be updated);
+//! - [`elements`]: the element tables the method crates share (Pauling electronegativities,
+//!   covalent radii);
 //! - [`math`]: the C library's error function (the reference programs' bits) and 3-vector
 //!   helpers;
 //! - [`timing`]: wall time per named phase;
@@ -16,6 +18,11 @@
 //! `axtb-d4`, `axtb-solvation` and `axtb-gfnff` can use it as well as the tight-binding
 //! framework `axtb`.
 
+/// Element tables of mctc-lib that several crates use (axtb, axtb-d4, axtb-gfnff), generated
+/// from the Fortran sources by `crates/axtb/scripts/gen_data.py`: the literals are mctc-lib's
+/// digits, so every value is bit-identical to the compiled Fortran parameter. Index `Z - 1`.
+#[rustfmt::skip] // generated tables keep their compact layout
+pub mod elements;
 mod error;
 pub mod fd;
 pub mod math;

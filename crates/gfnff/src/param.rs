@@ -503,4 +503,11 @@ mod tests {
         assert_eq!(t.hb1, 250.0);
         assert_eq!(t.hb2, 450.0);
     }
+
+    /// axtb-base's covalent radii (Å) equal xtb's `covalentRadD3` literals bit for bit.
+    #[test]
+    fn base_covalent_radii_equal_the_gfnff_copy() {
+        let bits = |v: &[f64]| v.iter().map(|x| x.to_bits()).collect::<Vec<_>>();
+        assert_eq!(bits(&axtb_base::elements::COVALENT_RAD_2009_AA), bits(&data::COVRAD_D3_AA));
+    }
 }
