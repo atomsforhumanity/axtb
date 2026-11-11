@@ -91,6 +91,9 @@ dependencies = [
 [[package]]
 name = "axtb-base"
 version = "0.1.1"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "axtb-cli"

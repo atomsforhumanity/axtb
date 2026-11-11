@@ -15,8 +15,8 @@ use crate::molecule::Molecule;
 use crate::response::Response;
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::Result;
+use axtb_base::fd;
 use faer::{Accum, Mat, Par};
-use rayon::prelude::*;
 
 /// How [`crate::Calculator::hessian`] computes second derivatives.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -165,12 +165,11 @@ pub(crate) fn response_hessian(
     faer::linalg::matmul::matmul(dv.as_mut(), Accum::Add, r.kernel.as_ref(), r.ds.as_ref(), 1.0, resp.par());
     let mut s0 = vec![0.0; m];
     lay.pack(&st.qsh, &st.dpat, &st.qpat, &mut s0);
+    // column y: the gradient functional at R + d e_y with P + d δP^y, W + d δW^y, s + d δs^y
     let column = |y: usize| -> Vec<f64> {
         let (dp, dw) = displacement_response(&resp, &dv, y, Par::Seq);
         let (a, k) = (y / 3, y % 3);
-        let mut g = [Vec::new(), Vec::new()];
-        for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
-            let hs = sign * step;
+        let g = fd::derivative(fd::Stencil::Central2, step, |hs| {
             let mut mm = mol.clone();
             mm.positions[a][k] += hs;
             let p = &st.density + &dp * faer::Scale(hs);
@@ -180,18 +179,11 @@ pub(crate) fn response_hessian(
             let mut dpat = vec![[0.0; 3]; nat];
             let mut qpat = vec![[0.0; 6]; nat];
             lay.unpack(&s, &mut qsh, &mut dpat, &mut qpat);
-            g[i] = model.gradient_functional(&mm, extra, &p, &w, &qsh, &dpat, &qpat, false);
-        }
-        (0..n3).map(|x| (g[0][x / 3][x % 3] - g[1][x / 3][x % 3]) / (2.0 * step)).collect()
+            model.gradient_functional(&mm, extra, &p, &w, &qsh, &dpat, &qpat, false)
+        });
+        g.into_flattened()
     };
-    let cols: Vec<Vec<f64>> =
-        if threads > 1 { (0..n3).into_par_iter().map(column).collect() } else { (0..n3).map(column).collect() };
-    let mut h = vec![0.0; n3 * n3];
-    for (y, col) in cols.into_iter().enumerate() {
-        for x in 0..n3 {
-            h[x * n3 + y] = col[x];
-        }
-    }
+    let h = fd::from_columns(&fd::columns(n3, threads > 1, column), n3);
     timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
     Ok((h, dipd, timings))
 }

@@ -288,8 +288,9 @@ struct Modes {
     to_wavenumber: f64,
 }
 
+/// The symmetric part of a row-major Hessian as a matrix.
 fn symmetrized(h: &[f64], n3: usize) -> Mat<f64> {
-    Mat::from_fn(n3, n3, |i, j| 0.5 * (h[i * n3 + j] + h[j * n3 + i]))
+    Mat::from_fn(n3, n3, |i, j| axtb_base::fd::symmetric_part(h, n3, i, j))
 }
 
 /// Gram-Schmidt orthonormalization (vectors below `eps` in squared norm after projection

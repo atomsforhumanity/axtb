@@ -23,7 +23,6 @@ use crate::response::Response;
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::Result;
 use faer::{Accum, Mat};
-use rayon::prelude::*;
 
 /// Analytic Hessian (row-major 3N x 3N), dipole derivatives (3N rows ∂μ/∂R_x) and timings.
 pub(crate) fn analytic_hessian(
@@ -118,56 +117,4 @@ pub(crate) fn explicit(
     model.repulsion.add_hessian(mol, &mut h);
     timings.push(("explicit: electrostatics+repulsion", t0.elapsed().as_secs_f64()));
     h
-}
-
-/// Explicit second derivatives by central differences of the gradient functional at fixed
-/// P, W and SCC variables, minus the potential response `b^x·c^y` that this includes
-/// (validation path).
-#[allow(dead_code)]
-pub(crate) fn explicit_fd(resp: &Response, c: &Mat<f64>, threads: usize) -> Vec<f64> {
-    let st = resp.st;
-    let mol = resp.mol;
-    let lay = resp.lay;
-    let n3 = 3 * lay.nat;
-    let h = crate::xtb::FD_STEP;
-    let column = |y: usize| -> Vec<f64> {
-        let (a, k) = (y / 3, y % 3);
-        let mut g = [Vec::new(), Vec::new()];
-        for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
-            let mut mm = mol.clone();
-            mm.positions[a][k] += sign * h;
-            g[i] = resp.model.gradient_functional(
-                &mm,
-                resp.extra,
-                &st.density,
-                &st.wdensity,
-                &st.qsh,
-                &st.dpat,
-                &st.qpat,
-                false,
-            );
-        }
-        (0..n3).map(|x| (g[0][x / 3][x % 3] - g[1][x / 3][x % 3]) / (2.0 * h)).collect()
-    };
-    let cols: Vec<Vec<f64>> =
-        if threads > 1 { (0..n3).into_par_iter().map(column).collect() } else { (0..n3).map(column).collect() };
-    let mut out = vec![0.0; n3 * n3];
-    for (y, col) in cols.iter().enumerate() {
-        for x in 0..n3 {
-            out[x * n3 + y] = col[x];
-        }
-    }
-    // subtract b^x · c^y
-    let m = lay.dim();
-    for x in 0..n3 {
-        let b = &resp.blocks[x / 3].b[x % 3];
-        for y in 0..n3 {
-            let mut acc = 0.0;
-            for t in 0..m {
-                acc += b[t] * c[(t, y)];
-            }
-            out[x * n3 + y] -= acc;
-        }
-    }
-    out
 }

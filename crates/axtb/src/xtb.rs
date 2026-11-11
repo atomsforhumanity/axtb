@@ -13,6 +13,7 @@ use crate::ncoord::Ncoord;
 use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
 use crate::{Error, Result};
+use axtb_base::fd;
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -64,14 +65,15 @@ pub(crate) trait ChargeDependentTerm: Send + Sync {
         let h = 1e-4;
         let mut q = qat.to_vec();
         for b in 0..nat {
-            let (mut vp, mut vm) = (vec![0.0; nat], vec![0.0; nat]);
-            q[b] = qat[b] + h;
-            self.potential(mol, cache, &q, &mut vp, false);
-            q[b] = qat[b] - h;
-            self.potential(mol, cache, &q, &mut vm, false);
+            let kb = fd::derivative(fd::Stencil::Central2, h, |d| {
+                let mut v = vec![0.0; nat];
+                q[b] = qat[b] + d;
+                self.potential(mol, cache, &q, &mut v, false);
+                v
+            });
             q[b] = qat[b];
             for a in 0..nat {
-                k[a * nat + b] += (vp[a] - vm[a]) / (2.0 * h);
+                k[a * nat + b] += kb[a];
             }
         }
     }
@@ -112,39 +114,33 @@ pub(crate) fn fd_second_derivatives<T: ChargeDependentTerm + ?Sized>(
     let n3 = 3 * nat;
     let h = FD_STEP;
     let want_h = hess.is_some();
-    let column = |x: usize| -> (Vec<f64>, Vec<f64>) {
+    // column x: the potential and (with `hess`) the gradient at R + d e_x
+    let column = |x: usize| -> (Vec<f64>, Vec<[f64; 3]>) {
         let (a, k) = (x / 3, x % 3);
         let mut m = mol.clone();
-        let mut v = [vec![0.0; nat], vec![0.0; nat]];
-        let mut g = [vec![[0.0; 3]; nat], vec![[0.0; 3]; nat]];
-        for (s, sign) in [1.0, -1.0].into_iter().enumerate() {
-            m.positions[a][k] = mol.positions[a][k] + sign * h;
+        fd::derivative(fd::Stencil::Central2, h, |d| {
+            m.positions[a][k] = mol.positions[a][k] + d;
             let c = term.update(&m);
-            term.potential(&m, c.as_ref(), qat, &mut v[s], false);
+            let mut v = vec![0.0; nat];
+            term.potential(&m, c.as_ref(), qat, &mut v, false);
+            let mut g = Vec::new();
             if want_h {
+                g = vec![[0.0; 3]; nat];
                 let mut e = vec![0.0; nat];
-                term.fixed_energy(&m, c.as_ref(), &mut e, Some(&mut g[s]), false);
-                term.gradient(&m, c.as_ref(), qat, &mut g[s]);
+                term.fixed_energy(&m, c.as_ref(), &mut e, Some(&mut g), false);
+                term.gradient(&m, c.as_ref(), qat, &mut g);
             }
-        }
-        let dvx = (0..nat).map(|i| (v[0][i] - v[1][i]) / (2.0 * h)).collect();
-        let hx = if want_h {
-            (0..n3).map(|y| (g[0][y / 3][y % 3] - g[1][y / 3][y % 3]) / (2.0 * h)).collect()
-        } else {
-            Vec::new()
-        };
-        (dvx, hx)
+            (v, g)
+        })
     };
-    let cols: Vec<(Vec<f64>, Vec<f64>)> =
-        if parallel { (0..n3).into_par_iter().map(column).collect() } else { (0..n3).map(column).collect() };
     let mut hess = hess;
-    for (x, (dvx, hx)) in cols.into_iter().enumerate() {
+    for (x, (dvx, hx)) in fd::columns(n3, parallel, column).into_iter().enumerate() {
         for i in 0..nat {
             dv[i * n3 + x] += dvx[i];
         }
         if let Some(hs) = hess.as_deref_mut() {
             for y in 0..n3 {
-                hs[y * n3 + x] += hx[y];
+                hs[y * n3 + x] += hx[y / 3][y % 3];
             }
         }
     }

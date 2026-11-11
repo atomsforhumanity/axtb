@@ -8,12 +8,16 @@
 //!   programs' parametrizations were tabulated with (never to be updated);
 //! - [`math`]: the C library's error function (the reference programs' bits) and 3-vector
 //!   helpers;
-//! - [`timing`]: wall time per named phase.
+//! - [`timing`]: wall time per named phase;
+//! - [`fd`]: finite differences (stencils, columns over coordinates, symmetrization and the
+//!   numerical Hessian of every method).
 //!
-//! The crate has no dependencies, so that `axtb-d4`, `axtb-solvation` and `axtb-gfnff` can use it
-//! as well as the tight-binding framework `axtb`.
+//! Its only dependency is rayon (the parallel loops of [`fd`], on the caller's pool), so that
+//! `axtb-d4`, `axtb-solvation` and `axtb-gfnff` can use it as well as the tight-binding
+//! framework `axtb`.
 
 mod error;
+pub mod fd;
 pub mod math;
 mod molecule;
 pub mod timing;

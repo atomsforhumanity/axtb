@@ -1,6 +1,6 @@
 [package]
 name = "axtb-base"
-description = "Shared foundation of the axtb crates: molecules, errors, units, the error function and timers"
+description = "Shared foundation of the axtb crates: molecules, errors, units, the error function, timers and finite differences"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -19,6 +19,8 @@ name = "axtb_base"
 path = "src/lib.rs"
 
 [dependencies]
+# the parallel loops of the finite differences (`fd`), on the caller's pool
+rayon = "1.10"
 
 [lints]
 workspace = true

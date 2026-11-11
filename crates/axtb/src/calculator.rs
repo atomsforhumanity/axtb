@@ -11,7 +11,7 @@ use crate::molecule::Molecule;
 use crate::xtb::{check_scf_options, ChargeDependentTerm, ScfGuess, ScfOptions, SinglePoint, XtbModel};
 use crate::{Error, Result};
 use crate::{Method, Options};
-use rayon::prelude::*;
+use axtb_base::fd;
 use std::sync::Arc;
 
 /// A nuclear Hessian.
@@ -231,7 +231,7 @@ impl Calculator {
                 };
             let st = st.expect("state");
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
-            let (h, dipd, t) = match opts.method {
+            let (mut h, dipd, t) = match opts.method {
                 HessianMethod::Response => {
                     let step = opts.step.unwrap_or(5e-4);
                     crate::hessian::response_hessian(&self.model, &extra, &self.mol, &st, threads, step)?
@@ -239,8 +239,9 @@ impl Calculator {
                 _ => crate::analytic::analytic_hessian(&self.model, &extra, &self.mol, &st, threads)?,
             };
             timings.extend(t);
+            let max_asymmetry = fd::symmetrize(&mut h, 3 * self.mol.nat());
             let guess = reference.guess();
-            Ok((finish(reference, h, dipd, opts.method, timings), guess))
+            Ok((finish(reference, h, max_asymmetry, dipd, opts.method, timings), guess))
         };
         let (res, guess) = self.in_pool(run)?;
         self.guess = Some(guess);
@@ -248,9 +249,11 @@ impl Calculator {
     }
 
     /// Semi-numerical Hessian from central differences of analytic gradients
-    /// (step in bohr; 0.005 is a good default). The SCF of every displacement is converged
-    /// to `accuracy` (default 0.01 when `None`) starting from the reference wavefunction.
-    /// Every SCF, the reference's too, runs sequentially, the displacements in parallel.
+    /// (step in bohr; 0.005 is a good default), [`fd::numerical_hessian`] with every atom moved
+    /// forward by the step and back by twice the step. The SCF of every displacement is
+    /// converged to `accuracy` (default 0.01 when `None`) starting from the reference
+    /// wavefunction. Every SCF, the reference's too, runs sequentially, the displacements in
+    /// parallel.
     fn numerical_hessian(&mut self, step: f64, accuracy: Option<f64>) -> Result<Hessian> {
         let mut scf = self.scf_options();
         scf.accuracy = accuracy.unwrap_or(0.01).min(scf.accuracy);
@@ -259,63 +262,38 @@ impl Calculator {
         let reference = self.in_pool(|| self.run(&self.mol, &scf, self.guess.as_ref(), true))?;
         let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
         let guess = reference.guess();
-        let n3 = 3 * self.mol.nat();
-        let column = |idx: usize| -> Result<(Vec<f64>, [f64; 3])> {
-            let (atom, dir) = (idx / 3, idx % 3);
+        let point = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
             let mut mol = self.mol.clone();
-            mol.positions[atom][dir] += step;
-            let rp = self.run(&mol, &scf, Some(&guess), true)?;
-            mol.positions[atom][dir] -= 2.0 * step;
-            let rm = self.run(&mol, &scf, Some(&guess), true)?;
-            let (gp, gm) = (rp.gradient.unwrap(), rm.gradient.unwrap());
-            let dmu = [0, 1, 2].map(|k| (rp.dipole[k] - rm.dipole[k]) / (2.0 * step));
-            Ok(((0..n3).map(|j| (gp[j / 3][j % 3] - gm[j / 3][j % 3]) / (2.0 * step)).collect(), dmu))
+            mol.positions.copy_from_slice(x);
+            let r = self.run(&mol, &scf, Some(&guess), true)?;
+            Ok((r.gradient.unwrap(), r.dipole))
         };
         let t0 = std::time::Instant::now();
-        let cols: Vec<Result<(Vec<f64>, [f64; 3])>> = if self.pool.is_some() {
-            self.in_pool(|| (0..n3).into_par_iter().map(column).collect())
-        } else {
-            (0..n3).map(column).collect()
-        };
-        let mut h = vec![0.0; n3 * n3];
-        let mut dipd = Vec::with_capacity(n3);
-        for (i, col) in cols.into_iter().enumerate() {
-            let (col, dmu) = col?;
-            for j in 0..n3 {
-                h[j * n3 + i] = col[j];
-            }
-            dipd.push(dmu);
-        }
+        let parallel = self.pool.is_some();
+        let nh = self.in_pool(|| {
+            fd::numerical_hessian(&self.mol.positions, step, fd::Displacement::ForwardBack, parallel, point)
+        })?;
         timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
         self.guess = Some(guess);
-        Ok(finish(reference, h, Some(dipd), HessianMethod::Numerical, timings))
+        let dipd = Some(nh.dipole_derivatives);
+        Ok(finish(reference, nh.hessian, nh.max_asymmetry, dipd, HessianMethod::Numerical, timings))
     }
 }
 
-/// Symmetrize and package a Hessian.
+/// Package a symmetrized Hessian `h` ([`fd::symmetrize`]; `max_asymmetry` from before).
 fn finish(
     reference: SinglePoint,
-    mut h: Vec<f64>,
+    h: Vec<f64>,
+    max_asymmetry: f64,
     dipole_derivatives: Option<Vec<[f64; 3]>>,
     method: HessianMethod,
     timings: Vec<(&'static str, f64)>,
 ) -> Hessian {
-    let n3 = 3 * reference.qat.len();
-    let mut max_asym: f64 = 0.0;
-    for i in 0..n3 {
-        for j in 0..i {
-            let (a, b) = (h[i * n3 + j], h[j * n3 + i]);
-            max_asym = max_asym.max((a - b).abs());
-            let m = 0.5 * (a + b);
-            h[i * n3 + j] = m;
-            h[j * n3 + i] = m;
-        }
-    }
     Hessian {
         energy: reference.energy,
         gradient: reference.gradient.unwrap(),
         hessian: h,
-        max_asymmetry: max_asym,
+        max_asymmetry,
         dipole_derivatives,
         method,
         timings,
