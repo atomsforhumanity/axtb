@@ -25,7 +25,8 @@ tblite (https://github.com/tblite/tblite), LGPL-3.0-or-later
 
 dftd4 (https://github.com/dftd4/dftd4), LGPL-3.0-or-later
   The DFT-D4 model of dftd4 4.3.1 and its reference tables (src/dftd4/reference.inc,
-  src/dftd4/data) in crates/d4; the revD4 tables that g-xTB shares with it.
+  src/dftd4/data) in crates/d4, which GFN-FF's dispersion (crates/gfnff) uses too; the revD4
+  tables that g-xTB shares with it.
 
 simple-dftd3 (https://github.com/dftd3/simple-dftd3), LGPL-3.0-or-later
   Five test structures in tests/structures (tests/structures/README.md).

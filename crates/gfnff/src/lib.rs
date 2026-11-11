@@ -30,8 +30,6 @@ mod calculator;
 mod cells;
 mod cn;
 mod conventions;
-#[cfg(test)]
-mod d4_copy_tests;
 #[rustfmt::skip] // parameter tables keep their compact layout
 mod data;
 mod energy;

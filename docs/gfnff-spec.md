@@ -24,7 +24,9 @@ the xtb 6.7.1 binary (26dd68d, Intel Fortran ifort, `-r8`, MKL) and the official
 binary (4b8c987, Intel ifx from oneAPI 2025, MKL). Where the source and the binary could differ (compiler-dependent rounding), the
 binary was followed; the only such case is the Intel inlining of `NORM2` (§7). Parameter
 tables are generated, not typed: `crates/gfnff/scripts/gen_data.py <xtb source> src/data.rs`
-reads `gfnff_param.f90`, `gfnff_rab.f`, `gdisp0.f90` and `include/param_ref.fh`.
+reads `gfnff_param.f90`, `gfnff_rab.f` and `gfnff_ini.f90`, and checks that xtb's copies of
+data other crates hold (`covalentradd3.f90`, `sqrtzr4r2.f90`, `include/param_ref.fh`) equal
+them (§3).
 
 **Scope.** Molecules (no periodic boundary conditions), gas phase (no GBSA/ALPB), no
 external field. Everything xtb does for a molecule with `--gfnff` is there, including the
@@ -51,7 +53,7 @@ constants, projection, and the GFN-FF frequency scale 1.03 of xtb's thermochemis
 
 | Rust (`crates/gfnff/src`) | Fortran (`src/gfnff`) | Content |
 |---|---|---|
-| `data.rs` (generated) | `gfnff_param.f90`, `gfnff_rab.f`, `include/param_ref.fh` | element parameters (§3) |
+| `data.rs` (generated) | `gfnff_param.f90`, `gfnff_rab.f`, `gfnff_ini.f90` | element parameters (§3) |
 | `param.rs` | `gfnff_param.f90` (`newGFNFFGenerator`, `gfnff_set_param`, `gfnff_thresholds`), `gfnff_rab.f` | global constants, derived parameters, cutoffs |
 | `setup.rs`, `setup_util.rs` | `gfnff_ini.f90`, `gfnff_ini2.F90`, `getring36.f90`, `mrec.f90`, `gfnff_qm.f90` | topology (§4) |
 | `topology.rs` | `topology.f90` (`TGFFTopology`), `neighbor.f90` (`TNeigh`) | the topology data |
@@ -76,9 +78,15 @@ Every module is crate-private. The public API is `Calculator` (`new`, `singlepoi
 repulsion (`repa`, `repan`, `repz`), angle (`angl`, `angl2`), torsion (`tors`, `tors2`),
 Pauling EN, radii (`rad`), metal and group classification, CN normalization, the bond-length
 model of `gfnffrab` (`rab_r0`, `rab_en`, `rab_cnfak`; the copies in `gfnffrab` and
-`gfnffdrab` were checked to be identical), D3/D4 data (`covrad_d3`, `r4_over_r2`, D4
-reference CNs, polarizabilities `alphaiw`, scaling, `refsys`, `hcount`, `sscale`, `secaiw`,
-`zeta` charge-scaling constants). xtb's D4 reference count is 0 for Z = 87-111 and kept so.
+`gfnffdrab` were checked to be identical) and the `zeta` charge-scaling constants. The D3/D4
+data that xtb copies from other libraries come from the workspace crates that hold them: the
+covalent radii of `covalentRadD3` are mctc-lib's (`axtb_base::elements`), the D4 reference
+systems (reference CNs, polarizabilities `alphaiw`, `ascale`, `refsys`, `hcount`, `sscale`,
+`secaiw`), their Casimir-Polder integration to C6 and `r4_over_r2` are dftd4's (`axtb-d4`),
+with the gaps of xtb's tables applied to them: no reference systems for Z = 87-111 (so the
+C6 of Fr-Lr is zero) and `r4_over_r2` = 0 for Z = 95-111. `r4_over_r2` enters only together
+with a pair's C6, so its zeros change no result; they are kept to keep xtb's parameters. The
+generator checks every one of these values against xtb's source.
 `param.rs::Gen` is `newGFNFFGenerator` (all global constants: `cnmax`, `linthr`, `fcthr`,
 `tdist_thr`, `rqshrink`, `hqpi`, `hbacut`, `xbacut`, the bond/angle/torsion scaling
 factors, ...), `Param::new` is `gfnff_set_param` (HB/XB acidity and basicity tables,

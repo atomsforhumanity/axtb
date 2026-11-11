@@ -18,6 +18,7 @@ use crate::real::{erf, V3};
 use crate::setup_util::jth_nb;
 use crate::terms::{self, BondPar, HbPar};
 use crate::topology::Topology;
+use axtb_d4::data::{MAX_REF, NFREQ};
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -58,8 +59,10 @@ impl Energies {
     }
 }
 
-/// D3-type dispersion model of GFN-FF (`newD3Model`): D4 reference polarizabilities without
-/// charge scaling, integrated to C6 per reference pair.
+/// D3-type dispersion model of GFN-FF (`newD3Model`): dftd4's reference polarizabilities
+/// without charge scaling, integrated to C6 per reference pair. The reference data and the
+/// Casimir-Polder integration are axtb-d4's (dftd4 4.3.1, the tables xtb carries in
+/// `include/param_ref.fh`), with xtb's gap: no references for Fr-Rg (`d4_nref`).
 #[derive(Clone, Debug)]
 pub struct DispModel {
     /// per element (Z-1): reference CNs
@@ -68,20 +71,15 @@ pub struct DispModel {
     pub c6: std::collections::HashMap<(usize, usize), Vec<f64>>,
 }
 
-/// `trapzd` of xtb's D4 code: Casimir-Polder integration weights.
-fn trapzd_weights() -> [f64; 23] {
-    let freq: [f64; 23] = [
-        0.000001, 0.050000, 0.100000, 0.200000, 0.300000, 0.400000, 0.500000, 0.600000, 0.700000, 0.800000, 0.900000,
-        1.000000, 1.200000, 1.400000, 1.600000, 1.800000, 2.000000, 2.500000, 3.000000, 4.000000, 5.000000, 7.500000,
-        10.00000,
-    ];
-    let mut w = [0.0; 23];
-    w[0] = 0.5 * (freq[1] - freq[0]);
-    for k in 1..22 {
-        w[k] = 0.5 * ((freq[k] - freq[k - 1]) + (freq[k + 1] - freq[k]));
+/// Number of D4 reference systems of element `z` in xtb's GFN-FF: dftd4's, except none for
+/// Fr-Rg (Z = 87-111), which xtb's tables leave empty (dftd4 4.3.1 has references there; of
+/// these elements GFN-FF takes Fr-Lr, whose C6 is therefore zero).
+fn d4_nref(z: usize) -> usize {
+    if (87..=111).contains(&z) {
+        0
+    } else {
+        axtb_d4::data::REFN[z - 1] as usize
     }
-    w[22] = 0.5 * (freq[22] - freq[21]);
-    w
 }
 
 impl DispModel {
@@ -89,44 +87,25 @@ impl DispModel {
         let mut zs: Vec<usize> = numbers.to_vec();
         zs.sort_unstable();
         zs.dedup();
-        let thopi = 3.0 / param::PI;
-        let w = trapzd_weights();
-        let mut alpha: std::collections::HashMap<usize, Vec<[f64; 23]>> = std::collections::HashMap::new();
+        let nref: Vec<usize> = zs.iter().map(|&z| d4_nref(z)).collect();
+        let alpha: Vec<[[f64; NFREQ]; MAX_REF]> = zs
+            .iter()
+            .zip(&nref)
+            .map(|(&z, &n)| if n > 0 { axtb_d4::reference_alpha(z, |_, _| 1.0) } else { [[0.0; NFREQ]; MAX_REF] })
+            .collect();
         let mut refcn = vec![Vec::new(); 118];
-        for &z in &zs {
-            let ia = z - 1;
-            let nref = data::D4_REFN[ia];
-            let mut al = Vec::with_capacity(nref);
-            for j in 0..nref {
-                let is = data::D4_REFSYS[ia][j] - 1;
-                let mut a = [0.0; 23];
-                for f in 0..23 {
-                    let sec = data::D4_SSCALE[is] * data::D4_SECAIW[is][f];
-                    a[f] =
-                        (data::D4_ASCALE[ia][j] * (data::D4_ALPHAIW[ia][j][f] - data::D4_HCOUNT[ia][j] * sec)).max(0.0);
-                }
-                al.push(a);
-                refcn[ia].push(data::D4_REFCN[ia][j]);
-            }
-            alpha.insert(z, al);
+        for (&z, &n) in zs.iter().zip(&nref) {
+            refcn[z - 1] = axtb_d4::data::REFCN[z - 1][..n].to_vec();
         }
+        // the species ascend in Z, so each product is formed with the larger element first, as
+        // in xtb
+        let c6ref = axtb_d4::reference_c6_table(&nref, &alpha);
+        let nsp = zs.len();
         let mut c6 = std::collections::HashMap::new();
-        for &zi in &zs {
-            for &zj in &zs {
-                let ai = &alpha[&zi];
-                let aj = &alpha[&zj];
-                let mut tab = vec![0.0; ai.len() * aj.len()];
-                for ii in 0..ai.len() {
-                    for jj in 0..aj.len() {
-                        // xtb integrates with the larger element first; the product commutes
-                        let (p, q) = if zi >= zj { (&ai[ii], &aj[jj]) } else { (&aj[jj], &ai[ii]) };
-                        let mut s = 0.0;
-                        for f in 0..23 {
-                            s += p[f] * q[f] * w[f];
-                        }
-                        tab[ii * aj.len() + jj] = thopi * s;
-                    }
-                }
+        for (isp, &zi) in zs.iter().enumerate() {
+            for (jsp, &zj) in zs.iter().enumerate() {
+                let block = &c6ref[isp * nsp + jsp];
+                let tab: Vec<f64> = (0..nref[isp]).flat_map(|ii| block[ii][..nref[jsp]].iter().copied()).collect();
                 c6.insert((zi, zj), tab);
             }
         }
