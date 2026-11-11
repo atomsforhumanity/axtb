@@ -22,8 +22,9 @@ ROOT = Path(__file__).resolve().parents[1]
 S = ROOT / "tests/structures"
 R2 = ROOT / "crates/gxtb/tests/reference_v2"
 BOHR = 0.529177210544
-SYMBOLS = ["X", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
-           "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"]
+SYMBOLS = ("X H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn Ga Ge As Se Br Kr "
+           "Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce Pr Nd Pm Sm Eu Gd Tb Dy Ho Er Tm Yb Lu "
+           "Hf Ta W Re Os Ir Pt Au Hg Tl Pb Bi Po At Rn").split()
 TIMING = {"timings", "hessian_timings", "seconds"}
 # a run-time LAPACK for the eigensolver path through the library (optional)
 MKL = os.environ.get("AXTB_GOLDEN_LAPACK", "/usr/lib/x86_64-linux-gnu/libmkl_rt.so")
@@ -43,6 +44,8 @@ def mol(path: Path, charge=0.0, uhf=None):
 WATER, CAFF, TAXOL = S / "water.xyz", S / "caffeine.xyz", S / "taxol.xyz"
 W100, W333, C50 = S / "large/water100.xyz", S / "large/water333.xyz", S / "large/c50h102.xyz"
 O2, CU, FC = R2 / "reference/dioxygen_triplet/mol.xyz", S / "cu-nh3-4.xyz", S / "ferrocene.xyz"
+BENI, CF3BR, TYR, IL, GH106, MB33, ZNCL4 = (S / f for f in ("beni-acetone.xyz", "cf3br-benzene.xyz", "tyr-xab.xyz",
+                                         "s229-cl.xyz", "gh106.xyz", "mb33.xyz", "zncl4.xyz"))
 
 
 def corpus():
@@ -75,6 +78,14 @@ def corpus():
     add("gfn2-caffeine-hessian-xtb", caf, method="gfn2", hessian=True, conventions="xtb")
     add("gfn2-water-hessian-numerical", w, method="gfn2", hessian=True, hessian_method="numerical")
     add("gfn2-caffeine-hessian-alpb", caf, method="gfn2", hessian=True, alpb="water")
+    add("gfn2-caffeine-hessian-gbsa", caf, method="gfn2", hessian=True, gbsa="water")
+    add("gfn2-caffeine-hessian-alpb-xtb671", caf, method="gfn2", hessian=True, alpb="water", conventions="xtb671")
+    add("gfn2-caffeine-hessian-tblite", caf, method="gfn2", hessian=True, conventions="tblite")
+    add("gfn2-taxol-hessian-t4", tax, method="gfn2", hessian=True, threads=4)
+    add("gfn2-gh106-grad", mol(GH106), method="gfn2", gradient=True)
+    add("gfn2-zncl4-dianion-grad", mol(ZNCL4, -2.0), method="gfn2", gradient=True)
+    add("gfn2-beni-acetone-grad", mol(BENI), method="gfn2", gradient=True)
+    add("gfn2-water-guess-sad", w, method="gfn2", guess="sad")
     add("gfn2-water-molden", w, method="gfn2", molden=True)
     add("gfn2-caffeine-bond-orders", caf, method="gfn2", bond_orders=True)
     # g-xTB 2.0.1
@@ -96,11 +107,15 @@ def corpus():
     add("gxtb2-water-composite-hessian", w, method="gxtb-v2.0.1", hessian=True, alpb="water", solvation_correction="gfn2")
     add("gxtb2-water-molden", w, method="gxtb-v2.0.1", molden=True)
     add("gxtb2-caffeine-bond-orders", caf, method="gxtb-v2.0.1", bond_orders=True)
+    add("gxtb2-mb33-grad", mol(MB33), method="gxtb-v2.0.1", gradient=True)
+    add("gxtb2-beni-acetone-hessian", mol(BENI), method="gxtb-v2.0.1", hessian=True)
     # g-xTB v1.1
     for conv in ("axtb", "gxtb"):
         add(f"gxtb11-caffeine-grad-{conv}", caf, method="gxtb-v1.1", conventions=conv, gradient=True)
     add("gxtb11-cu-doublet-grad", cu, method="gxtb-v1.1", gradient=True)
     add("gxtb11-water-hessian", w, method="gxtb-v1.1", hessian=True)
+    add("gxtb11-water-hessian-gxtb", w, method="gxtb-v1.1", hessian=True, conventions="gxtb")
+    add("gxtb11-caffeine-etemp", caf, method="gxtb-v1.1", gradient=True, etemp=3000.0)
     # GFN-FF
     for conv in ("axtb", "xtb", "xtb671"):
         add(f"gfnff-caffeine-grad-{conv}", caf, method="gfnff", conventions=conv, gradient=True)
@@ -108,6 +123,14 @@ def corpus():
     add("gfnff-water333-grad-t4", mol(W333), method="gfnff", gradient=True, threads=4)
     add("gfnff-caffeine-hessian", caf, method="gfnff", hessian=True)
     add("gfnff-ferrocene-grad", mol(FC), method="gfnff", gradient=True)
+    # GFN-FF Hessians with hydrogen bonds and halogen bonds, in each conventions
+    for conv in ("axtb", "xtb", "xtb671"):
+        add(f"gfnff-beni-acetone-hessian-{conv}", mol(BENI), method="gfnff", conventions=conv, hessian=True)
+        add(f"gfnff-tyr-hessian-{conv}", mol(TYR), method="gfnff", conventions=conv, hessian=True)
+    add("gfnff-cf3br-benzene-hessian-xtb671", mol(CF3BR), method="gfnff", conventions="xtb671", hessian=True)
+    add("gfnff-water100-hessian", mol(W100), method="gfnff", hessian=True)
+    add("gfnff-il-pair-grad", mol(IL), method="gfnff", gradient=True)
+    add("gfnff-caffeine-topology-ref", caf, method="gfnff", gradient=True, topology_positions=caf["positions"])
     # vibrational analysis of a given Hessian (identity-like test matrix of water)
     add("analysis-water", {k: w[k] for k in ("numbers", "positions")},
         analyze_hessian=[[0.5 if i == j else 0.01 for j in range(9)] for i in range(9)])
