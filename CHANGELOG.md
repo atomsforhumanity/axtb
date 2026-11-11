@@ -3,7 +3,7 @@
 All notable changes to axtb. Versions follow [Semantic Versioning](https://semver.org); the
 Rust crates, the CLI and the Python package share one version.
 
-## 0.1.1 (unreleased)
+## 0.1.1 (2026-11-10)
 
 - The minimum supported Rust is 1.89 for every crate (`rust-version`; 0.1.0 declared 1.99, which
   made Cargo refuse the crates in projects that support older compilers). CI checks the build on
