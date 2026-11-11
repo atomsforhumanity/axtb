@@ -16,6 +16,9 @@ g-xTB 2.0.1 build (`--xtb "$AXTB_GXTB2"`).
 
 The default output name carries the xtb version: `xtb_gfn2_hess_acc.json` is the 6.7.1 record
 (the g-xTB 2.0.1 build), `xtb_gfn2_hess_acc_6.8.0.json` xtb 6.8.0's.
+
+The script fails (exit status 1) when an xtb Hessian is further from axtb's analytic one than its
+limit in `LIMITS` (tests/gate.py), or the comparison fails.
 """
 from __future__ import annotations
 
@@ -33,7 +36,15 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests/reference_matrix"))
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# max |H_xtb - H_analytic| (Eh/bohr^2) per setting, xtb's finite-difference error, as
+# docs/validation.md (Hessians) quotes it for each version
+LIMITS = {
+    "6.8": {"--acc 1.0": 1.3e-3, "--acc 0.001": 3.7e-5, "$hess sccacc=0.001 (xcontrol)": 3.7e-5, "no accuracy setting": 2.7e-4},
+    "6.7": {"--acc 1.0": 2.2e-4, "--acc 0.001": 2.2e-4, "$hess sccacc=0.001 (xcontrol)": 3.7e-5, "no accuracy setting": 2.2e-4},
+}
 
 
 def run(xtb: str, xyz: Path, extra: list[str], xcontrol: str | None = None):
@@ -106,7 +117,10 @@ def main() -> int:
                                "rows": rows, "load_average": [round(x, 2) for x in os.getloadavg()]}, indent=1) + "\n")
     print(json.dumps(rows, indent=1))
     print("wrote", out)
-    return 0
+    limits = LIMITS[version[:3]]
+    # None (a failure) without the analytic comparison
+    summary = {"--acc 1.0": ref_vs_analytic} | {r["setting"]: r.get("max_dH_vs_analytic") for r in rows}
+    return gate.check(summary, limits)
 
 
 if __name__ == "__main__":

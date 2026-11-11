@@ -15,6 +15,9 @@ tests/structures, split into fragments by connectivity; 2 % uniform expansions o
 molecules), so that the default-vs-program differences of energy differences are visible.
 
     python tests/gxtb2_reproduction.py [--axtb target/release/axtb] [--out bench/results/gxtb2_reproduction.json]
+
+The script fails (exit status 1) when a quantity exceeds its limit in `LIMITS` (tests/gate.py)
+or a molecule fails.
 """
 
 from __future__ import annotations
@@ -27,9 +30,31 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import gate
+
 ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "crates/gxtb/tests/reference_v2"
 METHOD = "gxtb-v2.0.1"
+# docs/gxtb-v2.0.1-spec.md, "Reproduction" and "Default vs program conventions" (also
+# docs/validation.md, Summary). Program conventions: total energies <= 1.8e-12 Eh for 83
+# molecules, 9.1e-12 for (H2O)100 (1.2e-15 relative); the same SCF iterations at the default and
+# tight thresholds (TmH3's tight SCF fails in both); per-term energies <= 9.1e-12 Eh, TbCl3
+# 2.6e-11 (a near-degenerate HOMO set carries the program's fractional electron count, so the
+# terms of the last, unconverged density follow the round-off); gradients <= 2e-11 Eh/bohr
+# (default) and <= 6e-11 (tight), CeCl3 tight 4.0e-9 (seven near-degenerate f orbitals, where
+# the summation order of the density alone moves it by up to 6e-8). Default conventions: <= 8.7e-10
+# Eh for the 82 small molecules with the same iterations, C50H102 5.3e-8, (H2O)100 1.9e-6 (the
+# revD4 three-body tail); in energy differences, bindings <= 1.7e-11 Eh, 2 % expansions <= 8.7e-10,
+# C50H102's 2.3e-8.
+LIMITS = {
+    "failures": 0, "max_abs_dE": 1.8e-12, "max_abs_dE water100": 9.1e-12, "iteration_mismatches": 0,
+    "tight_iteration_mismatches": 0, "tight_scf_failure_mismatches": 0, "max_dterm": 9.1e-12, "max_dterm TbCl3": 2.6e-11,
+    "max_dgrad_default": 2e-11, "max_dgrad_tight": 6e-11, "max_dgrad_tight CeCl3": 4.0e-9,
+    "max_abs_dE_default": 8.7e-10, "max_abs_dE_default c50h102": 5.3e-8, "max_abs_dE_default water100": 1.9e-6,
+    "default_iteration_mismatches": 0, "binding default-program": 1.7e-11, "expansion default-program": 8.7e-10,
+    "expansion default-program c50h102": 2.3e-8,
+}
+LARGE = {"water100", "c50h102"}  # the two molecules longer than 50 bohr
 # program term name -> axtb CLI term name
 TERMS = {"first_order": "first_order", "second_order": "second_order", "third_order": "third_order",
          "fourth_order": "fourth_order", "aes": "es_multipole", "exchange": "exchange", "spin": "spin_polarization",
@@ -203,7 +228,43 @@ def main() -> int:
                                  "summary": summary, "rows": rows, "energy_differences": diffs}, indent=1))
     print(json.dumps(summary, indent=1))
     print("wrote", a.out)
-    return 0
+    return check(rows, diffs)
+
+
+def check(rows: list[dict], diffs: list[dict]) -> int:
+    """The gate (tests/gate.py): the molecules of `LIMITS` with their own limits, the rest together."""
+    ok = [r for r in rows if not r["error"]]
+
+    def worst(key, keep=lambda r: True):
+        return max((abs(r[key]) for r in ok if key in r and keep(r)), default=None)
+
+    def one(key, molecule):
+        return worst(key, lambda r: r["molecule"] == molecule)
+
+    expansion = [d for d in diffs if "expansion" in d["quantity"]]
+    summary = {
+        "failures": [r["molecule"] for r in rows if r["error"]],
+        "max_abs_dE": worst("dE", lambda r: r["molecule"] != "water100"), "max_abs_dE water100": one("dE", "water100"),
+        "iteration_mismatches": [r["molecule"] for r in ok if r["iter_axtb"] != r["iter_program"]],
+        "tight_iteration_mismatches": [r["molecule"] for r in ok if "iter_axtb_tight" in r
+                                       and r["iter_axtb_tight"] != r["iter_program_tight"]],
+        "tight_scf_failure_mismatches": [r["molecule"] for r in ok if r.get("tight", "").startswith("program tight SCF fails")],
+        "max_dterm": worst("max_dterm", lambda r: r["molecule"] != "TbCl3"), "max_dterm TbCl3": one("max_dterm", "TbCl3"),
+        "max_dgrad_default": worst("max_dgrad_default"),
+        "max_dgrad_tight": worst("max_dgrad_tight", lambda r: r["molecule"] != "CeCl3"),
+        "max_dgrad_tight CeCl3": one("max_dgrad_tight", "CeCl3"),
+        "max_abs_dE_default": worst("dE_default", lambda r: r["molecule"] not in LARGE),
+        "max_abs_dE_default c50h102": one("dE_default", "c50h102"),
+        "max_abs_dE_default water100": one("dE_default", "water100"),
+        "default_iteration_mismatches": [r["molecule"] for r in ok if r["iter_default"] != r["iter_program"]],
+        "binding default-program": max((abs(d["default_minus_program_Eh"]) for d in diffs if "binding" in d["quantity"]),
+                                       default=None),
+        "expansion default-program": max((abs(d["default_minus_program_Eh"]) for d in expansion
+                                          if not d["quantity"].startswith("c50h102")), default=None),
+        "expansion default-program c50h102": max((abs(d["default_minus_program_Eh"]) for d in expansion
+                                                  if d["quantity"].startswith("c50h102")), default=None),
+    }
+    return gate.check(summary, LIMITS)
 
 
 if __name__ == "__main__":

@@ -61,7 +61,35 @@ STRUCT = ROOT / "tests/structures"
 REF2 = ROOT / "crates/gxtb/tests/reference_v2"
 REF11 = ROOT / "crates/gxtb/tests/reference"
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# The gate (tests/gate.py), per program (gfn2: xtb 6.7.1, the g-xTB build, at the default
+# accuracy; "gfn2 acc 1e-4": both at 1e-4), the larger of axtb's spherical and Cartesian files:
+# docs/validation.md (Molden files) for 1 - |<i|i>| (non-degenerate orbitals and degenerate
+# blocks), the occupied space, the orbital energies (Eh), the orthonormality of axtb's files and
+# mepd's HOMO; chosen about 10x the measured values: the orbitals' values at the random points
+# (gfn2 1.5e-7, gxtb2 2.3e-8, gxtb11 8.7e-7, UF6 with g-xTB 1.1.0 5.3e-4) and the occupations
+# (g-xTB 2.0.1 7e-10, the others 0), and the program files' orthonormality (5.5e-11, as axtb's).
+LIMITS = {
+    "orthonormality axtb": 6e-11, "orthonormality program": 6e-11,
+    "gxtb2 1-|<i|i>|": 1.1e-9, "gxtb2 occupied space": 6.5e-11, "gxtb2 orbital energies": 3.3e-12,
+    "gxtb2 values": 3e-7, "gxtb2 occupations": 7e-9, "gxtb2 mepd HOMO": 2.2e-7,
+    "gxtb11 1-|<i|i>|": 6.1e-11, "gxtb11 occupied space": 6.5e-11, "gxtb11 orbital energies": 6.4e-8,
+    "gxtb11 values": 1e-5, "gxtb11 occupations": 1e-9,
+    "gxtb11 UF6 1-|<i|i>|": 1.1e-7, "gxtb11 UF6 occupied space": 1.1e-10, "gxtb11 UF6 orbital energies": 8.6e-6,
+    "gxtb11 UF6 values": 5e-3, "gxtb11 UF6 occupations": 1e-9,
+    "gfn2 1-|<i|i>|": 1.1e-10, "gfn2 occupied space": 2.9e-11, "gfn2 orbital energies": 3.0e-10,
+    "gfn2 values": 2e-6, "gfn2 occupations": 1e-9, "gfn2 mepd HOMO": 7e-7,
+    "gfn2 acc 1e-4 1-|<i|i>|": 1.0e-10, "gfn2 acc 1e-4 occupied space": 1.7e-11, "gfn2 acc 1e-4 orbital energies": 7.0e-10,
+    "gfn2 acc 1e-4 values": 2e-6, "gfn2 acc 1e-4 occupations": 1e-9, "gfn2 acc 1e-4 mepd HOMO": 6e-7,
+}
+KNOWN_DIFFERENCES = {
+    "gxtb11/UF6-axtb-acc1e-3": "a diagnosis of gxtb11/UF6 (axtb at SCF accuracy 1e-3): its v1.1 SCF takes 40 "
+                               "iterations where the 1.1.0 program takes 50, since which subspace of an exactly "
+                               "degenerate set each eigensolver returns in iteration 2 is round-off "
+                               "(docs/validation.md, Molden files); only the orthonormality is gated",
+}
 
 XTB = programs.get(programs.GXTB2)  # GFN2-xTB and g-xTB 2.0.1
 GXTB11_DIR = programs.gxtb11_dir()
@@ -562,7 +590,32 @@ def main():
     if args.out and not args.only:
         Path(args.out).write_text(json.dumps(results, indent=1) + "\n")
         print(f"wrote {args.out}")
+    return check(results)
+
+
+def check(results: list[dict]) -> int:
+    """The gate (tests/gate.py) over the cases that ran."""
+    summary: dict[str, float] = {}
+
+    def worst(name, value):
+        summary[name] = max(summary.get(name, 0.0), value)
+
+    for r in results:
+        worst("orthonormality axtb", max(r["orthonormal_axtb_spherical"], r["orthonormal_axtb_cartesian"]))
+        worst("orthonormality program", r["orthonormal_program"])
+        if r["case"] in KNOWN_DIFFERENCES:
+            continue
+        group = ("gxtb11 UF6" if r["case"] == "gxtb11/UF6" else "gfn2 acc 1e-4" if r["program"] == "gfn2" and r["accuracy"] != 1.0
+                 else r["program"])
+        for v in (r["vs_program_spherical"], r["vs_program_cartesian"]):
+            worst(f"{group} 1-|<i|i>|", max(v["nondegenerate"], v["degenerate_blocks"]))
+            for q, key in (("occupied space", "occupied_space"), ("orbital energies", "energy"), ("values", "values"),
+                           ("occupations", "occupation")):
+                worst(f"{group} {q}", v[key])
+        if "mepd_homo" in r:
+            worst(f"{group} mepd HOMO", r["mepd_homo"]["max_diff_rel"])
+    return gate.check(summary, LIMITS, {c: why for c, why in KNOWN_DIFFERENCES.items() if any(r["case"] == c for r in results)})
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

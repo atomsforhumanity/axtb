@@ -6,6 +6,9 @@ Usage: python tests/validate_tblite.py [--nodisp] [--acc 1e-4] [structure.xyz ..
 tblite (PyPI wheel) is only a reference here; axtb never links or calls it. Both programs
 receive the same bohr coordinates. With --nodisp, tblite's GFN2 parameter set is exported
 with the dispersion section removed, which isolates everything except D4.
+
+The script fails (exit status 1) when an energy differs by more than `LIMITS` allows
+(tests/gate.py) or a structure fails.
 """
 
 from __future__ import annotations
@@ -19,9 +22,17 @@ from pathlib import Path
 
 import numpy as np
 
+import gate
+
 ROOT = Path(__file__).resolve().parents[1]
 AXTB = ROOT / "target/release/axtb"
 AATOAU = 1.0 / 0.529177210903  # any value works: both codes get the same bohr input
+LIMITS = {"max_abs_dE": 1e-7, "failures": 0}  # the README's gate (Checks)
+# the reference failing on a documented case (axtb failing on it still fails the gate)
+KNOWN_DIFFERENCES = {
+    "gh106": "a pathological SCF (tests/structures/README.md: the geometry of tblite issue #106), which tblite 0.8.0 "
+             "does not converge in its 250 cycles",
+}
 
 SYMBOLS = ("H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn "
            "Ga Ge As Se Br Kr Rb Sr Y Zr Nb Mo Tc Ru Rh Pd Ag Cd In Sn Sb Te I Xe Cs Ba La Ce "
@@ -82,7 +93,7 @@ def main() -> int:
     args = ap.parse_args()
     files = args.files or sorted((ROOT / "tests/structures").glob("*.xyz"))
     param = gfn2_param(args.nodisp)
-    worst = 0.0
+    worst, failures, known = 0.0, [], {}
     print(f"{'structure':18s} {'nat':>4s} {'E(tblite)':>18s} {'dE':>10s} {'max|dG|':>10s} {'max|dq|':>10s} {'it':>4s} {'t/s':>7s}")
     for f in files:
         nums, pos, charge = read_xyz(f)
@@ -90,12 +101,16 @@ def main() -> int:
             ref = run_tblite(param, nums, pos, charge, args.acc)
         except Exception as e:  # noqa: BLE001
             print(f"{f.stem:18s} tblite failed: {e}")
+            if f.stem in KNOWN_DIFFERENCES:
+                known[f.stem] = KNOWN_DIFFERENCES[f.stem]
+            else:
+                failures.append(f"{f.stem} (tblite)")
             continue
         try:
             new = run_axtb(nums, pos, charge, args.acc, args.nodisp)
         except Exception as e:  # noqa: BLE001
             print(f"{f.stem:18s} axtb failed: {e}")
-            worst = float("inf")
+            failures.append(f.stem)
             continue
         de = new["energy"] - ref["energy"]
         dg = np.abs(new["gradient"] - ref["gradient"]).max()
@@ -103,8 +118,7 @@ def main() -> int:
         worst = max(worst, abs(de))
         print(f"{f.stem:18s} {len(nums):4d} {ref['energy']:18.10f} {de:10.2e} {dg:10.2e} {dq:10.2e} "
               f"{new['iterations']:4d} {new['seconds']:7.3f}")
-    print(f"worst |dE| = {worst:.2e} Eh")
-    return 0 if worst < 1e-7 else 1
+    return gate.check({"max_abs_dE": worst, "failures": failures}, LIMITS, known)
 
 
 if __name__ == "__main__":

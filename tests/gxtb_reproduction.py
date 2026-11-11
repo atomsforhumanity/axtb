@@ -5,6 +5,9 @@ the program's Fock matrix (conventions "gxtb": E_axtb, dE, iter_axtb) and with t
 (the default conventions "axtb": E_corrected, dE_corrected, iter_corrected).
 
     python tests/gxtb_reproduction.py [--axtb target/release/axtb] [--out bench/results/gxtb_reproduction.json]
+
+The script fails (exit status 1) when a quantity exceeds its limit in `LIMITS` (tests/gate.py)
+or a molecule fails.
 """
 
 from __future__ import annotations
@@ -16,8 +19,14 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+import gate
+
 ROOT = Path(__file__).resolve().parents[1]
 REF = ROOT / "crates/gxtb/tests"
+# program conventions: total energies of the 41 molecules <= 1e-11 Eh, the same SCF iterations
+# (docs/validation.md, Summary); the default conventions differ by up to ~4e-5 Eh, 2.3e-4 for
+# ferrocene (README, g-xTB)
+LIMITS = {"max_abs_dE": 1e-11, "iteration_mismatches": 0, "failures": 0, "max_abs_dE_default": 2.3e-4}
 
 
 def cases():
@@ -60,7 +69,11 @@ def main() -> int:
                   rows[-1]["dE_corrected"], rows[-1]["iter_corrected"], flush=True)
     a.out.write_text(json.dumps({"program": "g-xTB 1.1.0 (grimme-lab/g-xtb v1.1.0)", "rows": rows}, indent=1))
     print("wrote", a.out)
-    return 0
+    ok = [r for r in rows if not r["error"]]
+    return gate.check({"max_abs_dE": max((abs(r["dE"]) for r in ok), default=None),
+                       "iteration_mismatches": [r["molecule"] for r in ok if r["iter_axtb"] != r["iter_program"]],
+                       "failures": [r["molecule"] for r in rows if r["error"]],
+                       "max_abs_dE_default": max((abs(r["dE_corrected"]) for r in ok), default=None)}, LIMITS)
 
 
 if __name__ == "__main__":

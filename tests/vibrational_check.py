@@ -20,8 +20,6 @@ GFN2-xTB, for each molecule:
   compared with the
   program's printout: frequencies and reduced masses (g98.out, 4 decimals), symmetry and
   symmetry number, number of imaginary modes, ZPVE, H(T), T·S, G(RRHO) and G (12 decimals).
-  Gates: frequencies within 0.01 cm⁻¹, thermochemistry within 1e-6 Eh, identical symmetry
-  numbers.
 - **axtb's Hessian**: the analytic Hessian and dipole derivatives (`--conventions xtb`) with
   the analysis in xtb conventions, against the program's frequencies, IR intensities (summed
   over degenerate modes) and thermochemistry; the differences are those of the Hessians
@@ -39,6 +37,9 @@ g-xTB 2.0.1, for each molecule:
 Writes bench/results/vibrational.json for xtb 6.7.x and bench/results/vibrational_6.8.0.json
 for 6.8.0 (`--out`). Environment: AXTB_BIN (release CLI, default target/release/axtb),
 AXTB_SCRATCH (directory for the temporary runs). Every xtb run uses one thread.
+
+The script fails (exit status 1) when a quantity exceeds its limit in `LIMITS` (tests/gate.py),
+or a symmetry number or the number of imaginary modes differs.
 """
 from __future__ import annotations
 
@@ -59,7 +60,36 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 from validate_tblite import read_xyz  # noqa: E402
 from validate_xtb import write_coord  # noqa: E402
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# Per analysis conventions (xtb version); docs/validation.md (Vibrational analysis and
+# thermochemistry): the program's own Hessian through axtb's analysis, frequencies <= 5.0e-5 cm-1
+# (4 printed decimals), thermochemistry (ZPVE, H(T), T·S, G(RRHO), G) <= 1.4e-10 Eh with 6.8.0
+# (the `hessian` file's 10 decimals), 7.7e-11 with 6.7.1, 2.7e-11 for g-xTB, the same point groups
+# and symmetry numbers; `xtb thermo` on axtb's g-xTB Hessian: ZPVE and G(RRHO) <= 8e-12 Eh, H and
+# T·S to its 6 printed decimals; the g-xTB program's IR intensities from axtb's dipole derivatives
+# <= 0.028 km/mol; axtb's own Hessians: GFN2 <= 0.84 cm-1 and 3.2e-5 Eh in G(RRHO) with 6.8.0
+# (0.46 and 2.3e-5 with 6.7.1), g-xTB <= 0.35 cm-1 and 5.2e-6 Eh; `axtb` against `xtb` analysis
+# conventions <= 0.1 cm-1 and 4.0e-6 Eh. Chosen: GFN2 IR intensities from axtb's dipole derivatives
+# on xtb's Hessian at `$hess sccacc=0.001`, relative (docs: 0.07 % for caffeine; measured 0.076 %
+# for the SN2 TS), limit 0.1 %.
+LIMITS = {
+    "xtb": {"GFN2 same Hessian: frequencies": 5.0e-5, "GFN2 same Hessian: thermochemistry": 1.4e-10,
+            "GFN2 same Hessian: symmetry or imaginary modes differ": 0, "GFN2 same Hessian at sccacc=0.001: IR relative": 1e-3,
+            "GFN2 axtb's Hessian: frequencies": 0.84, "GFN2 axtb's Hessian: G(RRHO)": 3.2e-5,
+            "GFN2 axtb vs xtb analysis conventions: frequencies": 0.1, "GFN2 axtb vs xtb analysis conventions: G(RRHO)": 4.0e-6},
+    "xtb-6.7.1": {
+        "GFN2 same Hessian: frequencies": 5.0e-5, "GFN2 same Hessian: thermochemistry": 7.7e-11,
+        "GFN2 same Hessian: symmetry or imaginary modes differ": 0, "GFN2 same Hessian at sccacc=0.001: IR relative": 1e-3,
+        "GFN2 axtb's Hessian: frequencies": 0.46, "GFN2 axtb's Hessian: G(RRHO)": 2.3e-5,
+        "GFN2 axtb vs xtb analysis conventions: frequencies": 0.1, "GFN2 axtb vs xtb analysis conventions: G(RRHO)": 4.0e-6,
+        "g-xTB program Hessian: frequencies": 5.0e-5, "g-xTB program Hessian: thermochemistry": 2.7e-11,
+        "g-xTB program Hessian: IR from axtb's dipole derivatives": 0.028,
+        "g-xTB xtb thermo on axtb's Hessian: ZPVE, G(RRHO)": 8e-12, "g-xTB xtb thermo on axtb's Hessian: H, T·S": 5e-7,
+        "g-xTB symmetry numbers differ": 0, "g-xTB axtb's Hessian vs the program's: frequencies": 0.35,
+        "g-xTB axtb's Hessian vs the program's: G(RRHO)": 5.2e-6},
+}
 
 AXTB = os.environ.get("AXTB_BIN", str(ROOT / "target/release/axtb"))
 XTB = None  # the xtb binary, set from --xtb in main()
@@ -461,38 +491,57 @@ def main() -> int:
         mols["SN2-TS"] = (nums, ts_search(nums, pos, -1), -1, False)
     results = {"gfn2": {}, "gxtb-v2.0.1": {}}
     load_before = [round(x, 2) for x in os.getloadavg()]
-    gates = {"frequency_cm1": 0.01, "thermo_eh": 1e-6}
-    ok = True
+    summary: dict = {}
+
+    def worst(key, value):  # None (modes that do not pair up) fails
+        summary[key] = None if value is None or summary.get(key, 0.0) is None else max(summary.get(key, 0.0), abs(value))
+
+    def differ(key, name, a, b):
+        summary.setdefault(key, [])
+        if a != b:
+            summary[key].append(name)
+
     for name, (nums, pos, charge, linear) in mols.items():
         r = gfn2_case(name, nums, pos, charge)
         results["gfn2"][name] = r
         s = r["same_hessian"]
-        worst = max(abs(v) for v in s["thermo_diff"].values())
-        good = (s["max_frequency_diff"] is not None and s["max_frequency_diff"] <= gates["frequency_cm1"]
-                and worst <= gates["thermo_eh"] and s["symmetry_number"]["xtb"] == s["symmetry_number"]["axtb"]
-                and s["n_imaginary_thermo"]["xtb"] == s["n_imaginary_thermo"]["axtb"])
-        ok &= good
-        print(f"GFN2 {name:9s} same Hessian: dfreq {s['max_frequency_diff']:.1e} cm-1, thermo {worst:.1e} Eh, "
+        thermo = max(abs(v) for v in s["thermo_diff"].values())
+        worst("GFN2 same Hessian: frequencies", s["max_frequency_diff"])
+        worst("GFN2 same Hessian: thermochemistry", thermo)
+        differ("GFN2 same Hessian: symmetry or imaginary modes differ", name,
+               (s["symmetry_number"]["xtb"], s["n_imaginary_thermo"]["xtb"]), (s["symmetry_number"]["axtb"], s["n_imaginary_thermo"]["axtb"]))
+        worst("GFN2 same Hessian at sccacc=0.001: IR relative", s["max_ir_rel_diff_axtb_dipole_derivatives_sccacc_0.001"])
+        worst("GFN2 axtb's Hessian: frequencies", r["axtb_hessian"]["max_frequency_diff"])
+        worst("GFN2 axtb's Hessian: G(RRHO)", r["axtb_hessian"]["thermo_diff"]["g_rrho"])
+        worst("GFN2 axtb vs xtb analysis conventions: frequencies", r["conventions_axtb_minus_xtb"]["max_frequency_diff"])
+        worst("GFN2 axtb vs xtb analysis conventions: G(RRHO)", r["conventions_axtb_minus_xtb"]["g_rrho"])
+        print(f"GFN2 {name:9s} same Hessian: dfreq {s['max_frequency_diff']:.1e} cm-1, thermo {thermo:.1e} Eh, "
               f"sym {s['point_group']['xtb']}/{s['point_group']['axtb']} sigma {s['symmetry_number']['xtb']}/{s['symmetry_number']['axtb']}"
               f" | axtb Hessian: dfreq {r['axtb_hessian']['max_frequency_diff']:.3f} cm-1, IR rel {r['axtb_hessian']['max_ir_rel_diff']:.1e},"
               f" dG(RRHO) {r['axtb_hessian']['thermo_diff']['g_rrho']:+.1e} | axtb-xtb conventions: dfreq "
-              f"{r['conventions_axtb_minus_xtb']['max_frequency_diff']:.3f}, dG(RRHO) {r['conventions_axtb_minus_xtb']['g_rrho']:+.1e}"
-              f" {'ok' if good else 'FAIL'}")
+              f"{r['conventions_axtb_minus_xtb']['max_frequency_diff']:.3f}, dG(RRHO) {r['conventions_axtb_minus_xtb']['g_rrho']:+.1e}")
         if name == "SN2-TS" or CONV != "xtb-6.7.1":
             continue
         g = gxtb_case(name, nums, pos, charge, linear)
         results["gxtb-v2.0.1"][name] = g
         a = g["axtb_hessian_xtb_thermo_vs_axtb_analysis"]
         b = g["program_hessian_analysis_vs_printout"]
+        c = g["axtb_vs_program_hessian"]
         worst_a = max(abs(v) for v in a["thermo_diff"].values())
         worst_b = max(abs(v) for v in b["thermo_diff"].values())
-        good = (worst_a <= gates["thermo_eh"] and worst_b <= gates["thermo_eh"] and b["max_frequency_diff"] <= gates["frequency_cm1"]
-                and a["symmetry_number"]["xtb"] == a["symmetry_number"]["axtb"])
-        ok &= good
+        worst("g-xTB program Hessian: frequencies", b["max_frequency_diff"])
+        worst("g-xTB program Hessian: thermochemistry", worst_b)
+        worst("g-xTB program Hessian: IR from axtb's dipole derivatives", b["max_ir_abs_diff_axtb_dipole_derivatives"])
+        worst("g-xTB xtb thermo on axtb's Hessian: ZPVE, G(RRHO)", max(abs(a["thermo_diff"][k]) for k in ("zpve", "g_rrho")))
+        worst("g-xTB xtb thermo on axtb's Hessian: H, T·S", max(abs(a["thermo_diff"][k]) for k in ("enthalpy", "ts")))
+        differ("g-xTB symmetry numbers differ", name, (a["symmetry_number"]["xtb"], b["symmetry_number"]["xtb"]),
+               (a["symmetry_number"]["axtb"], b["symmetry_number"]["axtb"]))
+        worst("g-xTB axtb's Hessian vs the program's: frequencies", c["max_frequency_diff"])
+        worst("g-xTB axtb's Hessian vs the program's: G(RRHO)", c["g_rrho_diff"])
         print(f"g-xTB {name:8s} xtb thermo on axtb Hessian: {worst_a:.1e} Eh (G(RRHO) {a['g_rrho_xtb_thermo']:.6f}); program Hessian:"
               f" dfreq {b['max_frequency_diff']:.1e}, thermo {worst_b:.1e} Eh | axtb vs program Hessian: dfreq "
-              f"{g['axtb_vs_program_hessian']['max_frequency_diff']:.3f} cm-1, dG(RRHO) {g['axtb_vs_program_hessian']['g_rrho_diff']:+.1e}"
-              f" {'ok' if good else 'FAIL'}")
+              f"{c['max_frequency_diff']:.3f} cm-1, dG(RRHO) {c['g_rrho_diff']:+.1e}")
+    ok = gate.check(summary, LIMITS[CONV]) == 0
     gxtb = " and the g-xTB 2.0.1 program" if CONV == "xtb-6.7.1" else ""
     report = {
         "description": f"axtb vibrational analysis (conventions {CONV}) vs xtb {xtb_version.group(1)} (GFN2-xTB){gxtb}; see tests/vibrational_check.py",
@@ -503,7 +552,7 @@ def main() -> int:
         # 1/5/15-minute load averages before and after the runs
         "load_before": load_before,
         "load_after": [round(x, 2) for x in os.getloadavg()],
-        "gates": gates,
+        "gates": LIMITS[CONV],
         "all_gates_pass": ok,
         "results": results,
     }

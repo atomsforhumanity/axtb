@@ -27,7 +27,8 @@ research project), and the evaluation (the default) runs the axtb CLI on them:
     python tests/gxtb_energy_differences.py [--optimize] [--out bench/results/gxtb_energy_differences.json]
 
 `--optimize` needs qccompute, qccodec[geometric,sella] and the axtb Python package (with its
-qccodec codec) in the interpreter.
+qccodec codec) in the interpreter. The script fails (exit status 1) when the default conventions
+change an energy difference by more than `LIMITS` allows (tests/gate.py).
 """
 
 from __future__ import annotations
@@ -46,9 +47,16 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests/reference_matrix"))
 import structures as S  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
+
 AXTB = os.environ.get("AXTB_BIN", str(ROOT / "target/release/axtb"))
 GEOM = ROOT / "tests/structures/energy_differences"
 VERSIONS = {"v1.1": "gxtb-v1.1", "v2.0.1": "gxtb-v2.0.1"}
+# |default - program conventions| of the energy differences: <= 1.1e-5 Eh for v1.1, whose
+# default conventions diagonalize another Fock matrix, and <= 4e-11 Eh for 2.0.1 (README, g-xTB;
+# docs/gxtb-v1.1-spec.md §4.18, docs/gxtb-v2.0.1-spec.md §12)
+LIMITS = {"v1.1 max_abs_change_Eh": 1.1e-5, "v2.0.1 max_abs_change_Eh": 4e-11}
 HARTREE_KCAL = 627.5094740631
 BOHR_AA = 1.0 / S.AATOAU
 
@@ -374,7 +382,7 @@ def main() -> int:
                                  "optimization": json.loads(opt.read_text()) if opt.exists() else None}
     a.out.write_text(json.dumps(result, indent=1))
     print("wrote", a.out)
-    return 0
+    return gate.check({f"{v} max_abs_change_Eh": r["max_abs_change_Eh"] for v, r in result["versions"].items()}, LIMITS)
 
 
 if __name__ == "__main__":

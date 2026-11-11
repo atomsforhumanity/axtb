@@ -40,7 +40,10 @@ finish, the energy and gradient differences are recorded as well.
     cargo build --release -p axtb-gfnff --examples && cargo build --release -p axtb-cli
     python tests/gfnff_reproduction.py [--part accuracy|hessian|topology|scaling|all] [--xtb XTB] [--out OUT]
 
-The output JSON keeps the other parts of an existing file.
+The output JSON keeps the other parts of an existing file. The accuracy, hessian and topology
+parts fail (exit status 1) when a quantity exceeds its limit in `LIMITS` (tests/gate.py) or a
+structure is not reproduced, except the known differences; with the conventions of another xtb
+version (`--conventions`) the results are a measurement and not gated.
 """
 
 from __future__ import annotations
@@ -64,17 +67,60 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
 import gfnff_structures as GS  # noqa: E402
 import gfnff_xtb as GX  # noqa: E402
+import gate  # noqa: E402
 import programs  # noqa: E402
 
 BENCH = ROOT / "target" / "release" / "examples" / "gfnff_bench"
 DUMP = ROOT / "target" / "release" / "examples" / "gfnff_dump"
 CLI = ROOT / "target" / "release" / "axtb"
-# the one structure of the set whose topology differs from xtb's
-KNOWN = {
-    "tm-ferrocenium": "D5h ferrocenium: the Hueckel pi system of each (antiaromatic, cationic) Cp ring has an "
-                      "exactly degenerate pair at the Fermi level, filled with integer occupations; its bond orders "
-                      "depend on which eigenvectors the eigensolver returns for the pair (xtb: MKL dsyev), so pi bond "
-                      "orders and the bond parameters built from them differ (xtb's are not rotation invariant either)",
+# per part: the one structure of the set whose topology differs from xtb's, and the one whose
+# analytic Hessian is undefined (docs/validation.md, GFN-FF)
+KNOWN_DIFFERENCES = {
+    "accuracy": {
+        "tm-ferrocenium": "D5h ferrocenium: the Hueckel pi system of each (antiaromatic, cationic) Cp ring has an "
+                          "exactly degenerate pair at the Fermi level, filled with integer occupations; its bond orders "
+                          "depend on which eigenvectors the eigensolver returns for the pair (xtb: MKL dsyev), so pi bond "
+                          "orders and the bond parameters built from them differ (xtb's are not rotation invariant either)",
+    },
+    "hessian": {
+        "dimer-acetone-water": "water H exactly on the C=O axis (grimme-lab/xtb#1516): the HB term's torsions are "
+                               "undefined there, so axtb refuses the analytic Hessian (the numerical one reproduces "
+                               "xtb 6.8.0's), and xtb 6.7.1's --hess crashes",
+    },
+}
+# The gate (tests/gate.py), per conventions (xtb version) and part; docs/validation.md (GFN-FF and
+# Summary) unless "chosen". Hessians: numerical = axtb's numerical Hessian (xtb's step), analytic,
+# program = xtb's own `hessian` file through axtb's analysis. Chosen: analytic IR, ZPVE and free
+# energy (xtb's finite-difference error, measured 30 km/mol, 3.7e-6 and 3.2e-6 Eh) about 2x;
+# program-Hessian frequencies at xtb's 2 printed decimals, its ZPVE and G(RRHO) (the `hessian`
+# file's 10 decimals; measured 6.3e-11 and 7.0e-10 Eh with 6.8.0, 1.2e-11 and 1.2e-10 with 6.7.1)
+# about 10x; topology_positions charges and gradients (round-off, measured <= 3.0e-14 e and
+# 7.6e-15 Eh/bohr) about 10x.
+LIMITS = {
+    "xtb": {
+        "accuracy": {"not reproduced": 0, "max_topology_parameter_diff": 5.0e-11, "max_charges_diff": 2.3e-12,
+                     "max_energy_diff": 7.0e-13, "max_term_diff": 8.4e-13, "max_gradient_diff": 4.3e-12},
+        "hessian": {"failures": 0, "numerical frequencies_maxdiff_cm1": 0.005, "numerical ir_maxdiff_km_mol": 5e-6,
+                    "numerical zpve_diff": 4.8e-13, "numerical free_energy_diff": 4.8e-13,
+                    "analytic frequencies_maxdiff_cm1": 0.27, "analytic ir_maxdiff_km_mol": 60.0,
+                    "analytic zpve_diff": 8e-6, "analytic free_energy_diff": 7e-6,
+                    "program_hessian frequencies_maxdiff_cm1": 0.005, "program_hessian zpve_diff": 1e-9,
+                    "program_hessian g_rrho_diff": 1e-8},
+        "topology": {"not reproduced": 0, "max_energy_diff": 5.0e-13, "max_charges_diff": 3e-13,
+                     "max_gradient_diff": 1e-13},
+    },
+    "xtb-6.7.1": {
+        "accuracy": {"not reproduced": 0, "max_topology_parameter_diff": 5.0e-11, "max_charges_diff": 4.7e-12,
+                     "max_energy_diff": 8.4e-13, "max_term_diff": 5.5e-13, "max_gradient_diff": 9.3e-12},
+        "hessian": {"failures": 0, "numerical frequencies_maxdiff_cm1": 0.005, "numerical ir_maxdiff_km_mol": 5e-6,
+                    "numerical zpve_diff": 2e-11, "numerical free_energy_diff": 2e-11,
+                    "analytic frequencies_maxdiff_cm1": 0.3, "analytic ir_maxdiff_km_mol": 60.0,
+                    "analytic zpve_diff": 8e-6, "analytic free_energy_diff": 5e-6,
+                    "program_hessian frequencies_maxdiff_cm1": 0.005, "program_hessian zpve_diff": 2e-10,
+                    "program_hessian g_rrho_diff": 2e-9},
+        "topology": {"not reproduced": 0, "max_energy_diff": 4.9e-13, "max_charges_diff": 3e-13,
+                     "max_gradient_diff": 1e-13},
+    },
 }
 TOL = {"charges": 1e-10, "energy": 1e-10, "gradient": 1e-9}
 HESS_CASES = ["struct-caffeine", "dimer-water", "dimer-pyridine-HF", "dimer-acetone-water", "xb-ICl-NH3",
@@ -289,8 +335,8 @@ def accuracy_case(case, xtb: str, workdir, conventions: str) -> dict:
                    and out["charges_maxdiff"] < TOL["charges"]
                    and max(out["energy_diff"], out["terms_maxdiff"]) < TOL["energy"]
                    and out["gradient_maxdiff"] < TOL["gradient"])
-    if cid in KNOWN:
-        out["known_difference"] = KNOWN[cid]
+    if cid in KNOWN_DIFFERENCES["accuracy"]:
+        out["known_difference"] = KNOWN_DIFFERENCES["accuracy"][cid]
     return out
 
 
@@ -325,6 +371,21 @@ def accuracy(args) -> dict:
     }
     print("accuracy:", json.dumps(summary, indent=1))
     return {"xtb_version": xtb_version(args.xtb), "conventions": args.conventions, "summary": summary, "cases": rows}
+
+
+def check(part: str, result: dict, conventions: str) -> int:
+    """The gate of one part (tests/gate.py)."""
+    s, rows = result["summary"], result["cases"]
+    known = KNOWN_DIFFERENCES.get(part, {})
+    seen = {k: v for k, v in known.items() if any(r["id"] == k for r in rows)}
+    if part == "accuracy" or part == "topology":
+        summary = {"not reproduced": [r["id"] for r in rows if not r.get("pass") and r["id"] not in known]}
+        summary |= {k: s[k] for k in LIMITS[conventions][part] if k != "not reproduced"}
+    else:  # hessian: xtb's or axtb's errors, except the known ones, and the largest differences
+        summary = {"failures": [f"{r['id']} ({k})" for r in rows for k in ("xtb_error", "numerical", "analytic", "program_hessian")
+                                if r["id"] not in known and (k in r if k == "xtb_error" else "error" in r.get(k, {}))]}
+        summary |= {f"{m} {k}": s[m][k] for m in ("numerical", "analytic", "program_hessian") for k in s[m]}
+    return gate.check(summary, LIMITS[conventions][part], seen)
 
 
 def xtb_hessian(xtb, numbers, positions, charge, workdir, linear=False) -> dict:
@@ -515,18 +576,27 @@ def main():
     data = json.loads(out.read_text()) if out.exists() else {}
     data["xtb_version"] = xtb_version(args.xtb)
     data["conventions"] = args.conventions
+    gated = {}
     if args.part in ("accuracy", "all"):
-        data["accuracy"] = accuracy(args)
+        data["accuracy"] = gated["accuracy"] = accuracy(args)
     if args.part in ("hessian", "all"):
-        data["hessian"] = hessians(args)
+        data["hessian"] = gated["hessian"] = hessians(args)
     if args.part in ("topology", "all"):
-        data["topology_positions"] = topology(args)
+        data["topology_positions"] = gated["topology"] = topology(args)
     if args.part in ("scaling", "all"):
         data["scaling"] = scaling(args)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(data, indent=1) + "\n")
     print(f"wrote {out}")
+    if args.conventions != GX.xtb_conventions(args.xtb):
+        print(f"conventions {args.conventions} against xtb {data['xtb_version']}: a measurement, not gated")
+        return 0
+    rc = 0
+    for part, result in gated.items():  # the scaling part (timings) has no gate
+        print(f"{part}:")
+        rc |= check(part, result, args.conventions)
+    return rc
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
