@@ -38,8 +38,9 @@ use crate::basis::Basis;
 use crate::hamiltonian::AtomBlocks;
 use crate::linalg::lu_solve;
 use crate::molecule::Molecule;
-use crate::xtb::{fermi, mulliken, ChargeDependentTerm, ScfState, XtbModel};
+use crate::xtb::{mulliken, ChargeDependentTerm, ScfState, XtbModel};
 use crate::Result;
+use axtb_base::occupations::fermi;
 use faer::{Accum, Mat, MatRef, Par};
 use rayon::prelude::*;
 

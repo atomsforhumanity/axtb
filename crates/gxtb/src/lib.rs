@@ -33,7 +33,8 @@
 //! hold), by default in the axtb conventions.
 //!
 //! **Finite electronic temperature** (`ScfOptions::etemp`; the programs' `--etemp` and `-tel`):
-//! Fermi smearing with the entropy term in both versions ([`v2::fermi`], [`fermi`]).
+//! Fermi smearing with the entropy term in both versions ([`v2::fermi`], [`fermi`], on the
+//! shared rules of [`occupations`]).
 //!
 //! **Implicit solvent:** [`composite`], E_gxtb + [E_GFN2+ALPB/GBSA - E_GFN2] for energies,
 //! gradients and Hessians in one process ([`CompositeCalculator`]).
@@ -91,6 +92,7 @@ pub mod gradient;
 pub mod h0;
 pub mod ints;
 pub mod kernels;
+pub mod occupations;
 pub mod parallel;
 pub mod params;
 pub mod qvszp;

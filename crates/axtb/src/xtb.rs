@@ -14,6 +14,7 @@ use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
 use crate::{Error, Result};
 use axtb_base::fd;
+use axtb_base::occupations::{self, Newton};
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -302,70 +303,6 @@ impl SinglePoint {
     pub fn guess(&self) -> ScfGuess {
         ScfGuess { qsh: self.qsh.clone(), dpat: self.dpat.clone(), qpat: self.qpat.clone() }
     }
-}
-
-/// Fermi occupation of one level at `arg = (ε - ε_F)/kT` and its derivative with respect
-/// to ε (exactly 0/1 with zero derivative beyond |arg| > 50, as in xtb/tblite).
-#[inline]
-pub(crate) fn fermi(arg: f64, kt: f64) -> (f64, f64) {
-    if arg > 50.0 {
-        (0.0, 0.0)
-    } else if arg < -50.0 {
-        (1.0, 0.0)
-    } else {
-        let f = 1.0 / (arg.exp() + 1.0);
-        (f, -f * (1.0 - f) / kt)
-    }
-}
-
-/// Fill `nel` electrons of one spin into the levels `emo` (Fermi smearing at `kt`); returns
-/// the Fermi level the occupations were computed with (`None` without smearing).
-fn fermi_filling(nel: f64, kt: f64, emo: &[f64], occ: &mut [f64]) -> Option<f64> {
-    occ.iter_mut().for_each(|x| *x = 0.0);
-    let nao = emo.len();
-    let mut homo = nel.floor() as usize;
-    for o in occ.iter_mut().take(homo.min(nao)) {
-        *o = 1.0;
-    }
-    if homo < nao {
-        occ[homo] = nel % 1.0;
-    }
-    if nel % 1.0 > 0.5 {
-        homo += 1;
-    }
-    if !(nel > 0.0 && kt > 0.0) {
-        return None;
-    }
-    let thr = f64::EPSILON.sqrt().min(1e5 * f64::EPSILON);
-    let sqrttiny = f64::MIN_POSITIVE.sqrt();
-    let i0 = homo.max(1) - 1;
-    let i1 = (homo + 1).min(nao) - 1;
-    let mut ef = 0.5 * (emo[i0] + emo[i1]);
-    let mut ef_used = ef;
-    for _ in 0..200 {
-        let mut total = 0.0;
-        let mut dtotal = 0.0;
-        ef_used = ef;
-        for i in 0..nao {
-            let (f, df) = fermi((emo[i] - ef) / kt, kt);
-            occ[i] = f;
-            total += f;
-            dtotal -= df;
-        }
-        if (nel - total).abs() <= thr {
-            break;
-        }
-        if dtotal > sqrttiny {
-            ef += (nel - total) / dtotal;
-        } else {
-            break;
-        }
-    }
-    Some(ef_used)
-}
-
-fn entropy(occ: &[f64], kt: f64) -> f64 {
-    occ.iter().map(|&o| (o.powf(o) * (1.0 - o).powf(1.0 - o)).ln()).sum::<f64>() * kt
 }
 
 /// Geometry-dependent intermediates of one geometry (everything but the AO matrices).
@@ -816,15 +753,16 @@ impl XtbModel {
                     // the orbitals with occupation above the cutoff (from the eigenvalues)
                     kocc = solver.solve_lowest(fock.as_ref(), &mut emo, &mut coeff, |e| {
                         let (mut a, mut b) = (vec![0.0; e.len()], vec![0.0; e.len()]);
-                        fermi_filling(nalpha, kt, e, &mut a);
-                        fermi_filling(nbeta, kt, e, &mut b);
+                        occupations::fill_tblite(nalpha, kt, e, &mut a, Newton::XTB680);
+                        occupations::fill_tblite(nbeta, kt, e, &mut b, Newton::XTB680);
                         (0..e.len()).rposition(|i| a[i] + b[i] > OCCUPATION_CUTOFF).map_or(0, |i| i + 1)
                     })?;
                 } else {
                     solver.solve(fock.as_ref(), &mut emo, &mut coeff)?;
                 }
-                efermi[0] = fermi_filling(nalpha, kt, &emo, &mut occ_a);
-                efermi[1] = fermi_filling(nbeta, kt, &emo, &mut occ_b);
+                // tblite's Fermi filling (xtb 6.8.0's `fermismear`) in every convention
+                efermi[0] = occupations::fill_tblite(nalpha, kt, &emo, &mut occ_a, Newton::XTB680);
+                efermi[1] = occupations::fill_tblite(nbeta, kt, &emo, &mut occ_b, Newton::XTB680);
                 // The Newton search for the Fermi level stops after 200 steps or when no orbital
                 // is fractionally occupied at the trial level; a guard against occupations that
                 // do not add up to the electrons (fractional electron counts, where this used
@@ -847,7 +785,7 @@ impl XtbModel {
                     }
                     break;
                 }
-                let ts = entropy(&occ_a, kt) + entropy(&occ_b, kt);
+                let ts = occupations::entropy_tblite(&occ_a, kt) + occupations::entropy_tblite(&occ_b, kt);
                 for i in 0..nao {
                     focc[i] = occ_a[i] + occ_b[i];
                 }

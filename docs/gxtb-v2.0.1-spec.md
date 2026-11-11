@@ -846,7 +846,7 @@ GFN2-only settings (solvation, dispersion off, the GFN2 mixer) are rejected. v1.
 | `v2/h0.rs` | self-energies, H0 with the new polynomial and per-element δ scaling, anisotropy, ACP |
 | `v2/coulomb.rs`, `v2/repulsion.rs`, `v2/disp.rs`, `v2/exchange.rs` | E(1)–E(4), AES with scaled dipoles, spin; self-consistent repulsion; revD4 with screened damping; MFX + bond-order correction + charge-dependent onsite exchange (energy, Fock, shell potential, dE/dS) |
 | `v2/scf.rs` | setup, energies and Fock matrices of a density, tblite's SCF (eeqbc guess, damping 0.2, DIIS 7 on the full Fock matrix, 0 K Aufbau with fractional remainder or Fermi smearing, sticky convergence flags) |
-| `v2/fermi.rs` | occupations at a finite electronic temperature: the program's filling (§4.17.1) and the exact Fermi level of the default conventions; entropy term −TS |
+| `v2/fermi.rs` | occupations at a finite electronic temperature per channel and the entropy term −TS, on the rules of `occupations.rs` (shared with v1.1; Aufbau and tblite's entropy from `axtb_base::occupations`): the program's filling (§4.17.1, `fill_gxtb201`) and the exact Fermi level of the default conventions (`fill_exact`) |
 | `v2/gradient.rs` | analytic gradient: explicit derivatives of every term plus chain rules; no response term |
 
 **Conventions.** `gxtb` (program mode): mctc-lib's Ångström factor (1.8897261246204404) for the

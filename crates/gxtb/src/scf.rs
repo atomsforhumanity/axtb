@@ -864,7 +864,7 @@ impl Setup {
         // at any temperature above 0 K with CODATA 2022 kB
         let kt = if program {
             if opts.etemp > crate::fermi::TEL_MIN {
-                opts.etemp * crate::fermi::KB_PROGRAM
+                opts.etemp * crate::occupations::KB_GXTB110
             } else {
                 0.0
             }

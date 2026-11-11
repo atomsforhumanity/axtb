@@ -21,6 +21,7 @@ use crate::param::{
 use crate::real::erf;
 use crate::setup_util::*;
 use crate::topology::*;
+use axtb_base::occupations::{self, Newton};
 use faer::{Mat, Par};
 use std::collections::HashMap;
 
@@ -1521,12 +1522,12 @@ fn qmsolve(a: &Mat<f64>, nel: usize, et: f64, fermi: FermiSmearing, par: Par) ->
     if et > 1.0e-3 {
         let (ihomoa, ihomob, mut focca, mut foccb) = occu(ndim, nel);
         if ihomoa <= ndim && ihomoa > 0 {
-            fermismear(ndim, ihomoa, et, &e, &mut focca, fermi);
+            fermismear(ihomoa, et, &e, &mut focca, fermi);
         } else {
             focca = vec![0.0; ndim];
         }
         if ihomob <= ndim && ihomob > 0 {
-            fermismear(ndim, ihomob, et, &e, &mut foccb, fermi);
+            fermismear(ihomob, et, &e, &mut foccb, fermi);
         } else {
             foccb = vec![0.0; ndim];
         }
@@ -1571,130 +1572,38 @@ fn qmsolve(a: &Mat<f64>, nel: usize, et: f64, fermi: FermiSmearing, par: Par) ->
     Ok((p, eel, focc, e))
 }
 
-/// `occu` with nopen = 0: (ihomoa, ihomob, alpha and beta occupations).
+/// `occu` with nopen = 0: (ihomoa, ihomob, alpha and beta occupations): the Aufbau filling of
+/// ⌈nel/2⌉ alpha and ⌊nel/2⌋ beta electrons, and the number of occupied levels of each.
 fn occu(ndim: usize, nel: usize) -> (usize, usize, Vec<f64>, Vec<f64>) {
-    // xtb fills focc(1:nel); only the first ndim entries are read
-    let mut focc = vec![0i64; ndim];
-    if nel.is_multiple_of(2) {
-        let ihomo = nel / 2;
-        for v in focc.iter_mut().take(ihomo) {
-            *v = 2;
-        }
-    } else {
-        let na = nel / 2 + 1;
-        let nb = nel / 2;
-        for v in focc.iter_mut().take(na) {
-            *v += 1;
-        }
-        for v in focc.iter_mut().take(nb) {
-            *v += 1;
-        }
-    }
+    let (na, nb) = (nel - nel / 2, nel / 2);
     let mut focca = vec![0.0; ndim];
     let mut foccb = vec![0.0; ndim];
-    for i in 0..ndim {
-        if focc[i] == 2 {
-            focca[i] = 1.0;
-            foccb[i] = 1.0;
-        }
-        if focc[i] == 1 {
-            focca[i] = 1.0;
-        }
-    }
-    let mut ihomoa = 0;
-    let mut ihomob = 0;
-    for i in 0..ndim {
-        if focca[i] > 0.99 {
-            ihomoa = i + 1;
-        }
-        if foccb[i] > 0.99 {
-            ihomob = i + 1;
-        }
-    }
-    (ihomoa, ihomob, focca, foccb)
+    occupations::aufbau(na as f64, &mut focca);
+    occupations::aufbau(nb as f64, &mut foccb);
+    (na.min(ndim), nb.min(ndim), focca, foccb)
 }
 
-/// `fermismear` of xtb (occupations only; `nel` ≥ 1), of the version `fermi`.
-fn fermismear(norbs: usize, nel: usize, t: f64, eig: &[f64], occ: &mut [f64], fermi: FermiSmearing) {
-    if fermi == FermiSmearing::Xtb680 {
-        return fermismear_680(norbs, nel, t, eig, occ);
-    }
+/// xtb's `fermismear` of the version `fermi` (occupations only; `nel` ≥ 1, `occ` the Aufbau
+/// occupations): no smearing when no level is above the electrons; xtb 6.8.0 is tblite's
+/// filling ([`occupations::fill_tblite`], the rule of GFN2-xTB), xtb 6.7.1 its own
+/// ([`occupations::fill_fermismear`]). kT in eV (the Hückel levels' unit).
+fn fermismear(nel: usize, t: f64, eig: &[f64], occ: &mut [f64], fermi: FermiSmearing) {
     let boltz = param::KB * param::AUTOEV;
     let bkt = boltz * t;
-    let thr = 1e-9;
-    if nel + 1 > norbs {
-        // occupations stay as given
-        return;
-    }
-    let mut e_fermi = 0.5 * (eig[nel - 1] + eig[nel]);
-    let occt = nel as f64;
-    for _ in 0..200 {
-        let mut total_number = 0.0;
-        let mut total_dfermi = 0.0;
-        for i in 0..norbs {
-            let mut fermifunct = 0.0;
-            let dfermifunct;
-            if (eig[i] - e_fermi) / bkt < 50.0 {
-                fermifunct = 1.0 / (((eig[i] - e_fermi) / bkt).exp() + 1.0);
-                dfermifunct =
-                    ((eig[i] - e_fermi) / bkt).exp() / (bkt * (((eig[i] - e_fermi) / bkt).exp() + 1.0).powi(2));
+    match fermi {
+        FermiSmearing::Xtb680 => {
+            if nel >= eig.len() {
+                // the Aufbau occupations (6.8.0 sets them before it tests)
+                occupations::aufbau(nel as f64, occ);
             } else {
-                dfermifunct = 0.0;
+                occupations::fill_tblite(nel as f64, bkt, eig, occ, Newton::XTB680);
             }
-            occ[i] = fermifunct;
-            total_number += fermifunct;
-            total_dfermi += dfermifunct;
         }
-        let change_fermi = (occt - total_number) / total_dfermi;
-        e_fermi += change_fermi;
-        if (occt - total_number).abs() <= thr {
-            break;
-        }
-    }
-}
-
-/// xtb 6.8.0's `fermismear` (occupations only; `nel` ≥ 1): aufbau occupations to start with,
-/// the Newton search stops at min(√ε, 1e5 ε) electrons or a vanishing derivative.
-fn fermismear_680(norbs: usize, nel: usize, t: f64, eig: &[f64], occ: &mut [f64]) {
-    let boltz = param::KB * param::AUTOEV;
-    let bkt = boltz * t;
-    let thr = f64::EPSILON.sqrt().min(1.0e5 * f64::EPSILON);
-    let sqrttiny = f64::MIN_POSITIVE.sqrt();
-    for (i, o) in occ.iter_mut().enumerate().take(norbs) {
-        *o = if i < nel { 1.0 } else { 0.0 };
-    }
-    if nel + 1 > norbs {
-        return;
-    }
-    let mut e_fermi = 0.5 * (eig[nel - 1] + eig[nel]);
-    let occt = nel as f64;
-    for _ in 0..200 {
-        if t <= 0.0 {
-            break;
-        }
-        let mut total_number = 0.0;
-        let mut total_dfermi = 0.0;
-        for i in 0..norbs {
-            let arg = (eig[i] - e_fermi) / bkt;
-            let (fermifunct, dfermifunct) = if arg > 50.0 {
-                (0.0, 0.0)
-            } else if arg < -50.0 {
-                (1.0, 0.0)
-            } else {
-                let f = 1.0 / (arg.exp() + 1.0);
-                (f, f * (1.0 - f) / bkt)
-            };
-            occ[i] = fermifunct;
-            total_number += fermifunct;
-            total_dfermi += dfermifunct;
-        }
-        if (occt - total_number).abs() <= thr {
-            break;
-        }
-        if total_dfermi > sqrttiny {
-            e_fermi += (occt - total_number) / total_dfermi;
-        } else {
-            break;
+        FermiSmearing::Xtb671 => {
+            // occupations stay as given when no level is above the electrons
+            if nel < eig.len() {
+                occupations::fill_fermismear(nel, bkt, eig, occ, Newton::XTB671);
+            }
         }
     }
 }
@@ -2868,14 +2777,14 @@ mod tests {
         let eig = [-2.0, -1.0, -0.2, 1.0, 2.0];
         for (fermi, thr) in [(FermiSmearing::Xtb671, 1e-9), (FermiSmearing::Xtb680, 2.3e-11)] {
             let mut occ = vec![1.0, 1.0, 0.0, 0.0, 0.0];
-            fermismear(5, 2, 4000.0, &eig, &mut occ, fermi);
+            fermismear(2, 4000.0, &eig, &mut occ, fermi);
             let n: f64 = occ.iter().sum();
             assert!((n - 2.0).abs() <= thr, "{fermi:?}: {n}");
             assert!(occ.windows(2).all(|w| w[0] >= w[1]) && occ[2] > 0.0 && occ[2] < 0.5, "{occ:?}");
         }
         // no orbital above the electrons: aufbau occupations
         let mut occ = vec![0.0; 2];
-        fermismear(2, 2, 4000.0, &[-1.0, -0.5], &mut occ, FermiSmearing::Xtb680);
+        fermismear(2, 4000.0, &[-1.0, -0.5], &mut occ, FermiSmearing::Xtb680);
         assert_eq!(occ, vec![1.0, 1.0]);
     }
 }

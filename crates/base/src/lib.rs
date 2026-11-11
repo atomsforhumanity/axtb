@@ -10,6 +10,8 @@
 //!   covalent radii);
 //! - [`math`]: the C library's error function (the reference programs' bits) and 3-vector
 //!   helpers;
+//! - [`occupations`]: the Aufbau filling, tblite's and xtb's Fermi smearing and tblite's
+//!   electronic entropy term;
 //! - [`timing`]: wall time per named phase;
 //! - [`fd`]: finite differences (stencils, columns over coordinates, symmetrization and the
 //!   numerical Hessian of every method).
@@ -27,6 +29,7 @@ mod error;
 pub mod fd;
 pub mod math;
 mod molecule;
+pub mod occupations;
 pub mod timing;
 pub mod units;
 

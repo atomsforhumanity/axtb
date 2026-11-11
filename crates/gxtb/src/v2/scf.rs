@@ -482,7 +482,7 @@ impl Setup {
     /// Occupation numbers of a channel with `nel` (real) electrons over `n` orbitals at 0 K:
     /// 1 for the first floor(nel), the remainder for the next.
     pub fn aufbau(nel: f64, n: usize) -> Vec<f64> {
-        super::fermi::aufbau(nel, n).0
+        super::fermi::aufbau(nel, n)
     }
 
     /// Occupations per spin channel at 0 K (closed shell: doubly occupied).

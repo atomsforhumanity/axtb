@@ -117,10 +117,11 @@ pub enum UnpairedNeighbors {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FermiSmearing {
     /// Newton search for the Fermi level to 1e-9 electrons; derivative e^x/(kT (e^x + 1)²);
-    /// the occupations of the last evaluation (xtb 6.7.1).
+    /// the occupations of the last evaluation (xtb 6.7.1;
+    /// [`axtb_base::occupations::fill_fermismear`]).
     Xtb671,
     /// To min(√ε, 1e5 ε) electrons; derivative f(1 - f)/kT, occupations 0 and 1 beyond
-    /// |x| > 50 (xtb 6.8.0).
+    /// |x| > 50 (xtb 6.8.0; tblite's filling, [`axtb_base::occupations::fill_tblite`]).
     Xtb680,
 }
 
