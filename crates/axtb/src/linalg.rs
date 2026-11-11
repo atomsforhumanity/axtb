@@ -16,8 +16,8 @@
 //! time when the environment variable `AXTB_LAPACK` names one (see [`runtime_lapack`] and the
 //! README's Threads section); faer solves them otherwise, and when the library fails.
 
-use crate::error::{Error, Result};
 use crate::lapack::{Lapack, LapackEig};
+use crate::{Error, Result};
 use faer::dyn_stack::{MemBuffer, MemStack, StackReq};
 use faer::linalg::cholesky::llt::factor::{cholesky_in_place, cholesky_in_place_scratch, LltRegularization};
 use faer::linalg::evd::{self_adjoint_evd, self_adjoint_evd_scratch, ComputeEigenvectors};

@@ -1,9 +1,9 @@
 //! D4 dispersion (crate `axtb-d4`) as a self-consistent, charge-dependent SCF term.
 
-use crate::error::{Error, Result};
 use crate::molecule::Molecule;
 use crate::xtb::ChargeDependentTerm;
 use crate::ConventionParams;
+use crate::{Error, Result};
 use axtb_d4::{ChargeModel, D4Cache, D4Dispersion, D4Model, RationalDamping};
 use std::any::Any;
 

@@ -21,6 +21,7 @@ name = "axtb_gfnff"
 path = "src/lib.rs"
 
 [dependencies]
+axtb-base = { workspace = true }
 faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
 rayon = "1.10"
 

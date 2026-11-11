@@ -2,7 +2,6 @@
 
 use crate::basis::{slater_to_gauss, Basis, StoExpansion};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, OnsiteThirdOrder};
-use crate::error::{Error, Result};
 use crate::hamiltonian::H0Params;
 use crate::molecule::Molecule;
 use crate::ncoord::Ncoord;
@@ -10,6 +9,7 @@ use crate::param::gfn2_data::*;
 use crate::repulsion::Repulsion;
 use crate::xtb::XtbModel;
 use crate::ConventionParams;
+use crate::{Error, Result};
 
 pub const MAX_ELEM: usize = 86;
 

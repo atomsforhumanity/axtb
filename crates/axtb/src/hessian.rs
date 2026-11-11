@@ -10,11 +10,11 @@
 //!   (see `analytic.rs`).
 
 use crate::basis::Basis;
-use crate::error::Result;
 use crate::hamiltonian::Integrals;
 use crate::molecule::Molecule;
 use crate::response::Response;
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
+use crate::Result;
 use faer::{Accum, Mat, Par};
 use rayon::prelude::*;
 

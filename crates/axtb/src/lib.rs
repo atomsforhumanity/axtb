@@ -18,7 +18,6 @@ pub mod conventions;
 pub(crate) mod coulomb;
 pub(crate) mod dispersion;
 pub(crate) mod eeq;
-mod error;
 pub(crate) mod gfn2;
 pub(crate) mod hamiltonian;
 mod hessian;
@@ -28,7 +27,6 @@ pub(crate) mod lapack;
 pub mod linalg;
 mod mixer;
 pub mod molden;
-pub mod molecule;
 pub(crate) mod ncoord;
 pub mod param;
 pub mod properties;
@@ -39,20 +37,26 @@ mod solvation;
 mod tests_response;
 pub mod threads;
 pub(crate) mod tridiag;
-pub mod units;
 pub mod vibrations;
 mod xtb;
 
 pub use calculator::{Calculator, Hessian};
 pub use conventions::{ConventionParams, Conventions};
-pub use error::{Error, Result};
 pub use hessian::{HessianMethod, HessianOptions};
 pub use mixer::{MixerKind, ScfAttempt};
 pub use molden::{MoldenFunctions, Orbitals};
-pub use molecule::{Molecule, MIN_ATOM_DISTANCE};
 pub use properties::{GapRule, OrbitalLevels, QuadrupoleForm};
 pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
 pub use xtb::{EnergyTerms, InitialGuess, ScfGuess, ScfOptions, SinglePoint};
+
+pub use axtb_base::units;
+pub use axtb_base::{Error, Molecule, Result, MIN_ATOM_DISTANCE};
+
+/// The molecule and the 3-vector helpers (from `axtb-base`).
+pub mod molecule {
+    pub use axtb_base::math::{dot3, norm2_sq, sub3};
+    pub use axtb_base::{Molecule, MIN_ATOM_DISTANCE};
+}
 
 /// Available methods.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

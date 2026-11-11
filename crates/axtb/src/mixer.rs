@@ -2,7 +2,7 @@
 //! (D. D. Johnson, PRB 38, 12807 (1988)) with the weights and damping used by xtb/tblite,
 //! and Pulay (DIIS) mixing with restarts.
 
-use crate::error::{Error, Result};
+use crate::{Error, Result};
 use std::collections::VecDeque;
 
 /// Which accelerator mixes the SCC variables between SCF iterations.

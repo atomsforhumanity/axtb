@@ -6,10 +6,10 @@
 //! outer level (Hessian displacements) runs each inner single point sequentially, so the
 //! thread count never multiplies. With `threads = 1` no thread is ever spawned.
 
-use crate::error::{Error, Result};
 use crate::hessian::{HessianMethod, HessianOptions};
 use crate::molecule::Molecule;
 use crate::xtb::{check_scf_options, ChargeDependentTerm, ScfGuess, ScfOptions, SinglePoint, XtbModel};
+use crate::{Error, Result};
 use crate::{Method, Options};
 use rayon::prelude::*;
 use std::sync::Arc;

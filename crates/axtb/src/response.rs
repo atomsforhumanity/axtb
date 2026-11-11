@@ -35,11 +35,11 @@
 //! with the CN Jacobian, so every perturbation is local to one atom's AO rows/columns.
 
 use crate::basis::Basis;
-use crate::error::Result;
 use crate::hamiltonian::AtomBlocks;
 use crate::linalg::lu_solve;
 use crate::molecule::Molecule;
 use crate::xtb::{fermi, mulliken, ChargeDependentTerm, ScfState, XtbModel};
+use crate::Result;
 use faer::{Accum, Mat, MatRef, Par};
 use rayon::prelude::*;
 

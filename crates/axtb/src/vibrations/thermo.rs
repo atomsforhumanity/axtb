@@ -25,8 +25,8 @@
 
 use super::symmetry::{point_group, xtb_symmetry_number};
 use super::{xtbc, Conventions, LinearTest};
-use crate::error::{Error, Result};
 use crate::units;
+use crate::{Error, Result};
 
 /// Settings of the thermochemistry.
 #[derive(Clone, Debug)]

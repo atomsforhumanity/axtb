@@ -1,9 +1,9 @@
 //! Implicit solvation (ALPB, GBSA; crate `axtb-solvation`) as a charge-dependent SCF term:
 //! the GFN2-xTB models of the xtb 6.8.0 and 6.7.1 programs, and the corrected model.
 
-use crate::error::{Error, Result};
 use crate::molecule::Molecule;
 use crate::xtb::ChargeDependentTerm;
+use crate::{Error, Result};
 use axtb_solvation::{Conventions as SolvConventions, SolvCache, SolvOptions, Solvation};
 pub use axtb_solvation::{Model as SolvationModel, ReferenceState};
 use std::any::Any;

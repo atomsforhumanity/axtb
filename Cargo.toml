@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/axtb", "crates/axtb-py", "crates/axtb-cli", "crates/driver", "crates/d4", "crates/solvation", "crates/gxtb", "crates/gfnff"]
+members = ["crates/base", "crates/axtb", "crates/axtb-py", "crates/axtb-cli", "crates/driver", "crates/d4", "crates/solvation", "crates/gxtb", "crates/gfnff"]
 
 [workspace.package]
 version = "0.1.1"
@@ -13,8 +13,9 @@ repository = "https://github.com/atomsforhumanity/axtb"
 homepage = "https://github.com/atomsforhumanity/axtb"
 
 # The crates of the workspace, by path here and by version on crates.io (published in this
-# order: axtb-d4, axtb-solvation, axtb, axtb-gfnff, axtb-gxtb, axtb-driver, axtb-cli).
+# order: axtb-base, axtb-d4, axtb-solvation, axtb, axtb-gfnff, axtb-gxtb, axtb-driver, axtb-cli).
 [workspace.dependencies]
+axtb-base = { path = "crates/base", version = "0.1.1" }
 axtb = { path = "crates/axtb", version = "0.1.1" }
 axtb-d4 = { path = "crates/d4", version = "0.1.1" }
 axtb-solvation = { path = "crates/solvation", version = "0.1.1" }

@@ -23,6 +23,7 @@ path = "src/lib.rs"
 
 [dependencies]
 axtb = { workspace = true }
+axtb-base = { workspace = true }
 axtb-d4 = { workspace = true }
 faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
 rayon = "1.10"

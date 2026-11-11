@@ -2,10 +2,10 @@
 //! (E. Caldeweyher et al., J. Chem. Phys. 150, 154122 (2019); parameters from the
 //! multicharge library). Used as the SCF starting guess, as the xtb program does.
 
-use crate::error::{Error, Result};
 use crate::molecule::{norm2_sq, sub3, Molecule};
 use crate::param::covalent_rad_d3;
 use crate::param::eeq_data::{EEQ_CHI, EEQ_ETA, EEQ_KCNCHI, EEQ_RAD};
+use crate::{Error, Result};
 use axtb_d4::erf;
 use faer::dyn_stack::{MemBuffer, MemStack, StackReq};
 use faer::linalg::lu::partial_pivoting::{factor, solve};

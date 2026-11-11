@@ -18,10 +18,10 @@
 //! The expression is symmetric term by term (see `response.rs` for the derivation of
 //! the response quantities).
 
-use crate::error::Result;
 use crate::molecule::Molecule;
 use crate::response::Response;
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
+use crate::Result;
 use faer::{Accum, Mat};
 use rayon::prelude::*;
 

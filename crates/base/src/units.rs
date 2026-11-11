@@ -75,16 +75,11 @@ pub mod reference {
     /// Boltzmann constant (Eh/K) used by xtb (`xtb_mctc_constants::kB`) and tblite for
     /// the electronic temperature.
     pub const KB_XTB_TBLITE: f64 = 3.166808578545117e-06;
-}
 
-#[cfg(test)]
-mod tests {
-    /// axtb-solvation cannot depend on this crate and keeps its own copies of three of the
-    /// CODATA 2022 values; they must stay the same.
-    #[test]
-    fn solvation_has_the_same_constants() {
-        assert_eq!(axtb_solvation::CODATA2022_AUTOAA, super::AUTOAA);
-        assert_eq!(axtb_solvation::CODATA2022_KB, super::KB_HARTREE);
-        assert_eq!(axtb_solvation::CODATA2022_AUTOKCAL, super::HARTREE_TO_KCAL_PER_MOL);
-    }
+    /// Ångström to bohr of xtb 6.7.1's tables (`autoaa = 0.52917726`, not CODATA).
+    pub const XTB671_AATOAU: f64 = 1.0 / 0.52917726;
+
+    /// Ångström to bohr of xtb 6.8.0's tables: mctc-lib's CODATA 2018 bohr as xtb writes it
+    /// (src/mctc/convert.f90 `autoaa = 5.29177210904492434e-1_wp`).
+    pub const XTB680_AATOAU: f64 = 1.0 / 5.29177210904492434e-1;
 }

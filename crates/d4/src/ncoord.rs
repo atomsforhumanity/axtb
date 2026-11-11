@@ -12,19 +12,8 @@ const K5: f64 = 19.08857;
 const K6: f64 = 2.0 * (11.28174 * 11.28174);
 const SQRTPI: f64 = 1.7724538509055159; // sqrt(pi) of the f64 pi, correctly rounded
 
-extern "C" {
-    // C99 libm error function (the same routine gfortran's ERF intrinsic calls).
-    #[link_name = "erf"]
-    fn libm_erf(x: f64) -> f64;
-}
-
-/// The error function of the C library (libm), the routine gfortran's `ERF` intrinsic calls:
-/// the reference programs' bits. Shared by the crates of the workspace.
-#[inline]
-pub fn erf(x: f64) -> f64 {
-    // SAFETY: a pure libm function of a double, without side effects
-    unsafe { libm_erf(x) }
-}
+/// The error function of the reference programs (from `axtb-base`).
+pub use axtb_base::math::erf;
 
 /// Electronegativity factor `k4 * exp(-(|en_i - en_j| + k5)^2 / k6)`.
 #[inline]

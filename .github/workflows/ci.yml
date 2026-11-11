@@ -44,5 +44,5 @@ jobs:
           cargo +1.89.0 check --workspace --all-targets
       - name: cargo package (the crates.io packages, in publishing order)
         run: >-
-          cargo package -p axtb-d4 -p axtb-solvation -p axtb -p axtb-gfnff -p axtb-gxtb
+          cargo package -p axtb-base -p axtb-d4 -p axtb-solvation -p axtb -p axtb-gfnff -p axtb-gxtb
           -p axtb-driver -p axtb-cli

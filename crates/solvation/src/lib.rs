@@ -36,7 +36,7 @@
 //! xtb quirks reproduced on purpose ([`Conventions`]): xtb 6.7.1's stale `r1` in one
 //! branch of the Born radius integral (see `born.rs`; grimme-lab/xtb#1504), its density
 //! term of the `reference` state (see [`state_shift`]; grimme-lab/xtb#1505) and its
-//! Angstrom-to-bohr factor 1/0.52917726 for all radii ([`AATOAU`]); xtb 6.8.0 fixed the
+//! Angstrom-to-bohr factor 1/0.52917726 for all radii ([`XTB671_AATOAU`]); xtb 6.8.0 fixed the
 //! two bugs and converts with mctc-lib's factor ([`XTB680_AATOAU`]). Both use xtb's own
 //! constants and Lebedev grid selection (see [`SolvOptions`]).
 
@@ -116,17 +116,12 @@ pub enum Conventions {
     Corrected,
 }
 
-// The CODATA 2022 values of the corrected conventions. This crate cannot depend on axtb, whose
-// `units` module holds the same values (with their sources) and checks that they agree.
-/// CODATA 2022 Bohr radius in Ångström (NIST, via AFH's qcref).
-pub const CODATA2022_AUTOAA: f64 = 0.529177210544;
-/// CODATA 2022 Boltzmann constant in Hartree per kelvin ("kelvin-hartree relationship").
-pub const CODATA2022_KB: f64 = 3.1668115634564e-6;
-/// Hartree in kcal/mol from CODATA 2022 (hartree-joule relationship × Avogadro / 4184 J).
-pub const CODATA2022_AUTOKCAL: f64 = 4.3597447222060e-18 * 6.02214076e23 / 4184.0;
+use axtb_base::units::reference::{XTB671_AATOAU, XTB680_AATOAU};
+use axtb_base::units::{AUTOAA, HARTREE_TO_KCAL_PER_MOL, KB_HARTREE};
+
 /// Ideal-gas molar volume (L) at 298.15 K and 1 bar from the CODATA 2022 molar gas
 /// constant R = N_A k_B (exact): R T / p.
-const CODATA2022_IDEAL_GAS_MOL_VOLUME: f64 = 6.02214076e23 * 1.380649e-23 * 298.15 / 1.0e5 * 1.0e3;
+const IDEAL_GAS_MOL_VOLUME: f64 = 6.02214076e23 * 1.380649e-23 * 298.15 / 1.0e5 * 1.0e3;
 
 /// The settings that differ between [`Conventions`], resolved once in
 /// [`Solvation::with_options`].
@@ -145,9 +140,9 @@ impl Conventions {
     fn params(self) -> ConventionParams {
         match self {
             Conventions::Xtb => ConventionParams { aatoau: XTB680_AATOAU, gshift: gshift_xtb680, fresh_r1: true },
-            Conventions::Xtb671 => ConventionParams { aatoau: AATOAU, gshift: gshift_xtb, fresh_r1: false },
+            Conventions::Xtb671 => ConventionParams { aatoau: XTB671_AATOAU, gshift: gshift_xtb, fresh_r1: false },
             Conventions::Corrected => {
-                ConventionParams { aatoau: 1.0 / CODATA2022_AUTOAA, gshift: gshift_corrected, fresh_r1: true }
+                ConventionParams { aatoau: 1.0 / AUTOAA, gshift: gshift_corrected, fresh_r1: true }
             }
         }
     }
@@ -169,8 +164,8 @@ fn gshift_xtb680(p: &params::RawParam, state: ReferenceState, temperature: f64) 
 /// CODATA 2022 constants and the solvent's mass density (kg/L = g/cm³) in the `reference`
 /// state, as tblite does (grimme-lab/xtb#1505).
 fn gshift_corrected(p: &params::RawParam, state: ReferenceState, temperature: f64) -> f64 {
-    p.gshift / CODATA2022_AUTOKCAL
-        + state_shift_with(state, temperature, p.rhos, p.smass, CODATA2022_KB, CODATA2022_IDEAL_GAS_MOL_VOLUME)
+    p.gshift / HARTREE_TO_KCAL_PER_MOL
+        + state_shift_with(state, temperature, p.rhos, p.smass, KB_HARTREE, IDEAL_GAS_MOL_VOLUME)
 }
 
 impl Default for SolvOptions {
@@ -293,11 +288,6 @@ pub fn state_shift_with(
     }
 }
 
-/// Bohr per Angstrom as used by xtb 6.7.1 (1 / 0.52917726, not CODATA).
-pub const AATOAU: f64 = 1.0 / params::AUTOAA;
-/// Bohr per Angstrom as used by xtb 6.8.0: mctc-lib's factor, derived from CODATA 2018
-/// (xtb src/mctc/convert.f90 `autoaa = 5.29177210904492434e-1_wp`).
-pub const XTB680_AATOAU: f64 = 1.0 / 5.29177210904492434e-1;
 const KCALTOAU: f64 = 1.0 / params::AUTOKCAL;
 const FOURPI: f64 = 4.0 * params::PI;
 

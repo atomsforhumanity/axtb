@@ -6,7 +6,7 @@
 //! that avoids the eigenvectors of the whole spectrum (divide and conquer) and their
 //! back-transformation.
 
-use crate::error::{Error, Result};
+use crate::{Error, Result};
 
 const EPS: f64 = f64::EPSILON * 0.5;
 const SAFMIN: f64 = f64::MIN_POSITIVE;

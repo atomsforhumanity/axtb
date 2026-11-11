@@ -5,7 +5,6 @@
 
 use crate::basis::{integral_cutoff, integral_cutoff_xtb, Basis};
 pub use crate::eeq::EeqCn;
-use crate::error::{Error, Result};
 use crate::mixer::MixerKind;
 use crate::param::xtb_data::{
     XTB671_ATOMIC_RAD, XTB671_COVALENT_RAD_D3, XTB671_D4_EN, XTB671_D4_RCOV, XTB671_PAULING_EN, XTB_ATOMIC_RAD,
@@ -13,6 +12,7 @@ use crate::param::xtb_data::{
 };
 use crate::param::{atomic_rad, atomic_rad_codata2022, covalent_rad_d3, covalent_rad_d3_codata2022, pauling_en};
 use crate::units::{reference::KB_XTB_TBLITE, KB_HARTREE};
+use crate::{Error, Result};
 use axtb_d4::RealspaceCutoff;
 use axtb_solvation::Conventions as SolvConventions;
 

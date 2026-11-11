@@ -1,8 +1,8 @@
 //! Contracted Gaussian basis functions and the AO/shell/atom bookkeeping.
 
-use crate::error::{Error, Result};
 use crate::molecule::Molecule;
 use crate::param::sto_data::*;
+use crate::{Error, Result};
 use std::f64::consts::PI;
 
 /// Highest angular momentum supported by the integral code.

@@ -81,11 +81,16 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 name = "axtb"
 version = "0.1.1"
 dependencies = [
+ "axtb-base",
  "axtb-d4",
  "axtb-solvation",
  "faer",
  "rayon",
 ]
+
+[[package]]
+name = "axtb-base"
+version = "0.1.1"
 
 [[package]]
 name = "axtb-cli"
@@ -104,6 +109,7 @@ dependencies = [
 name = "axtb-d4"
 version = "0.1.1"
 dependencies = [
+ "axtb-base",
  "rayon",
 ]
 
@@ -123,6 +129,7 @@ dependencies = [
 name = "axtb-gfnff"
 version = "0.1.1"
 dependencies = [
+ "axtb-base",
  "faer",
  "rayon",
  "serde_json",
@@ -133,6 +140,7 @@ name = "axtb-gxtb"
 version = "0.1.1"
 dependencies = [
  "axtb",
+ "axtb-base",
  "axtb-d4",
  "faer",
  "rayon",
@@ -153,6 +161,9 @@ dependencies = [
 [[package]]
 name = "axtb-solvation"
 version = "0.1.1"
+dependencies = [
+ "axtb-base",
+]
 
 [[package]]
 name = "bitflags"

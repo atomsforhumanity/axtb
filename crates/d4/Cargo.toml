@@ -20,6 +20,7 @@ name = "axtb_d4"
 path = "src/lib.rs"
 
 [dependencies]
+axtb-base = { workspace = true }
 rayon = "1.10"
 
 [lints]

@@ -77,13 +77,9 @@ pub struct D4Model {
     pub(crate) mref: usize,
 }
 
-/// Conversion factor Angstrom -> bohr exactly as mctc-lib evaluates it.
-pub const AATOAU: f64 = {
-    let hbar = data::PLANCK / (2.0 * data::PI);
-    let bohr = hbar / (data::ELECTRON_MASS * data::SPEED_OF_LIGHT * data::FINE_STRUCTURE);
-    let autoaa = bohr * 1e10;
-    1.0 / autoaa
-};
+/// Conversion factor Angstrom -> bohr exactly as mctc-lib evaluates it (CODATA 2018 derived;
+/// `axtb_base::units::reference::MCTC_AATOAU`).
+pub const AATOAU: f64 = axtb_base::units::reference::MCTC_AATOAU;
 
 /// D3/D4 covalent radius (bohr): 4/3 * Pyykko radius.
 #[inline]

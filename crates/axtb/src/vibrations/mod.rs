@@ -47,8 +47,8 @@ pub mod masses;
 pub mod symmetry;
 pub mod thermo;
 
-use crate::error::{Error, Result};
 use crate::units;
+use crate::{Error, Result};
 use faer::dyn_stack::{MemBuffer, MemStack};
 use faer::linalg::evd::{self_adjoint_evd, self_adjoint_evd_scratch, ComputeEigenvectors};
 use faer::linalg::matmul::matmul;

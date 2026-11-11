@@ -4,7 +4,6 @@
 use crate::basis::Basis;
 use crate::conventions::{SccGradient, SccResidual, OCCUPATION_CUTOFF};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, MultipoleCache, OnsiteThirdOrder};
-use crate::error::{Error, Result};
 use crate::hamiltonian::{H0Params, Integrals};
 use crate::linalg::{weighted_outer, weighted_outer_sym, GenEigSolver};
 use crate::mixer::{Mixer, MixerKind, ScfAttempt};
@@ -13,6 +12,7 @@ use crate::molecule::Molecule;
 use crate::ncoord::Ncoord;
 use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
+use crate::{Error, Result};
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -578,7 +578,7 @@ impl XtbModel {
         want_gradient: bool,
         keep_state: bool,
     ) -> Result<(SinglePoint, Option<ScfState>)> {
-        let mut timer = Timer::new();
+        let mut timer = axtb_base::timing::Laps::new();
         check_scf_options(opts)?;
         let nat = mol.nat();
         let bas = &self.basis;
@@ -1207,32 +1207,6 @@ pub(crate) fn electrons(mol: &Molecule, nref: f64, nao: usize) -> Result<(f64, f
         )));
     }
     Ok((nalpha, (nocc - nuhf) / 2.0))
-}
-
-/// Accumulates wall time per named phase.
-struct Timer {
-    last: std::time::Instant,
-    laps: Vec<(&'static str, f64)>,
-}
-
-impl Timer {
-    fn new() -> Self {
-        Self { last: std::time::Instant::now(), laps: Vec::new() }
-    }
-
-    fn lap(&mut self, name: &'static str) {
-        let now = std::time::Instant::now();
-        let dt = (now - self.last).as_secs_f64();
-        self.last = now;
-        match self.laps.iter_mut().find(|(n, _)| *n == name) {
-            Some(e) => e.1 += dt,
-            None => self.laps.push((name, dt)),
-        }
-    }
-
-    fn finish(self) -> Vec<(&'static str, f64)> {
-        self.laps
-    }
 }
 
 pub(crate) fn qat_from_qsh(bas: &Basis, qsh: &[f64], qat: &mut [f64]) {

@@ -13,8 +13,8 @@ use crate::data;
 pub const AUTOAA: f64 = 0.52917726;
 /// Hartree to eV of xtb (`autoev`).
 pub const AUTOEV: f64 = 27.21138505;
-/// Boltzmann constant in Eh/K of xtb (`kB`).
-pub const KB: f64 = 3.166808578545117e-06;
+/// Boltzmann constant in Eh/K of xtb (`kB`; from `axtb-base`).
+pub use axtb_base::units::reference::KB_XTB_TBLITE as KB;
 /// pi (xtb writes 3.1415926535897932384626433832795029, which is this value).
 pub const PI: f64 = std::f64::consts::PI;
 /// sqrt(pi) of `xtb_mctc_constants`.

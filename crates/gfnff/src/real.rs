@@ -10,17 +10,8 @@
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 
-extern "C" {
-    /// C99 libm error function.
-    #[link_name = "erf"]
-    fn c_erf(x: f64) -> f64;
-}
-
-/// Error function (libm).
-#[inline]
-pub fn erf(x: f64) -> f64 {
-    unsafe { c_erf(x) }
-}
+/// Error function of the reference programs (libm; from `axtb-base`).
+pub use axtb_base::math::erf;
 
 pub trait Real:
     Copy

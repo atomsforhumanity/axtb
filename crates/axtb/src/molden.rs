@@ -33,8 +33,8 @@
 //! and these describe the same orbitals (`tests/molden_check.py`).
 
 use crate::basis::{ncart, nsph, Cgto};
-use crate::error::{Error, Result};
 use crate::integrals::{cart_exponents, sph_trafo};
+use crate::{Error, Result};
 use std::f64::consts::PI;
 use std::fmt::Write;
 

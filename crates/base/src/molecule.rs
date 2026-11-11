@@ -1,6 +1,7 @@
 //! Molecular structure.
 
 use crate::error::{Error, Result};
+use crate::math::{norm2_sq, sub3};
 
 /// Smallest distance (bohr) between two atoms that [`Molecule::new`] and
 /// [`Molecule::set_positions`] accept, for every method. Closer atoms are a broken structure
@@ -85,7 +86,7 @@ impl Molecule {
 
 /// Finite positions, no two atoms closer than [`MIN_ATOM_DISTANCE`]. The atoms are swept in
 /// the order of their x coordinates, comparing only pairs closer than that in x.
-fn check_positions(positions: &[[f64; 3]]) -> Result<()> {
+pub fn check_positions(positions: &[[f64; 3]]) -> Result<()> {
     if let Some(i) = positions.iter().position(|r| r.iter().any(|x| !x.is_finite())) {
         return Err(Error::Input(format!("atom {}: position {:?} is not finite", i + 1, positions[i])));
     }
@@ -107,24 +108,6 @@ fn check_positions(positions: &[[f64; 3]]) -> Result<()> {
         }
     }
     Ok(())
-}
-
-/// Difference vector `a - b`.
-#[inline]
-pub fn sub3(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
-/// Squared norm.
-#[inline]
-pub fn norm2_sq(v: [f64; 3]) -> f64 {
-    v[0] * v[0] + v[1] * v[1] + v[2] * v[2]
-}
-
-/// Dot product.
-#[inline]
-pub fn dot3(a: [f64; 3], b: [f64; 3]) -> f64 {
-    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
 #[cfg(test)]

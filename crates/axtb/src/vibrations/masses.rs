@@ -1,6 +1,6 @@
 //! Atomic masses (unified atomic mass units, u) for mass-weighted Hessians and thermochemistry.
 
-use crate::error::{Error, Result};
+use crate::{Error, Result};
 
 /// Standard atomic masses of the `axtb` conventions: the PubChem periodic table as curated
 /// in AFH's qcref package (`qcref/data/elements/pubchem.csv`, column `AtomicMass`, from

@@ -97,12 +97,8 @@ impl std::fmt::Display for Conventions {
     }
 }
 
-/// Ångström to bohr of xtb 6.7.1's tables (`autoaa = 0.52917726`).
-pub const XTB671_AATOAU: f64 = 1.0 / 0.52917726;
-
-/// Ångström to bohr of xtb 6.8.0's tables: mctc-lib's CODATA 2018 bohr
-/// (`autoaa = 5.29177210904492434e-1`, ħ/(mₑ c α) of CODATA 2018).
-pub const XTB680_AATOAU: f64 = 1.0 / 5.29177210904492434e-1;
+/// Ångström to bohr of xtb 6.7.1's and xtb 6.8.0's tables (from `axtb-base`).
+pub use axtb_base::units::reference::{XTB671_AATOAU, XTB680_AATOAU};
 
 /// How `nbondmat` removes the unpaired neighbors of an atom before counting the bonds between
 /// atom pairs (point 3 of the module documentation).

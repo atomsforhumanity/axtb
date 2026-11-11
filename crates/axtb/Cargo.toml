@@ -16,6 +16,7 @@ categories = ["science", "simulation"]
 include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
 
 [dependencies]
+axtb-base = { workspace = true }
 axtb-d4 = { workspace = true }
 axtb-solvation = { workspace = true }
 faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
