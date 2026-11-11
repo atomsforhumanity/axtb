@@ -3,6 +3,17 @@
 All notable changes to axtb. Versions follow [Semantic Versioning](https://semver.org); the
 Rust crates, the CLI and the Python package share one version.
 
+## Unreleased
+
+- g-xTB 2.0.1 analytic Hessians: the response terms in a symmetric form
+  (`AnalyticOptions::symmetric`, on by default) whose error is quadratic in the response
+  solver's tolerance, and a default tolerance of 1e-6 (was 1e-10). Over 15 cases (closed and
+  open shells, 0-5000 K, both conventions) the Hessians equal the 0.1.x ones to ≤ 2.2e-11
+  Eh/bohr² (vibrational frequencies ≤ 2.5e-7 cm⁻¹), and they take 1.33-1.37x less time for taxol
+  (1 and 8 threads) and (H2O)100 (8 threads) on the laptop (`tests/gxtb2_hessian_symmetric.py`).
+  Memory: + 2 · 3N · n_occ · n_virt · 4 bytes (taxol +53 MB, (H2O)100 +0.67 GB). The reported
+  `hessian_max_asymmetry` of these Hessians is now ~1e-7, removed by the symmetrization.
+
 ## 0.1.1 (2026-11-10)
 
 - The minimum supported Rust is 1.89 for every crate (`rust-version`; 0.1.0 declared 1.99, which

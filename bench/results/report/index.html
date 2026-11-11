@@ -158,6 +158,24 @@
         </table>
       </div>
     </div>
+    <div class="card" id="hessian-symmetric">
+      <h3><span class="chip">g-xTB 2.0.1</span>Symmetric response terms (next release, not in 0.1.1)</h3>
+      <p class="note">The analytic Hessian solves one coupled-perturbed system per displacement and used each solution once, so its error grew in proportion to the solver's tolerance (1e-10 in 0.1.x). Subtracting M + M<sup>T</sup>, where M<sub>xy</sub> = z<sub>x</sub>·r<sub>y</sub> pairs displacement x's solution with displacement y's final residual, makes the error quadratic in the tolerance, so a solve to 1e-6 gives the Hessian of a solve to 1e-10 in fewer iterations. The residuals come free from the solver; the cost is one matrix product and keeping z and r of every displacement in single precision (2 · 3N · n<sub>occ</sub> · n<sub>virt</sub> · 4 bytes, growing as N³). Measured on the <span data-draw="hs-cpu" data-source="hess_sym_summary" data-field="cpu">—</span> laptop at commit <span data-draw="hs-commit" data-source="hess_sym_summary" data-field="commit">—</span>, each setting on the same tightly converged SCF, compared with the 0.1.x setting.</p>
+      <p>Over <b data-draw="hs-n" data-source="hess_sym_summary" data-field="cases">—</b> cases (closed and open shells, 0, 3000 and 5000 K, both conventions) the new default differs from the 0.1.x Hessian by at most <b data-draw="hs-dh" data-source="hess_sym_summary" data-field="max_dH_default">—</b> Eh/bohr² and <b data-draw="hs-df" data-source="hess_sym_summary" data-field="max_dfreq_default">—</b> cm⁻¹; the same tolerance without the symmetric form is off by up to <b data-draw="hs-dhp" data-source="hess_sym_summary" data-field="max_dH_plain">—</b> Eh/bohr². From about 100 atoms on the Hessian is <b data-draw="hs-x0" data-source="hess_sym_summary" data-field="min_speedup">—</b>–<b data-draw="hs-x1" data-source="hess_sym_summary" data-field="max_speedup">—</b>× faster.</p>
+      <div class="tablewrap">
+        <table data-source="hess_sym_accuracy" data-row-key="case">
+          <thead><tr><th data-field="case">Case</th><th data-field="atoms">Atoms</th><th data-field="max_dH_plain">Max |ΔH|, 1e-6 plain</th><th data-field="max_dH_default">Max |ΔH|, 1e-6 symmetric</th><th data-field="max_dfreq_default">Max |Δfrequency|, symmetric (cm⁻¹)</th></tr></thead>
+          <tbody data-draw="tb-hsym-acc"></tbody>
+        </table>
+      </div>
+      <div class="tablewrap">
+        <table data-source="hess_sym_cost" data-row-key="id">
+          <thead><tr><th data-field="case">System</th><th data-field="atoms">Atoms</th><th data-field="threads">Threads</th><th data-field="seconds_current">Hessian, 0.1.x</th><th data-field="seconds_default">Hessian, symmetric</th><th data-field="speedup">Speed-up</th><th data-field="peak_mb_current">Peak memory, 0.1.x</th><th data-field="peak_mb_default">Peak memory, symmetric</th></tr></thead>
+          <tbody data-draw="tb-hsym-cost"></tbody>
+        </table>
+      </div>
+      <p class="note">Hessian time: the analytic Hessian after the SCF. ΔH: largest element difference from the 0.1.x Hessian (tolerance 1e-10, plain); frequencies from the mass-weighted Hessian with standard atomic weights. Memory: peak resident memory of the whole process.</p>
+    </div>
   </section>
 
   <section id="speed">
@@ -1105,6 +1123,16 @@ dash.calc('composite_speed', {
   inputs: ['composite'],
   fn: (rows) => rows.map((r) => ({ id: r.id, vs_programs: r.t_programs / r.t_axtb })),
 });
+table('tb-hsym-acc', 'hess_sym_accuracy', (r) => [[r.case, 'l'], AX.int(r.atoms), AX.sci(r.max_dH_plain), AX.sci(r.max_dH_default), AX.sci(r.max_dfreq_default)], (r) => r.case);
+table('tb-hsym-cost', 'hess_sym_cost', (r) => [r.case, AX.int(r.atoms), String(r.threads), AX.sec(r.seconds_current), AX.sec(r.seconds_default), F.x2(r.speedup), AX.mb(r.peak_mb_current), AX.mb(r.peak_mb_default)], (r) => r.id);
+one('hs-cpu', F.txt);
+one('hs-commit', F.txt);
+one('hs-n', F.int);
+one('hs-dh', F.sci);
+one('hs-df', F.sci);
+one('hs-dhp', F.sci);
+one('hs-x0', F.x2);
+one('hs-x1', F.x2);
 table('tb-g2mem', 'gxtb2_hess_memory', (r) => [r.system, AX.int(r.atoms), String(r.threads), [r.machine, 'l'], AX.mb(r.rss_after_mb), AX.mb(r.rss_single_point_mb), AX.sec(r.seconds)], (r) => r.id);
 table('tb-vib', 'vibrational', (r) => [[r.method, 'l'], r.molecule, AX.int(r.atoms), r.point_group, String(r.symmetry_number), AX.sci(r.dfreq_same), AX.sci(r.dthermo_same), d3.format('.2~f')(r.dfreq_own), AX.sci(r.dG_own)], (r) => r.id);
 table('tb-etemp', 'gxtb_etemp', (r) => [r.setting, AX.int(r.molecules), r.temperatures, AX.int(r.runs), AX.int(r.compared), String(r.both_fail), String(r.rounding_sensitive), AX.sci(r.max_dE), AX.sci(r.max_dgrad), String(r.iteration_mismatches)], (r) => r.id);
