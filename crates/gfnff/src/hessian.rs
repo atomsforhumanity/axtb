@@ -23,6 +23,7 @@ use crate::param;
 use crate::real::{Dual, Real, V3};
 use crate::terms;
 use crate::topology::Topology;
+use axtb_base::fd;
 use faer::{Mat, Par};
 use rayon::prelude::*;
 
@@ -653,17 +654,7 @@ pub fn hessian(
     }
     timings.push(("eeq response", t2.elapsed().as_secs_f64()));
     // symmetrize in place (the buffer is then the same in row- and column-major order)
-    let mut maxasym: f64 = 0.0;
-    for i in 0..n3 {
-        for j in 0..i {
-            let a = hbuf[i * n3 + j];
-            let b = hbuf[j * n3 + i];
-            maxasym = maxasym.max((a - b).abs());
-            let m = 0.5 * (a + b);
-            hbuf[i * n3 + j] = m;
-            hbuf[j * n3 + i] = m;
-        }
-    }
+    let maxasym = fd::symmetrize(&mut hbuf, n3);
     if hbuf.iter().any(|v| !v.is_finite()) {
         return Err(not_finite(&ctx, &hbuf));
     }
@@ -717,8 +708,9 @@ fn not_finite(ctx: &Ctx, h: &[f64]) -> Error {
 
 /// Hessian by central differences (`step` bohr) of the analytic gradient with the fixed
 /// topology, as `xtb --hess` (step 0.005) computes it: symmetrized, with the dipole
-/// derivatives from the EEQ dipoles of the displaced structures. 6N gradient evaluations,
-/// parallel over the displacements, each column written straight into the result.
+/// derivatives from the EEQ dipoles of the displaced structures. 6N gradient evaluations
+/// ([`fd::numerical_hessian`], each coordinate moved to x + h and x - h), parallel over the
+/// displacements, each column written straight into the result.
 pub fn numerical_hessian(
     topo: &Topology,
     model: &Model,
@@ -727,60 +719,33 @@ pub fn numerical_hessian(
     pool: Option<&rayon::ThreadPool>,
     par: Par,
 ) -> Result<Hessian> {
-    let n = topo.natoms();
-    let n3 = 3 * n;
     let t0 = std::time::Instant::now();
     let reference = energy::evaluate(topo, model, xyz, true, pool, par)?;
     let mut timings = vec![("energy+gradient", t0.elapsed().as_secs_f64())];
     let t1 = std::time::Instant::now();
-    let dipole = |x: &[[f64; 3]], q: &[f64]| -> [f64; 3] {
+    // gradient and EEQ dipole (about the origin) of a displaced structure
+    let point = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
+        let e = energy::evaluate(topo, model, x, true, None, Par::Seq)?;
         let mut d = [0.0; 3];
-        for (xi, qi) in x.iter().zip(q) {
-            for e in 0..3 {
-                d[e] += xi[e] * qi;
+        for (xi, qi) in x.iter().zip(&e.charges) {
+            for k in 0..3 {
+                d[k] += xi[k] * qi;
             }
         }
-        d
+        Ok((e.gradient.unwrap(), d))
     };
-    // column k of the (column-major) buffer; returns the dipole derivative of coordinate k
-    let fill = |(k, col): (usize, &mut [f64])| -> Result<[f64; 3]> {
-        let mut xp = xyz.to_vec();
-        let mut xm = xyz.to_vec();
-        xp[k / 3][k % 3] += step;
-        xm[k / 3][k % 3] -= step;
-        let ep = energy::evaluate(topo, model, &xp, true, None, Par::Seq)?;
-        let em = energy::evaluate(topo, model, &xm, true, None, Par::Seq)?;
-        let (gp, gm) = (ep.gradient.as_ref().unwrap(), em.gradient.as_ref().unwrap());
-        for (r, h) in col.iter_mut().enumerate() {
-            *h = (gp[r / 3][r % 3] - gm[r / 3][r % 3]) / (2.0 * step);
-        }
-        let (dp, dm) = (dipole(&xp, &ep.charges), dipole(&xm, &em.charges));
-        Ok([0, 1, 2].map(|e| (dp[e] - dm[e]) / (2.0 * step)))
-    };
-    let mut out = vec![0.0; n3 * n3];
-    let dipd: Vec<Result<[f64; 3]>> = match pool {
-        Some(p) => p.install(|| out.par_chunks_mut(n3).enumerate().map(fill).collect()),
-        None => out.chunks_mut(n3).enumerate().map(fill).collect(),
-    };
-    // the first failed displacement in coordinate order
-    let dipd = dipd.into_iter().collect::<Result<Vec<_>>>()?;
-    // symmetrize in place (the same in row- and column-major order)
-    let mut maxasym: f64 = 0.0;
-    for i in 0..n3 {
-        for j in 0..i {
-            let (a, b) = (out[i * n3 + j], out[j * n3 + i]);
-            maxasym = maxasym.max((a - b).abs());
-            out[i * n3 + j] = 0.5 * (a + b);
-            out[j * n3 + i] = 0.5 * (a + b);
-        }
-    }
+    let numerical = |parallel| fd::numerical_hessian(xyz, step, fd::Displacement::FromReference, parallel, point);
+    let nh = match pool {
+        Some(p) => p.install(|| numerical(true)),
+        None => numerical(false),
+    }?;
     timings.push(("displacements", t1.elapsed().as_secs_f64()));
     Ok(Hessian {
         energy: reference.energies.total,
         gradient: reference.gradient.unwrap(),
-        hessian: out,
-        max_asymmetry: maxasym,
-        dipole_derivatives: dipd,
+        hessian: nh.hessian,
+        max_asymmetry: nh.max_asymmetry,
+        dipole_derivatives: nh.dipole_derivatives,
         timings,
     })
 }
