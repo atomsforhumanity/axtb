@@ -15,8 +15,9 @@
 //! - one error type with kinds (input, unsupported element, topology, SCF not converged,
 //!   numerical), [`Error::kind`];
 //! - at least one thread, no clamps; warnings about more than 8 threads for an SCF method's
-//!   single point ([`threads_warning`]) and about a run-time LAPACK that was not used
-//!   ([`eigensolver_warning`]) are the front ends' to print;
+//!   single point ([`threads_warning`]), about unpaired electrons for GFN-FF ([`uhf_warning`])
+//!   and about a run-time LAPACK that was not used ([`eigensolver_warning`]) are the front
+//!   ends' to print;
 //! - XYZ files in Ångström are converted with the factor of the method's conventions
 //!   ([`read_xyz`]).
 //!
@@ -179,6 +180,14 @@ pub fn threads_warning(method: Method, threads: usize, hessian: bool) -> Option<
     } else {
         None
     }
+}
+
+/// The warning for unpaired electrons given to GFN-FF, which has no electronic structure, so
+/// that `uhf` has no effect (a positive value is accepted, so that a radical's multiplicity
+/// from a structure file passes through, but is not silently ignored).
+pub fn uhf_warning(method: Method, uhf: Option<i64>) -> Option<String> {
+    (method == Method::Gfnff && uhf.is_some_and(|u| u > 0))
+        .then(|| "GFN-FF has no electronic structure: uhf (unpaired electrons) has no effect".to_string())
 }
 
 /// The warning for a response whose SCF ran faer although a run-time LAPACK was asked for

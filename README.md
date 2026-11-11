@@ -219,7 +219,7 @@ stderr, exit code 2. Warnings go to stderr: more than 8 threads for one SCF sing
 | `method` | `--method M` | `gfn2` (default), `gfnff`, `gxtb-v1.1`, `gxtb-v2.0.1` |
 | `conventions` | `--conventions C` | GFN2-xTB `axtb` (default), `xtb` (6.8.0), `xtb-6.7.1`, `tblite`; g-xTB `axtb`, `gxtb`; GFN-FF `axtb`, `xtb`, `xtb-6.7.1` |
 | `threads` | `--threads N` | default 1 |
-| `accuracy`, `etemp`, `max_iter` | `--acc X`, `--etemp K`, `--max-iter N` | SCF methods: accuracy multiplier (1), electronic temperature (GFN2-xTB 300 K, g-xTB 0 K), iteration limit (250) |
+| `accuracy`, `etemp`, `max_iter` | `--acc X`, `--etemp K`, `--max-iter N` | SCF methods: accuracy multiplier (1), electronic temperature (GFN2-xTB 300 K, g-xTB 0 K), iteration limit (GFN2-xTB and g-xTB 2.0.1 250, g-xTB v1.1 1000) |
 | `mixer`, `dispersion`, `scf_trace` | `--mixer M`, `--nodisp`, `--scf-trace` | GFN2-xTB: SCF mixer (`auto`, `broyden`, `diis`), dispersion off (validation), every SCF iteration on stderr |
 | `alpb`, `gbsa`, `solvation_state` | `--alpb S`, `--gbsa S`, `--solvation-state R` | implicit solvent and its reference state (`gsolv`, `bar1M`, `reference`) |
 | `solvation_correction`, `correction_conventions` | `--solvation-correction gfn2`, `--correction-conventions C` | g-xTB in solvent, see [g-xTB in implicit solvent](#g-xtb-in-implicit-solvent) |
@@ -492,8 +492,10 @@ converge runs once more from the program's EEQ-BC start. Results say which start
   previous run's restart file): energies ≤ 4.3e-11 Eh, identical SCF iterations (2.0.1: 2 at the
   same geometry, as the program; 1.1.0: 3). The 1.1.0 program restarts without the transition
   step of its Fock mixing (v1.1 spec §4.17).
-- `guess="eeq-bc"` (also `"fresh"`) starts every SCF fresh in any conventions; GFN2-xTB takes
-  `guess="eeq"`.
+- `guess="fresh"` starts every SCF from the method's own start in any conventions: g-xTB's
+  EEQ-BC charges (also `guess="eeq-bc"`), GFN2-xTB's EEQ charges (also `guess="eeq"`).
+  `guess="sad"` starts every GFN2-xTB SCF from neutral atoms. A named start of another method
+  is refused, and the solvation composite takes only `previous` or `fresh`.
 - In the default conventions a restarted g-xTB 2.0.1 SCF converges to 0.1 × the thresholds
   (`axtb_gxtb::calculator::RESTART_ACCURACY`). A fresh 2.0.1 SCF ends with a DIIS step that
   overshoots tblite's thresholds; a restart meets them after a few iterations and would stop

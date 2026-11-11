@@ -208,15 +208,34 @@ pub(crate) fn correction(name: &str) -> Result<axtb_gxtb::Correction> {
     }
 }
 
+/// Where a calculator's SCFs start ([`guess`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Guess {
+    /// The previous geometry's converged state (`previous`, also `restart`).
+    Previous,
+    /// The method's own start at every geometry (`fresh`).
+    Fresh,
+    /// Every geometry from EEQ charges (`eeq`; GFN2-xTB's own start).
+    Eeq,
+    /// Every geometry from neutral atoms (`sad`; GFN2-xTB).
+    Sad,
+    /// Every geometry from the program's EEQ-BC start (`eeq-bc`; g-xTB's own start).
+    EeqBc,
+}
+
 /// Where a calculator's SCFs start: `previous` (also `restart`), the previous geometry's
-/// converged state, or the method's own start (`fresh`, `eeq-bc`, `eeq`, `sad`). `true` for
-/// previous.
-pub fn guess(name: &str) -> Result<bool> {
+/// converged state; `fresh`, the method's own start; or a named start, `eeq` or `sad`
+/// (GFN2-xTB) or `eeq-bc` (g-xTB), which the calculator checks against its method.
+pub fn guess(name: &str) -> Result<Guess> {
     match key(name).as_str() {
-        "previous" | "restart" => Ok(true),
-        "fresh" | "eeqbc" | "eeq" | "sad" => Ok(false),
+        "previous" | "restart" => Ok(Guess::Previous),
+        "fresh" => Ok(Guess::Fresh),
+        "eeq" => Ok(Guess::Eeq),
+        "sad" => Ok(Guess::Sad),
+        "eeqbc" => Ok(Guess::EeqBc),
         _ => Err(Error::Input(format!(
-            "unknown guess {name:?}; use \"previous\" or the method's own start (\"fresh\", \"eeq-bc\", \"eeq\")"
+            "unknown guess {name:?}; use \"previous\", \"fresh\" (the method's own start), \"eeq\" or \"sad\" \
+             (GFN2-xTB) or \"eeq-bc\" (g-xTB)"
         ))),
     }
 }
@@ -246,7 +265,10 @@ mod tests {
         assert_eq!(gfnff_conventions("xtb_6.7.1").unwrap().2, "xtb-6.7.1");
         assert_eq!(analysis_conventions("gxtb").unwrap(), VibConventions::Xtb671);
         assert_eq!(solvation_state("BAR 1M").unwrap(), axtb::ReferenceState::Bar1M);
-        assert!(guess("eeq-bc").is_ok_and(|p| !p));
+        assert_eq!(guess("eeq-bc").unwrap(), Guess::EeqBc);
+        assert_eq!(guess("Restart").unwrap(), Guess::Previous);
+        assert_eq!(guess("SAD").unwrap(), Guess::Sad);
+        assert!(guess("huckel").is_err());
         assert!(hessian_method("finite").is_err());
     }
 }

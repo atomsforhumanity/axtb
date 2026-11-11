@@ -79,7 +79,7 @@ struct Cli {
     #[arg(long, value_name = "K", help_heading = "SCF (GFN2-xTB, g-xTB)")]
     etemp: Option<f64>,
 
-    /// SCF iteration limit (default 250)
+    /// SCF iteration limit (default: GFN2-xTB and g-xTB 2.0.1 250, g-xTB v1.1 1000)
     #[arg(long = "max-iter", value_name = "N", help_heading = "SCF (GFN2-xTB, g-xTB)")]
     max_iter: Option<usize>,
 
@@ -344,6 +344,9 @@ fn run() -> ExitCode {
     };
     if let Ok(method) = Method::parse(req.method.as_deref().unwrap_or("gfn2")) {
         if let Some(w) = axtb_driver::threads_warning(method, req.threads.unwrap_or(1), req.hessian) {
+            eprintln!("warning: {w}");
+        }
+        if let Some(w) = axtb_driver::uhf_warning(method, req.uhf) {
             eprintln!("warning: {w}");
         }
     }

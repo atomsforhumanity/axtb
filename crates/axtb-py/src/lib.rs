@@ -402,6 +402,9 @@ impl Calculator {
         }
         .request(numbers, &positions)?;
         let inner = guarded(py, || axtb_driver::Calculator::new(&req))?;
+        if let Some(w) = axtb_driver::uhf_warning(inner.method(), req.uhf) {
+            warn(py, &w)?;
+        }
         Ok(Self { inner })
     }
 
@@ -603,6 +606,9 @@ fn singlepoint<'py>(
     molden_into(&mut req, molden)?;
     if let Ok(m) = Method::parse(method) {
         warn_threads(py, m, threads)?;
+        if let Some(w) = axtb_driver::uhf_warning(m, req.uhf) {
+            warn(py, &w)?;
+        }
     }
     let r = guarded(py, || axtb_driver::run(&req))?;
     finish(py, r)
