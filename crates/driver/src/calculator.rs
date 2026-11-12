@@ -7,6 +7,7 @@ use crate::request::Request;
 use crate::response::{self, Attempt, Gfnff, HessianPart, Matrix, Named, Response, Scf, Topology, Vibrations};
 use crate::task::Task;
 use axtb::vibrations::Conventions as VibConventions;
+use axtb::ToMolden;
 use std::time::Instant;
 
 /// The calculator of a method.

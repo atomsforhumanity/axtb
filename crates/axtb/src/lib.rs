@@ -43,7 +43,7 @@ mod xtb;
 pub use calculator::{Calculator, Hessian};
 pub use conventions::{ConventionParams, Conventions};
 pub use hessian::{HessianMethod, HessianOptions};
-pub use molden::{MoldenFunctions, Orbitals};
+pub use molden::{MoldenFunctions, Orbitals, ToMolden};
 pub use properties::{GapRule, OrbitalLevels, QuadrupoleForm};
 pub use scf::mixing::{MixerKind, ScfAttempt};
 pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};

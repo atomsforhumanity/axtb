@@ -4,6 +4,7 @@
 
 #![cfg(feature = "gxtb")]
 
+use axtb::ToMolden;
 use std::io::Write;
 use std::path::Path;
 use std::process::{Command, Stdio};

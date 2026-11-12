@@ -5,43 +5,7 @@ use crate::param::sto_data::*;
 use crate::{Error, Result};
 use axtb_base::math::primitive_norm_tblite;
 
-/// Highest angular momentum supported by the integral code.
-pub const MAXL: usize = 4;
-/// Maximum number of primitives in a contracted Gaussian.
-pub const MAXPRIM: usize = 16;
-
-/// Number of spherical components for angular momentum `l`.
-#[inline]
-pub const fn nsph(l: usize) -> usize {
-    2 * l + 1
-}
-
-/// Number of Cartesian components for angular momentum `l`.
-#[inline]
-pub const fn ncart(l: usize) -> usize {
-    (l + 1) * (l + 2) / 2
-}
-
-/// A contracted Cartesian Gaussian shell; the coefficients include the normalization of
-/// the x^l component (the spherical transformation completes the normalization).
-#[derive(Clone, Copy, Debug)]
-pub struct Cgto {
-    /// Angular momentum.
-    pub l: usize,
-    /// Number of primitives.
-    pub nprim: usize,
-    /// Primitive exponents.
-    pub alpha: [f64; MAXPRIM],
-    /// Contraction coefficients.
-    pub coeff: [f64; MAXPRIM],
-}
-
-impl Cgto {
-    /// Smallest primitive exponent.
-    pub fn min_alpha(&self) -> f64 {
-        self.alpha[..self.nprim].iter().copied().fold(f64::INFINITY, f64::min)
-    }
-}
+pub use axtb_base::orbitals::{ncart, nsph, Cgto, MAXL, MAXPRIM};
 
 /// Which STO-NG tables to use (GFN1 has dedicated 4sp/5sp six-primitive expansions).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

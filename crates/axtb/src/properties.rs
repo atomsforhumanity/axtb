@@ -19,19 +19,7 @@
 
 use faer::{Mat, MatRef, Par};
 
-/// Orbital energies (Eh, ascending) and occupations of one spin channel.
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct OrbitalLevels {
-    pub energies: Vec<f64>,
-    pub occupations: Vec<f64>,
-}
-
-impl OrbitalLevels {
-    /// Electrons in the channel.
-    pub fn electrons(&self) -> f64 {
-        self.occupations.iter().sum()
-    }
-}
+pub use axtb_base::orbitals::OrbitalLevels;
 
 /// The alpha and beta channels of `levels` (qcdata's `scf_eigenvalues_a/b`,
 /// `scf_occupations_a/b`): a closed shell's one channel twice with half its occupations.

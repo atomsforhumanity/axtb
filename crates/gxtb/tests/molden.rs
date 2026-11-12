@@ -7,7 +7,7 @@
 
 use axtb::basis::{nsph, Cgto};
 use axtb::integrals::{overlap, MBLK};
-use axtb::molden::{MoldenFunctions, Spin};
+use axtb::molden::{MoldenFunctions, Spin, ToMolden};
 use axtb::{Molecule, Orbitals};
 use axtb_gxtb::{Calculator, ScfOptions, Version};
 use std::path::Path;

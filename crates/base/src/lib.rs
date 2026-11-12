@@ -46,6 +46,7 @@ pub mod math;
 mod molecule;
 pub mod ncoord;
 pub mod occupations;
+pub mod orbitals;
 pub mod threads;
 pub mod timing;
 pub mod units;

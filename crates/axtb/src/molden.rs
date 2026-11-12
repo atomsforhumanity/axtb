@@ -1,9 +1,9 @@
 //! Molden files of converged molecular orbitals, for orbital viewers (Molden, Jmol,
 //! Avogadro, IboView, Multiwfn, PySCF/IOData readers).
 //!
-//! [`Orbitals`] holds what a file needs: the atoms, each atom's contracted shells (for g-xTB
-//! every atom has its own, charge-adapted contraction) and one set of orbitals (closed shell)
-//! or an alpha and a beta set (open shell). [`Orbitals::to_molden`] writes them in the
+//! [`Orbitals`] (axtb-base's) holds what a file needs: the atoms, each atom's contracted shells
+//! (for g-xTB every atom has its own, charge-adapted contraction) and one set of orbitals (closed
+//! shell) or an alpha and a beta set (open shell). [`ToMolden::to_molden`] writes them in the
 //! conventions of the Molden format
 //! (<https://www.theochem.ru.nl/molden/molden_format.html>) as standard readers interpret it:
 //!
@@ -38,68 +38,13 @@ use crate::{Error, Result};
 use axtb_base::math::{primitive_norm, DFACTORIAL};
 use std::fmt::Write;
 
-/// Spin of a set of orbitals.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Spin {
-    Alpha,
-    Beta,
-}
+pub use axtb_base::orbitals::{MoSet, MoldenFunctions, Orbitals, Spin};
 
-impl Spin {
-    /// The label of the Molden `Spin=` field.
-    pub fn label(&self) -> &'static str {
-        match self {
-            Spin::Alpha => "Alpha",
-            Spin::Beta => "Beta",
-        }
-    }
-}
-
-/// One set of molecular orbitals.
-#[derive(Clone, Debug)]
-pub struct MoSet {
-    pub spin: Spin,
-    /// Orbital energies (Eh).
-    pub energies: Vec<f64>,
-    /// Occupations: 0 to 2 in the single set of a closed shell, 0 to 1 in an alpha or beta set.
-    pub occupations: Vec<f64>,
-    /// Coefficients orbital by orbital: `coefficients[k * nao + mu]` is AO `mu` in orbital
-    /// `k`, in axtb's AO order (atom by atom, shell by shell, m = -l..l; p: y, z, x).
-    pub coefficients: Vec<f64>,
-}
-
-/// Converged molecular orbitals with the basis they are expanded in.
-#[derive(Clone, Debug)]
-pub struct Orbitals {
-    /// Atomic numbers and positions (bohr).
-    pub numbers: Vec<usize>,
-    pub positions: Vec<[f64; 3]>,
-    /// Contracted shells of every atom ([`Cgto`] convention: coefficients include the
-    /// normalization of the x^l primitive).
-    pub shells: Vec<Vec<Cgto>>,
-    /// One set (closed shell) or an alpha and a beta set (open shell).
-    pub sets: Vec<MoSet>,
-}
-
-/// Which functions the `[MO]` coefficients of a Molden file refer to.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum MoldenFunctions {
-    /// Spherical functions (`[5D]`, `[7F]`), as the calculation uses them (default).
-    #[default]
-    Spherical,
-    /// Cartesian functions (`[6D]`, `[10F]`), each component normalized.
-    Cartesian,
-}
-
-impl std::str::FromStr for MoldenFunctions {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        match s.to_ascii_lowercase().as_str() {
-            "spherical" | "pure" | "5d" => Ok(Self::Spherical),
-            "cartesian" | "6d" => Ok(Self::Cartesian),
-            other => Err(Error::Input(format!("unknown Molden functions {other:?} (spherical or cartesian)"))),
-        }
-    }
+/// Writing [`Orbitals`] as a Molden file.
+pub trait ToMolden {
+    /// The orbitals as the text of a Molden file (see the [module docs](self)); `title` goes
+    /// into the `[Title]` section.
+    fn to_molden(&self, functions: MoldenFunctions, title: &str) -> Result<String>;
 }
 
 /// Coefficients d_k of the normalized primitives of `cgto` and the norm of its contracted
@@ -161,44 +106,38 @@ fn sci(x: f64, digits: usize) -> String {
     }
 }
 
-impl Orbitals {
-    /// Number of (spherical) basis functions.
-    pub fn nao(&self) -> usize {
-        self.shells.iter().flatten().map(|s| nsph(s.l)).sum()
+/// Refuse orbitals that do not fit together or that a Molden file cannot hold.
+fn check(orb: &Orbitals) -> Result<()> {
+    let nat = orb.numbers.len();
+    if orb.positions.len() != nat || orb.shells.len() != nat {
+        return Err(Error::Input("orbitals: numbers, positions and shells must have one entry per atom".into()));
     }
-
-    fn check(&self) -> Result<()> {
-        let nat = self.numbers.len();
-        if self.positions.len() != nat || self.shells.len() != nat {
-            return Err(Error::Input("orbitals: numbers, positions and shells must have one entry per atom".into()));
-        }
-        if let Some(&z) = self.numbers.iter().find(|&&z| z == 0 || z > 118) {
-            return Err(Error::Input(format!("orbitals: no element with atomic number {z}")));
-        }
-        if let Some(s) = self.shells.iter().flatten().find(|s| s.l > 3) {
-            return Err(Error::Input(format!("Molden output supports s, p, d and f shells, not l = {}", s.l)));
-        }
-        let nao = self.nao();
-        if self.sets.is_empty() || self.sets.len() > 2 {
-            return Err(Error::Input("orbitals: one set (closed shell) or two (alpha, beta) expected".into()));
-        }
-        for set in &self.sets {
-            let nmo = set.energies.len();
-            if set.occupations.len() != nmo || set.coefficients.len() != nmo * nao {
-                return Err(Error::Input(format!(
-                    "orbitals: {nmo} energies, {} occupations and {} coefficients for {nao} basis functions",
-                    set.occupations.len(),
-                    set.coefficients.len()
-                )));
-            }
-        }
-        Ok(())
+    if let Some(&z) = orb.numbers.iter().find(|&&z| z == 0 || z > 118) {
+        return Err(Error::Input(format!("orbitals: no element with atomic number {z}")));
     }
+    if let Some(s) = orb.shells.iter().flatten().find(|s| s.l > 3) {
+        return Err(Error::Input(format!("Molden output supports s, p, d and f shells, not l = {}", s.l)));
+    }
+    let nao = orb.nao();
+    if orb.sets.is_empty() || orb.sets.len() > 2 {
+        return Err(Error::Input("orbitals: one set (closed shell) or two (alpha, beta) expected".into()));
+    }
+    for set in &orb.sets {
+        let nmo = set.energies.len();
+        if set.occupations.len() != nmo || set.coefficients.len() != nmo * nao {
+            return Err(Error::Input(format!(
+                "orbitals: {nmo} energies, {} occupations and {} coefficients for {nao} basis functions",
+                set.occupations.len(),
+                set.coefficients.len()
+            )));
+        }
+    }
+    Ok(())
+}
 
-    /// The orbitals as the text of a Molden file (see the [module docs](self)); `title` goes
-    /// into the `[Title]` section.
-    pub fn to_molden(&self, functions: MoldenFunctions, title: &str) -> Result<String> {
-        self.check()?;
+impl ToMolden for Orbitals {
+    fn to_molden(&self, functions: MoldenFunctions, title: &str) -> Result<String> {
+        check(self)?;
         let mut out = String::new();
         out.push_str("[Molden Format]\n[Title]\n");
         out.push_str(title.lines().next().unwrap_or("").trim());
