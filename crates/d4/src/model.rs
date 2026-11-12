@@ -162,22 +162,27 @@ pub fn trapzd(pol: &[f64; NFREQ]) -> f64 {
     s
 }
 
-/// Number of Gaussian weights per reference (`set_refgw`).
-fn reference_ngw(z: usize) -> [u32; MAX_REF] {
+/// Number of Gaussian weights of each reference system (`set_refgw`) from the reference
+/// coordination numbers `refcn` of one element (dftd4's `refcn`, or another program's table):
+/// with icn = nint(refcn) capped at 19 and c(icn) the number of references with that icn (plus
+/// one for icn = 0), ngw = c (c + 1)/2.
+pub fn reference_ngw(refcn: &[f64]) -> Vec<u32> {
     const MAX_CN: usize = 19;
-    let mut ngw = [1u32; MAX_REF];
-    let nref = data::REFN[z - 1] as usize;
     let mut cnc = [0u32; MAX_CN + 1];
     cnc[0] = 1;
     // nint: round half away from zero
     let icn = |x: f64| -> usize { (x.round() as i64).clamp(0, MAX_CN as i64) as usize };
-    for ir in 0..nref {
-        cnc[icn(data::REFCN[z - 1][ir])] += 1;
+    for &cn in refcn {
+        cnc[icn(cn)] += 1;
     }
-    for ir in 0..nref {
-        let c = cnc[icn(data::REFCN[z - 1][ir])];
-        ngw[ir] = c * (c + 1) / 2;
-    }
+    refcn.iter().map(|&cn| cnc[icn(cn)] * (cnc[icn(cn)] + 1) / 2).collect()
+}
+
+/// [`reference_ngw`] of dftd4's references of element `z`, padded with 1.
+fn dftd4_reference_ngw(z: usize) -> [u32; MAX_REF] {
+    let nref = data::REFN[z - 1] as usize;
+    let mut ngw = [1u32; MAX_REF];
+    ngw[..nref].copy_from_slice(&reference_ngw(&data::REFCN[z - 1][..nref]));
     ngw
 }
 
@@ -307,7 +312,7 @@ impl D4Model {
         let eta = species.iter().map(|&z| tab(&data::CHEMICAL_HARDNESS, z)).collect();
         let r4r2 = species.iter().map(|&z| r4r2_value(z)).collect();
         let nref: Vec<usize> = species.iter().map(|&z| data::REFN[z - 1] as usize).collect();
-        let ngw = species.iter().map(|&z| reference_ngw(z)).collect();
+        let ngw = species.iter().map(|&z| dftd4_reference_ngw(z)).collect();
         let refcn = species
             .iter()
             .zip(&nref)
@@ -592,10 +597,25 @@ impl D4Model {
         gw: &[[f64; MAX_REF]],
         dgw: &[[f64; MAX_REF]],
     ) -> (f64, f64, f64) {
+        self.pair_c6_from_weights(iat, jat, (&gw[iat], &dgw[iat]), (&gw[jat], &dgw[jat]))
+    }
+
+    /// C6 of the pair (`iat`, `jat`) from reference weights given for this pair, with the
+    /// derivative contractions: for `(wi, di)` of `iat` and `(wj, dj)` of `jat` returns
+    /// `(sum_ab wi_a wj_b C6ref_ab, sum_ab di_a wj_b C6ref_ab, sum_ab wi_a dj_b C6ref_ab)`,
+    /// summed over the references in order. For weighting schemes other than the model's own,
+    /// e.g. pair-specific weights; with the model's weights it is the C6 of
+    /// [`atomic_c6`](Self::atomic_c6).
+    #[inline]
+    pub fn pair_c6_from_weights(
+        &self,
+        iat: usize,
+        jat: usize,
+        (wi, di): (&[f64; MAX_REF], &[f64; MAX_REF]),
+        (wj, dj): (&[f64; MAX_REF], &[f64; MAX_REF]),
+    ) -> (f64, f64, f64) {
         let (isp, jsp) = (self.id[iat], self.id[jat]);
         let blk = self.c6_block(isp, jsp);
-        let (wi, wj) = (&gw[iat], &gw[jat]);
-        let (di, dj) = (&dgw[iat], &dgw[jat]);
         let (mut c6, mut dci, mut dcj) = (0.0, 0.0, 0.0);
         for iref in 0..self.nref[isp] {
             for jref in 0..self.nref[jsp] {

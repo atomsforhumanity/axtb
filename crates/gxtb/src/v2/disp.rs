@@ -1,7 +1,7 @@
 //! revD4 dispersion of g-xTB 2.0.1 (spec §4.15): the v1.1 C6 model ([`crate::disp`]: revD4 CN,
 //! pair-specific Gaussian weights, tanh charge scaling n(q)/n(qref), hydrogen-subtracted
-//! reference polarizabilities) with the 2.0.1 reference charges (`gxtbq`, `gxtbh`) and CN radii,
-//! and the screened rational damping of the 2.0.1 dftd4 build:
+//! reference polarizabilities, K matrices) with the 2.0.1 reference charges ([`CHARGES`]:
+//! `gxtbq`, `gxtbh`) and CN radii, and the screened rational damping of the 2.0.1 dftd4 build:
 //!
 //! - rho_AB = sqrt(3 r4r2_A r4r2_B), reff_AB = a2 1/2 [1 + erf(-a3 (R - a4 rho_AB))] (a1 = 0);
 //! - two-body (SCF Mulliken charges, every iteration): E2 = -sum_{A<B} C6_AB(q) s6/(R + reff)^6,
@@ -14,15 +14,12 @@
 //! ([`Model::cut`]).
 
 use super::Model;
-use crate::data::{D4_REFCOVCN, K3_PAIR};
 use crate::data_v2::{D4_REFH, D4_REFQ};
-use crate::disp::{nref, scaled_cn_weights};
-use crate::eeqbc::erf_f64;
+use crate::disp::{k_matrices, revd4_model, ReferenceCharges};
 use axtb::molecule::{norm2_sq, sub3};
-use axtb::{Error, Molecule, Result};
+use axtb::{Molecule, Result};
+use axtb_base::math::erf;
 use axtb_base::ncoord::{CnModel, Cutoff, Erf, Smooth, Unweighted};
-use axtb_d4::data::{ALPHAIW, ASCALE, HCOUNT, NFREQ, REFSYS, SECAIW, SSCALE};
-use axtb_d4::{ChargeModel, D4Model, ElementReferences, MAX_REF};
 
 pub const S6: f64 = 1.0;
 pub const S9: f64 = 1.826410691;
@@ -34,8 +31,9 @@ pub const A4: f64 = 0.654;
 pub const CUTOFF_CN: f64 = 30.0;
 pub const CUTOFF_2B: f64 = 50.0;
 pub const CUTOFF_3B: f64 = 25.0;
-const MAX_Z: usize = 103;
 const SQRTPI: f64 = 1.772_453_850_905_516;
+/// The reference charges of 2.0.1 (`gxtbq`, `gxtbh`).
+pub const CHARGES: ReferenceCharges = ReferenceCharges { refq: &D4_REFQ, refh: &D4_REFH };
 
 /// tanh charge function n(q) = a + b tanh(c q + d) of element `z` and its derivative.
 pub fn charge_function(z: usize, q: f64) -> (f64, f64) {
@@ -49,39 +47,6 @@ pub fn charge_function_d2(z: usize, q: f64) -> f64 {
     let p = &crate::data::D4_TANH[4 * (z - 1)..4 * z];
     let t = (q * p[2] + p[3]).tanh();
     -2.0 * p[2] * t * dn
-}
-
-/// Reference polarizabilities with the 2.0.1 secondary-system charges.
-pub fn reference_alpha(z: usize) -> Vec<[f64; NFREQ]> {
-    (0..nref(z))
-        .map(|r| {
-            let k = 7 * (z - 1) + r;
-            let is = REFSYS[z - 1][r] as usize;
-            let mut alpha = [0.0; NFREQ];
-            if is == 0 {
-                return alpha;
-            }
-            let zeta = charge_function(is, D4_REFH[k]).0 / charge_function(is, 0.0).0;
-            let f = SSCALE[is - 1] * zeta;
-            for (w, a) in alpha.iter_mut().enumerate() {
-                let aiw = SECAIW[is - 1][w] * f;
-                *a = (ASCALE[z - 1][r] * (ALPHAIW[z - 1][r][w] - HCOUNT[z - 1][r] * aiw)).max(0.0);
-            }
-            alpha
-        })
-        .collect()
-}
-
-/// The 2.0.1 reference systems of element `z`.
-pub fn element_references(z: usize) -> ElementReferences {
-    let n = nref(z);
-    let k = 7 * (z - 1);
-    ElementReferences {
-        cn: D4_REFCOVCN[k..k + n].to_vec(),
-        ngw: crate::disp::reference_ngw(z),
-        q: D4_REFQ[k..k + n].to_vec(),
-        alpha: reference_alpha(z),
-    }
 }
 
 /// The revD4 coordination number of `mol` (`axtb-base`'s [`CnModel`]): dftd4's count
@@ -118,7 +83,7 @@ pub fn add_cn_gradient(model: &Model, mol: &Molecule, dedcn: &[f64], g: &mut [[f
 pub fn reff(r: f64, rho: f64) -> (f64, f64) {
     let arg = -A3 * (r - A4 * rho);
     let a = A1 * rho + A2;
-    (a * 0.5 * (1.0 + erf_f64(arg)), a * (-A3) * (-arg * arg).exp() / SQRTPI)
+    (a * 0.5 * (1.0 + erf(arg)), a * (-A3) * (-arg * arg).exp() / SQRTPI)
 }
 
 /// revD4 of one geometry.
@@ -153,47 +118,8 @@ impl RevD4 {
     /// [`RevD4::with_cn`], pair rows in parallel when `parallel` (same result).
     pub fn with_cn_par(model: &Model, mol: &Molecule, cn: Vec<f64>, parallel: bool) -> Result<Self> {
         let nat = mol.nat();
-        if let Some(&z) = mol.numbers.iter().find(|&&z| z == 0 || z > MAX_Z) {
-            return Err(Error::UnsupportedElement { method: "revD4", z });
-        }
-        let model4 = D4Model::new(&mol.numbers, ChargeModel::Eeq)
-            .map_err(|e| Error::Input(e.to_string()))?
-            .with_reference_data(element_references);
-        let mut species: Vec<usize> = mol.numbers.clone();
-        species.sort_unstable();
-        species.dedup();
-        let sp: Vec<usize> = mol.numbers.iter().map(|z| species.binary_search(z).unwrap()).collect();
-        let w: Vec<Vec<([f64; MAX_REF], [f64; MAX_REF])>> = crate::parallel::map_items(nat, parallel, |i| {
-            let zi = mol.numbers[i];
-            species
-                .iter()
-                .map(|&zj| scaled_cn_weights(zi, cn[i], K3_PAIR[(zj - 1) * MAX_Z + zi - 1], &D4_REFQ))
-                .collect()
-        });
-        // K_AB and dK_AB/dCN_A, dK_AB/dCN_B of the pairs B < A
-        let [mut kmat, dk_low, dk_up] = crate::parallel::lower(nat, parallel, |i, j| {
-            if j == i {
-                return [0.0; 3];
-            }
-            let ((wi, dwi), (wj, dwj)) = (&w[i][sp[j]], &w[j][sp[i]]);
-            let (mut k, mut dki, mut dkj) = (0.0, 0.0, 0.0);
-            for a in 0..model4.nref_atom(i) {
-                for b in 0..model4.nref_atom(j) {
-                    let c = model4.reference_c6(i, j, a, b);
-                    k += wi[a] * wj[b] * c;
-                    dki += dwi[a] * wj[b] * c;
-                    dkj += wi[a] * dwj[b] * c;
-                }
-            }
-            [k, dki, dkj]
-        });
-        crate::parallel::mirror_lower(&mut kmat, nat, parallel);
-        let mut dkmat = vec![0.0; nat * nat];
-        crate::parallel::fill_tiled(&mut dkmat, nat, parallel, |i, j| match j.cmp(&i) {
-            std::cmp::Ordering::Less => dk_low[i * nat + j],
-            std::cmp::Ordering::Greater => dk_up[j * nat + i],
-            std::cmp::Ordering::Equal => 0.0,
-        });
+        let model4 = revd4_model(&mol.numbers, CHARGES)?;
+        let (kmat, dkmat) = k_matrices(&model4, &cn, CHARGES.refq, parallel);
         let r4r2: Vec<f64> = (0..nat).map(|i| model4.r4r2_atom(i)).collect();
         let reach2 = model.reach(CUTOFF_2B).powi(2);
         let [f6] = crate::parallel::symmetric(nat, parallel, |i, j| {

@@ -29,12 +29,21 @@
 //!
 //! Since the charge enters only through n_A(q_A), C6_AB(q) = n_A(q_A) n_B(q_B) K_AB with a
 //! geometry-only K_AB, which [`RevD4`] precomputes.
+//!
+//! The mechanisms that are dftd4's come from [`axtb_d4`]: the hydrogen-subtracted reference
+//! polarizabilities ([`axtb_d4::reference_alpha`], with the tanh ratio as the secondary
+//! scaling), the Gaussian counts ([`axtb_d4::reference_ngw`]), the reference C6 and their
+//! contraction with the weights ([`D4Model::pair_c6_from_weights`]), the two-body pair list and
+//! the three-body kernel ([`D4Dispersion`]). The tables, the CN, the pair-specific weights and
+//! the two-body gradient (its damping derivative in its own order, which differs from
+//! `axtb_d4`'s in the last bits) are g-xTB's and stay here; 2.0.1 ([`crate::v2::disp`]) uses
+//! the same reference data with its own [`ReferenceCharges`].
 
 use crate::data::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
 use crate::params::GxtbParams;
 use axtb::{Error, Molecule, Result};
 use axtb_base::ncoord::{CnModel, Cutoff, Erf};
-use axtb_d4::data::{ALPHAIW, ASCALE, HCOUNT, NFREQ, REFN, REFSYS, SECAIW, SSCALE};
+use axtb_d4::data::{NFREQ, REFN};
 use axtb_d4::{
     ChargeModel, D4Cache, D4Dispersion, D4Model, ElementReferences, RationalDamping, RealspaceCutoff, MAX_REF,
 };
@@ -64,52 +73,96 @@ pub(crate) fn nref(z: usize) -> usize {
     REFN[z - 1] as usize
 }
 
-/// Number of Gaussian functions per reference (`set_refgw`): with icn = nint(refcn) capped at
-/// 19 and c(icn) the number of references with that icn (plus one for icn = 0),
-/// ngw = c (c + 1)/2.
+/// The reference charges of a revD4 parametrization (the program's tables, 7 entries per
+/// element): `refq` of the reference systems (charge scaling of the weights), `refh` of their
+/// secondary systems (hydrogen subtraction of the polarizabilities). The rest of the reference
+/// data (CNs, polarizabilities, secondary systems) is the same in v1.1 and 2.0.1.
+#[derive(Clone, Copy, Debug)]
+pub struct ReferenceCharges {
+    pub refq: &'static [f64; 826],
+    pub refh: &'static [f64; 826],
+}
+
+/// The reference charges of g-xTB v1.1 ([`D4_REFQ`], [`D4_REFH`]).
+pub const CHARGES_V1_1: ReferenceCharges = ReferenceCharges { refq: &D4_REFQ, refh: &D4_REFH };
+
+/// Number of Gaussian functions per reference (`set_refgw`, [`axtb_d4::reference_ngw`]) from
+/// the program's counted reference CNs [`D4_REFCN`].
 pub fn reference_ngw(z: usize) -> Vec<u32> {
-    let n = nref(z);
-    let icn = |r: usize| (D4_REFCN[7 * (z - 1) + r].round() as i64).clamp(0, 19) as usize;
-    let mut cnc = [0u32; 20];
-    cnc[0] = 1;
-    for r in 0..n {
-        cnc[icn(r)] += 1;
-    }
-    (0..n).map(|r| cnc[icn(r)] * (cnc[icn(r)] + 1) / 2).collect()
+    let k = 7 * (z - 1);
+    axtb_d4::reference_ngw(&D4_REFCN[k..k + nref(z)])
 }
 
 /// Reference polarizabilities (`set_refalpha_gxtb`): dftd4's with the hydrogen contributions
-/// removed, the secondary system scaled by zeta(h) = n_s(h)/n_s(0) of its element s.
-pub fn reference_alpha(z: usize) -> Vec<[f64; NFREQ]> {
-    (0..nref(z))
-        .map(|r| {
-            let k = 7 * (z - 1) + r;
-            let is = REFSYS[z - 1][r] as usize;
-            let mut alpha = [0.0; NFREQ];
-            if is == 0 {
-                return alpha;
-            }
-            let zeta = charge_function(is, D4_REFH[k]).0 / charge_function(is, 0.0).0;
-            let f = SSCALE[is - 1] * zeta;
-            for (w, a) in alpha.iter_mut().enumerate() {
-                let aiw = SECAIW[is - 1][w] * f;
-                *a = (ASCALE[z - 1][r] * (ALPHAIW[z - 1][r][w] - HCOUNT[z - 1][r] * aiw)).max(0.0);
-            }
-            alpha
-        })
-        .collect()
+/// removed ([`axtb_d4::reference_alpha`]), the secondary system scaled by
+/// zeta(h) = n_s(h)/n_s(0) of its element s, h from `refh`. (The product
+/// sscale · secaiw · zeta is the same in any order here: the secondary scalings in use are
+/// 0, 1/2 and 1.)
+pub fn reference_alpha(z: usize, refh: &[f64; 826]) -> Vec<[f64; NFREQ]> {
+    let k = 7 * (z - 1);
+    let alpha = axtb_d4::reference_alpha(z, |is, r| charge_function(is, refh[k + r]).0 / charge_function(is, 0.0).0);
+    alpha[..nref(z)].to_vec()
 }
 
-/// The revD4 reference systems of element `z` for [`D4Model::with_reference_data`].
-pub fn element_references(z: usize) -> ElementReferences {
+/// The revD4 reference systems of element `z` with the reference charges `charges`, for
+/// [`D4Model::with_reference_data`].
+pub fn element_references(z: usize, charges: ReferenceCharges) -> ElementReferences {
     let n = nref(z);
     let k = 7 * (z - 1);
     ElementReferences {
         cn: D4_REFCOVCN[k..k + n].to_vec(),
         ngw: reference_ngw(z),
-        q: D4_REFQ[k..k + n].to_vec(),
-        alpha: reference_alpha(z),
+        q: charges.refq[k..k + n].to_vec(),
+        alpha: reference_alpha(z, charges.refh),
     }
+}
+
+/// The D4 model of `numbers` with the revD4 reference systems ([`element_references`]), for
+/// its reference C6 coefficients and r4/r2 values; elements beyond the program's tables
+/// (Z > 103) are refused.
+pub(crate) fn revd4_model(numbers: &[usize], charges: ReferenceCharges) -> Result<D4Model> {
+    if let Some(&z) = numbers.iter().find(|&&z| z == 0 || z > MAX_Z) {
+        return Err(Error::UnsupportedElement { method: "revD4", z });
+    }
+    Ok(D4Model::new(numbers, ChargeModel::Eeq)
+        .map_err(|e| Error::Input(e.to_string()))?
+        .with_reference_data(|z| element_references(z, charges)))
+}
+
+/// K_AB and dK_AB/dCN_A (row-major nat x nat, zero diagonals) of the atoms of `model` at the
+/// revD4 coordination numbers `cn`: the C6 contraction ([`D4Model::pair_c6_from_weights`]) of
+/// the pair-specific weights of A towards the element of B ([`scaled_cn_weights`], pair factor
+/// [`K3_PAIR`], reference charges `refq`) and of B towards A. Rows in parallel when `parallel`
+/// (the same result).
+pub(crate) fn k_matrices(model: &D4Model, cn: &[f64], refq: &[f64; 826], parallel: bool) -> (Vec<f64>, Vec<f64>) {
+    let numbers = model.numbers();
+    let nat = numbers.len();
+    let mut species: Vec<usize> = numbers.to_vec();
+    species.sort_unstable();
+    species.dedup();
+    let sp: Vec<usize> = numbers.iter().map(|z| species.binary_search(z).unwrap()).collect();
+    // the weights of atom i towards each element present
+    let w: Vec<Vec<([f64; MAX_REF], [f64; MAX_REF])>> = crate::parallel::map_items(nat, parallel, |i| {
+        let zi = numbers[i];
+        species.iter().map(|&zj| scaled_cn_weights(zi, cn[i], K3_PAIR[(zj - 1) * MAX_Z + zi - 1], refq)).collect()
+    });
+    // K_AB and dK_AB/dCN_A, dK_AB/dCN_B of the pairs B < A
+    let [mut kmat, dk_low, dk_up] = crate::parallel::lower(nat, parallel, |i, j| {
+        if j == i {
+            return [0.0; 3];
+        }
+        let (wi, wj) = (&w[i][sp[j]], &w[j][sp[i]]);
+        let (k, dki, dkj) = model.pair_c6_from_weights(i, j, (&wi.0, &wi.1), (&wj.0, &wj.1));
+        [k, dki, dkj]
+    });
+    crate::parallel::mirror_lower(&mut kmat, nat, parallel);
+    let mut dkmat = vec![0.0; nat * nat];
+    crate::parallel::fill_tiled(&mut dkmat, nat, parallel, |i, j| match j.cmp(&i) {
+        std::cmp::Ordering::Less => dk_low[i * nat + j],
+        std::cmp::Ordering::Greater => dk_up[j * nat + i],
+        std::cmp::Ordering::Equal => 0.0,
+    });
+    (kmat, dkmat)
 }
 
 /// The revD4 coordination number of `mol`: dftd4's count ([`Erf::D4`]) without the
@@ -183,52 +236,13 @@ pub struct RevD4 {
 impl RevD4 {
     /// Set up the model for `mol` (positions in bohr).
     pub fn new(param: &GxtbParams, mol: &Molecule) -> Result<Self> {
-        let nat = mol.nat();
-        if let Some(&z) = mol.numbers.iter().find(|&&z| z == 0 || z > MAX_Z) {
-            return Err(Error::UnsupportedElement { method: "revD4", z });
-        }
-        let model = D4Model::new(&mol.numbers, ChargeModel::Eeq)
-            .map_err(|e| Error::Input(e.to_string()))?
-            .with_reference_data(element_references);
+        let model = revd4_model(&mol.numbers, CHARGES_V1_1)?;
         let disp = D4Dispersion::new(model, damping(param), CUTOFF);
         let cache = disp.update(&mol.positions);
         let cn = coordination_numbers(mol);
-        // pair-specific weights of atom i towards the elements present
-        let mut species: Vec<usize> = mol.numbers.clone();
-        species.sort_unstable();
-        species.dedup();
-        let sp: Vec<usize> = mol.numbers.iter().map(|z| species.binary_search(z).unwrap()).collect();
-        let w: Vec<Vec<([f64; MAX_REF], [f64; MAX_REF])>> = (0..nat)
-            .map(|i| {
-                let zi = mol.numbers[i];
-                species
-                    .iter()
-                    .map(|&zj| scaled_cn_weights(zi, cn[i], K3_PAIR[(zj - 1) * MAX_Z + zi - 1], &D4_REFQ))
-                    .collect()
-            })
-            .collect();
         let model = disp.model();
-        let mut kmat = vec![0.0; nat * nat];
-        let mut dkmat = vec![0.0; nat * nat];
-        for i in 0..nat {
-            for j in 0..i {
-                let ((wi, dwi), (wj, dwj)) = (&w[i][sp[j]], &w[j][sp[i]]);
-                let (mut k, mut dki, mut dkj) = (0.0, 0.0, 0.0);
-                for a in 0..model.nref_atom(i) {
-                    for b in 0..model.nref_atom(j) {
-                        let c = model.reference_c6(i, j, a, b);
-                        k += wi[a] * wj[b] * c;
-                        dki += dwi[a] * wj[b] * c;
-                        dkj += wi[a] * dwj[b] * c;
-                    }
-                }
-                kmat[i * nat + j] = k;
-                kmat[j * nat + i] = k;
-                dkmat[i * nat + j] = dki;
-                dkmat[j * nat + i] = dkj;
-            }
-        }
-        let r4r2 = (0..nat).map(|i| model.r4r2_atom(i)).collect();
+        let (kmat, dkmat) = k_matrices(model, &cn, CHARGES_V1_1.refq, false);
+        let r4r2 = (0..mol.nat()).map(|i| model.r4r2_atom(i)).collect();
         Ok(Self { disp, cache, numbers: mol.numbers.clone(), cn, kmat, dkmat, damp: damping(param), r4r2 })
     }
 
