@@ -67,9 +67,9 @@ pub struct Kernels<'a> {
     /// The setup's chain layout (the shape of the gradient's accumulators) and its slots.
     pub layout: &'a ChainLayout,
     pub slots: Slots,
-    /// The terms (their caches are the fields above) and the values of the intermediates they
-    /// read at this geometry (the g-xTB and revD4 CNs).
-    pub terms: super::terms::Terms,
+    /// The setup's terms (they do not depend on the geometry; their caches are the fields above)
+    /// and the values of the intermediates they read at this geometry (the g-xTB and revD4 CNs).
+    pub terms: &'a super::terms::Terms,
     pub values: Values,
 }
 
@@ -80,6 +80,7 @@ impl<'a> Kernels<'a> {
         exch: &'a Exchange,
         layout: &'a ChainLayout,
         slots: Slots,
+        terms: &'a super::terms::Terms,
     ) -> Result<Self> {
         let cn = gxtb_cn(model, mol);
         let disp = RevD4::new(model, mol)?;
@@ -97,7 +98,7 @@ impl<'a> Kernels<'a> {
             cn,
             layout,
             slots,
-            terms: super::terms::Terms::new(model, &exch.shells, &slots),
+            terms,
             values,
         })
     }
@@ -412,7 +413,8 @@ impl<'a> Analytic<'a> {
     fn kernel_at(&self, x: usize, d: f64) -> Result<(Vec<f64>, Vec<f64>)> {
         let mut m = self.setup.mol.clone();
         m.positions[x / 3][x % 3] += d;
-        let k = Kernels::new(&self.setup.model, &m, &self.setup.exch, &self.setup.layout, self.setup.slots)?;
+        let s = self.setup;
+        let k = Kernels::new(&s.model, &m, &s.exch, &s.layout, s.slots, &s.terms)?;
         Ok((k.potentials(self.st, &self.lay), k.gradient(self.st)))
     }
 
