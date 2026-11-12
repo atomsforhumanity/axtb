@@ -12,6 +12,7 @@ use crate::molecule::Molecule;
 use crate::ncoord::Ncoord;
 use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
+use crate::scf::{dot, fock, mulliken, ScfVariables};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
@@ -576,7 +577,8 @@ impl XtbModel {
         // off-diagonals scaled by sqrt(2) inside the mixer so the residual norm counts them
         // twice; xtb 6.7.1: unscaled; `ConventionParams::scc_quadrupole_scale`)
         let has_mp = self.aes2.is_some();
-        let ndim = nsh + if has_mp { 9 * nat } else { 0 };
+        let vars = ScfVariables::new(nsh, nat, has_mp, false).with_quad_offdiag_scale(self.params.scc_quadrupole_scale);
+        let ndim = vars.dim();
         // xtb 6.7.1's convergence test (`ConventionParams::scc_residual`): residual
         // sqrt(Σ dq² / N_atoms) below 1e-4·acc with multipoles (scf_module.F90 `qconv`)
         let per_atom = self.params.scc_residual == SccResidual::PerAtom;
@@ -618,24 +620,6 @@ impl XtbModel {
             }
             _ => "sad",
         };
-        // tblite and xtb 6.8.0 scale the quadrupole off-diagonals by sqrt 2 in the mixed
-        // vector, xtb 6.7.1 does not
-        let qscale = self.params.scc_quadrupole_scale;
-        let pack = |qsh: &[f64], dpat: &[[f64; 3]], qpat: &[[f64; 6]], out: &mut [f64]| {
-            out[..nsh].copy_from_slice(qsh);
-            if has_mp {
-                for i in 0..nat {
-                    for k in 0..3 {
-                        out[nsh + 3 * i + k] = dpat[i][k];
-                    }
-                    for k in 0..6 {
-                        let s = if k == 1 || k == 3 || k == 4 { qscale } else { 1.0 };
-                        out[nsh + 3 * nat + 6 * i + k] = qpat[i][k] * s;
-                    }
-                }
-            }
-        };
-
         let mut fock = Mat::<f64>::zeros(nao, nao);
         let mut work = Mat::<f64>::zeros(nao, nao);
         let mut coeff = Mat::<f64>::zeros(nao, nao);
@@ -655,6 +639,8 @@ impl XtbModel {
         let mut vao = vec![0.0; nao];
         let mut eelec = vec![0.0; nat];
         let mut vsh_out = vec![0.0; nsh];
+        // the output moments in the mixer's layout
+        let mut packed_out = vec![0.0; ndim];
         let mut converged = false;
         let mut iscf = 0;
         // xtb 6.7.1: the iteration after the first converged one ends the loop (`lastdiag`)
@@ -663,18 +649,8 @@ impl XtbModel {
         // xtb 6.7.1: the moments of the last iteration's input and as mixed after it
         type Moments = (Vec<f64>, Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>);
         let unpack = |q: &[f64]| -> Moments {
-            let mut m: Moments = (q[..nsh].to_vec(), vec![0.0; nat], vec![[0.0; 3]; nat], vec![[0.0; 6]; nat]);
-            if has_mp {
-                for i in 0..nat {
-                    for k in 0..3 {
-                        m.2[i][k] = q[nsh + 3 * i + k];
-                    }
-                    for k in 0..6 {
-                        let s = if k == 1 || k == 3 || k == 4 { qscale } else { 1.0 };
-                        m.3[i][k] = q[nsh + 3 * nat + 6 * i + k] / s;
-                    }
-                }
-            }
+            let mut m: Moments = (vec![0.0; nsh], vec![0.0; nat], vec![[0.0; 3]; nat], vec![[0.0; 6]; nat]);
+            vars.unpack(q, &mut m.0, &mut m.2, &mut m.3, None);
             qat_from_qsh(bas, &m.0, &mut m.1);
             m
         };
@@ -713,19 +689,9 @@ impl XtbModel {
                         }
                         break;
                     }
-                    let q = &*mixer.vectors().0;
-                    qsh.copy_from_slice(&q[..nsh]);
-                    if has_mp {
-                        for i in 0..nat {
-                            for k in 0..3 {
-                                dpat[i][k] = q[nsh + 3 * i + k];
-                            }
-                            for k in 0..6 {
-                                let s = if k == 1 || k == 3 || k == 4 { qscale } else { 1.0 };
-                                qpat[i][k] = q[nsh + 3 * nat + 6 * i + k] / s;
-                            }
-                        }
-                    }
+                    // (without multipoles the dipoles and quadrupoles stay zero, as the
+                    // Mulliken analysis left them)
+                    vars.unpack(mixer.vectors().0, &mut qsh, &mut dpat, &mut qpat, None);
                     qat_from_qsh(bas, &qsh, &mut qat);
                 }
                 iscf += 1;
@@ -736,7 +702,7 @@ impl XtbModel {
                 for mu in 0..nao {
                     vao[mu] = pot.vsh[bas.ao2sh[mu]] + pot.vat[bas.ao2at[mu]];
                 }
-                build_fock(bas, &ints, &vao, &pot.vdp, &pot.vqp, &mut work, &mut fock, parallel);
+                fock::from_potentials(bas, &ints, &vao, &pot.vdp, &pot.vqp, &mut work, &mut fock, parallel);
                 if let Some(ng) = &neglect {
                     ng.apply(mol, &pot.vdp, &pot.vqp, &mut fock);
                 }
@@ -745,9 +711,7 @@ impl XtbModel {
                 }
                 timer.lap("scf: fock");
 
-                {
-                    pack(&qsh, &dpat, &qpat, mixer.vectors().0);
-                }
+                vars.pack(&qsh, &dpat, &qpat, None, mixer.vectors().0);
 
                 // new density
                 if lowest {
@@ -798,15 +762,14 @@ impl XtbModel {
                 timer.lap("scf: density");
 
                 // output moments
-                mulliken(bas, &ints, &density, &n0sh, &mut qsh, &mut dpat, &mut qpat, has_mp, parallel);
+                mulliken::moments(bas, &ints, &density, &n0sh, &mut qsh, &mut dpat, &mut qpat, has_mp, parallel);
                 qat_from_qsh(bas, &qsh, &mut qat);
                 timer.lap("scf: mulliken");
+                vars.pack(&qsh, &dpat, &qpat, None, &mut packed_out);
                 {
-                    let mut out = vec![0.0; ndim];
-                    pack(&qsh, &dpat, &qpat, &mut out);
+                    let (q_in, dq) = mixer.vectors();
                     for k in 0..ndim {
-                        let (q_in, dq) = mixer.vectors();
-                        dq[k] = out[k] - q_in[k];
+                        dq[k] = packed_out[k] - q_in[k];
                     }
                 }
 
@@ -1150,147 +1113,5 @@ fn gamma_rows(gamma: &[f64], q: &[f64], out: &mut [f64], parallel: bool) {
         out[..n].par_iter_mut().enumerate().with_min_len(32).for_each(|(a, v)| *v = row(a));
     } else {
         out[..n].iter_mut().enumerate().for_each(|(a, v)| *v = row(a));
-    }
-}
-
-/// Dot product with four independent accumulators (lets the compiler vectorize).
-#[inline]
-pub(crate) fn dot(a: &[f64], b: &[f64]) -> f64 {
-    let n = a.len().min(b.len());
-    let (a, b) = (&a[..n], &b[..n]);
-    let mut acc = [0.0; 4];
-    let chunks = n / 4;
-    for c in 0..chunks {
-        for k in 0..4 {
-            acc[k] += a[4 * c + k] * b[4 * c + k];
-        }
-    }
-    let mut s = (acc[0] + acc[1]) + (acc[2] + acc[3]);
-    for i in 4 * chunks..n {
-        s += a[i] * b[i];
-    }
-    s
-}
-
-/// Run `f(j, column j)` for every column of `m`, in parallel when asked (each column by one
-/// task).
-fn for_columns(m: &mut Mat<f64>, parallel: bool, f: impl Fn(usize, &mut [f64]) + Sync + Send) {
-    let col = |(j, c): (usize, faer::ColMut<'_, f64>)| {
-        f(j, c.try_as_col_major_mut().expect("the columns of a Mat are contiguous").as_slice_mut())
-    };
-    if parallel {
-        m.par_col_iter_mut().enumerate().with_min_len(16).for_each(col);
-    } else {
-        m.col_iter_mut().enumerate().for_each(col);
-    }
-}
-
-/// B(mu, nu) = S(mu, nu) v(nu) + D(mu, nu)·vdp(at nu) + Q(mu, nu)·vqp(at nu) for the potentials
-/// per AO (`vao`) and the atomic dipole and quadrupole potentials, column by column
-/// (contiguous memory): the Fock matrix's potential part is -1/2 (B + Bᵀ).
-pub(crate) fn potential_columns(
-    bas: &Basis,
-    ints: &Integrals,
-    vao: &[f64],
-    vdp: &[[f64; 3]],
-    vqp: &[[f64; 6]],
-    b: &mut Mat<f64>,
-    parallel: bool,
-) {
-    let nao = bas.nao;
-    for_columns(b, parallel, |nu, b| {
-        let at = bas.ao2at[nu];
-        let s = ints.overlap.col_as_slice(nu);
-        let v = vao[nu];
-        for mu in 0..nao {
-            b[mu] = s[mu] * v;
-        }
-        for k in 0..3 {
-            let c = vdp[at][k];
-            if c != 0.0 {
-                let d = ints.dip[k].col_as_slice(nu);
-                for mu in 0..nao {
-                    b[mu] += d[mu] * c;
-                }
-            }
-        }
-        for k in 0..6 {
-            let c = vqp[at][k];
-            if c != 0.0 {
-                let q = ints.quad[k].col_as_slice(nu);
-                for mu in 0..nao {
-                    b[mu] += q[mu] * c;
-                }
-            }
-        }
-    });
-}
-
-/// F = H0 - 1/2 (B + Bᵀ) with B of [`potential_columns`] (in `work`), which equals
-/// H0 - 1/2 S (v_mu + v_nu) - 1/2 [D(mu,nu)·vdp(nu) + D(nu,mu)·vdp(mu)] - (same for Q).
-pub(crate) fn build_fock(
-    bas: &Basis,
-    ints: &Integrals,
-    vao: &[f64],
-    vdp: &[[f64; 3]],
-    vqp: &[[f64; 6]],
-    work: &mut Mat<f64>,
-    fock: &mut Mat<f64>,
-    parallel: bool,
-) {
-    let nao = bas.nao;
-    potential_columns(bas, ints, vao, vdp, vqp, work, parallel);
-    let work = &*work;
-    for_columns(fock, parallel, |nu, f| {
-        let h = ints.h0.col_as_slice(nu);
-        let b = work.col_as_slice(nu);
-        for mu in 0..nao {
-            f[mu] = h[mu] - 0.5 * (b[mu] + work[(nu, mu)]);
-        }
-    });
-}
-
-/// Mulliken shell charges and atomic multipoles (moments around each atom's own center).
-/// Per-column contributions are computed (in parallel when asked) and summed in a fixed
-/// order, so the result does not depend on the thread count.
-pub(crate) fn mulliken(
-    bas: &Basis,
-    ints: &Integrals,
-    p: &Mat<f64>,
-    n0sh: &[f64],
-    qsh: &mut [f64],
-    dpat: &mut [[f64; 3]],
-    qpat: &mut [[f64; 6]],
-    multipoles: bool,
-    parallel: bool,
-) {
-    let nao = bas.nao;
-    let column = |nu: usize| -> [f64; 10] {
-        let pc = p.col_as_slice(nu);
-        let mut r = [0.0; 10];
-        r[0] = dot(pc, ints.overlap.col_as_slice(nu));
-        if multipoles {
-            for k in 0..3 {
-                r[1 + k] = dot(pc, ints.dip[k].col_as_slice(nu));
-            }
-            for k in 0..6 {
-                r[4 + k] = dot(pc, ints.quad[k].col_as_slice(nu));
-            }
-        }
-        r
-    };
-    let cols = threads::map_with_min_len(nao, parallel, 16, column);
-    qsh.copy_from_slice(n0sh);
-    dpat.iter_mut().for_each(|x| *x = [0.0; 3]);
-    qpat.iter_mut().for_each(|x| *x = [0.0; 6]);
-    for (nu, r) in cols.iter().enumerate() {
-        let iat = bas.ao2at[nu];
-        qsh[bas.ao2sh[nu]] -= r[0];
-        for k in 0..3 {
-            dpat[iat][k] -= r[1 + k];
-        }
-        for k in 0..6 {
-            qpat[iat][k] -= r[4 + k];
-        }
     }
 }

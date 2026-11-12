@@ -6,6 +6,7 @@ use crate::integrals::{
     multipole, multipole_grad, multipole_hess, multipole_raw, MultipoleGrad, MultipoleHess, Scratch, KL, MBLK,
 };
 use crate::molecule::Molecule;
+use crate::scf::ScfVariables;
 use axtb_base::threads;
 use faer::Mat;
 
@@ -345,7 +346,8 @@ pub(crate) struct AtomBlocks {
     /// dH0/dCN_A.
     pub cn: Mat<f64>,
     /// Explicit derivative of the Mulliken moments at fixed density, d s / dR_{A,k}
-    /// (SCC layout: shell charges, then 3 dipole and 6 quadrupole components per atom).
+    /// (in the [`ScfVariables`] layout: shell charges, then 3 dipole and 6 quadrupole
+    /// components per atom).
     pub b: [Vec<f64>; 3],
 }
 
@@ -366,10 +368,10 @@ impl H0Params {
         vao: &[f64],
         vdp: &[[f64; 3]],
         vqp: &[[f64; 6]],
-        multipoles: bool,
+        lay: &ScfVariables,
         parallel: bool,
     ) -> Vec<AtomBlocks> {
-        let task = |iat: usize| self.perturbation_atom(mol, bas, se, dsedcn, cutoff, p, vao, vdp, vqp, multipoles, iat);
+        let task = |iat: usize| self.perturbation_atom(mol, bas, se, dsedcn, cutoff, p, vao, vdp, vqp, lay, iat);
         threads::map(mol.nat(), parallel, task)
     }
 
@@ -384,15 +386,14 @@ impl H0Params {
         vao: &[f64],
         vdp: &[[f64; 3]],
         vqp: &[[f64; 6]],
-        multipoles: bool,
+        lay: &ScfVariables,
         iat: usize,
     ) -> AtomBlocks {
         let nat = mol.nat();
         let nao = bas.nao;
-        let nsh = bas.nsh;
-        let ndim = nsh + if multipoles { 9 * nat } else { 0 };
-        let dip = |a: usize, c: usize| nsh + 3 * a + c;
-        let quad = |a: usize, c: usize| nsh + 3 * nat + 6 * a + c;
+        let ndim = lay.dim();
+        let multipoles = lay.multipoles;
+        let (dip, quad) = (|a, c| lay.dip(a, c), |a, c| lay.quad(a, c));
         let isp = mol.id[iat];
         let is = bas.ish_at[iat];
         let off = bas.iao_sh[is];

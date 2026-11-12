@@ -38,57 +38,12 @@ use crate::basis::Basis;
 use crate::hamiltonian::AtomBlocks;
 use crate::linalg::Lu;
 use crate::molecule::Molecule;
-use crate::xtb::{mulliken, ChargeDependentTerm, ScfState, XtbModel};
+use crate::scf::{mulliken, ScfVariables};
+use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::{Error, Result};
 use axtb_base::occupations::fermi;
 use axtb_base::threads;
 use faer::{Accum, Mat, MatRef, Par};
-
-/// Index layout of the SCC variables.
-#[derive(Clone, Copy, Debug)]
-pub(crate) struct SccLayout {
-    pub nsh: usize,
-    pub nat: usize,
-    pub multipoles: bool,
-}
-
-impl SccLayout {
-    pub fn dim(&self) -> usize {
-        self.nsh + if self.multipoles { 9 * self.nat } else { 0 }
-    }
-    pub fn dip(&self, a: usize, c: usize) -> usize {
-        self.nsh + 3 * a + c
-    }
-    pub fn quad(&self, a: usize, c: usize) -> usize {
-        self.nsh + 3 * self.nat + 6 * a + c
-    }
-    /// Pack moments into one vector.
-    pub fn pack(&self, qsh: &[f64], dpat: &[[f64; 3]], qpat: &[[f64; 6]], out: &mut [f64]) {
-        out[..self.nsh].copy_from_slice(qsh);
-        if self.multipoles {
-            for a in 0..self.nat {
-                for c in 0..3 {
-                    out[self.dip(a, c)] = dpat[a][c];
-                }
-                for c in 0..6 {
-                    out[self.quad(a, c)] = qpat[a][c];
-                }
-            }
-        }
-    }
-    /// Unpack one vector into moments.
-    pub fn unpack(&self, s: &[f64], qsh: &mut [f64], dpat: &mut [[f64; 3]], qpat: &mut [[f64; 6]]) {
-        qsh.copy_from_slice(&s[..self.nsh]);
-        for a in 0..self.nat {
-            for c in 0..3 {
-                dpat[a][c] = if self.multipoles { s[self.dip(a, c)] } else { 0.0 };
-            }
-            for c in 0..6 {
-                qpat[a][c] = if self.multipoles { s[self.quad(a, c)] } else { 0.0 };
-            }
-        }
-    }
-}
 
 /// Orbitals with occupation above this count as occupied; below `1 - OCC_THR` per spin as
 /// not full.
@@ -190,7 +145,7 @@ pub(crate) struct Response<'a> {
     pub extra: &'a [&'a dyn ChargeDependentTerm],
     pub mol: &'a Molecule,
     pub st: &'a ScfState,
-    pub lay: SccLayout,
+    pub lay: ScfVariables,
     pub occ: Occupations,
     /// First-order perturbation blocks per atom.
     pub blocks: Vec<AtomBlocks>,
@@ -219,7 +174,7 @@ impl<'a> Response<'a> {
         let bas = &model.basis;
         let nat = mol.nat();
         let nao = bas.nao;
-        let lay = SccLayout { nsh: bas.nsh, nat, multipoles: model.aes2.is_some() };
+        let lay = ScfVariables::new(bas.nsh, nat, model.aes2.is_some(), false);
         let occ = Occupations::new(st);
         let parallel = threads > 1;
         let vao = st.pot.vao(bas);
@@ -233,7 +188,7 @@ impl<'a> Response<'a> {
             &vao,
             &st.pot.vdp,
             &st.pot.vqp,
-            lay.multipoles,
+            &lay,
             parallel,
         );
         let ao_off: Vec<usize> = (0..nat).map(|a| bas.iao_sh[bas.ish_at[a]]).collect();
@@ -594,8 +549,18 @@ impl<'a> Response<'a> {
         let mut qsh = vec![0.0; lay.nsh];
         let mut dpat = vec![[0.0; 3]; lay.nat];
         let mut qpat = vec![[0.0; 6]; lay.nat];
-        mulliken(bas, &self.st.ints, x, &vec![0.0; lay.nsh], &mut qsh, &mut dpat, &mut qpat, lay.multipoles, false);
-        lay.pack(&qsh, &dpat, &qpat, out);
+        mulliken::moments(
+            bas,
+            &self.st.ints,
+            x,
+            &vec![0.0; lay.nsh],
+            &mut qsh,
+            &mut dpat,
+            &mut qpat,
+            lay.multipoles,
+            false,
+        );
+        lay.pack(&qsh, &dpat, &qpat, None, out);
     }
 
     /// Skeleton response of local perturbation `xi` (fixed potentials): the response of
@@ -629,9 +594,9 @@ impl<'a> Response<'a> {
                 let off = self.ao_off[b];
                 let mut acc = 0.0;
                 for j in 0..lf.ncols() {
-                    acc += crate::xtb::dot(dp.col_as_slice(off + j), lf.col_as_slice(j));
+                    acc += crate::scf::dot(dp.col_as_slice(off + j), lf.col_as_slice(j));
                     if let Some(ls) = ls {
-                        acc -= crate::xtb::dot(dw.col_as_slice(off + j), ls.col_as_slice(j));
+                        acc -= crate::scf::dot(dw.col_as_slice(off + j), ls.col_as_slice(j));
                     }
                 }
                 *v = 2.0 * acc;

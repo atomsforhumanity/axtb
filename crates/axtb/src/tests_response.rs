@@ -49,7 +49,7 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
             let mut mm = mol.clone();
             mm.positions[a][k] += sign * h;
             let sp = model.singlepoint(&mm, &extra, &o.scf, Some(&guess), false).unwrap();
-            lay.pack(&sp.qsh, &sp.dpat, &sp.qpat, &mut s[i]);
+            lay.pack(&sp.qsh, &sp.dpat, &sp.qpat, None, &mut s[i]);
         }
         let fd: Vec<f64> = (0..m).map(|t| (s[0][t] - s[1][t]) / (2.0 * h)).collect();
         let scale = fd.iter().fold(0.0f64, |a, &b| a.max(b.abs()));
@@ -105,7 +105,7 @@ pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
             };
             model.potentials(&mm, &extra, &geo, &st.qsh, &st.qat, &st.dpat, &st.qpat, &mut pot, false);
             let vsh: Vec<f64> = (0..nsh).map(|s| pot.vsh[s] + pot.vat[model.basis.sh2at[s]]).collect();
-            lay.pack(&vsh, &pot.vdp, &pot.vqp, &mut v[i]);
+            lay.pack(&vsh, &pot.vdp, &pot.vqp, None, &mut v[i]);
         }
         let mut err = [0.0f64; 3];
         let mut scale: f64 = 0.0;
