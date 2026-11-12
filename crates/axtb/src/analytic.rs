@@ -15,8 +15,8 @@
 //! - `u^x` the skeleton response of the SCC variables (including `b^x = −Tr(P ∂O/∂x)`),
 //!   `c^x = ∂V/∂x|_s`, `K = ∂²E/∂s∂s` and `δs` the coupled-perturbed SCC response.
 //!
-//! The expression is symmetric term by term (see `response.rs` for the derivation of
-//! the response quantities).
+//! The expression is symmetric term by term (see `response/occupation.rs` and `response/scc.rs`
+//! for the derivation of the response quantities).
 
 use crate::molecule::Molecule;
 use crate::response::Response;

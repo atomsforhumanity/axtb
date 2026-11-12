@@ -31,7 +31,7 @@ pub(crate) mod ncoord;
 pub mod param;
 pub mod properties;
 pub(crate) mod repulsion;
-pub(crate) mod response;
+pub mod response;
 pub mod scf;
 mod solvation;
 #[cfg(test)]

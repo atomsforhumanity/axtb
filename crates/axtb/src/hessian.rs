@@ -78,7 +78,6 @@ pub(crate) fn displacement_response(resp: &Response, dv: &Mat<f64>, y: usize, pa
     let nao = bas.nao;
     let nat = lay.nat;
     let n3 = 3 * nat;
-    let n_o = resp.occ.n_o;
     let (a, k) = (y / 3, y % 3);
     let mut df = Mat::<f64>::zeros(nao, nao);
     let mut ds = Mat::<f64>::zeros(nao, nao);
@@ -105,16 +104,9 @@ pub(crate) fn displacement_response(resp: &Response, dv: &Mat<f64>, y: usize, pa
             df[(i, j)] += vm[(i, j)];
         }
     }
-    let c = st.coeff.as_ref();
-    let to_mo = |m: &Mat<f64>| {
-        let mut x = Mat::<f64>::zeros(nao, nao);
-        faer::linalg::matmul::matmul(x.as_mut(), Accum::Replace, m.as_ref(), c, 1.0, par);
-        let mut out = Mat::<f64>::zeros(n_o, nao);
-        faer::linalg::matmul::matmul(out.as_mut(), Accum::Replace, c.subcols(0, n_o).transpose(), x.as_ref(), 1.0, par);
-        out
-    };
-    let ft = to_mo(&df);
-    let stt = to_mo(&ds);
+    let mo = resp.mo();
+    let ft = mo.to_mo_full_first(df.as_ref(), par);
+    let stt = mo.to_mo_full_first(ds.as_ref(), par);
     let r = resp.mo_response(ft.as_ref(), Some(stt.as_ref()));
     (resp.to_ao(&r.dp, par), resp.to_ao(&r.dw, par))
 }
