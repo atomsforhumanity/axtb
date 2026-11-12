@@ -74,7 +74,7 @@ pub struct ScfStrategy<'a> {
 }
 
 /// Why an SCF ended.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Stop {
     /// The rule's [`Verdict::Done`].
     Converged,
@@ -82,8 +82,9 @@ pub enum Stop {
     IterationLimit,
     /// The vector mixer could not give the next input ([`VectorMixer::next`]).
     MixerFailed,
-    /// The model broke off in [`ScfModel::diagonalize`] (it keeps why).
-    Model,
+    /// The model broke off in [`ScfModel::diagonalize`], for this reason (e.g. GFN2-xTB's lost
+    /// Fermi level).
+    Model(Error),
 }
 
 /// The end of an SCF.
@@ -131,9 +132,9 @@ pub trait ScfModel {
     }
 
     /// Diagonalize the Fock matrices `fock` and occupy the orbitals.
-    /// [`ControlFlow::Break`]: the SCF cannot go on (the model keeps why, e.g. GFN2-xTB's lost
-    /// Fermi level).
-    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>>;
+    /// [`ControlFlow::Break`]: the SCF cannot go on, for the reason it carries (e.g. GFN2-xTB's
+    /// lost Fermi level; [`Stop::Model`]). An `Err` ends the SCF as an error instead.
+    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<Error>>;
 
     /// Build the density of the occupied orbitals.
     fn density(&mut self);
@@ -237,8 +238,8 @@ pub fn run_scf<M: ScfModel>(
             (Accelerator::Fock(_), Some(f)) => FockSource::Unmixed(f),
             (Accelerator::Fock(mixer), None) => FockSource::Mixed(&**mixer),
         };
-        if model.diagonalize(fock_source)?.is_break() {
-            stop = Stop::Model;
+        if let ControlFlow::Break(why) = model.diagonalize(fock_source)? {
+            stop = Stop::Model(why);
             break;
         }
         drop(as_built);
@@ -301,7 +302,7 @@ mod tests {
     impl ScfModel for Toy {
         type State = f64;
 
-        fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+        fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<Error>> {
             let kind = if matches!(fock, FockSource::Unmixed(_)) { "unmixed" } else { "mixed" };
             self.diagonalized = fock.matrix(0).expect("a Fock mixer's matrices")[0];
             self.log.push(format!("diagonalize {kind}"));

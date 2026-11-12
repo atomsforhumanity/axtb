@@ -750,7 +750,7 @@ struct Scf201<'a> {
 impl ScfModel for Scf201<'_> {
     type State = State;
 
-    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<Error>> {
         let setup = self.setup;
         let (n, ns, kt, program) = (setup.nao, setup.nspin, self.kt, setup.model.program());
         let occ = &self.occ;

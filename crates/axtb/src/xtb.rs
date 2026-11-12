@@ -570,7 +570,6 @@ impl XtbModel {
             eelec: vec![0.0; nat],
             terms: EnergyTerms::default(),
             e_rest: None,
-            failure: None,
         };
 
         // one SCF per mixer of the plan (auto: Broyden, then DIIS from the initial guess)
@@ -604,9 +603,7 @@ impl XtbModel {
                     let name = if mk == MixerKind::Broyden { "Broyden" } else { "DIIS" };
                     return Err(Error::Numerical(format!("{name} mixing failed")));
                 }
-                Stop::Model if last_attempt => {
-                    return Err(scf.failure.take().expect("a stopped GFN2-xTB SCF says why"));
-                }
+                Stop::Model(why) if last_attempt => return Err(why),
                 _ => {}
             }
             (iscf, de_last, pnorm) = (out.iterations, out.last.energy_change, out.last.residual);
@@ -893,8 +890,6 @@ struct Gfn2Scf<'a> {
     /// The moment-dependent energy of the extra terms that do not partition theirs (last
     /// iteration; `None` without such terms).
     e_rest: Option<f64>,
-    /// Why the last diagonalization broke off the SCF.
-    failure: Option<Error>,
 }
 
 impl Gfn2Scf<'_> {
@@ -961,7 +956,7 @@ impl ScfModel for Gfn2Scf<'_> {
         Ok(())
     }
 
-    fn diagonalize(&mut self, _fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+    fn diagonalize(&mut self, _fock: FockSource<'_>) -> Result<ControlFlow<Error>> {
         let (nalpha, nbeta, kt) = (self.nalpha, self.nbeta, self.kt);
         if self.lowest {
             // the orbitals with occupation above the cutoff (from the eigenvalues)
@@ -984,11 +979,10 @@ impl ScfModel for Gfn2Scf<'_> {
         for (n, occ) in [(nalpha, &self.occ_a), (nbeta, &self.occ_b)] {
             let placed: f64 = occ.iter().sum();
             if (placed - n).abs() > 1e-6 {
-                self.failure = Some(Error::Numerical(format!(
+                return Ok(ControlFlow::Break(Error::Numerical(format!(
                     "Fermi level not found: {placed} of {n} electrons of one spin placed at {} K",
                     self.etemp
-                )));
-                return Ok(ControlFlow::Break(()));
+                ))));
             }
         }
         self.ts = occupations::entropy_tblite(&self.occ_a, kt) + occupations::entropy_tblite(&self.occ_b, kt);

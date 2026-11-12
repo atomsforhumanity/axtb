@@ -3,7 +3,7 @@
 use std::fmt;
 
 /// Errors returned by axtb.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Error {
     /// Invalid input (structure, charge/spin, settings).
     Input(String),

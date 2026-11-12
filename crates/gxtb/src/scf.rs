@@ -879,7 +879,7 @@ impl ScfModel for Scf110<'_> {
     /// The spin densities (closed shell: the total density).
     type State = Vec<Vec<f64>>;
 
-    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<Error>> {
         let n = self.setup.nao;
         for s in 0..self.eps.len() {
             let fs = fock.matrix(s).expect("the v1.1 SCF diagonalizes row-major Fock matrices");
