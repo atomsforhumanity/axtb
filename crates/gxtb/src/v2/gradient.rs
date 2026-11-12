@@ -16,13 +16,10 @@
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
 use super::basis::{h0_shells, scf_shells, INTCUT};
-use super::coulomb::{aes_kernel, first_order_g, gamma_kernel, spin_potential, tau_kernel};
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Products};
 use super::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
 use super::intermediates::Slots;
 use super::scf::{ScfResult, Setup, State};
-use super::sqrt_cn;
-use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, IPEA, IPEA_CN, SHELL_HUBBARD};
 use crate::h0::bond_projectors_deriv;
 use crate::timing::Laps;
 use axtb::ao::{AtomPair, ShellPairs};
@@ -72,7 +69,7 @@ fn mm(x: &[f64], y: &[f64], r: usize, k: usize, c: usize) -> [f64; MBLK] {
 }
 
 #[inline]
-fn add_pair(g: &mut [[f64; 3]], i: usize, j: usize, f: f64, v: [f64; 3]) {
+pub(crate) fn add_pair(g: &mut [[f64; 3]], i: usize, j: usize, f: f64, v: [f64; 3]) {
     for k in 0..3 {
         g[i][k] += f * v[k];
         g[j][k] -= f * v[k];
@@ -108,7 +105,7 @@ pub struct KernelRef<'a> {
 
 /// `f(i, chain)` for every row i of `0..n` with a [`Chain`] of the shape of `like` per fixed chunk
 /// of rows (in parallel when `parallel`), the chunks' chains summed in order.
-fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
+pub(crate) fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
     crate::parallel::reduce_rows(n, parallel, || like.zeroed_like(), f, |a, b| a.add(&b))
 }
 
@@ -125,132 +122,6 @@ pub fn exchange_kernel_weights(
 }
 
 impl KernelRef<'_> {
-    /// First- to fourth-order terms at fixed shell charges: kernels (distances, Hubbard
-    /// parameters through the CN) and the CN-dependent first-order potentials.
-    pub fn add_isotropic(&self, q: &[f64], ch: &mut Chain) {
-        let mol = self.mol;
-        let c = self.coulomb;
-        let sh = &c.shells;
-        let ns = sh.len();
-        let qa = c.atom_charges(q);
-        let cn = self.slots.cn;
-        let mut du = vec![0.0; ns];
-        let dcn = ch.slot(cn);
-        for (i, &(iat, ish, _)) in sh.iter().enumerate() {
-            let z = mol.numbers[iat] - 1;
-            let df = sqrt_cn(self.cn[iat]).1;
-            du[i] = SHELL_HUBBARD[z][ish] * HUBBARD[z] * HUBBARD_CN[z] * df;
-            let g = first_order_g(qa[iat]).0;
-            dcn[iat] += IPEA[z][ish] * IPEA_CN[z] * df * g * q[i];
-        }
-        let u = &c.u;
-        let acc = chain_rows(ns, ch, self.parallel, |i, ch| {
-            let (g, dcn) = ch.g_and_slot(cn);
-            for j in 0..=i {
-                let (ia, ja) = (sh[i].0, sh[j].0);
-                let same = ia == ja;
-                // dE/dgamma_ij and dE/dtau_ij of the symmetric pair
-                let (wg, wt) = if i == j {
-                    (0.5 * q[i] * q[i], q[i] * q[i] * q[i] * c.gam3[i] / 3.0)
-                } else {
-                    let mut wg = q[i] * q[j];
-                    if !same {
-                        wg += q[i] * c.rref[j] + q[j] * c.rref[i];
-                    }
-                    (wg, (q[i] * q[i] * c.gam3[i] * q[j] + q[j] * q[j] * c.gam3[j] * q[i]) / 3.0)
-                };
-                let r = if same { 0.0 } else { norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt() };
-                let eta = 2.0 / (1.0 / u[i] + 1.0 / u[j]);
-                let (_, dgdr, dgde) = gamma_kernel(r, eta);
-                let (_, dtdr, dtde) = tau_kernel(r, eta, same);
-                let dede = wg * dgde + wt * dtde;
-                let s2 = (u[i] + u[j]) * (u[i] + u[j]);
-                dcn[ia] += dede * 2.0 * u[j] * u[j] / s2 * du[i];
-                dcn[ja] += dede * 2.0 * u[i] * u[i] / s2 * du[j];
-                if !same {
-                    let dedr = wg * dgdr + wt * dtdr;
-                    let v = sub3(mol.positions[ia], mol.positions[ja]);
-                    add_pair(g, ia, ja, dedr / r, v);
-                }
-            }
-        });
-        ch.add(&acc);
-    }
-
-    /// Anisotropic electrostatics at fixed charges and moments: kernels (explicit distance
-    /// vectors) and the CN-dependent dipole scaling (`vd_scaled` = dE/d(c d)).
-    pub fn add_aes(&self, qa: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], vd_scaled: &[[f64; 3]], ch: &mut Chain) {
-        let mol = self.mol;
-        let n = mol.nat();
-        let d = self.coulomb.scaled_dipoles(dip);
-        let dcn = ch.slot(self.slots.cn);
-        for i in 0..n {
-            let z = mol.numbers[i] - 1;
-            let dc = AES_DIP_SCALE[z] * sqrt_cn(self.cn[i]).1;
-            dcn[i] += dc * (0..3).map(|x| dip[i][x] * vd_scaled[i][x]).sum::<f64>();
-        }
-        let dot = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-        let qm = |q: &[f64; 6]| [[q[0], q[1], q[3]], [q[1], q[2], q[4]], [q[3], q[4], q[5]]];
-        let mv = |m: &[[f64; 3]; 3], v: [f64; 3]| [dot(m[0], v), dot(m[1], v), dot(m[2], v)];
-        let q = qa;
-        let acc = chain_rows(n, ch, self.parallel, |i, ch| {
-            for j in 0..i {
-                let r = sub3(mol.positions[j], mol.positions[i]);
-                let r2 = dot(r, r);
-                let rr = r2.sqrt();
-                let r0 = self.model.rvdw(mol.numbers[i], mol.numbers[j]);
-                let (g3, dg3) = aes_kernel(0, rr, r0);
-                let (g5, dg5) = aes_kernel(1, rr, r0);
-                let (g7, dg7) = aes_kernel(2, rr, r0);
-                let (g9, dg9) = aes_kernel(3, rr, r0);
-                let (qi, qj) = (qm(&qp[i]), qm(&qp[j]));
-                let (di, dj) = (d[i], d[j]);
-                let (qir, qjr) = (mv(&qi, r), mv(&qj, r));
-                let (rqir, rqjr) = (dot(r, qir), dot(r, qjr));
-                let (dir, djr) = (dot(di, r), dot(dj, r));
-                let e_qd = q[j] * dir - q[i] * djr;
-                let grad_qd = [0, 1, 2].map(|c| q[j] * di[c] - q[i] * dj[c]);
-                let e_qq = q[j] * rqir + q[i] * rqjr;
-                let grad_qq = [0, 1, 2].map(|c| 2.0 * (q[j] * qir[c] + q[i] * qjr[c]));
-                let e_dd = dot(di, dj) * r2 - 3.0 * dir * djr;
-                let grad_dd = [0, 1, 2].map(|c| 2.0 * dot(di, dj) * r[c] - 3.0 * (djr * di[c] + dir * dj[c]));
-                let (qidj, qjdi) = (mv(&qi, dj), mv(&qj, di));
-                let (rqidj, rqjdi) = (dot(r, qidj), dot(r, qjdi));
-                let e_dq = 5.0 * rqir * djr - 2.0 * rqidj * r2 - (5.0 * dir * rqjr - 2.0 * rqjdi * r2);
-                let grad_dq = [0, 1, 2].map(|c| {
-                    5.0 * (2.0 * qir[c] * djr + rqir * dj[c])
-                        - 2.0 * (qidj[c] * r2 + 2.0 * rqidj * r[c])
-                        - 5.0 * (di[c] * rqjr + 2.0 * dir * qjr[c])
-                        + 2.0 * (qjdi[c] * r2 + 2.0 * rqjdi * r[c])
-                });
-                let mut tr = 0.0;
-                for a in 0..3 {
-                    for b in 0..3 {
-                        tr += qi[a][b] * qj[a][b];
-                    }
-                }
-                let qiqjr = mv(&qi, qjr);
-                let qjqir = mv(&qj, qir);
-                let qrqr = dot(qir, qjr);
-                let e_q2 = 35.0 * rqir * rqjr - 20.0 * qrqr * r2 + 3.0 * tr * r2 * r2;
-                let grad_q2 = [0, 1, 2].map(|c| {
-                    35.0 * (2.0 * qir[c] * rqjr + 2.0 * qjr[c] * rqir)
-                        - 20.0 * ((qiqjr[c] + qjqir[c]) * r2 + 2.0 * qrqr * r[c])
-                        + 12.0 * tr * r2 * r[c]
-                });
-                let dedr = e_qd * dg3 + (e_qq + e_dd) * dg5 - e_dq * dg7 + e_q2 * dg9 / 3.0;
-                let mut gv = [0.0; 3];
-                for c in 0..3 {
-                    gv[c] = g3 * grad_qd[c] + g5 * (grad_qq[c] + grad_dd[c]) - g7 * grad_dq[c]
-                        + g9 * grad_q2[c] / 3.0
-                        + dedr * r[c] / rr;
-                }
-                add_pair(&mut ch.g, j, i, 1.0, gv);
-            }
-        });
-        ch.add(&acc);
-    }
-
     /// Exchange kernels (MFX shell kernel, bond-order kernel) at fixed weights dE/dG (`tsh`,
     /// shell pairs) and dE/dK (`tat`, atom pairs) from [`exchange_kernel_weights`].
     pub fn add_exchange_kernels(&self, tsh: &[f64], tat: &[f64], ch: &mut Chain) {
@@ -309,21 +180,24 @@ impl Setup {
 
     /// [`Setup::potentials`] with the exchange [`Exchange::products`](super::exchange::Exchange::products) of `st`.
     pub fn potentials_with(&self, st: &State, pr: &[Products]) -> Potentials {
-        let mol = &self.mol;
-        let par = self.parallel;
-        let mut vsh = self.coulomb.isotropic_potential(&st.q, par);
-        let (vs, vd_scaled, vq) = self.coulomb.aes_potentials_raw(mol, &st.qa, &st.dip, &st.qp, par);
-        let vd = self.coulomb.scaled_dipoles(&vd_scaled);
-        let vrep = self.rep.potential_par(&st.qa, par);
-        let mut pdisp = TermPotentials::new(0, mol.nat(), false);
-        self.terms.disp.potential(&self.term_geometry(), &self.disp, &st.moments(), &mut pdisp);
-        let vdisp = pdisp.atom;
+        let (tg, s) = (self.term_geometry(), st.moments());
+        let terms = &self.terms;
+        let p = || TermPotentials::new(self.shells.len(), self.mol.nat(), st.mag.is_some());
+        let (mut piso, mut paes, mut prep, mut pdisp, mut pspin) = (p(), p(), p(), p(), p());
+        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
+        let vd_scaled = terms.aes.potential_scaled(&tg, &self.coulomb, &s, &mut paes);
+        terms.rep.potential(&tg, &self.rep, &s, &mut prep);
+        terms.disp.potential(&tg, &self.disp, &s, &mut pdisp);
         let (_, _, vx) = self.exch.evaluate_with(&self.s, &st.p, pr, &st.q, false, self.par, self.parallel);
+        let mut vsh = piso.shell;
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
-            vsh[ish] += vx[ish] + vs[iat] + vrep[iat] + vdisp[iat];
+            vsh[ish] += vx[ish] + paes.atom[iat] + prep.atom[iat] + pdisp.atom[iat];
         }
-        let w = st.mag.as_ref().map(|m| spin_potential(mol, &self.shells, m));
-        Potentials { vsh, vd, vq, vd_scaled, w }
+        let w = st.mag.is_some().then(|| {
+            terms.spin.potential(&tg, &(), &s, &mut pspin);
+            pspin.magnetization
+        });
+        Potentials { vsh, vd: paes.dipole, vq: paes.quadrupole, vd_scaled, w }
     }
 
     /// The q_eff derivatives of the SCF-basis shells of every atom.
@@ -775,17 +649,16 @@ impl Setup {
         t.lap("gradient: h0");
         self.add_acp(&ptot, &dsh, &mut ch)?;
         t.lap("gradient: acp");
-        let k = self.kernel_ref();
-        k.add_isotropic(&st.q, &mut ch);
-        k.add_aes(&st.qa, &st.dip, &st.qp, &pot_now.vd_scaled, &mut ch);
+        let (tg, s) = (self.term_geometry(), st.moments());
+        self.terms.iso.gradient(&tg, &self.coulomb, &s, &mut ch);
+        self.terms.aes.gradient_with(&tg, &self.coulomb, &s, &pot_now.vd_scaled, &mut ch);
         t.lap("gradient: electrostatics");
+        let k = self.kernel_ref();
         let (tsh, tat) = self.exch.kernel_weights_with(&st.p, &pr, self.parallel);
         k.add_exchange_kernels(&tsh, &tat, &mut ch);
         t.lap("gradient: exchange kernels");
-        let (g, dcn) = ch.g_and_slot(self.slots.cn);
-        self.rep.gradient_par(&self.model, mol, &self.cn, &st.qa, g, dcn, self.parallel);
-        let tg = self.term_geometry();
-        self.terms.disp.gradient(&tg, &self.disp, &st.moments(), &mut ch);
+        self.terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
+        self.terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
         t.lap("gradient: repulsion+revd4");
         let mut e3 = [0.0];
         self.terms.disp.fixed_energy(&tg, &self.disp, &mut TermEnergy { pieces: &mut e3, atoms: None }, Some(&mut ch));

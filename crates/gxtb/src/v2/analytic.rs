@@ -67,8 +67,10 @@ pub struct Kernels<'a> {
     /// The setup's chain layout (the shape of the gradient's accumulators) and its slots.
     pub layout: &'a ChainLayout,
     pub slots: Slots,
-    /// The terms (their caches are the fields above).
+    /// The terms (their caches are the fields above) and the values of the intermediates they
+    /// read at this geometry (the g-xTB and revD4 CNs).
     pub terms: super::terms::Terms,
+    pub values: Values,
 }
 
 impl<'a> Kernels<'a> {
@@ -80,25 +82,29 @@ impl<'a> Kernels<'a> {
         slots: Slots,
     ) -> Result<Self> {
         let cn = gxtb_cn(model, mol);
+        let disp = RevD4::new(model, mol)?;
+        let mut values = Values::new(layout);
+        values.set(slots.cn, cn.clone());
+        values.set(slots.cnd4, disp.cn.clone());
         Ok(Self {
             mol: mol.clone(),
             model: *model,
             coulomb: Coulomb::new(model, mol, &exch.shells, &cn),
             rep: Repulsion::new(model, mol, &cn),
-            disp: RevD4::new(model, mol)?,
+            disp,
             exch,
             aniso: anisotropy(model, mol),
             cn,
             layout,
             slots,
-            terms: super::terms::Terms::new(model, &slots),
+            terms: super::terms::Terms::new(model, &exch.shells, &slots),
+            values,
         })
     }
 
-    /// The geometry of the terms; the kernels' terms read no intermediate values (their caches
-    /// hold what they need), so the values are left empty.
-    fn term_geometry<'v>(&'v self, none: &'v Values) -> Geometry<'v> {
-        Geometry { mol: &self.mol, layout: self.layout, values: none, parallel: false }
+    /// The geometry of the terms at this geometry (one thread).
+    fn term_geometry(&self) -> Geometry<'_> {
+        Geometry { mol: &self.mol, layout: self.layout, values: &self.values, parallel: false }
     }
 
     pub fn view(&self) -> KernelRef<'_> {
@@ -119,16 +125,16 @@ impl<'a> Kernels<'a> {
     /// dipole potential with the anisotropy vectors, quadrupole potential; no spin part (the
     /// spin constants do not depend on the geometry).
     pub fn potentials(&self, st: &State, lay: &ScfVariables) -> Vec<f64> {
-        let mol = &self.mol;
-        let mut v = self.coulomb.isotropic_potential(&st.q, false);
-        let (vs, mut vd, vq) = self.coulomb.aes_potentials(mol, &st.qa, &st.dip, &st.qp, false);
-        let vrep = self.rep.potential(&st.qa);
-        let none = Values::new(self.layout);
-        let mut pdisp = TermPotentials::new(0, mol.nat(), false);
-        self.terms.disp.potential(&self.term_geometry(&none), &self.disp, &st.moments(), &mut pdisp);
-        let vdisp = pdisp.atom;
+        let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
+        let p = || TermPotentials::new(self.coulomb.shells.len(), self.mol.nat(), false);
+        let (mut piso, mut paes, mut prep, mut pdisp) = (p(), p(), p(), p());
+        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
+        terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
+        terms.rep.potential(&tg, &self.rep, &s, &mut prep);
+        terms.disp.potential(&tg, &self.disp, &s, &mut pdisp);
+        let (mut v, mut vd, vq) = (piso.shell, paes.dipole, paes.quadrupole);
         for (ish, &(iat, _, _)) in self.coulomb.shells.iter().enumerate() {
-            v[ish] += vs[iat] + vrep[iat] + vdisp[iat];
+            v[ish] += paes.atom[iat] + prep.atom[iat] + pdisp.atom[iat];
         }
         for (d, a) in vd.iter_mut().zip(&self.aniso) {
             for c in 0..3 {
@@ -147,15 +153,12 @@ impl<'a> Kernels<'a> {
     pub fn gradient(&self, st: &State) -> Vec<f64> {
         let mol = &self.mol;
         let nat = mol.nat();
-        let k = self.view();
+        let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
         let mut ch = Chain::new(self.layout, nat);
-        k.add_isotropic(&st.q, &mut ch);
-        let (_, vd_scaled, _) = self.coulomb.aes_potentials_raw(mol, &st.qa, &st.dip, &st.qp, false);
-        k.add_aes(&st.qa, &st.dip, &st.qp, &vd_scaled, &mut ch);
-        let (g, dcn) = ch.g_and_slot(self.slots.cn);
-        self.rep.gradient(&self.model, mol, &self.cn, &st.qa, g, dcn);
-        let none = Values::new(self.layout);
-        self.terms.disp.gradient(&self.term_geometry(&none), &self.disp, &st.moments(), &mut ch);
+        terms.iso.gradient(&tg, &self.coulomb, &s, &mut ch);
+        terms.aes.gradient(&tg, &self.coulomb, &s, &mut ch);
+        terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
+        terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
         anisotropy_gradient(&self.model, mol, &st.dip, &mut ch.g);
         let dcn = ch.weights(self.slots.cn).to_vec();
         super::cn::gxtb_cn_gradient(&self.model, mol, &dcn, &mut ch.g);

@@ -190,25 +190,24 @@ impl Setup {
         ds: &State,
         vx: Option<&[f64]>,
     ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>, Option<Vec<f64>>) {
-        let mol = &self.mol;
-        let mut dv = self.coulomb.isotropic_hessian_vec(&st.q, &ds.q);
-        let (vs, vd, vq) = self.coulomb.aes_potentials(mol, &ds.qa, &ds.dip, &ds.qp, false);
-        let vrep = self.rep.potential_delta(&ds.qa);
-        let mut pdisp = axtb::terms::Potentials::new(0, mol.nat(), false);
-        axtb::terms::MomentTerm::kernel_apply(
-            &self.terms.disp,
-            &self.term_geometry(),
-            &self.disp,
-            &st.moments(),
-            &ds.moments(),
-            &mut pdisp,
-        );
-        let vdisp = pdisp.atom;
+        use axtb::terms::{MomentTerm, Potentials};
+        let (tg, s, d, terms) = (self.term_geometry(), st.moments(), ds.moments(), &self.terms);
+        let p = || Potentials::new(self.shells.len(), self.mol.nat(), ds.mag.is_some());
+        let (mut piso, mut paes, mut prep, mut pdisp, mut pspin) = (p(), p(), p(), p(), p());
+        terms.iso.kernel_apply(&tg, &self.coulomb, &s, &d, &mut piso);
+        terms.aes.kernel_apply(&tg, &self.coulomb, &s, &d, &mut paes);
+        terms.rep.kernel_apply(&tg, &self.rep, &s, &d, &mut prep);
+        terms.disp.kernel_apply(&tg, &self.disp, &s, &d, &mut pdisp);
+        let mut dv = piso.shell;
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
             let x = vx.map_or(0.0, |v| v[ish]);
-            dv[ish] += x + vs[iat] + vrep[iat] + vdisp[iat];
+            dv[ish] += x + paes.atom[iat] + prep.atom[iat] + pdisp.atom[iat];
         }
-        let w = ds.mag.as_ref().map(|m| super::coulomb::spin_potential(mol, &self.shells, m));
+        let w = ds.mag.is_some().then(|| {
+            terms.spin.kernel_apply(&tg, &(), &s, &d, &mut pspin);
+            pspin.magnetization
+        });
+        let (vd, vq) = (paes.dipole, paes.quadrupole);
         (dv, vd, vq, w)
     }
 

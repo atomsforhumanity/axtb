@@ -22,7 +22,7 @@
 
 use super::basis::Basis;
 use super::cn::gxtb_cn;
-use super::coulomb::{spin_energy, spin_potential, Coulomb, Shell};
+use super::coulomb::{Coulomb, Shell};
 use super::disp::RevD4;
 use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
@@ -213,7 +213,7 @@ impl Setup {
         values.set(slots.cn, cn.clone());
         values.set(slots.qeff, basis.qeff.clone());
         values.set(slots.qeff0, basis.qeff_h0.clone());
-        let terms = Terms::new(&model, &slots);
+        let terms = Terms::new(&model, &shells, &slots);
         let tg = Geometry { mol, layout: &layout, values: &values, parallel };
         t.lap("setup: revd4");
         let mut e_atm = [0.0];
@@ -400,17 +400,17 @@ impl Setup {
             self.h[r.clone()].iter().zip(&ptot[r]).map(|(a, b)| a * b).sum::<f64>()
         });
         drop(ptot);
-        let par = self.parallel;
-        let [e1, e2, e3, e4] = self.coulomb.isotropic_energies(&st.q, par);
-        let e_aes = self.coulomb.aes_energy(mol, &st.qa, &st.dip, &st.qp, par);
-        let e_spin = st.mag.as_ref().map_or(0.0, |m| spin_energy(mol, &self.shells, m));
-        let tg = self.term_geometry();
-        let s = st.moments();
-        let (mut e_disp, mut pdisp) = ([0.0], TermPotentials::new(0, mol.nat(), false));
-        let te = &mut TermEnergy { pieces: &mut e_disp, atoms: None };
-        self.terms.disp.energy_and_potential(&tg, &self.disp, &s, te, &mut pdisp);
-        let (e_disp, vdisp) = (e_disp[0], pdisp.atom);
-        let e_rep = self.rep.energy_par(&st.qa, par);
+        // the terms' energies (the dispersion's potential from the same pass)
+        let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
+        let (mut eiso, mut e_aes, mut e_spin, mut e_disp, mut e_rep) = ([0.0; 4], [0.0], [0.0], [0.0], [0.0]);
+        terms.iso.energy(&tg, &self.coulomb, &s, &mut totals(&mut eiso));
+        terms.aes.energy(&tg, &self.coulomb, &s, &mut totals(&mut e_aes));
+        terms.spin.energy(&tg, &(), &s, &mut totals(&mut e_spin));
+        let p = || TermPotentials::new(self.shells.len(), mol.nat(), st.mag.is_some());
+        let mut pdisp = p();
+        terms.disp.energy_and_potential(&tg, &self.disp, &s, &mut totals(&mut e_disp), &mut pdisp);
+        terms.rep.energy(&tg, &self.rep, &s, &mut totals(&mut e_rep));
+        let ([e1, e2, e3, e4], [e_aes], [e_spin], [e_disp], [e_rep]) = (eiso, e_aes, e_spin, e_disp, e_rep);
         t.lap("scf: fock energies");
         let pr = self.exch.products(&self.s, &st.p, self.par);
         let (e_x, fx, vx) = self.exch.evaluate_with(&self.s, &st.p, &pr, &st.q, fock, self.par, self.parallel);
@@ -437,19 +437,23 @@ impl Setup {
             return (energies, Vec::new());
         }
         t.skip();
-        let mut vsh = self.coulomb.isotropic_potential(&st.q, par);
-        let (vs, vd, vq) = self.coulomb.aes_potentials(mol, &st.qa, &st.dip, &st.qp, par);
-        let vrep = self.rep.potential_par(&st.qa, par);
+        // the shell potential: the isotropic one plus (in this order) exchange, AES, repulsion
+        // and dispersion of the shell's atom (the program's sum)
+        let (mut piso, mut paes, mut prep, mut pspin) = (p(), p(), p(), p());
+        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
+        terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
+        terms.rep.potential(&tg, &self.rep, &s, &mut prep);
+        let mut vsh = piso.shell;
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
-            vsh[ish] += vx[ish] + vs[iat] + vrep[iat] + vdisp[iat];
+            vsh[ish] += vx[ish] + paes.atom[iat] + prep.atom[iat] + pdisp.atom[iat];
         }
+        let (vd, vq) = (paes.dipole, paes.quadrupole);
         let vao: Vec<f64> = self.basis.scf.ao2sh.iter().map(|&ish| vsh[ish]).collect();
         // spin potential: +1/2 (w_m + w_n) S on alpha, - on beta
-        let wao: Option<Vec<f64>> = st
-            .mag
-            .as_ref()
-            .map(|m| spin_potential(mol, &self.shells, m))
-            .map(|w| self.basis.scf.ao2sh.iter().map(|&ish| w[ish]).collect());
+        let wao: Option<Vec<f64>> = st.mag.is_some().then(|| {
+            terms.spin.potential(&tg, &(), &s, &mut pspin);
+            self.basis.scf.ao2sh.iter().map(|&ish| pspin.magnetization[ish]).collect()
+        });
         let fm = crate::fock::from_potentials_fused(
             n,
             &self.h,
@@ -810,4 +814,9 @@ impl ScfModel for Scf201<'_> {
     fn record(&mut self, it: &Iteration) {
         self.history.push((it.energy, it.residual));
     }
+}
+
+/// A term's energy as totals only (g-xTB sums no per-atom energies).
+fn totals(pieces: &mut [f64]) -> TermEnergy<'_> {
+    TermEnergy { pieces, atoms: None }
 }
