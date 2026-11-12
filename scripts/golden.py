@@ -233,6 +233,49 @@ def corpus():
     add("traj-gxtb2-cu-doublet-grad", traj(cu), method="gxtb-v2.0.1", gradient=True)
     add("traj-gxtb11-caffeine-etemp-gxtb", traj(caf), method="gxtb-v1.1", conventions="gxtb", gradient=True,
         etemp=3000.0)
+    # Step 16 (the Method trait): the composite's retry ladders (g-xTB at 1000 K, the GFN2 pair at 1000 K,
+    # both with 1000 iterations; in the program conventions every rung of the pair starts fresh), a composite
+    # failure (an explicit temperature: no g-xTB ladder), the composite of v1.1 (numerical Hessian of the g-xTB
+    # part, analytic of the GFN2 halves) and with one Hessian method for all parts
+    comp = {"alpb": "water", "solvation_correction": "gfn2"}
+    add("gxtb2-caffeine-composite-retries", caf, method="gxtb-v2.0.1", gradient=True, max_iter=5, **comp)
+    add("gxtb2-caffeine-composite-retries-gxtb", caf, method="gxtb-v2.0.1", conventions="gxtb", gradient=True,
+        max_iter=5, **comp)
+    add("gxtb2-water-composite-hessian-retries", w, method="gxtb-v2.0.1", hessian=True, max_iter=3, **comp)
+    add("error-gxtb2-caffeine-composite-etemp", caf, method="gxtb-v2.0.1", gradient=True, max_iter=5, etemp=300.0,
+        **comp)
+    add("gxtb11-water-composite-hessian", w, method="gxtb-v1.1", hessian=True, **comp)
+    add("gxtb2-water-composite-hessian-numerical", w, method="gxtb-v2.0.1", hessian=True,
+        hessian_method="numerical", **comp)
+    # the refusals that move from the driver into the methods, and GFN-FF's numerical Hessian
+    add("error-gxtb11-hessian-analytic", w, method="gxtb-v1.1", hessian=True, hessian_method="analytic")
+    add("error-gfnff-hessian-response", w, method="gfnff", hessian=True, hessian_method="response")
+    add("error-gfnff-hessian-accuracy", w, method="gfnff", hessian=True, hessian_accuracy=0.1)
+    add("error-gfnff-bond-orders", w, method="gfnff", bond_orders=True)
+    add("gfnff-water-hessian-numerical", w, method="gfnff", hessian=True, hessian_method="numerical")
+    # warm starts around Hessians: GFN2 with guess "fresh" (the single point after the Hessian starts from its
+    # reference), g-xTB 2.0.1 and v1.1 (the single point after the Hessian starts from the program's start,
+    # the next Hessian's reference from the previous state), the composite in both conventions
+    add("traj-gfn2-water-hessian-fresh", {**w, "trajectory": trajectory(w["positions"]), "guess": "fresh"},
+        method="gfn2", hessian=True)
+    add("traj-gfn2-water-hessian", traj(w), method="gfn2", hessian=True)
+    add("traj-gxtb2-water-hessian", traj(w), method="gxtb-v2.0.1", hessian=True)
+    add("traj-gxtb11-water-hessian", traj(w), method="gxtb-v1.1", hessian=True)
+    for conv in ("axtb", "gxtb"):
+        # each part as its conventions say (gxtb: every SCF from the programs' starts)
+        add(f"traj-gxtb2-water-composite-grad-{conv}", {**w, "trajectory": trajectory(w["positions"])},
+            method="gxtb-v2.0.1", conventions=conv, gradient=True, **comp)
+    # the retry from the method's own start: water, then the same atoms stretched to 3 Å, where the SCF from
+    # water's converged state does not converge within max_iter and the fresh one does (the second response's
+    # guess is the method's own start)
+    h3 = mol(H2O3, 0.0, 0)
+    h3w = [h3["positions"][i] for i in (1, 2, 0)]  # in water.xyz's atom order (H, H, O)
+    jump = {**w, "trajectory": [w["positions"], h3w], "guess": "previous"}
+    add("traj-gfn2-water-stretch-retry", jump, method="gfn2", accuracy=1e-4, max_iter=60, gradient=True)
+    add("traj-gfn2-water-stretch-retry-hessian", jump, method="gfn2", accuracy=1e-4, max_iter=60, hessian=True)
+    add("traj-gxtb2-water-stretch-retry", jump, method="gxtb-v2.0.1", max_iter=40, gradient=True)
+    add("traj-gxtb2-water-stretch-retry-hessian", jump, method="gxtb-v2.0.1", max_iter=40, hessian=True)
+    add("traj-gxtb11-water-stretch-retry", jump, method="gxtb-v1.1", max_iter=60, gradient=True)
     return c
 
 
