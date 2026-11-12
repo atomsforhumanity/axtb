@@ -64,7 +64,9 @@ impl FockMixer for Gxtb201FockDiis {
         let mut r = vec![0.0; len];
         let fmix = &self.fmix;
         crate::parallel::for_each_mut(&mut r, par, |k, x| *x = fvec[k] - fmix[k]);
-        let err = (dot(&r, &r) / len as f64).sqrt();
+        // r · r once: the residual's RMS and the new diagonal of B (the same chunked sum)
+        let rr = dot(&r, &r);
+        let err = (rr / len as f64).sqrt();
         if !self.diis {
             let d = self.damping;
             crate::parallel::for_each_mut(&mut self.fmix, par, |k, x| *x += d * r[k]);
@@ -72,7 +74,7 @@ impl FockMixer for Gxtb201FockDiis {
         let mut fvec = Some(fvec);
         let (hist, bmat) = (&mut self.hist, &mut self.bmat);
         if iter >= 3 {
-            let row: Vec<f64> = hist.iter().map(|(_, rj)| dot(&r, rj)).chain(std::iter::once(dot(&r, &r))).collect();
+            let row: Vec<f64> = hist.iter().map(|(_, rj)| dot(&r, rj)).chain(std::iter::once(rr)).collect();
             for (bj, &v) in bmat.iter_mut().zip(&row) {
                 bj.push(v);
             }
