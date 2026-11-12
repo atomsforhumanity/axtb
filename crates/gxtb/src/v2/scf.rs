@@ -35,10 +35,12 @@ use crate::eeqbc::{EeqBcCharges, EeqBcSolution};
 use crate::fock::shell_list;
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
-use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
+use axtb::linalg::GenEigSolver;
+use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
+use std::ops::ControlFlow;
 use std::sync::Arc;
 
 /// Everything that depends on the geometry only.
@@ -593,120 +595,171 @@ impl Setup {
         let (damping, diis_size) = (opts.damping.unwrap_or(DAMPING), opts.diis_size.unwrap_or(DIIS_SIZE));
         let kt = self.kt(opts.etemp);
         let mut t = Laps::new();
-        let mut solver = axtb::linalg::GenEigSolver::new(MatRef::from_row_major_slice(&self.s, n, n), self.par)?;
+        let solver = GenEigSolver::new(MatRef::from_row_major_slice(&self.s, n, n), self.par)?;
         t.lap("scf: cholesky");
-        let mut occ = self.occupations();
-        let mut efermi = [None, None];
         let ethr = opts.energy_tol.unwrap_or(1e-6 * opts.accuracy);
         let pthr = opts.residual_tol.unwrap_or(2e-5 * opts.accuracy);
-        let mut st = match start {
+        let st = match start {
             Some(s) => self.restart_state(s)?,
             None => self.guess_state(),
         };
-        let (_, mut fock) = self.evaluate_timed(&st, true, &mut t);
+        let mut scf = Scf201 {
+            setup: self,
+            solver,
+            kt,
+            occ: self.occupations(),
+            efermi: [None, None],
+            ts: 0.0,
+            c: Mat::zeros(n, n),
+            eps: vec![vec![0.0; n]; ns],
+            coef: vec![vec![0.0; n * n]; ns],
+            full: vec![false; ns],
+            pnew: Vec::new(),
+            input: None,
+            energies: Energies::default(),
+            history: Vec::new(),
+        };
         let mut mixer = Gxtb201FockDiis::new(n, damping, diis_size, self.parallel);
         let mut rule = Gxtb201Rule::new(ethr, pthr);
-        let mut e_old = 0.0;
-        let mut c = Mat::<f64>::zeros(n, n);
-        let mut eps = vec![vec![0.0; n]; ns];
-        let mut coef = vec![vec![0.0; n * n]; ns];
-        // whether the last diagonalization of each spin used the full solver
-        let mut full = vec![false; ns];
-        let mut history = Vec::new();
-        for iter in 1..=max_iter {
-            t.skip();
-            let err = mixer.mix(iter, std::mem::take(&mut fock))?;
-            t.lap("scf: mixing");
-            // the eigenvectors of the orbitals with nonzero occupation (their occupations at a
-            // finite temperature follow from the eigenvalues)
+        let strategy = ScfStrategy { accelerator: Accelerator::Fock(&mut mixer), rule: &mut rule, max_iter };
+        let out = run_scf(&mut scf, strategy, st, &mut t)?;
+        if !out.converged {
+            let (de, res) = match out.iterations {
+                0 | 1 => (f64::NAN, f64::NAN),
+                _ => (out.last.energy_change, out.last.residual),
+            };
+            return Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: res });
+        }
+        let Scf201 { mut solver, occ, efermi, mut c, mut eps, mut coef, full, input, energies, history, .. } = scf;
+        if opts.keep_orbitals {
+            // every orbital, the occupied ones as in the iteration (same bits)
             for s in 0..ns {
-                let nel = if s == 0 { self.nalpha } else { self.nbeta };
-                let need = |e: &[f64]| -> usize {
-                    let o = if kt > 0.0 {
-                        let (a, _, _) = super::fermi::fill_channel(nel, kt, e, self.model.program());
-                        if ns == 1 {
-                            let (b, _, _) = super::fermi::fill_channel(self.nbeta, kt, e, self.model.program());
-                            a.iter().zip(&b).map(|(x, y)| x + y).collect()
-                        } else {
-                            a
-                        }
-                    } else {
-                        occ[s].clone()
-                    };
-                    o.iter().rposition(|&x| x != 0.0).map_or(0, |i| i + 1)
-                };
-                let k = solver.solve_lowest(
+                solver.solve_all_with(
                     MatRef::from_row_major_slice(mixer.mixed(s), n, n),
                     &mut eps[s],
                     &mut c,
-                    need,
+                    full[s],
                 )?;
-                full[s] = solver.used_full();
-                let mut cm = MatMut::from_row_major_slice_mut(&mut coef[s], n, n);
-                cm.as_mut().subcols_mut(0, k).copy_from(c.as_ref().subcols(0, k));
-                cm.subcols_mut(k, n - k).fill(0.0);
+                MatMut::from_row_major_slice_mut(&mut coef[s], n, n).copy_from(&c);
             }
-            t.lap("scf: diagonalization");
-            let mut ts = 0.0;
-            if kt > 0.0 {
-                (occ, efermi, ts) = self.fill(&eps, kt);
-            }
-            let pnew: Vec<Vec<f64>> = (0..ns).map(|s| weighted_density(n, &[(&coef[s], &occ[s])], self.par)).collect();
-            t.lap("scf: density");
-            let input = std::mem::replace(&mut st, self.state_of(pnew));
-            t.lap("scf: mulliken");
-            let (mut energies, fnew) = self.evaluate_timed(&st, true, &mut t);
-            energies.add_entropy(ts);
-            let e = energies.total;
-            history.push((e, err));
-            let it = Iteration {
-                iteration: iter,
-                energy: e,
-                energy_change: e - e_old,
-                residual: err,
-                density_change: f64::NAN,
-            };
-            let verdict = rule.update(&it);
-            mixer.observe(&it);
-            if verdict == Verdict::Done {
-                if opts.keep_orbitals {
-                    // every orbital, the occupied ones as in the iteration (same bits)
-                    for s in 0..ns {
-                        solver.solve_all_with(
-                            MatRef::from_row_major_slice(mixer.mixed(s), n, n),
-                            &mut eps[s],
-                            &mut c,
-                            full[s],
-                        )?;
-                        MatMut::from_row_major_slice_mut(&mut coef[s], n, n).copy_from(&c);
-                    }
-                }
-                return Ok(ScfResult {
-                    energies,
-                    shell_charges: st.q.clone(),
-                    atom_charges: st.qa.clone(),
-                    orbital_energies: eps,
-                    occupations: occ,
-                    kt,
-                    efermi,
-                    coefficients: coef,
-                    all_orbitals: opts.keep_orbitals,
-                    density: st.p.clone(),
-                    state: st,
-                    input_state: input,
-                    iterations: iter,
-                    history,
-                    timings: t.laps,
-                    eigensolver: solver.backend(),
-                });
-            }
-            e_old = e;
-            fock = fnew;
         }
-        let (de, res) = match history.len() {
-            0 | 1 => (f64::NAN, f64::NAN),
-            k => (history[k - 1].0 - history[k - 2].0, history[k - 1].1),
-        };
-        Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: res })
+        let st = out.state;
+        Ok(ScfResult {
+            energies,
+            shell_charges: st.q.clone(),
+            atom_charges: st.qa.clone(),
+            orbital_energies: eps,
+            occupations: occ,
+            kt,
+            efermi,
+            coefficients: coef,
+            all_orbitals: opts.keep_orbitals,
+            density: st.p.clone(),
+            state: st,
+            input_state: input.expect("a converged SCF ran an iteration"),
+            iterations: out.iterations,
+            history,
+            timings: t.laps,
+            eigensolver: solver.backend(),
+        })
+    }
+}
+
+/// One 2.0.1 SCF of [`Setup::scf_from`] as the core's SCF model (the program's iteration,
+/// see the module documentation): the occupied eigenpairs of the mixed Fock matrices, the
+/// Aufbau or Fermi occupations, the densities, their state and energy with the Fock matrices
+/// of the next iteration.
+struct Scf201<'a> {
+    setup: &'a Setup,
+    solver: GenEigSolver,
+    kt: f64,
+    /// Occupations per channel (at 0 K the Aufbau ones throughout), Fermi levels and the
+    /// entropy term -TS of the last iteration.
+    occ: Vec<Vec<f64>>,
+    efermi: [Option<f64>; 2],
+    ts: f64,
+    c: Mat<f64>,
+    /// Orbital energies and coefficients per channel (row-major; the columns of the orbitals
+    /// without occupation zero) of the last iteration.
+    eps: Vec<Vec<f64>>,
+    coef: Vec<Vec<f64>>,
+    /// Whether the last diagonalization of each channel used the full solver.
+    full: Vec<bool>,
+    /// The densities of the last iteration, until its state takes them.
+    pnew: Vec<Vec<f64>>,
+    /// The state the last Fock matrices were built from (the program's gradient evaluates
+    /// its potential terms with it).
+    input: Option<State>,
+    /// Energies of the last iteration, and every iteration's energy and Fock residual.
+    energies: Energies,
+    history: Vec<(f64, f64)>,
+}
+
+impl ScfModel for Scf201<'_> {
+    type State = State;
+
+    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+        let setup = self.setup;
+        let (n, ns, kt, program) = (setup.nao, setup.nspin, self.kt, setup.model.program());
+        let occ = &self.occ;
+        // the eigenvectors of the orbitals with nonzero occupation (their occupations at a
+        // finite temperature follow from the eigenvalues)
+        for s in 0..ns {
+            let f = fock.matrix(s).expect("the 2.0.1 SCF diagonalizes mixed Fock matrices");
+            let nel = if s == 0 { setup.nalpha } else { setup.nbeta };
+            let need = |e: &[f64]| -> usize {
+                let o = if kt > 0.0 {
+                    let (a, _, _) = super::fermi::fill_channel(nel, kt, e, program);
+                    if ns == 1 {
+                        let (b, _, _) = super::fermi::fill_channel(setup.nbeta, kt, e, program);
+                        a.iter().zip(&b).map(|(x, y)| x + y).collect()
+                    } else {
+                        a
+                    }
+                } else {
+                    occ[s].clone()
+                };
+                o.iter().rposition(|&x| x != 0.0).map_or(0, |i| i + 1)
+            };
+            let k =
+                self.solver.solve_lowest(MatRef::from_row_major_slice(f, n, n), &mut self.eps[s], &mut self.c, need)?;
+            self.full[s] = self.solver.used_full();
+            let mut cm = MatMut::from_row_major_slice_mut(&mut self.coef[s], n, n);
+            cm.as_mut().subcols_mut(0, k).copy_from(self.c.as_ref().subcols(0, k));
+            cm.subcols_mut(k, n - k).fill(0.0);
+        }
+        Ok(ControlFlow::Continue(()))
+    }
+
+    fn density(&mut self) {
+        let setup = self.setup;
+        if self.kt > 0.0 {
+            (self.occ, self.efermi, self.ts) = setup.fill(&self.eps, self.kt);
+        }
+        let (coef, occ) = (&self.coef, &self.occ);
+        self.pnew = (0..setup.nspin).map(|s| weighted_density(setup.nao, &[(&coef[s], &occ[s])], setup.par)).collect();
+    }
+
+    fn update_state(&mut self, st: &mut State) {
+        let new = self.setup.state_of(std::mem::take(&mut self.pnew));
+        self.input = Some(std::mem::replace(st, new));
+    }
+
+    fn evaluate(
+        &mut self,
+        _iter: usize,
+        st: &State,
+        fock: bool,
+        laps: &mut Laps,
+    ) -> Result<(f64, Option<Vec<Vec<f64>>>)> {
+        let (mut energies, f) = self.setup.evaluate_timed(st, fock, laps);
+        energies.add_entropy(self.ts);
+        let e = energies.total;
+        self.energies = energies;
+        Ok((e, fock.then_some(f)))
+    }
+
+    fn record(&mut self, it: &Iteration) {
+        self.history.push((it.energy, it.residual));
     }
 }
