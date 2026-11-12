@@ -4,12 +4,13 @@
 use crate::aes::{aes_energy, aes_kernels, INTCUT as AES_INTCUT};
 use crate::calculator::Version;
 use crate::classical::{gxtb_cn, increment_energy, repulsion_energy};
+use crate::dense::matmul;
 use crate::disp::RevD4;
 use crate::eeqbc::{eeqbc_charges, EeqBcCharges};
 use crate::es::{first_order_energy, higher_order_energies, spin_energy};
 use crate::fock::{
-    add_charge_potential, add_potentials, aes_potentials, isotropic_shell_potential, matmul, mfx_fock, ofx_fock,
-    shell_list, spin_shell_potential, Shell,
+    add_charge_potential, add_potentials, aes_potentials, isotropic_shell_potential, mfx_fock, ofx_fock, shell_list,
+    spin_shell_potential, Shell,
 };
 use crate::h0::build_h0;
 use crate::ints::overlap_matrix;

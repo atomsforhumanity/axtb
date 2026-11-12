@@ -68,6 +68,9 @@
 //! - Fermi smearing ([`fermi`]) with the Z-vector response with fractional occupations and
 //!   Fermi-level shifts for program-mode gradients (`tests/etemp.rs`).
 //!
+//! Shared by both versions: row-major dense matrices, their conversions to faer and the dot
+//! products in the crate's two rounding orders ([`dense`]).
+//!
 //! The energy expressions, the parameter-file layouts and the status of every term are
 //! documented in `docs/gxtb-v2.0.1-spec.md` (a term-by-term delta to v1.1) and
 //! `docs/gxtb-v1.1-spec.md`.
@@ -83,6 +86,7 @@ pub mod data;
 pub mod data_runtime;
 #[rustfmt::skip] // parameter tables keep their compact layout
 pub mod data_v2;
+pub mod dense;
 pub mod disp;
 pub mod eeqbc;
 pub mod es;

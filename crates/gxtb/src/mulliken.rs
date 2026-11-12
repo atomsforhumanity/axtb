@@ -20,14 +20,9 @@
 //! (`v2::scf::Setup::delta_state`); GFN2-xTB's analysis (`axtb::scf`) sums columns with four
 //! accumulators.
 
+use crate::dense::dot_seq;
 use axtb::basis::Basis;
 use axtb_base::threads;
-
-/// The sequential dot product `sum_k a_k b_k` (an iterator sum, from -0).
-#[inline]
-pub fn dot_seq(a: &[f64], b: &[f64]) -> f64 {
-    a.iter().zip(b).map(|(x, y)| x * y).sum()
-}
 
 /// Mulliken shell populations of a (spin) density `p` with the overlap `s`, rows in parallel
 /// with `parallel` (the result does not depend on it).

@@ -5,7 +5,8 @@
 //! `V2_RESP=reference/water,...` selects molecules; `V2_RESP_ALL=1` checks every displacement
 //! (default: up to 12 per molecule).
 
-use axtb_gxtb::v2::response::{from_mat, rhs_finite_difference, to_mat, Cpks, CpksOptions};
+use axtb_gxtb::dense::{from_mat, to_mat};
+use axtb_gxtb::v2::response::{rhs_finite_difference, Cpks, CpksOptions};
 use axtb_gxtb::v2::scf::{ScfResult, Setup};
 use axtb_gxtb::{Conventions, ScfOptions};
 use faer::Par;

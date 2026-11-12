@@ -36,6 +36,7 @@
 //! 1/2 (B + B^T)) is a fourth order.
 
 use crate::data::{GAM3, GMUNU, SPIN_W0};
+use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
 use crate::es::{atom_charges, reference_drho, spin_index, K1_DIS, K1_S, K4};
 use crate::exchange::{gmunu_index, OFX_SCALE};
@@ -43,7 +44,7 @@ use crate::parallel::TILE;
 use crate::params::GxtbParams;
 use axtb::basis::Basis;
 use axtb::{Molecule, Result};
-use faer::{MatMut, MatRef, Par};
+use faer::Par;
 
 /// Shell list entry: (atom, shell index on the atom, l).
 pub type Shell = (usize, usize, usize);
@@ -61,21 +62,6 @@ pub fn total_density(p: &[Vec<f64>]) -> Vec<f64> {
     } else {
         p[0].iter().zip(&p[1]).map(|(a, b)| a + b).collect()
     }
-}
-
-/// `a b` for row-major square matrices (faer on row-major views, no copies), on `par`
-/// (explicit; never faer's global setting).
-pub fn matmul(n: usize, a: &[f64], b: &[f64], par: Par) -> Vec<f64> {
-    let mut out = vec![0.0; n * n];
-    faer::linalg::matmul::matmul(
-        MatMut::from_row_major_slice_mut(&mut out, n, n),
-        faer::Accum::Replace,
-        MatRef::from_row_major_slice(a, n, n),
-        MatRef::from_row_major_slice(b, n, n),
-        1.0,
-        par,
-    );
-    out
 }
 
 /// Shell potentials V_l = d(E1 + E2 + E3 + E4)/dq_l.

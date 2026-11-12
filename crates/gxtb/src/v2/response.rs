@@ -25,114 +25,39 @@
 //! different fractional occupations), x_v = c_p^T dF c_q satisfies (1 + K~ d) x = b with
 //! d = -D1, K~_vw = c_p^T K[c_r c_s^T + c_s c_r^T] c_q (symmetric) and
 //! b = C^T (F^(y) + K[dP^S]) C. With z = d^1/2 x this is the symmetric positive definite system
-//! (1 + d^1/2 K~ d^1/2) z = d^1/2 b, solved by conjugate gradients; then
-//! dP = dP^S - C (d^1/2 z) C^T (symmetrized), dF = F^(y) + K(dP) and
+//! (1 + d^1/2 K~ d^1/2) z = d^1/2 b, solved by conjugate gradients;
+//! then dP = dP^S - C (d^1/2 z) C^T (symmetrized), dF = F^(y) + K(dP) and
 //! dW = C (C^T dF C o D2 - S~ o D3) C^T.
+//!
+//! The divided differences and the AO/MO transforms are the shared ones of `axtb::response`
+//! (`OccupationResponse` with one occupation vector per channel, levels degenerate when their
+//! occupations are equal or within 1e-10 Eh; `MoSpace`, (C_o^T X) C). The 2.0.1 forms stay here:
+//! the Fermi-level shift normalized over the occupied rows, the overlap part dP^S and the
+//! diagonal correction of dW (n'_p e_p) dmu.
 
 use super::exchange::ResponseBase;
 use super::scf::{ScfResult, Setup, State};
+use crate::dense::{dot, from_mat_sym, to_mat, to_mat_sym};
 use crate::fock::{add_charge_potential, add_potentials_rows};
-use crate::parallel::TILE;
+use axtb::response::{occupied_count, MoSpace, OccupationResponse};
 use axtb::{Error, Result};
 use axtb_base::fd;
-use faer::{Accum, Mat, MatRef, Par};
-
-/// Row-major (or symmetric) n x n slice as a faer matrix.
-pub fn to_mat(n: usize, v: &[f64]) -> Mat<f64> {
-    MatRef::from_row_major_slice(v, n, n).to_owned()
-}
-
-/// faer matrix as a row-major vector.
-pub fn from_mat(m: &Mat<f64>) -> Vec<f64> {
-    let (r, c) = (m.nrows(), m.ncols());
-    let mut out = vec![0.0; r * c];
-    for j in 0..c {
-        let col = m.col_as_slice(j);
-        for i in 0..r {
-            out[i * c + j] = col[i];
-        }
-    }
-    out
-}
-
-/// Dot product with eight partial sums (vectorizes; the order of a sequential sum does not).
-#[inline]
-pub fn dot(a: &[f64], b: &[f64]) -> f64 {
-    let mut acc = [0.0; 8];
-    let ((ca, ra), (cb, rb)) = (a.as_chunks::<8>(), b.as_chunks::<8>());
-    for (x, y) in ca.iter().zip(cb) {
-        for k in 0..8 {
-            acc[k] += x[k] * y[k];
-        }
-    }
-    let mut s = ((acc[0] + acc[4]) + (acc[1] + acc[5])) + ((acc[2] + acc[6]) + (acc[3] + acc[7]));
-    for (x, y) in ra.iter().zip(rb) {
-        s += x * y;
-    }
-    s
-}
-
-/// A symmetric faer matrix as a row-major vector (its columns are its rows: plain copies).
-pub fn from_mat_sym(m: &Mat<f64>) -> Vec<f64> {
-    let n = m.nrows();
-    let mut out = vec![0.0; n * n];
-    for j in 0..n {
-        out[j * n..(j + 1) * n].copy_from_slice(m.col_as_slice(j));
-    }
-    out
-}
-
-/// A (nearly) symmetric row-major n x n slice as a faer matrix by plain copies (the transpose
-/// of [`to_mat`]: equal for a symmetric matrix, round-off apart for a nearly symmetric one).
-pub fn to_mat_sym(n: usize, v: &[f64]) -> Mat<f64> {
-    let mut m = Mat::<f64>::zeros(n, n);
-    for j in 0..n {
-        m.col_as_slice_mut(j).copy_from_slice(&v[j * n..(j + 1) * n]);
-    }
-    m
-}
-
-/// X + X^T of a square faer matrix (tiled).
-fn sym_mat(x: &Mat<f64>) -> Mat<f64> {
-    let n = x.nrows();
-    let mut out = Mat::<f64>::zeros(n, n);
-    for j0 in (0..n).step_by(TILE) {
-        for i0 in (0..n).step_by(TILE) {
-            for j in j0..(j0 + TILE).min(n) {
-                let (xj, oj) = (x.col_as_slice(j), out.col_as_slice_mut(j));
-                for i in i0..(i0 + TILE).min(n) {
-                    oj[i] = xj[i] + x.col_as_slice(i)[j];
-                }
-            }
-        }
-    }
-    out
-}
-
-#[inline]
-fn mm(out: &mut Mat<f64>, a: MatRef<'_, f64>, b: MatRef<'_, f64>, accum: Accum, par: Par) {
-    faer::linalg::matmul::matmul(out.as_mut(), accum, a, b, 1.0, par);
-}
+use faer::{Mat, Par};
 
 /// Orbitals, occupations and divided differences of one spin channel.
 #[derive(Clone, Debug)]
 pub struct Channel {
     pub c: Mat<f64>,
-    pub eps: Vec<f64>,
-    pub occ: Vec<f64>,
-    /// Orbitals [0, n_o) carry electrons.
-    pub n_o: usize,
-    /// Divided differences of f, f e and f e^2 for rows [0, n_o) (n_o x n).
-    pub d1: Mat<f64>,
-    pub d2: Mat<f64>,
-    pub d3: Mat<f64>,
+    /// Levels, occupations, their derivatives n' = dn/de and the divided differences D1, D2,
+    /// D3 for the rows [0, n_o), the orbitals with occupation above 1e-14 (levels degenerate when
+    /// their occupations are equal or they lie within 1e-10 Eh).
+    pub occ: OccupationResponse,
     /// sqrt(-D1) on the response pairs p < q with D1 < 0, sqrt(-D1/2) on the diagonal (finite
     /// temperature: orbital p's occupation responds to its level), zero elsewhere (n_o x n).
     pub dh: Mat<f64>,
-    /// Finite temperature: dn/de of every orbital and the unit vector v_p = sqrt(n'_p / Z)
-    /// (Z = sum_p n'_p) of the Fermi-level shift, which projects the diagonal response pairs
-    /// (`None` at 0 K).
-    pub fermi: Option<(Vec<f64>, Vec<f64>)>,
+    /// Finite temperature: Z = sum_{p < n_o} n'_p and the unit vector v_p = sqrt(n'_p / Z) of
+    /// the Fermi-level shift, which projects the diagonal response pairs (`None` at 0 K).
+    pub fermi: Option<(f64, Vec<f64>)>,
     /// First column of a response pair: dh vanishes in the columns before it (the occupied
     /// ones for integer occupations at 0 K; 0 at a finite temperature, where the diagonal
     /// pairs respond).
@@ -144,24 +69,16 @@ impl Channel {
     /// at `kt` > 0 the occupations are Fermi functions of the levels (n' = -n (1 - n/n_max)/kT).
     pub fn new(n: usize, coef: &[f64], eps: &[f64], occ: &[f64], kt: f64, nmax: f64) -> Self {
         let c = to_mat(n, coef);
-        let n_o = (0..n).rev().find(|&p| occ[p] > 1e-14).map_or(0, |p| p + 1);
+        let n_o = occupied_count(&[occ], 1e-14);
         let dn: Vec<f64> =
             if kt > 0.0 { occ.iter().map(|&o| -o * (1.0 - o / nmax) / kt).collect() } else { vec![0.0; n] };
-        let mut d1 = Mat::<f64>::zeros(n_o, n);
-        let mut d2 = Mat::<f64>::zeros(n_o, n);
-        let mut d3 = Mat::<f64>::zeros(n_o, n);
+        // degenerate pairs and the diagonal: the derivative (0 at 0 K)
+        let occ =
+            OccupationResponse::new(eps, vec![occ.to_vec()], vec![dn], n_o, |de, fp, fq| fp == fq || de.abs() < 1e-10);
         let mut dh = Mat::<f64>::zeros(n_o, n);
         for q in 0..n {
             for p in 0..n_o {
-                let (ep, eq) = (eps[p], eps[q]);
-                let (fp, fq) = (occ[p], occ[q]);
-                let de = ep - eq;
-                // degenerate pairs and the diagonal: the derivative (0 at 0 K)
-                let a = if fp == fq || de.abs() < 1e-10 { 0.5 * (dn[p] + dn[q]) } else { (fp - fq) / de };
-                let fsum = fp + fq;
-                d1[(p, q)] = a;
-                d2[(p, q)] = 0.5 * fsum + 0.5 * (ep + eq) * a;
-                d3[(p, q)] = 0.5 * (ep * ep + eq * eq) * a + 0.5 * fsum * (ep + eq);
+                let a = occ.d1[(p, q)];
                 if q > p && a < 0.0 {
                     dh[(p, q)] = (-a).sqrt();
                 } else if q == p && a < 0.0 {
@@ -169,104 +86,39 @@ impl Channel {
                 }
             }
         }
-        let z: f64 = dn[..n_o].iter().sum();
-        let fermi = (z < 0.0).then(|| {
-            let v = dn[..n_o].iter().map(|&d| (d / z).sqrt()).collect();
-            (dn, v)
-        });
+        let dn = &occ.df[0][..n_o];
+        let z: f64 = dn.iter().sum();
+        let fermi = (z < 0.0).then(|| (z, dn.iter().map(|&d| (d / z).sqrt()).collect()));
         let v0 = (0..n).find(|&q| (0..n_o).any(|p| dh[(p, q)] != 0.0)).unwrap_or(n);
-        Self { c, eps: eps.to_vec(), occ: occ.to_vec(), n_o, d1, d2, d3, dh, fermi, v0 }
+        Self { c, occ, dh, fermi, v0 }
+    }
+
+    /// The orbitals and the rows [0, n_o) of the response.
+    pub fn mo(&self) -> MoSpace<'_> {
+        MoSpace::new(self.c.as_ref(), self.occ.n_o)
     }
 
     /// Project the diagonal response pairs of `z` (rows [0, n_o)) onto the complement of the
     /// Fermi-level shift: z_pp -= v_p sum_r v_r z_rr.
     fn project(&self, z: &mut Mat<f64>) {
         if let Some((_, v)) = &self.fermi {
-            let s: f64 = (0..self.n_o).map(|p| v[p] * z[(p, p)]).sum();
-            for p in 0..self.n_o {
+            let n_o = self.occ.n_o;
+            let s: f64 = (0..n_o).map(|p| v[p] * z[(p, p)]).sum();
+            for p in 0..n_o {
                 z[(p, p)] -= v[p] * s;
             }
         }
     }
 
-    /// The Fermi-level shift of a level-weighted diagonal: sum_p n'_p x_pp / sum_p n'_p (0 at
-    /// 0 K) for an MO matrix `x` (rows [0, n_o)).
+    /// The Fermi-level shift of a level-weighted diagonal: sum_p n'_p x_pp / sum_p n'_p over
+    /// the rows [0, n_o) (0 at 0 K) for an MO matrix `x` (rows [0, n_o)).
     fn fermi_shift(&self, x: impl Fn(usize) -> f64) -> f64 {
         match &self.fermi {
-            Some((dn, _)) => {
-                let z: f64 = dn[..self.n_o].iter().sum();
-                (0..self.n_o).map(|p| dn[p] * x(p)).sum::<f64>() / z
+            Some((z, _)) => {
+                let dn = &self.occ.df[0];
+                (0..self.occ.n_o).map(|p| dn[p] * x(p)).sum::<f64>() / z
             }
             None => 0.0,
-        }
-    }
-
-    /// [`Channel::to_mo`] restricted to the response columns [v0, n) (zero before).
-    pub fn to_mo_v(&self, x: &Mat<f64>, par: Par) -> Mat<f64> {
-        let n = self.c.nrows();
-        let co = self.c.as_ref().subcols(0, self.n_o);
-        let mut t = Mat::<f64>::zeros(self.n_o, n);
-        mm(&mut t, co.transpose(), x.as_ref(), Accum::Replace, par);
-        let mut out = Mat::<f64>::zeros(self.n_o, n);
-        faer::linalg::matmul::matmul(
-            out.as_mut().subcols_mut(self.v0, n - self.v0),
-            Accum::Replace,
-            t.as_ref(),
-            self.c.as_ref().subcols(self.v0, n - self.v0),
-            1.0,
-            par,
-        );
-        out
-    }
-
-    /// [`Channel::to_ao`] of rows `a` that vanish in the columns before v0.
-    pub fn to_ao_v(&self, a: &Mat<f64>, par: Par) -> Mat<f64> {
-        let n = self.c.nrows();
-        let nv = n - self.v0;
-        let co = self.c.as_ref().subcols(0, self.n_o);
-        let mut t = Mat::<f64>::zeros(self.n_o, n);
-        faer::linalg::matmul::matmul(
-            t.as_mut(),
-            Accum::Replace,
-            a.as_ref().subcols(self.v0, nv),
-            self.c.as_ref().subcols(self.v0, nv).transpose(),
-            1.0,
-            par,
-        );
-        let mut x = Mat::<f64>::zeros(n, n);
-        mm(&mut x, co, t.as_ref(), Accum::Replace, par);
-        sym_mat(&x)
-    }
-
-    /// Rows [0, n_o) of C^T X C for a symmetric AO matrix X.
-    pub fn to_mo(&self, x: &Mat<f64>, par: Par) -> Mat<f64> {
-        let n = self.c.nrows();
-        let co = self.c.as_ref().subcols(0, self.n_o);
-        let mut t = Mat::<f64>::zeros(self.n_o, n);
-        mm(&mut t, co.transpose(), x.as_ref(), Accum::Replace, par);
-        let mut out = Mat::<f64>::zeros(self.n_o, n);
-        mm(&mut out, t.as_ref(), self.c.as_ref(), Accum::Replace, par);
-        out
-    }
-
-    /// C_o A C^T + its transpose for rows [0, n_o) `a` of an MO matrix: the AO matrix of the
-    /// symmetric MO matrix with these rows when the occupied-occupied block of `a` is halved.
-    pub fn to_ao(&self, a: &Mat<f64>, par: Par) -> Mat<f64> {
-        let n = self.c.nrows();
-        let co = self.c.as_ref().subcols(0, self.n_o);
-        let mut t = Mat::<f64>::zeros(self.n_o, n);
-        mm(&mut t, a.as_ref(), self.c.transpose(), Accum::Replace, par);
-        let mut x = Mat::<f64>::zeros(n, n);
-        mm(&mut x, co, t.as_ref(), Accum::Replace, par);
-        sym_mat(&x)
-    }
-
-    /// Halve the occupied-occupied block of rows [0, n_o).
-    fn halve_oo(&self, a: &mut Mat<f64>) {
-        for q in 0..self.n_o {
-            for p in 0..self.n_o {
-                a[(p, q)] *= 0.5;
-            }
         }
     }
 }
@@ -494,7 +346,7 @@ impl<'a> Cpks<'a> {
                         *x *= d;
                     }
                 }
-                ch.to_ao_v(&u, self.par)
+                ch.mo().to_ao_from(u.as_ref(), ch.v0, self.par)
             })
             .collect();
         let k = self.kernel(&dp);
@@ -503,7 +355,7 @@ impl<'a> Cpks<'a> {
             .zip(z)
             .zip(&k)
             .map(|((ch, z), k)| {
-                let mut out = ch.to_mo_v(k, self.par);
+                let mut out = ch.mo().to_mo_from(k.as_ref(), ch.v0, self.par);
                 for j in 0..out.ncols() {
                     for (o, d) in out.col_as_slice_mut(j).iter_mut().zip(ch.dh.col_as_slice(j)) {
                         *o *= d;
@@ -540,28 +392,29 @@ impl<'a> Cpks<'a> {
     /// solution dP ([`KernelData`]: its Mulliken analysis and exchange products).
     pub fn solve_parts(&self, fy: &[Mat<f64>], sy: &Mat<f64>) -> Result<(Perturbed, KernelData)> {
         let par = self.par;
-        let st: Vec<Mat<f64>> = self.ch.iter().map(|ch| ch.to_mo(sy, par)).collect();
+        let st: Vec<Mat<f64>> = self.ch.iter().map(|ch| ch.mo().to_mo(sy.as_ref(), par)).collect();
         // orthonormality part dP^S = -C (S~ o D2) C^T
         let dps: Vec<Mat<f64>> = self
             .ch
             .iter()
             .zip(&st)
             .map(|(ch, s)| {
-                let mut a = Mat::<f64>::zeros(ch.n_o, s.ncols());
+                let (oc, mo) = (&ch.occ, ch.mo());
+                let mut a = Mat::<f64>::zeros(oc.n_o, s.ncols());
                 for j in 0..s.ncols() {
-                    for i in 0..ch.n_o {
-                        a[(i, j)] = -s[(i, j)] * ch.d2[(i, j)];
+                    for i in 0..oc.n_o {
+                        a[(i, j)] = -s[(i, j)] * oc.d2[(i, j)];
                     }
                 }
                 // finite temperature: the Fermi level follows the overlap part of the levels
-                if let Some((dn, _)) = &ch.fermi {
-                    let mu = ch.fermi_shift(|p| ch.eps[p] * s[(p, p)]);
-                    for p in 0..ch.n_o {
-                        a[(p, p)] += dn[p] * mu;
+                if ch.fermi.is_some() {
+                    let mu = ch.fermi_shift(|p| oc.eps[p] * s[(p, p)]);
+                    for p in 0..oc.n_o {
+                        a[(p, p)] += oc.df[0][p] * mu;
                     }
                 }
-                ch.halve_oo(&mut a);
-                ch.to_ao(&a, par)
+                mo.halve_occupied(&mut a);
+                mo.to_ao(a.as_ref(), par)
             })
             .collect();
         let k0 = self.kernel(&dps);
@@ -571,7 +424,7 @@ impl<'a> Cpks<'a> {
             .iter()
             .zip(fy.iter().zip(&k0))
             .map(|(ch, (f, k))| {
-                let mut b = ch.to_mo_v(&(f + k), par);
+                let mut b = ch.mo().to_mo_from((f + k).as_ref(), ch.v0, par);
                 for j in 0..b.ncols() {
                     for i in 0..b.nrows() {
                         b[(i, j)] *= ch.dh[(i, j)];
@@ -661,7 +514,7 @@ impl<'a> Cpks<'a> {
                         u[(i, j)] *= -ch.dh[(i, j)];
                     }
                 }
-                d0 + ch.to_ao_v(&u, par)
+                d0 + ch.mo().to_ao_from(u.as_ref(), ch.v0, par)
             })
             .collect();
         let (k, kd) = self.kernel_parts(&dp);
@@ -672,22 +525,23 @@ impl<'a> Cpks<'a> {
             .zip(&df)
             .zip(&st)
             .map(|((ch, f), s)| {
-                let ft = ch.to_mo(f, par);
-                let mut a = Mat::<f64>::zeros(ch.n_o, ft.ncols());
+                let (oc, mo) = (&ch.occ, ch.mo());
+                let ft = mo.to_mo(f.as_ref(), par);
+                let mut a = Mat::<f64>::zeros(oc.n_o, ft.ncols());
                 for j in 0..ft.ncols() {
-                    for i in 0..ch.n_o {
-                        a[(i, j)] = ft[(i, j)] * ch.d2[(i, j)] - s[(i, j)] * ch.d3[(i, j)];
+                    for i in 0..oc.n_o {
+                        a[(i, j)] = ft[(i, j)] * oc.d2[(i, j)] - s[(i, j)] * oc.d3[(i, j)];
                     }
                 }
                 // finite temperature: d(n_p e_p) gains -n'_p e_p dmu
-                if let Some((dn, _)) = &ch.fermi {
-                    let mu = ch.fermi_shift(|p| ft[(p, p)] - ch.eps[p] * s[(p, p)]);
-                    for p in 0..ch.n_o {
-                        a[(p, p)] -= dn[p] * ch.eps[p] * mu;
+                if ch.fermi.is_some() {
+                    let mu = ch.fermi_shift(|p| ft[(p, p)] - oc.eps[p] * s[(p, p)]);
+                    for p in 0..oc.n_o {
+                        a[(p, p)] -= oc.df[0][p] * oc.eps[p] * mu;
                     }
                 }
-                ch.halve_oo(&mut a);
-                ch.to_ao(&a, par)
+                mo.halve_occupied(&mut a);
+                mo.to_ao(a.as_ref(), par)
             })
             .collect();
         Ok((Perturbed { dp, dw, df, iterations, zr }, kd))

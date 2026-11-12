@@ -18,8 +18,9 @@
 //!   explicit second derivatives of [`super::analytic`], [`super::explicit`] and
 //!   [`super::tangent`]; no displaced setup and no displaced gradient.
 
-use super::response::{from_mat, to_mat, Cpks, CpksOptions};
+use super::response::{Cpks, CpksOptions};
 use super::scf::{ScfResult, Setup};
+use crate::dense::{from_mat, to_mat};
 use crate::timing::Timings;
 use axtb::{Error, Result};
 use axtb_base::{fd, threads};

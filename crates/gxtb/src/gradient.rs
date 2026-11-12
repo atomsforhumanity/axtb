@@ -27,10 +27,11 @@
 use crate::acp::{projector, INTCUT as ACP_INTCUT, R2_CUTOFF as ACP_R2};
 use crate::aes::{INTCUT as AES_INTCUT, K9, KDMP3, KDMP5, R_MAX as AES_RMAX};
 use crate::data::{GAM, GAM3, RCOV_BASIS_CN, RCOV_COM};
+use crate::dense::matmul;
 use crate::disp::RevD4;
 use crate::eeqbc::{eeqbc_charge_gradient, erf_f64, vdw_rad_pair};
 use crate::es::{atom_charges, reference_drho, K1_DIS, K1_S};
-use crate::fock::{aes_potentials, isotropic_shell_potential, matmul, spin_shell_potential};
+use crate::fock::{aes_potentials, isotropic_shell_potential, spin_shell_potential};
 use crate::h0::{
     bond_projectors_deriv, h0_atom_shells, h0_atom_shells_dq, h0_effective_charge, k_poly, k_wolfsberg,
     INTCUT as H0_INTCUT, K_DELTA,

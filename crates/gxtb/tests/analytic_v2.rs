@@ -4,8 +4,9 @@
 //! primitive screening step the finite-difference reference by ~1e-11 per crossing; with the
 //! screening switched off they agree to 5e-12 like the light ones.
 
+use axtb_gxtb::dense::from_mat;
 use axtb_gxtb::v2::analytic::Analytic;
-use axtb_gxtb::v2::response::{from_mat, rhs_finite_difference};
+use axtb_gxtb::v2::response::rhs_finite_difference;
 use axtb_gxtb::v2::scf::{ScfResult, Setup};
 use axtb_gxtb::{Conventions, ScfOptions};
 use serde_json::Value;

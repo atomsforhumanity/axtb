@@ -27,9 +27,9 @@ use super::Model;
 use crate::data_v2::{
     FOCK_AVG_EXP, FOCK_CRAD, FOCK_CSCALE, FOCK_SHELL_HUBBARD, HUBBARD, ONECX, PG_FOCK_KQ, PG_FOCK_OFFDIAG,
 };
+use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
 use crate::es::spin_index;
-use crate::fock::matmul;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;

@@ -42,11 +42,17 @@
 //! In the Z-vector equations (restarted GMRES, diagonal preconditioner) dF_used(D) is the
 //! exchange part (linear in D) plus the potentials differentiated by central differences of
 //! the cheap potential functions of the charges and moments.
+//!
+//! At a finite electronic temperature the divided differences of the occupations come from
+//! `axtb::response::OccupationResponse` (every orbital a row, levels within 1e-10 Eh
+//! degenerate) and C^T X C from `axtb::response::MoSpace`.
 
 use crate::data::GMUNU;
+use crate::dense::{dot_seq as dot, matmul as matmul_rows};
 use crate::exchange::{gmunu_index, OFX_SCALE};
 use crate::gradient::MultipoleTerm;
 use crate::scf::{Conventions, DensityTerms, Potentials, ScfResult, Setup};
+use axtb::response::{MoSpace, OccupationResponse};
 use axtb::{Error, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatRef, Par};
@@ -118,10 +124,6 @@ impl Channel {
         }
         out
     }
-}
-
-fn dot(a: &[f64], b: &[f64]) -> f64 {
-    a.iter().zip(b).map(|(x, y)| x * y).sum()
 }
 
 fn norm(a: &[f64]) -> f64 {
@@ -355,47 +357,33 @@ impl Setup {
                 }
             }
             let ct: Vec<f64> = (0..n * n).map(|k| c[(k % n) * n + k / n]).collect();
-            let cqc = crate::fock::matmul(n, &cq, &ct, par);
-            let src = crate::fock::matmul(n, &crate::fock::matmul(n, &self.s, &cqc, par), &self.s, par);
-            let w = crate::fock::matmul(n, &cqn, &ct, par);
+            let cqc = matmul_rows(n, &cq, &ct, par);
+            let src = matmul_rows(n, &matmul_rows(n, &self.s, &cqc, par), &self.s, par);
+            let w = matmul_rows(n, &cqn, &ct, par);
             for k in 0..n * n {
                 df[s][k] += 0.5 * (src[k] + src[(k % n) * n + k / n]);
                 x_cut[k] += 0.5 * (w[k] + w[(k % n) * n + k / n]);
             }
         }
+        // every orbital's occupation responds (all n rows); levels within 1e-10 Eh are degenerate
         struct Ch {
             c: Mat<f64>,
-            eps: Vec<f64>,
-            dn: Vec<f64>,
-            dnsum: f64,
-            d1: Vec<f64>,
-            d2: Vec<f64>,
+            occ: OccupationResponse,
         }
         let ch: Vec<Ch> = (0..ns)
             .map(|s| {
-                let eps = r.orbital_energies[s].clone();
                 let occ = &r.occupations[s];
                 let dn: Vec<f64> = occ.iter().map(|&o| -o * (1.0 - o / nmax) / kt).collect();
-                let mut d1 = vec![0.0; n * n];
-                let mut d2 = vec![0.0; n * n];
-                for a in 0..n {
-                    for b in 0..n {
-                        let de = eps[a] - eps[b];
-                        let v = if de.abs() > 1e-10 { (occ[a] - occ[b]) / de } else { 0.5 * (dn[a] + dn[b]) };
-                        d1[a * n + b] = v;
-                        d2[a * n + b] = 0.5 * (occ[a] + occ[b]) + 0.5 * (eps[a] + eps[b]) * v;
-                    }
-                }
-                let dnsum = dn.iter().sum();
-                Ch { c: MatRef::from_row_major_slice(&r.coefficients[s], n, n).to_owned(), eps, dn, dnsum, d1, d2 }
+                let resp =
+                    OccupationResponse::new(&r.orbital_energies[s], vec![occ.clone()], vec![dn], n, |de, _, _| {
+                        de.abs() <= 1e-10
+                    });
+                Ch { c: MatRef::from_row_major_slice(&r.coefficients[s], n, n).to_owned(), occ: resp }
             })
             .collect();
         // C^T X C and C Y C^T (row-major n x n)
         let to_mo = |c: &Mat<f64>, x: &[f64]| -> Vec<f64> {
-            let mut t = Mat::<f64>::zeros(n, n);
-            matmul(t.as_mut(), Accum::Replace, c.transpose(), MatRef::from_row_major_slice(x, n, n), 1.0, par);
-            let mut o = Mat::<f64>::zeros(n, n);
-            matmul(o.as_mut(), Accum::Replace, t.as_ref(), c.as_ref(), 1.0, par);
+            let o = MoSpace::new(c.as_ref(), n).to_mo(MatRef::from_row_major_slice(x, n, n), par);
             (0..n * n).map(|k| o[(k / n, k % n)]).collect()
         };
         let to_ao = |c: &Mat<f64>, y: &[f64]| -> Vec<f64> {
@@ -407,23 +395,25 @@ impl Setup {
         };
         let chi = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let a = if c.dnsum != 0.0 { (0..n).map(|q| c.dn[q] * x[q * n + q]).sum::<f64>() / c.dnsum } else { 0.0 };
+            let (dn, dnsum) = (&c.occ.df[0], c.occ.z[0]);
+            let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
             for k in 0..n * n {
-                x[k] *= c.d1[k];
+                x[k] *= c.occ.d1[(k / n, k % n)];
             }
             for q in 0..n {
-                x[q * n + q] -= c.dn[q] * a;
+                x[q * n + q] -= dn[q] * a;
             }
             to_ao(&c.c, &x)
         };
         let sigma_t = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let a = if c.dnsum != 0.0 { (0..n).map(|q| c.dn[q] * x[q * n + q]).sum::<f64>() / c.dnsum } else { 0.0 };
+            let (dn, dnsum) = (&c.occ.df[0], c.occ.z[0]);
+            let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
             for k in 0..n * n {
-                x[k] *= -c.d2[k];
+                x[k] *= -c.occ.d2[(k / n, k % n)];
             }
             for q in 0..n {
-                x[q * n + q] += c.dn[q] * c.eps[q] * a;
+                x[q * n + q] += dn[q] * c.occ.eps[q] * a;
             }
             to_ao(&c.c, &x)
         };
@@ -568,7 +558,7 @@ impl Setup {
             for k in 0..n * n {
                 t[k] = g[s][k] - t[k];
             }
-            let pt = crate::fock::matmul(n, &p[s], &crate::fock::matmul(n, &t, &p[s], self.par), self.par);
+            let pt = matmul_rows(n, &p[s], &matmul_rows(n, &t, &p[s], self.par), self.par);
             let ze = c.ao(n, &z[offsets[s]..offsets[s] + c.nvir(n) * c.nocc], Some(&c.eps[..c.nocc]), self.par);
             let xx = self.ofx_extra_overlap_weight(&p[s], &zao[s], closed, &m);
             for i in 0..n {
