@@ -66,15 +66,15 @@ pub struct Kernels<'a> {
     pub aniso: Vec<[f64; 3]>,
     /// The setup's chain layout (the shape of the gradient's accumulators) and its slots.
     pub layout: &'a ChainLayout,
-    pub slots: Slots,
+    pub(crate) slots: Slots,
     /// The setup's terms (they do not depend on the geometry; their caches are the fields above)
     /// and the values of the intermediates they read at this geometry (the g-xTB and revD4 CNs).
-    pub terms: &'a super::terms::Terms,
+    pub(crate) terms: &'a super::terms::Terms,
     pub values: Values,
 }
 
 impl<'a> Kernels<'a> {
-    pub fn new(
+    pub(crate) fn new(
         model: &Model,
         mol: &Molecule,
         exch: &'a Exchange,

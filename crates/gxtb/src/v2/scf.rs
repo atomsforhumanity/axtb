@@ -93,13 +93,14 @@ pub struct Setup {
     pub(crate) parallel: bool,
     /// Wall time of the setup phases (taken by the first single point that reports them).
     pub timings: Timings,
-    /// The intermediates of the gradient ([`super::intermediates`]), their slots and their
-    /// values at this geometry (the charges, CNs and effective charges above).
+    /// The intermediates of the gradient (the g-xTB, basis and revD4 CNs, the EEQ-BC charges
+    /// and the effective charges), their slots and their values at this geometry (the charges,
+    /// CNs and effective charges above).
     pub layout: ChainLayout,
-    pub slots: Slots,
+    pub(crate) slots: Slots,
     pub values: Values,
-    /// The terms ([`super::terms`]; their caches are the fields above).
-    pub terms: Terms,
+    /// The terms (their caches are the fields above).
+    pub(crate) terms: Terms,
 }
 
 /// Energy terms of one density (Eh), named after the program's containers.

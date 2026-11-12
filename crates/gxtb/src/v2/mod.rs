@@ -34,13 +34,13 @@ pub mod fermi;
 pub mod gradient;
 pub mod h0;
 pub mod hessian;
-pub mod intermediates;
+pub(crate) mod intermediates;
 pub mod repulsion;
 pub mod response;
 pub mod scf;
 pub(crate) mod strategy;
 pub mod tangent;
-pub mod terms;
+pub(crate) mod terms;
 
 use crate::scf::Conventions;
 use axtb::units::reference::MCTC_AATOAU;

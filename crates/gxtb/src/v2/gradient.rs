@@ -473,7 +473,7 @@ impl Setup {
         Ok(())
     }
 
-    /// Chain rules ([`super::intermediates`]): effective charges -> EEQ-BC charges and basis CN;
+    /// Chain rules of the intermediates: effective charges -> EEQ-BC charges and basis CN;
     /// CNs and EEQ-BC charges (the setup's factorization) -> geometry.
     pub fn finish_chain(&self, ch: Chain) -> Result<Vec<[f64; 3]>> {
         ch.finish(&self.term_geometry())

@@ -27,7 +27,7 @@ use axtb::Result;
 #[derive(Clone, Debug)]
 pub struct Jacobians {
     pub all: axtb::terms::Jacobians,
-    pub slots: super::intermediates::Slots,
+    pub(crate) slots: super::intermediates::Slots,
 }
 
 impl Jacobians {
