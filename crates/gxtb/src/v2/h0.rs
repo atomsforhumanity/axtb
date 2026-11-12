@@ -14,7 +14,7 @@
 //! - ACP: H += S_pv^T diag(w) S_pv, normalized single-Gaussian projectors (`pa_nacp` per
 //!   element, l = `pa_l_acp`, exponent `ps_acp_exp`, weight `ps_acp_level`).
 
-use super::basis::{atom_min_exponents, min_exponent, screened, INTCUT};
+use super::basis::INTCUT;
 use super::Model;
 use crate::acp::projector;
 use crate::data_v2::{
@@ -23,7 +23,8 @@ use crate::data_v2::{
 };
 use crate::eeqbc::erf_f64;
 use crate::h0::scale_diatomic_block;
-use axtb::basis::{ao_offsets, Cgto};
+use axtb::ao::ShellPairs;
+use axtb::basis::{Basis as AoBasis, Cgto};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
@@ -72,74 +73,54 @@ pub fn shell_poly(z: usize, l: usize, r: f64, radsum: f64) -> (f64, f64) {
     (1.0 + s2 * x + s4 * r * x, s2 / radsum + 2.0 * s4 * r / radsum)
 }
 
-/// H0 (without anisotropy) from the H0-basis shells, the g-xTB CN and the integral pair
-/// cutoff (bohr); full row-major nao x nao, axtb AO order. The lower blocks of each atom's rows
-/// are one task (in parallel when `parallel`); the upper triangle is their mirror.
-pub fn build_h0(
-    model: &Model,
-    mol: &Molecule,
-    h0_shells: &[Vec<Cgto>],
-    cn: &[f64],
-    cutoff: f64,
-    parallel: bool,
-) -> Vec<f64> {
-    let nat = mol.nat();
-    let first = ao_offsets(h0_shells);
-    let nao: usize = h0_shells.iter().flatten().map(|s| 2 * s.l + 1).sum();
+/// H0 (without anisotropy) from the H0 basis, the g-xTB CN and the integral pair cutoff
+/// (bohr); full row-major nao x nao, axtb AO order. The lower blocks of each atom's rows are one
+/// task (in parallel when `parallel`); the upper triangle is their mirror.
+pub fn build_h0(model: &Model, mol: &Molecule, h0: &AoBasis, cn: &[f64], cutoff: f64, parallel: bool) -> Vec<f64> {
+    let nao = h0.nao;
     let mut h = vec![0.0; nao * nao];
     let mut se = vec![0.0; nao];
-    for ia in 0..nat {
-        for (is, s) in h0_shells[ia].iter().enumerate() {
-            let e = selfenergy(mol.numbers[ia], is, cn[ia]).0;
-            for a in 0..2 * s.l + 1 {
-                let mu = first[ia][is] + a;
-                se[mu] = e;
-                h[mu * nao + mu] = e;
-            }
+    for (ia, is, s) in h0.shell_iter() {
+        let e = selfenergy(mol.numbers[ia], is, cn[ia]).0;
+        let first = h0.iao_sh[h0.ish_at[ia] + is];
+        for mu in first..first + 2 * s.l + 1 {
+            se[mu] = e;
+            h[mu * nao + mu] = e;
         }
     }
-    let amin = atom_min_exponents(h0_shells);
-    let mut bounds: Vec<usize> = (0..nat).map(|a| first[a].first().copied().unwrap_or(0)).collect();
+    let mut bounds = h0.iao_at.clone();
     bounds.push(nao);
-    let cut2 = cutoff * cutoff;
+    let pairs = ShellPairs::screened(mol, h0, cutoff, INTCUT);
     crate::parallel::for_row_blocks(&mut [&mut h], nao, &bounds, parallel, |ia, rows| {
         let rows = &mut rows[0];
         let row0 = bounds[ia];
         let za = mol.numbers[ia];
         let mut blk = [0.0; MBLK];
         for ib in 0..ia {
+            let Some(p) = pairs.pair(ia, ib) else { continue };
             let zb = mol.numbers[ib];
             let rab = sub3(mol.positions[ib], mol.positions[ia]);
-            let r2 = norm2_sq(rab);
-            if r2 > cut2 || screened(amin[ia], amin[ib], r2) {
-                continue;
-            }
-            let r = r2.sqrt();
+            let r = p.r2.sqrt();
             let nv = [rab[0] / r, rab[1] / r, rab[2] / r];
             let k = diat_scale(za, zb);
             let radsum = model.h0_rad(za) + model.h0_rad(zb);
-            let vec = sub3(mol.positions[ia], mol.positions[ib]);
-            for (isa, sa) in h0_shells[ia].iter().enumerate() {
+            pairs.for_each(&p, |sp| {
+                let (sa, sb) = (sp.ci, sp.cj);
                 let pia = shell_poly(za, sa.l, r, radsum).0;
-                for (isb, sb) in h0_shells[ib].iter().enumerate() {
-                    if screened(min_exponent(sa), min_exponent(sb), r2) {
-                        continue;
-                    }
-                    let pib = shell_poly(zb, sb.l, r, radsum).0;
-                    overlap(sb, sa, vec, INTCUT, &mut blk);
-                    let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                    let mut s: Vec<f64> = (0..na * nb).map(|x| blk[(x % nb) + nb * (x / nb)]).collect();
-                    scale_diatomic_block(sa.l, sb.l, nv, k, &mut s);
-                    let ks = kshell(sa.l, sb.l);
-                    for a in 0..na {
-                        let i = first[ia][isa] + a;
-                        for b in 0..nb {
-                            let j = first[ib][isb] + b;
-                            rows[(i - row0) * nao + j] = 0.5 * (se[i] + se[j]) * ks * pia * pib * s[a * nb + b];
-                        }
+                let pib = shell_poly(zb, sb.l, r, radsum).0;
+                overlap(sb, sa, p.vec, INTCUT, &mut blk);
+                let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
+                let mut s: Vec<f64> = (0..na * nb).map(|x| blk[(x % nb) + nb * (x / nb)]).collect();
+                scale_diatomic_block(sa.l, sb.l, nv, k, &mut s);
+                let ks = kshell(sa.l, sb.l);
+                for a in 0..na {
+                    let i = sp.ii + a;
+                    for b in 0..nb {
+                        let j = sp.jj + b;
+                        rows[(i - row0) * nao + j] = 0.5 * (se[i] + se[j]) * ks * pia * pib * s[a * nb + b];
                     }
                 }
-            }
+            });
         }
     });
     h
@@ -289,32 +270,27 @@ impl AcpSet {
     }
 }
 
-/// Overlaps <p_r|mu> of every projector component with every SCF AO (row-major nrow x n), pairs
-/// within `cutoff` (bohr); exactly zero blocks are skipped.
-pub fn acp_overlaps(mol: &Molecule, shells: &[Vec<Cgto>], set: &AcpSet, cutoff: f64, parallel: bool) -> Vec<f64> {
-    let first = ao_offsets(shells);
-    let n: usize = shells.iter().flatten().map(|s| 2 * s.l + 1).sum();
-    let amin = atom_min_exponents(shells);
-    let cut2 = cutoff * cutoff;
+/// Overlaps <p_r|mu> of every projector component with every AO of the SCF basis `bas`
+/// (row-major nrow x n), pairs within `cutoff` (bohr); screened blocks, which are exactly
+/// zero, are skipped ([`ShellPairs::screened`]).
+pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, cutoff: f64, parallel: bool) -> Vec<f64> {
+    let n = bas.nao;
+    let pairs = ShellPairs::screened(mol, bas, cutoff, INTCUT);
     let blocks = threads::map(set.list.len(), parallel, |k| {
         let (ip, ref proj, _, _) = set.list[k];
         let np = 2 * proj.l + 1;
         let mut out = vec![0.0; np * n];
         let mut blk = [0.0; MBLK];
-        for (ia, sh) in shells.iter().enumerate() {
-            let vec = sub3(mol.positions[ia], mol.positions[ip]);
-            let r2 = norm2_sq(vec);
-            if r2 > cut2 || screened(proj.alpha[0], amin[ia], r2) {
-                continue;
-            }
-            for (is, s) in sh.iter().enumerate() {
-                overlap(proj, s, vec, INTCUT, &mut blk);
-                for a in 0..2 * s.l + 1 {
+        for ia in 0..mol.nat() {
+            let Some(p) = pairs.pair_with(ia, ip, proj.min_alpha()) else { continue };
+            pairs.for_each_against(&p, proj, |sp| {
+                overlap(proj, sp.ci, p.vec, INTCUT, &mut blk);
+                for a in 0..2 * sp.ci.l + 1 {
                     for m in 0..np {
-                        out[m * n + first[ia][is] + a] = blk[m + np * a];
+                        out[m * n + sp.ii + a] = blk[m + np * a];
                     }
                 }
-            }
+            });
         }
         out
     });
@@ -323,13 +299,13 @@ pub fn acp_overlaps(mol: &Molecule, shells: &[Vec<Cgto>], set: &AcpSet, cutoff: 
 
 /// Adds H^ACP = S_p^T diag(w) S_p to the lower triangle of `h` (nao x nao) as one matrix
 /// product.
-pub fn add_acp(mol: &Molecule, shells: &[Vec<Cgto>], cutoff: f64, h: &mut [f64], par: Par, parallel: bool) {
-    let n: usize = shells.iter().flatten().map(|s| 2 * s.l + 1).sum();
+pub fn add_acp(mol: &Molecule, bas: &AoBasis, cutoff: f64, h: &mut [f64], par: Par, parallel: bool) {
+    let n = bas.nao;
     let set = AcpSet::new(mol);
     if set.nrow == 0 {
         return;
     }
-    let sp = acp_overlaps(mol, shells, &set, cutoff, parallel);
+    let sp = acp_overlaps(mol, bas, &set, cutoff, parallel);
     let mut wsp = sp.clone();
     for (r, w) in set.row_weights().into_iter().enumerate() {
         wsp[r * n..(r + 1) * n].iter_mut().for_each(|x| *x *= w);

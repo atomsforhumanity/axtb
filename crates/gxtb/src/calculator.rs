@@ -689,12 +689,12 @@ fn results(
 ) -> (Results, GuessState) {
     let e = &r.energies;
     let orbitals = opts.keep_orbitals.then(|| {
-        collect_orbitals(&setup.mol, &setup.basis.shells, &r.orbital_energies, &r.occupations, &r.coefficients)
+        collect_orbitals(&setup.mol, &setup.basis.scf.cgto, &r.orbital_energies, &r.occupations, &r.coefficients)
     });
     let levels = levels(&r.orbital_energies, &r.occupations);
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha as f64, setup.nbeta as f64, gap_rule(opts.conventions));
-    let ao_atom: Vec<usize> = setup.ao.iter().map(|a| a.0).collect();
-    let bond_orders = opts.bond_orders.then(|| bond_orders(setup.mol.nat(), &ao_atom, &setup.s, &r.density, setup.par));
+    let ao_atom = &setup.basis.scf.ao2at;
+    let bond_orders = opts.bond_orders.then(|| bond_orders(setup.mol.nat(), ao_atom, &setup.s, &r.density, setup.par));
     let ptot = crate::fock::total_density(&r.density);
     let (dpat, qpat) = setup.atomic_moments(&ptot);
     let mut dipole = [0.0; 3];
@@ -748,7 +748,7 @@ fn results_v2(
 ) -> (Results, GuessState) {
     let e = &r.energies;
     let orbitals = opts.keep_orbitals.then(|| {
-        collect_orbitals(&setup.mol, &setup.basis.shells, &r.orbital_energies, &r.occupations, &r.coefficients)
+        collect_orbitals(&setup.mol, &setup.basis.scf.cgto, &r.orbital_energies, &r.occupations, &r.coefficients)
     });
     let levels = levels(&r.orbital_energies, &r.occupations);
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha, setup.nbeta, gap_rule(opts.conventions));

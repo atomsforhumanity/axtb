@@ -31,6 +31,13 @@ pub struct AtomPair {
     pub r2: f64,
 }
 
+impl AtomPair {
+    /// Atom `i` with itself (R = 0: never beyond a cutoff, never screened).
+    pub const fn onsite(i: usize) -> Self {
+        Self { i, j: i, vec: [0.0; 3], r2: 0.0 }
+    }
+}
+
 /// A shell pair of [`ShellPairs::for_each`]: shell `ish` of atom i (ket, `ci`) and `jsh` of atom
 /// j (bra, `cj`), their indices in the basis (`si`, `sj`) and their first AOs (`ii`, `jj`).
 #[derive(Clone, Copy, Debug)]
@@ -115,7 +122,10 @@ impl<'a> ShellPairs<'a> {
     /// `f` for every shell of atom i of pair `p` against one shell `cj` outside the basis on
     /// atom j (a projector, say; `jsh`, `sj` and `jj` are 0), without the screened ones.
     #[inline]
-    pub fn for_each_against(&self, p: &AtomPair, cj: &'a Cgto, mut f: impl FnMut(&ShellPair<'a>)) {
+    pub fn for_each_against<'b>(&self, p: &AtomPair, cj: &'b Cgto, mut f: impl FnMut(&ShellPair<'b>))
+    where
+        'a: 'b,
+    {
         let bas = self.bas;
         let is = bas.ish_at[p.i];
         let amin_j = cj.min_alpha();
@@ -250,7 +260,7 @@ where
         });
     }
     // on-site: no cutoff, and the exponent screening never applies at R = 0
-    let p = AtomPair { i: iat, j: iat, vec: [0.0; 3], r2: 0.0 };
+    let p = AtomPair::onsite(iat);
     let mut h = scale(&p);
     pairs.for_each(&p, |sp| {
         multipole(sp.cj, sp.ci, p.vec, intcut, &mut s, &mut d, &mut q, scr);
@@ -349,6 +359,12 @@ mod tests {
         assert_eq!(bas.id, mol.id);
         assert_eq!(per_atom.ish_at, bas.ish_at);
         assert_eq!(per_atom.nsh_at, bas.nsh_at);
+        assert_eq!(per_atom.iao_at, bas.iao_at);
+        assert_eq!(per_atom.nao_at, bas.nao_at);
+        assert!((0..mol.nat()).all(|i| bas.iao_at[i] == bas.iao_sh[bas.ish_at[i]]));
+        assert_eq!(bas.nao_at.iter().sum::<usize>(), bas.nao);
+        let listed: Vec<(usize, usize)> = per_atom.shell_iter().map(|(i, ish, _)| (i, ish)).collect();
+        assert_eq!(listed, (0..bas.nsh).map(|s| (bas.sh2at[s], s - bas.ish_at[bas.sh2at[s]])).collect::<Vec<_>>());
         assert_eq!(per_atom.sh2at, bas.sh2at);
         assert_eq!(per_atom.iao_sh, bas.iao_sh);
         assert_eq!(per_atom.nao_sh, bas.nao_sh);

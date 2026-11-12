@@ -11,9 +11,9 @@
 //! Atom pairs with R^2 > 1600 bohr^2 are skipped.
 
 use crate::params::GxtbParams;
-use axtb::basis::{Cgto, MAXPRIM};
+use axtb::ao::ShellPairs;
+use axtb::basis::{Basis, Cgto, MAXPRIM};
 use axtb::integrals::{overlap, MBLK};
-use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
 use axtb_base::math::primitive_norm;
 
@@ -30,18 +30,15 @@ pub fn projector(l: usize, alpha: f64) -> Cgto {
     c
 }
 
-/// Add H^ACP to `h` (full nao x nao, axtb AO order of `shells`). `cn` is the g-xTB CN
-/// (not square-rooted).
-pub fn add_acp(param: &GxtbParams, mol: &Molecule, shells: &[Vec<Cgto>], cn: &[f64], h: &mut [f64]) -> Result<()> {
+/// Add H^ACP to `h` (full nao x nao, axtb AO order of the SCF basis `bas`). `cn` is the g-xTB
+/// CN (not square-rooted).
+pub fn add_acp(param: &GxtbParams, mol: &Molecule, bas: &Basis, cn: &[f64], h: &mut [f64]) -> Result<()> {
     let nat = mol.nat();
-    let mut first = Vec::with_capacity(nat);
-    let mut nao = 0;
-    for sh in shells {
-        first.push(nao);
-        nao += sh.iter().map(|s| 2 * s.l + 1).sum::<usize>();
-    }
+    let nao = bas.nao;
     let mut blk = [0.0; MBLK];
     let mut col = vec![0.0; nao];
+    // R^2 > R2_CUTOFF skipped (sqrt(1600) = 40 exactly), no exponent screening
+    let pairs = ShellPairs::unscreened(mol, bas, R2_CUTOFF.sqrt());
     for ip in 0..nat {
         let e = param.element(mol.numbers[ip])?;
         let f = 1.0 + e.acpcn * cn[ip].sqrt();
@@ -53,21 +50,15 @@ pub fn add_acp(param: &GxtbParams, mol: &Molecule, shells: &[Vec<Cgto>], cn: &[f
             let proj = projector(l, e.acp_exp[l]);
             for m in 0..2 * l + 1 {
                 col.iter_mut().for_each(|x| *x = 0.0);
-                for (ia, sh) in shells.iter().enumerate() {
-                    let vec = sub3(mol.positions[ia], mol.positions[ip]);
-                    if norm2_sq(vec) > R2_CUTOFF {
-                        continue;
-                    }
-                    let mut k = first[ia];
-                    for s in sh {
-                        overlap(&proj, s, vec, INTCUT, &mut blk);
-                        let ns = 2 * s.l + 1;
+                for ia in 0..nat {
+                    let Some(p) = pairs.pair(ia, ip) else { continue };
+                    pairs.for_each_against(&p, &proj, |sp| {
+                        overlap(&proj, sp.ci, p.vec, INTCUT, &mut blk);
                         let np = 2 * l + 1;
-                        for a in 0..ns {
-                            col[k + a] = blk[m + np * a];
+                        for a in 0..2 * sp.ci.l + 1 {
+                            col[sp.ii + a] = blk[m + np * a];
                         }
-                        k += ns;
-                    }
+                    });
                 }
                 for i in 0..nao {
                     if col[i] == 0.0 {

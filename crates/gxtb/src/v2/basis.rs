@@ -11,9 +11,9 @@ use super::cn::basis_cn;
 use super::{element_shells, qvszp, sqrt_cn, Model};
 use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
 use crate::qvszp::{contracted_shells, Exponents};
-use axtb::basis::{ao_offsets, Cgto};
+use axtb::ao::ShellPairs;
+use axtb::basis::{Basis as AoBasis, Cgto};
 use axtb::integrals::{multipole, Scratch, MBLK};
-use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
 
 /// tblite's primitive screening threshold at accuracy 1 (and below).
@@ -31,11 +31,11 @@ pub struct Basis {
     /// Effective charges of the SCF and of the H0 basis.
     pub qeff: Vec<f64>,
     pub qeff_h0: Vec<f64>,
-    /// Normalized shells of every atom (SCF and H0 basis).
-    pub shells: Vec<Vec<Cgto>>,
-    pub h0_shells: Vec<Vec<Cgto>>,
-    /// Smallest primitive exponent of the SCF basis.
-    pub alpha_min: f64,
+    /// The normalized shells of every atom (`cgto[atom]`) and their AO bookkeeping: SCF and H0
+    /// basis, with the primitive screening [`INTCUT`]. The smallest exponent of the SCF basis
+    /// (`scf.min_alpha`) sets the integral pair cutoff.
+    pub scf: AoBasis,
+    pub h0: AoBasis,
 }
 
 /// SCF-basis weights (k0, k1, k2, k3) of the effective charge of element `z`.
@@ -82,77 +82,53 @@ impl Basis {
         let mut qeff_h0 = Vec::with_capacity(n);
         let mut shells = Vec::with_capacity(n);
         let mut hshells = Vec::with_capacity(n);
-        let mut alpha_min = f64::INFINITY;
         for i in 0..n {
             let z = mol.numbers[i];
             let (t, qe) = effective_charge(qeff_weights(z), q[i], cn[i]);
             let (_, qh) = effective_charge(qeff_h0_weights(z), q[i], cn[i]);
-            let sh = scf_shells(z, qe, false)?;
-            for s in &sh {
-                for p in 0..s.nprim {
-                    alpha_min = alpha_min.min(s.alpha[p]);
-                }
-            }
-            shells.push(sh);
+            shells.push(scf_shells(z, qe, false)?);
             hshells.push(h0_shells(z, qh, false)?);
             terms.push(t);
             qeff.push(qe);
             qeff_h0.push(qh);
         }
-        Ok(Self { cn, terms, qeff, qeff_h0, shells, h0_shells: hshells, alpha_min })
+        let scf = AoBasis::from_atom_shells(mol, shells, INTCUT);
+        let h0 = AoBasis::from_atom_shells(mol, hshells, INTCUT);
+        Ok(Self { cn, terms, qeff, qeff_h0, scf, h0 })
     }
 
     /// Integral pair cutoff (bohr): tblite's `get_cutoff` in program mode, none otherwise.
     pub fn pair_cutoff(&self, model: &Model) -> f64 {
         if model.program() {
-            (2.0 * INTCUT / self.alpha_min).sqrt().min(MAX_CUTOFF)
+            (2.0 * INTCUT / self.scf.min_alpha).sqrt().min(MAX_CUTOFF)
         } else {
             f64::INFINITY
         }
     }
 }
 
-/// Smallest primitive exponent of a shell.
-pub fn min_exponent(c: &Cgto) -> f64 {
-    c.alpha[..c.nprim].iter().copied().fold(f64::INFINITY, f64::min)
-}
-
-/// Smallest primitive exponent of each atom's shells.
-pub fn atom_min_exponents(shells: &[Vec<Cgto>]) -> Vec<f64> {
-    shells.iter().map(|sh| sh.iter().map(min_exponent).fold(f64::INFINITY, f64::min)).collect()
-}
-
-/// Whether every primitive pair of two shells (or atoms) with smallest exponents `a` and `b` at
-/// squared distance `r2` is beyond the primitive screening (a_i a_j R^2/(a_i + a_j) > INTCUT;
-/// smallest for the smallest exponents): their integrals and derivatives are exactly zero, and
-/// skipping them changes no result. The margin covers the rounding of the kernels' test.
-#[inline]
-pub fn screened(a: f64, b: f64, r2: f64) -> bool {
-    a * b * r2 / (a + b) > INTCUT * (1.0 + 1e-10)
-}
-
 /// Overlap S (full, row-major) and the dipole and traceless quadrupole integrals of all AO
-/// pairs around the atom of the first index (`dp[x][mu*n + nu]` = <mu|(r - R_A(mu))_x|nu>),
-/// for atom pairs within `cutoff` (bohr). The rows of each atom are one task (in parallel when
-/// `parallel`); blocks that are exactly zero are skipped.
+/// pairs of `bas` around the atom of the first index (`dp[x][mu*n + nu]` =
+/// <mu|(r - R_A(mu))_x|nu>), for atom pairs within `cutoff` (bohr). Every ordered atom pair is
+/// evaluated and the two evaluations of each overlap element are averaged (the program's
+/// assembly). The rows of each atom are one task (in parallel when `parallel`); screened
+/// blocks, which are exactly zero, are skipped ([`ShellPairs::screened`]).
 #[allow(clippy::type_complexity)]
 pub fn integrals(
     mol: &Molecule,
-    shells: &[Vec<Cgto>],
+    bas: &AoBasis,
     cutoff: f64,
     parallel: bool,
 ) -> (Vec<f64>, [Vec<f64>; 3], [Vec<f64>; 6]) {
-    let first = ao_offsets(shells);
-    let nao: usize = shells.iter().flatten().map(|s| 2 * s.l + 1).sum();
+    let nao = bas.nao;
     let nat = mol.nat();
-    let amin = atom_min_exponents(shells);
-    let mut bounds: Vec<usize> = (0..nat).map(|a| first[a].first().copied().unwrap_or(0)).collect();
+    let mut bounds = bas.iao_at.clone();
     bounds.push(nao);
     let z = || vec![0.0; nao * nao];
     let mut sm = z();
     let (mut d0, mut d1, mut d2) = (z(), z(), z());
     let (mut q0, mut q1, mut q2, mut q3, mut q4, mut q5) = (z(), z(), z(), z(), z(), z());
-    let cut2 = cutoff * cutoff;
+    let pairs = ShellPairs::screened(mol, bas, cutoff, INTCUT);
     {
         let mut mats: Vec<&mut [f64]> =
             vec![&mut sm, &mut d0, &mut d1, &mut d2, &mut q0, &mut q1, &mut q2, &mut q3, &mut q4, &mut q5];
@@ -163,35 +139,26 @@ pub fn integrals(
             let mut scratch = Scratch::default();
             let row0 = bounds[ia];
             for ib in 0..nat {
-                let vec = sub3(mol.positions[ia], mol.positions[ib]);
-                let r2 = norm2_sq(vec);
-                if r2 > cut2 || (ia != ib && screened(amin[ia], amin[ib], r2)) {
-                    continue;
-                }
-                for (isa, sa) in shells[ia].iter().enumerate() {
-                    for (isb, sb) in shells[ib].iter().enumerate() {
-                        if ia != ib && screened(min_exponent(sa), min_exponent(sb), r2) {
-                            continue;
-                        }
-                        multipole(sb, sa, vec, INTCUT, &mut s, &mut d, &mut q, &mut scratch);
-                        let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                        for a in 0..na {
-                            let mu = first[ia][isa] + a - row0;
-                            for b in 0..nb {
-                                let nu = first[ib][isb] + b;
-                                let k = b + nb * a;
-                                let o = mu * nao + nu;
-                                rows[0][o] = s[k];
-                                for x in 0..3 {
-                                    rows[1 + x][o] = d[k][x];
-                                }
-                                for c in 0..6 {
-                                    rows[4 + c][o] = q[k][c];
-                                }
+                let Some(p) = pairs.pair(ia, ib) else { continue };
+                pairs.for_each(&p, |sp| {
+                    multipole(sp.cj, sp.ci, p.vec, INTCUT, &mut s, &mut d, &mut q, &mut scratch);
+                    let (na, nb) = (2 * sp.ci.l + 1, 2 * sp.cj.l + 1);
+                    for a in 0..na {
+                        let mu = sp.ii + a - row0;
+                        for b in 0..nb {
+                            let nu = sp.jj + b;
+                            let k = b + nb * a;
+                            let o = mu * nao + nu;
+                            rows[0][o] = s[k];
+                            for x in 0..3 {
+                                rows[1 + x][o] = d[k][x];
+                            }
+                            for c in 0..6 {
+                                rows[4 + c][o] = q[k][c];
                             }
                         }
                     }
-                }
+                });
             }
         });
     }

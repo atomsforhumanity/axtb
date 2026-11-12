@@ -143,7 +143,7 @@ impl Setup {
     /// shell pair come from one integral call, moments around both atoms.
     pub fn add_overlap_multipole(&self, x: &[f64], terms: &[MultipoleTerm], ch: &mut Chain) -> Result<()> {
         let n = self.nao;
-        let shells = &self.basis.shells;
+        let shells = &self.basis.scf.cgto;
         let dsh = self.scf_basis_dq()?;
         let first = ao_offsets(shells);
         let mut mg = MultipoleGrad::default();
@@ -394,7 +394,7 @@ impl Setup {
         let n = self.nao;
         let mol = &self.mol;
         let nat = mol.nat();
-        let shells = &self.basis.shells;
+        let shells = &self.basis.scf.cgto;
         let dsh = self.scf_basis_dq()?;
         let first = ao_offsets(shells);
         let mut mg = MultipoleGrad::default();

@@ -19,7 +19,7 @@
 
 use crate::data::RCOV_BASIS_CN;
 use crate::params::{QvszpParams, QvszpShell};
-use axtb::basis::{Cgto, MAXPRIM};
+use axtb::basis::{Basis, Cgto, MAXPRIM};
 use axtb::{Error, Molecule, Result};
 use axtb_base::math::primitive_norm;
 use axtb_base::ncoord::{CnModel, Erf};
@@ -187,8 +187,9 @@ pub fn raw_shell_coefficients(basis: &QvszpParams, z: usize, qeff: f64) -> Resul
 pub struct QvszpBasis {
     pub cn: Vec<f64>,
     pub qeff: Vec<EffectiveCharge>,
-    /// Shells of each atom.
-    pub shells: Vec<Vec<Cgto>>,
+    /// The shells of each atom (`scf.cgto[atom]`) and their AO bookkeeping, with the primitive
+    /// screening of the SCF overlap ([`crate::ints::INTCUT`]).
+    pub scf: Basis,
 }
 
 impl QvszpBasis {
@@ -197,6 +198,6 @@ impl QvszpBasis {
         let cn = basis_cn(mol);
         let qeff = effective_charges(basis, mol, q, &cn)?;
         let shells = (0..mol.nat()).map(|i| atom_shells(basis, mol.numbers[i], qeff[i].qeff)).collect::<Result<_>>()?;
-        Ok(Self { cn, qeff, shells })
+        Ok(Self { cn, qeff, scf: Basis::from_atom_shells(mol, shells, crate::ints::INTCUT) })
     }
 }

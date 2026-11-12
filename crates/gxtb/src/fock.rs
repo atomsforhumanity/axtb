@@ -32,11 +32,17 @@ use crate::eeqbc::erf_f64;
 use crate::es::{atom_charges, reference_drho, spin_index, K1_DIS, K1_S, K4};
 use crate::exchange::{gmunu_index, OFX_SCALE};
 use crate::params::GxtbParams;
+use axtb::basis::Basis;
 use axtb::{Molecule, Result};
 use faer::{MatMut, MatRef, Par};
 
 /// Shell list entry: (atom, shell index on the atom, l).
 pub type Shell = (usize, usize, usize);
+
+/// The shell list of a basis (both versions): every shell in basis order.
+pub fn shell_list(bas: &Basis) -> Vec<Shell> {
+    bas.shell_iter().map(|(iat, ish, c)| (iat, ish, c.l)).collect()
+}
 
 /// The total density of spin densities `p` (closed shell: the one matrix, copied), for both
 /// versions.

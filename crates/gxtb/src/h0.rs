@@ -21,7 +21,8 @@
 use crate::data::RCOV_COM;
 use crate::params::{GxtbParams, QvszpParams};
 use crate::qvszp::{contracted_shells, EffectiveCharge, Exponents, QvszpBasis};
-use axtb::basis::Cgto;
+use axtb::ao::ShellPairs;
+use axtb::basis::{Basis, Cgto};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
@@ -279,21 +280,12 @@ pub fn build_h0(param: &GxtbParams, basis: &QvszpParams, mol: &Molecule, qb: &Qv
         let q = h0_effective_charge(param, mol.numbers[i], &qb.qeff[i])?;
         shells.push(h0_atom_shells(param, basis, mol.numbers[i], q)?);
     }
+    let bas = Basis::from_atom_shells(mol, shells, INTCUT);
     let kw = k_wolfsberg(param);
     let kp = k_poly(param);
-    let mut ao = Vec::new();
-    let mut first = Vec::with_capacity(nat);
-    for (iat, sh) in shells.iter().enumerate() {
-        let mut v = Vec::new();
-        for (ish, s) in sh.iter().enumerate() {
-            v.push(ao.len());
-            for _ in 0..2 * s.l + 1 {
-                ao.push((iat, ish, s.l));
-            }
-        }
-        first.push(v);
-    }
-    let nao = ao.len();
+    let shell_list = crate::fock::shell_list(&bas);
+    let ao: Vec<(usize, usize, usize)> = bas.ao2sh.iter().map(|&s| shell_list[s]).collect();
+    let nao = bas.nao;
     let mut level = vec![0.0; nao];
     for (k, &(iat, ish, _)) in ao.iter().enumerate() {
         let e = param.element(mol.numbers[iat])?;
@@ -306,6 +298,8 @@ pub fn build_h0(param: &GxtbParams, basis: &QvszpParams, mol: &Molecule, qb: &Qv
         h[k * nao + k] = level[k];
     }
     let mut blk = [0.0; MBLK];
+    // pairs B < A, both orientations written; no cutoff or exponent screening (the program's)
+    let pairs = ShellPairs::unscreened(mol, &bas, f64::INFINITY);
     for ia in 0..nat {
         let za = mol.numbers[ia];
         let ea = param.element(za)?;
@@ -318,30 +312,29 @@ pub fn build_h0(param: &GxtbParams, basis: &QvszpParams, mol: &Molecule, qb: &Qv
             let ksig = 2.0 / (1.0 / ea.h0k[0] + 1.0 / eb.h0k[0]);
             let kpi = 2.0 / (1.0 / ea.h0k[1] + 1.0 / eb.h0k[1]);
             let rc = 0.5 * (RCOV_COM[za - 1] + RCOV_COM[zb - 1]);
-            for (isa, sa) in shells[ia].iter().enumerate() {
-                for (isb, sb) in shells[ib].iter().enumerate() {
-                    // block rows: shell on A, columns: shell on B
-                    let vec = sub3(mol.positions[ia], mol.positions[ib]);
-                    overlap(sb, sa, vec, INTCUT, &mut blk);
-                    let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                    let mut s: Vec<f64> = (0..na * nb).map(|x| blk[(x % nb) + nb * (x / nb)]).collect();
-                    scale_diatomic_block(sa.l, sb.l, n, [ksig, kpi, K_DELTA], &mut s);
-                    let pia = 1.0 + ea.poly * kp[sa.l] * r / rc;
-                    let pib = 1.0 + eb.poly * kp[sb.l] * r / rc;
-                    for a in 0..na {
-                        for b in 0..nb {
-                            let i = first[ia][isa] + a;
-                            let j = first[ib][isb] + b;
-                            let st = s[a * nb + b];
-                            stilde[i * nao + j] = st;
-                            stilde[j * nao + i] = st;
-                            let hij = 0.25 * (level[i] + level[j]) * (kw[sa.l] + kw[sb.l]) * pia * pib * st;
-                            h[i * nao + j] = hij;
-                            h[j * nao + i] = hij;
-                        }
+            let Some(p) = pairs.pair(ia, ib) else { continue };
+            pairs.for_each(&p, |sp| {
+                // block rows: shell on A, columns: shell on B
+                let (sa, sb) = (sp.ci, sp.cj);
+                overlap(sb, sa, p.vec, INTCUT, &mut blk);
+                let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
+                let mut s: Vec<f64> = (0..na * nb).map(|x| blk[(x % nb) + nb * (x / nb)]).collect();
+                scale_diatomic_block(sa.l, sb.l, n, [ksig, kpi, K_DELTA], &mut s);
+                let pia = 1.0 + ea.poly * kp[sa.l] * r / rc;
+                let pib = 1.0 + eb.poly * kp[sb.l] * r / rc;
+                for a in 0..na {
+                    for b in 0..nb {
+                        let i = sp.ii + a;
+                        let j = sp.jj + b;
+                        let st = s[a * nb + b];
+                        stilde[i * nao + j] = st;
+                        stilde[j * nao + i] = st;
+                        let hij = 0.25 * (level[i] + level[j]) * (kw[sa.l] + kw[sb.l]) * pia * pib * st;
+                        h[i * nao + j] = hij;
+                        h[j * nao + i] = hij;
                     }
                 }
-            }
+            });
         }
     }
     Ok(H0 { nao, ao, stilde, h, level })

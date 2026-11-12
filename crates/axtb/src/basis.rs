@@ -137,6 +137,10 @@ pub struct Basis {
     pub ish_at: Vec<usize>,
     /// Number of shells of each atom.
     pub nsh_at: Vec<usize>,
+    /// First AO of each atom.
+    pub iao_at: Vec<usize>,
+    /// Number of AOs of each atom.
+    pub nao_at: Vec<usize>,
     /// Atom of each shell.
     pub sh2at: Vec<usize>,
     /// First AO of each shell.
@@ -198,6 +202,8 @@ impl Basis {
         let nat = id.len();
         let mut ish_at = Vec::with_capacity(nat);
         let mut nsh_at = Vec::with_capacity(nat);
+        let mut iao_at = Vec::with_capacity(nat);
+        let mut nao_at = Vec::with_capacity(nat);
         let mut min_alpha_at = Vec::with_capacity(nat);
         let mut sh2at = Vec::new();
         let mut iao_sh = Vec::new();
@@ -210,6 +216,7 @@ impl Basis {
         for (iat, &isp) in id.iter().enumerate() {
             ish_at.push(ish);
             nsh_at.push(nsh_id[isp]);
+            iao_at.push(iao);
             let mut amin = f64::INFINITY;
             for sh in &cgto[isp] {
                 sh2at.push(iat);
@@ -225,6 +232,7 @@ impl Basis {
                 iao += nsph(sh.l);
                 ish += 1;
             }
+            nao_at.push(iao - iao_at[iat]);
             min_alpha_at.push(amin);
         }
         let maxl = cgto.iter().flatten().map(|c| c.l).max().unwrap_or(0);
@@ -235,6 +243,8 @@ impl Basis {
             id,
             ish_at,
             nsh_at,
+            iao_at,
+            nao_at,
             sh2at,
             iao_sh,
             nao_sh,
@@ -254,6 +264,15 @@ impl Basis {
     #[inline]
     pub fn shells(&self, iat: usize) -> &[Cgto] {
         &self.cgto[self.id[iat]]
+    }
+
+    /// Every shell in basis order with its atom and its index within the atom:
+    /// `(atom, ish, shell)`.
+    pub fn shell_iter(&self) -> impl Iterator<Item = (usize, usize, &Cgto)> + '_ {
+        self.sh2at.iter().enumerate().map(|(s, &iat)| {
+            let ish = s - self.ish_at[iat];
+            (iat, ish, &self.shells(iat)[ish])
+        })
     }
 
     /// Real-space cutoff (bohr) beyond which atom pairs have negligible overlap, as in tblite.

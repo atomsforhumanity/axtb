@@ -110,7 +110,7 @@ impl<'a> Kernels<'a> {
         Ok(Self {
             mol: mol.clone(),
             model: *model,
-            coulomb: Coulomb::new(model, mol, &cn),
+            coulomb: Coulomb::new(model, mol, &exch.shells, &cn),
             rep: Repulsion::new(model, mol, &cn),
             disp: RevD4::new(model, mol)?,
             exch,

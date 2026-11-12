@@ -303,7 +303,7 @@ impl Setup {
         let mol = &self.mol;
         let nat = mol.nat();
         let pos = &mol.positions;
-        let shells = &self.basis.shells;
+        let shells = &self.basis.scf.cgto;
         let first = ao_offsets(shells);
         let off: Vec<usize> = (0..nat).map(|a| first[a][0]).collect();
         let na: Vec<usize> = (0..nat).map(|a| shells[a].iter().map(|s| 2 * s.l + 1).sum()).collect();

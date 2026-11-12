@@ -9,16 +9,15 @@ use crate::eeqbc::{eeqbc_charges, EeqBcCharges};
 use crate::es::{first_order_energy, higher_order_energies, spin_energy};
 use crate::fock::{
     add_charge_potential, add_multipole_potential, aes_potentials, isotropic_shell_potential, matmul, mfx_fock,
-    ofx_fock, spin_shell_potential, Shell,
+    ofx_fock, shell_list, spin_shell_potential, Shell,
 };
 use crate::h0::build_h0;
-use crate::ints::{ao_list, overlap_matrix};
-use crate::kernels::{gamma2, gamma_mfx, hubbard_u, shell_list, tau3};
+use crate::ints::overlap_matrix;
+use crate::kernels::{gamma2, gamma_mfx, hubbard_u, tau3};
 use crate::params::{EeqBcParams, GxtbParams, QvszpParams};
 use crate::qvszp::QvszpBasis;
-use axtb::basis::{ao_count, ao_offsets};
+use axtb::ao::ShellPairs;
 use axtb::integrals::{multipole, Scratch, MBLK};
-use axtb::molecule::sub3;
 use axtb::{Error, Molecule, Result};
 use faer::{Mat, MatRef, Par};
 
@@ -128,16 +127,13 @@ impl Setup {
         let eeq = eeqbc_charges(&EeqBcParams::v1_1(), mol)?;
         let cn = gxtb_cn(&param, mol)?;
         let basis = QvszpBasis::new(&qparam, mol, &eeq.charges)?;
-        let shells = shell_list(&basis.shells);
-        let ao = ao_list(&basis.shells);
-        let nao = ao.len();
-        let mut ao_shell = Vec::with_capacity(nao);
-        for (ish, &(_, _, l)) in shells.iter().enumerate() {
-            ao_shell.extend(std::iter::repeat_n(ish, 2 * l + 1));
-        }
-        let s = overlap_matrix(mol, &basis.shells);
+        let shells = shell_list(&basis.scf);
+        let ao: Vec<Shell> = basis.scf.ao2sh.iter().map(|&s| shells[s]).collect();
+        let nao = basis.scf.nao;
+        let ao_shell = basis.scf.ao2sh.clone();
+        let s = overlap_matrix(mol, &basis.scf);
         let mut h = build_h0(&param, &qparam, mol, &basis, &cn)?.h;
-        crate::acp::add_acp(&param, mol, &basis.shells, &cn, &mut h)?;
+        crate::acp::add_acp(&param, mol, &basis.scf, &cn, &mut h)?;
         let u = hubbard_u(&param, mol, &shells, &cn)?;
         let g2 = gamma2(&param, mol, &shells, &u);
         let tau = tau3(mol, &shells, &u, &g2);
@@ -231,7 +227,7 @@ impl Setup {
         let mut dip = vec![[0.0; 3]; nat];
         let mut qp = vec![[0.0; 6]; nat];
         for mu in 0..n {
-            let a = self.ao[mu].0;
+            let a = self.basis.scf.ao2at[mu];
             for nu in 0..n {
                 let pmn = p[mu * n + nu];
                 for x in 0..3 {
@@ -254,11 +250,10 @@ impl Setup {
         let qa = crate::es::atom_charges(self.mol.nat(), &self.shells, &q);
         let (dip, qp) = self.atomic_moments(ptot);
         let (vs, vd, vq) = aes_potentials(&self.mol, &qa, &dip, &qp, &self.aes_kernels, full);
-        let vao: Vec<f64> = self.ao.iter().map(|a| vs[a.0]).collect();
+        let vao: Vec<f64> = self.basis.scf.ao2at.iter().map(|&a| vs[a]).collect();
         let mut f = vec![0.0; n * n];
         add_charge_potential(n, &self.s, &vao, &mut f, 1.0);
-        let ao_atom: Vec<usize> = self.ao.iter().map(|a| a.0).collect();
-        add_multipole_potential(n, &ao_atom, &self.dpint, &self.qpint, &vd, &vq, &mut f);
+        add_multipole_potential(n, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vd, &vq, &mut f);
         f
     }
 
@@ -360,8 +355,7 @@ impl Setup {
         let closed = p.len() == 1;
         let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| pot.vsh[ish]).collect();
         add_charge_potential(n, &self.s, &vao, &mut f0, 1.0);
-        let ao_atom: Vec<usize> = self.ao.iter().map(|a| a.0).collect();
-        add_multipole_potential(n, &ao_atom, &self.dpint, &self.qpint, &pot.vd, &pot.vq, &mut f0);
+        add_multipole_potential(n, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &pot.vd, &pot.vq, &mut f0);
         let wao: Option<Vec<f64>> = pot.w.as_ref().map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
         let mut fmats = Vec::with_capacity(p.len());
         for (k, ps) in p.iter().enumerate() {
@@ -425,9 +419,7 @@ fn mfx_energy_fast(n: usize, s: &[f64], p: &[f64], gamma: &[f64], closed: bool, 
 /// index (`[x][mu*n + nu]`), as the moments of [`crate::aes::atomic_moments`].
 #[allow(clippy::type_complexity)]
 pub fn multipole_integrals(mol: &Molecule, basis: &QvszpBasis) -> ([Vec<f64>; 3], [Vec<f64>; 6]) {
-    let shells = &basis.shells;
-    let first = ao_offsets(shells);
-    let nao = ao_count(shells);
+    let nao = basis.scf.nao;
     let z = || vec![0.0; nao * nao];
     let mut dp = [z(), z(), z()];
     let mut qp = [z(), z(), z(), z(), z(), z()];
@@ -435,28 +427,28 @@ pub fn multipole_integrals(mol: &Molecule, basis: &QvszpBasis) -> ([Vec<f64>; 3]
     let mut d = [[0.0; 3]; MBLK];
     let mut q = [[0.0; 6]; MBLK];
     let mut scratch = Scratch::default();
+    // every ordered atom pair (the program's choice), no screening
+    let pairs = ShellPairs::unscreened(mol, &basis.scf, f64::INFINITY);
     for ia in 0..mol.nat() {
         for ib in 0..mol.nat() {
-            let vec = sub3(mol.positions[ia], mol.positions[ib]);
-            for (isa, sa) in shells[ia].iter().enumerate() {
-                for (isb, sb) in shells[ib].iter().enumerate() {
-                    multipole(sb, sa, vec, AES_INTCUT, &mut s, &mut d, &mut q, &mut scratch);
-                    let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                    for a in 0..na {
-                        let mu = first[ia][isa] + a;
-                        for b in 0..nb {
-                            let nu = first[ib][isb] + b;
-                            let k = b + nb * a;
-                            for x in 0..3 {
-                                dp[x][mu * nao + nu] = d[k][x];
-                            }
-                            for c in 0..6 {
-                                qp[c][mu * nao + nu] = q[k][c];
-                            }
+            let Some(p) = pairs.pair(ia, ib) else { continue };
+            pairs.for_each(&p, |sp| {
+                multipole(sp.cj, sp.ci, p.vec, AES_INTCUT, &mut s, &mut d, &mut q, &mut scratch);
+                let (na, nb) = (2 * sp.ci.l + 1, 2 * sp.cj.l + 1);
+                for a in 0..na {
+                    let mu = sp.ii + a;
+                    for b in 0..nb {
+                        let nu = sp.jj + b;
+                        let k = b + nb * a;
+                        for x in 0..3 {
+                            dp[x][mu * nao + nu] = d[k][x];
+                        }
+                        for c in 0..6 {
+                            qp[c][mu * nao + nu] = q[k][c];
                         }
                     }
                 }
-            }
+            });
         }
     }
     (dp, qp)

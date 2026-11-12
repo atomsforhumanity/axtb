@@ -68,15 +68,13 @@ fn add_block(hl: &mut [f64], nl: usize, b: &Block) {
 /// the local differences here and the kernel terms of [`super::analytic`].
 pub(crate) const STEP: f64 = 1e-3;
 
-/// Smallest primitive exponent of a set of shells (the q-vSZP exponents do not depend on q).
-fn min_exponent(shells: &[Cgto]) -> f64 {
-    shells.iter().flat_map(|s| s.alpha[..s.nprim].iter().copied()).fold(f64::INFINITY, f64::min)
-}
-
 /// Whether every primitive pair of two atoms with smallest exponents `a` and `b` at distance
 /// `r` is screened (a_i a_j R^2/(a_i + a_j) > INTCUT) at every geometry of the local
 /// differences (atoms moved by up to 2 STEP): their integrals and blocks are exactly zero.
-fn screened(a: f64, b: f64, r: f64) -> bool {
+/// The variant of [`axtb::integrals::pair_screened`] with a margin for the steps (distance
+/// shortened by 3 STEP, relative margin 1e-6). The smallest exponents are those of the
+/// setup's bases (`min_alpha_at`): the q-vSZP exponents do not depend on q.
+fn screened_at_every_step(a: f64, b: f64, r: f64) -> bool {
     let rmin = r - 3.0 * STEP;
     rmin > 0.0 && a * b * rmin * rmin / (a + b) > INTCUT * (1.0 + 1e-6)
 }
@@ -207,7 +205,7 @@ impl Setup {
         let nat = mol.nat();
         let nl = 6 * nat;
         let pos = &mol.positions;
-        let first = ao_offsets(&self.basis.shells);
+        let first = ao_offsets(&self.basis.scf.cgto);
         let cut2 = self.cutoff * self.cutoff;
         let vdot = |vd: &[f64; 3], vq: &[f64; 6], d: &[f64; 3], q: &[f64; 6]| -> f64 {
             vd[0] * d[0] + vd[1] * d[1] + vd[2] * d[2] + (0..6).map(|c| vq[c] * q[c]).sum::<f64>()
@@ -219,17 +217,18 @@ impl Setup {
         let scf_cache = shell_cache(&mol.numbers, &self.basis.qeff, scf_shells)?;
         let h0_cache = shell_cache(&mol.numbers, &self.basis.qeff_h0, h0_shells)?;
         // pairs whose integrals are screened at every displaced geometry contribute nothing
-        let amin = |c: &ShellCache| -> Vec<f64> {
-            c.iter()
-                .map(|v| v.iter().map(|(a, b)| min_exponent(a).min(min_exponent(b))).fold(f64::INFINITY, f64::min))
-                .collect()
-        };
-        let (scf_amin, h0_amin) = (amin(&scf_cache), amin(&h0_cache));
+        let (scf_amin, h0_amin) = (&self.basis.scf.min_alpha_at, &self.basis.h0.min_alpha_at);
         let dist = |a: usize, b: usize| norm2_sq(sub3(pos[a], pos[b])).sqrt();
-        let scf_pairs: Vec<(usize, usize)> =
-            pairs.iter().copied().filter(|&(a, b)| !screened(scf_amin[a], scf_amin[b], dist(a, b))).collect();
-        let h0_pairs: Vec<(usize, usize)> =
-            pairs.iter().copied().filter(|&(a, b)| !screened(h0_amin[a], h0_amin[b], dist(a, b))).collect();
+        let scf_pairs: Vec<(usize, usize)> = pairs
+            .iter()
+            .copied()
+            .filter(|&(a, b)| !screened_at_every_step(scf_amin[a], scf_amin[b], dist(a, b)))
+            .collect();
+        let h0_pairs: Vec<(usize, usize)> = pairs
+            .iter()
+            .copied()
+            .filter(|&(a, b)| !screened_at_every_step(h0_amin[a], h0_amin[b], dist(a, b)))
+            .collect();
         // SCF-basis integral pairs: variables R_A (3), q_eff A, q_eff B
         let scf_pair = |&(ia, ib): &(usize, usize)| -> Result<Block> {
             let mut mg = Box::<MultipoleGrad>::default();
@@ -382,16 +381,13 @@ impl Setup {
         let nat = mol.nat();
         let nl = 6 * nat;
         let pos = &mol.positions;
-        let shells = &self.basis.shells;
+        let shells = &self.basis.scf.cgto;
         let first = ao_offsets(shells);
         let na: Vec<usize> = (0..nat).map(|a| shells[a].iter().map(|s| 2 * s.l + 1).sum()).collect();
         let dsh: Vec<Vec<Cgto>> =
             (0..nat).map(|i| scf_shells(mol.numbers[i], self.basis.qeff[i], true)).collect::<Result<_>>()?;
         let cut2 = self.cutoff * self.cutoff;
-        let scf_amin: Vec<f64> = scf_cache
-            .iter()
-            .map(|v| v.iter().map(|(a, b)| min_exponent(a).min(min_exponent(b))).fold(f64::INFINITY, f64::min))
-            .collect();
+        let scf_amin = &self.basis.scf.min_alpha_at;
         let projs: Vec<(usize, usize, f64, f64)> = (0..nat)
             .flat_map(|ip| {
                 acp_projectors(mol.numbers[ip]).into_iter().filter(|t| t.2 != 0.0).map(move |(l, a, w)| (ip, l, a, w))
@@ -528,7 +524,9 @@ impl Setup {
             let mut out = vec![Block { idx, h: full }];
             // second derivatives of the overlaps: pair (projector atom, AO atom) differences
             for ia in 0..nat {
-                if u[ia].is_none() || screened(alpha, scf_amin[ia], norm2_sq(sub3(pos[ia], pos[ip])).sqrt()) {
+                if u[ia].is_none()
+                    || screened_at_every_step(alpha, scf_amin[ia], norm2_sq(sub3(pos[ia], pos[ip])).sqrt())
+                {
                     continue;
                 }
                 let g = |v: &[f64; 4]| -> [f64; 4] {

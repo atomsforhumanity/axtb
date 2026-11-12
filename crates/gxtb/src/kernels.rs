@@ -15,7 +15,6 @@
 use crate::data::{BAS_POL, GAM};
 use crate::eeqbc::{erf_f64, vdw_rad_pair};
 use crate::params::GxtbParams;
-use axtb::basis::Cgto;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
 
@@ -27,17 +26,6 @@ pub const R_SAME_ATOM: f64 = 1e-12;
 
 /// Onsite same-shell factor of the MFX kernel.
 pub const G_ONSITE: f64 = 1.39;
-
-/// Shell bookkeeping: (atom, shell index, l) per shell.
-pub fn shell_list(shells: &[Vec<Cgto>]) -> Vec<(usize, usize, usize)> {
-    let mut v = Vec::new();
-    for (iat, sh) in shells.iter().enumerate() {
-        for (ish, s) in sh.iter().enumerate() {
-            v.push((iat, ish, s.l));
-        }
-    }
-    v
-}
 
 /// Shell Hubbard parameters of the second-order term.
 pub fn hubbard_u(param: &GxtbParams, mol: &Molecule, shells: &[(usize, usize, usize)], cn: &[f64]) -> Result<Vec<f64>> {

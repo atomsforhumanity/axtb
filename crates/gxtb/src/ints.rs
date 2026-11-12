@@ -1,50 +1,37 @@
-//! One-electron integrals in a per-atom basis (`Vec<Vec<Cgto>>`), with the program's
-//! primitive screening (a_i a_j R^2/(a_i + a_j) > INTCUT skipped).
+//! One-electron integrals in a per-atom basis ([`Basis::from_atom_shells`]), with the
+//! program's primitive screening (a_i a_j R^2/(a_i + a_j) > INTCUT skipped) and no atom pair
+//! cutoff or shell-pair screening (the 1.1.0 program evaluates every pair).
 
-use axtb::basis::{ao_count, ao_offsets, Cgto};
+use axtb::ao::ShellPairs;
+use axtb::basis::{ao_count, Basis, Cgto};
 use axtb::integrals::{overlap, MBLK};
-use axtb::molecule::sub3;
 use axtb::Molecule;
 
 /// Primitive-pair screening of the program's SCF-basis overlap (25; the H0 and ACP overlaps
 /// use 20, see [`crate::h0::INTCUT`], [`crate::acp::INTCUT`]).
 pub const INTCUT: f64 = 25.0;
 
-/// AO bookkeeping: (atom, shell, l) per AO, in axtb order (spherical m = -l..l).
-pub fn ao_list(shells: &[Vec<Cgto>]) -> Vec<(usize, usize, usize)> {
-    let mut ao = Vec::new();
-    for (iat, sh) in shells.iter().enumerate() {
-        for (ish, s) in sh.iter().enumerate() {
-            for _ in 0..2 * s.l + 1 {
-                ao.push((iat, ish, s.l));
-            }
-        }
-    }
-    ao
-}
-
-/// Full overlap matrix (row-major nao x nao).
-pub fn overlap_matrix(mol: &Molecule, shells: &[Vec<Cgto>]) -> Vec<f64> {
-    let first = ao_offsets(shells);
-    let nao = ao_count(shells);
+/// Full overlap matrix (row-major nao x nao): the blocks of atom pairs B <= A, each written
+/// in both orientations from the one evaluation.
+pub fn overlap_matrix(mol: &Molecule, bas: &Basis) -> Vec<f64> {
+    let nao = bas.nao;
     let mut s = vec![0.0; nao * nao];
     let mut blk = [0.0; MBLK];
-    for ia in 0..shells.len() {
+    let pairs = ShellPairs::unscreened(mol, bas, f64::INFINITY);
+    for ia in 0..mol.nat() {
         for ib in 0..=ia {
-            let vec = sub3(mol.positions[ia], mol.positions[ib]);
-            for (isa, sa) in shells[ia].iter().enumerate() {
-                for (isb, sb) in shells[ib].iter().enumerate() {
-                    overlap(sb, sa, vec, INTCUT, &mut blk);
-                    let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                    for a in 0..na {
-                        for b in 0..nb {
-                            let (i, j) = (first[ia][isa] + a, first[ib][isb] + b);
-                            s[i * nao + j] = blk[b + nb * a];
-                            s[j * nao + i] = blk[b + nb * a];
-                        }
+            let Some(p) = pairs.pair(ia, ib) else { continue };
+            pairs.for_each(&p, |sp| {
+                overlap(sp.cj, sp.ci, p.vec, INTCUT, &mut blk);
+                let (na, nb) = (2 * sp.ci.l + 1, 2 * sp.cj.l + 1);
+                for a in 0..na {
+                    for b in 0..nb {
+                        let (i, j) = (sp.ii + a, sp.jj + b);
+                        s[i * nao + j] = blk[b + nb * a];
+                        s[j * nao + i] = blk[b + nb * a];
                     }
                 }
-            }
+            });
         }
     }
     s
@@ -54,7 +41,7 @@ pub fn overlap_matrix(mol: &Molecule, shells: &[Vec<Cgto>]) -> Vec<f64> {
 /// with the program's reference shell occupations
 /// ([`crate::data_runtime::REF_SHELL_OCC`]); shells in the order of `shells`.
 pub fn mulliken_shell_charges(numbers: &[usize], shells: &[Vec<Cgto>], s: &[f64], p: &[Vec<f64>]) -> Vec<f64> {
-    let n = ao_list(shells).len();
+    let n = ao_count(shells);
     let mut q = Vec::new();
     let mut k = 0;
     for (iat, sh) in shells.iter().enumerate() {

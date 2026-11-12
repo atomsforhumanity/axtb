@@ -15,10 +15,7 @@
 //! revD4 (two- and three-body, through the revD4 CN); then the chain rules q_eff -> EEQ-BC charges
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
-use super::basis::{
-    atom_min_exponents, effective_charge_deriv, h0_shells, min_exponent, qeff_h0_weights, qeff_weights, scf_shells,
-    screened, INTCUT,
-};
+use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
 use super::coulomb::{aes_kernel, first_order_g, gamma_kernel, spin_potential, tau_kernel};
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Products};
@@ -28,7 +25,8 @@ use super::sqrt_cn;
 use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, IPEA, IPEA_CN, SHELL_HUBBARD};
 use crate::h0::bond_projectors_deriv;
 use crate::timing::Laps;
-use axtb::basis::{ao_offsets, Cgto};
+use axtb::ao::{AtomPair, ShellPairs};
+use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;
@@ -381,14 +379,10 @@ impl Setup {
         let n = self.nao;
         let mol = &self.mol;
         let nat = mol.nat();
-        let shells = &self.basis.shells;
-        let first = ao_offsets(shells);
-        let amin = atom_min_exponents(shells);
-        let pos = &mol.positions;
         let vdot = |vd: &[f64; 3], vq: &[f64; 6], d: &[f64; 3], q: &[f64; 6]| -> f64 {
             vd[0] * d[0] + vd[1] * d[1] + vd[2] * d[2] + (0..6).map(|c| vq[c] * q[c]).sum::<f64>()
         };
-        let cut2 = self.cutoff * self.cutoff;
+        let pairs = ShellPairs::screened(mol, &self.basis.scf, self.cutoff, INTCUT);
         let parts = map_chunks(nat, self.parallel, |atoms| {
             let mut c = Chain::new(nat);
             let mut mg = MultipoleGrad::default();
@@ -400,84 +394,74 @@ impl Setup {
             let (mut sa2, mut da2, mut qa2) = z();
             for ia in atoms {
                 for ib in 0..ia {
-                    let vec = sub3(pos[ia], pos[ib]);
-                    let r2 = norm2_sq(vec);
-                    if r2 > cut2 || screened(amin[ia], amin[ib], r2) {
-                        continue;
-                    }
-                    for (isa, sa) in shells[ia].iter().enumerate() {
-                        for (isb, sb) in shells[ib].iter().enumerate() {
-                            if screened(min_exponent(sa), min_exponent(sb), r2) {
-                                continue;
-                            }
-                            multipole_grad_coeff(
-                                sb,
-                                sa,
-                                &dsh[ib][isb],
-                                &dsh[ia][isa],
-                                vec,
-                                INTCUT,
-                                &mut mg,
-                                &mut mj,
-                                &mut mi,
-                                &mut scr,
-                            );
-                            let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                            for a in 0..na {
-                                let mu = first[ia][isa] + a;
-                                for b in 0..nb {
-                                    let nu = first[ib][isb] + b;
-                                    let k = b + nb * a;
-                                    let w = 2.0 * x[mu * n + nu];
-                                    let mut dg = [w * mg.ds[k][0], w * mg.ds[k][1], w * mg.ds[k][2]];
-                                    let mut dqa = w * mi.s[k];
-                                    let mut dqb = w * mj.s[k];
-                                    let pmn = p[mu * n + nu];
-                                    if pmn != 0.0 {
-                                        let (vda, vqa, vdb, vqb) = (&vd[ia], &vq[ia], &vd[ib], &vq[ib]);
-                                        for k3 in 0..3 {
-                                            dg[k3] -= pmn
-                                                * (vdot(vda, vqa, &mg.dd_i[k][k3], &mg.dq_i[k][k3])
-                                                    + vdot(vdb, vqb, &mg.dd_j[k][k3], &mg.dq_j[k][k3]));
-                                        }
-                                        dqa -= pmn
-                                            * (vdot(vda, vqa, &mi.d_i[k], &mi.q_i[k])
-                                                + vdot(vdb, vqb, &mi.d_j[k], &mi.q_j[k]));
-                                        dqb -= pmn
-                                            * (vdot(vda, vqa, &mj.d_i[k], &mj.q_i[k])
-                                                + vdot(vdb, vqb, &mj.d_j[k], &mj.q_j[k]));
-                                    }
+                    let Some(pr) = pairs.pair(ia, ib) else { continue };
+                    pairs.for_each(&pr, |sp| {
+                        let (sa, sb) = (sp.ci, sp.cj);
+                        multipole_grad_coeff(
+                            sb,
+                            sa,
+                            &dsh[ib][sp.jsh],
+                            &dsh[ia][sp.ish],
+                            pr.vec,
+                            INTCUT,
+                            &mut mg,
+                            &mut mj,
+                            &mut mi,
+                            &mut scr,
+                        );
+                        let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
+                        for a in 0..na {
+                            let mu = sp.ii + a;
+                            for b in 0..nb {
+                                let nu = sp.jj + b;
+                                let k = b + nb * a;
+                                let w = 2.0 * x[mu * n + nu];
+                                let mut dg = [w * mg.ds[k][0], w * mg.ds[k][1], w * mg.ds[k][2]];
+                                let mut dqa = w * mi.s[k];
+                                let mut dqb = w * mj.s[k];
+                                let pmn = p[mu * n + nu];
+                                if pmn != 0.0 {
+                                    let (vda, vqa, vdb, vqb) = (&vd[ia], &vq[ia], &vd[ib], &vq[ib]);
                                     for k3 in 0..3 {
-                                        c.g[ia][k3] += dg[k3];
-                                        c.g[ib][k3] -= dg[k3];
+                                        dg[k3] -= pmn
+                                            * (vdot(vda, vqa, &mg.dd_i[k][k3], &mg.dq_i[k][k3])
+                                                + vdot(vdb, vqb, &mg.dd_j[k][k3], &mg.dq_j[k][k3]));
                                     }
-                                    c.dqeff[ia] += dqa;
-                                    c.dqeff[ib] += dqb;
+                                    dqa -= pmn
+                                        * (vdot(vda, vqa, &mi.d_i[k], &mi.q_i[k])
+                                            + vdot(vdb, vqb, &mi.d_j[k], &mi.q_j[k]));
+                                    dqb -= pmn
+                                        * (vdot(vda, vqa, &mj.d_i[k], &mj.q_i[k])
+                                            + vdot(vdb, vqb, &mj.d_j[k], &mj.q_j[k]));
                                 }
+                                for k3 in 0..3 {
+                                    c.g[ia][k3] += dg[k3];
+                                    c.g[ib][k3] -= dg[k3];
+                                }
+                                c.dqeff[ia] += dqa;
+                                c.dqeff[ib] += dqb;
                             }
                         }
-                    }
+                    });
                 }
                 // onsite blocks: the moments depend on the effective charge only (the onsite
                 // overlap is the unit matrix)
-                for (isa, sa) in shells[ia].iter().enumerate() {
-                    for (isb, sb) in shells[ia].iter().enumerate() {
-                        multipole(sb, &dsh[ia][isa], [0.0; 3], INTCUT, &mut sa1, &mut da1, &mut qa1, &mut scr);
-                        multipole(&dsh[ia][isb], sa, [0.0; 3], INTCUT, &mut sa2, &mut da2, &mut qa2, &mut scr);
-                        let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
-                        for a in 0..na {
-                            let mu = first[ia][isa] + a;
-                            for b in 0..nb {
-                                let nu = first[ia][isb] + b;
-                                let k = b + nb * a;
-                                let pmn = p[mu * n + nu];
-                                let (vda, vqa) = (&vd[ia], &vq[ia]);
-                                c.dqeff[ia] -=
-                                    pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
-                            }
+                pairs.for_each(&AtomPair::onsite(ia), |sp| {
+                    let (sa, sb) = (sp.ci, sp.cj);
+                    multipole(sb, &dsh[ia][sp.ish], [0.0; 3], INTCUT, &mut sa1, &mut da1, &mut qa1, &mut scr);
+                    multipole(&dsh[ia][sp.jsh], sa, [0.0; 3], INTCUT, &mut sa2, &mut da2, &mut qa2, &mut scr);
+                    let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
+                    for a in 0..na {
+                        let mu = sp.ii + a;
+                        for b in 0..nb {
+                            let nu = sp.jj + b;
+                            let k = b + nb * a;
+                            let pmn = p[mu * n + nu];
+                            let (vda, vqa) = (&vd[ia], &vq[ia]);
+                            c.dqeff[ia] -= pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
                         }
                     }
-                }
+                });
             }
             c
         });
@@ -495,30 +479,25 @@ impl Setup {
         let mol = &self.mol;
         let model = &self.model;
         let nat = mol.nat();
-        let mut sh = Vec::with_capacity(nat);
+        // the setup's H0 basis (the same shells) and their q_eff derivatives
+        let hb = &self.basis.h0;
         let mut dsh = Vec::with_capacity(nat);
         for i in 0..nat {
-            let q = self.basis.qeff_h0[i];
-            sh.push(h0_shells(mol.numbers[i], q, false)?);
-            dsh.push(h0_shells(mol.numbers[i], q, true)?);
+            dsh.push(h0_shells(mol.numbers[i], self.basis.qeff_h0[i], true)?);
         }
-        let first = ao_offsets(&sh);
-        let amin = atom_min_exponents(&sh);
         let mut level = vec![0.0; n];
         let mut dlevel = vec![0.0; n];
-        for ia in 0..nat {
-            for (is, s) in sh[ia].iter().enumerate() {
-                let (e, de) = selfenergy(mol.numbers[ia], is, self.cn[ia]);
-                for a in 0..2 * s.l + 1 {
-                    let mu = first[ia][is] + a;
-                    level[mu] = e;
-                    dlevel[mu] = de;
-                    ch.dcn[ia] += p[mu * n + mu] * de;
-                }
+        for (ia, is, s) in hb.shell_iter() {
+            let (e, de) = selfenergy(mol.numbers[ia], is, self.cn[ia]);
+            let first = hb.iao_sh[hb.ish_at[ia] + is];
+            for mu in first..first + 2 * s.l + 1 {
+                level[mu] = e;
+                dlevel[mu] = de;
+                ch.dcn[ia] += p[mu * n + mu] * de;
             }
         }
         let pos = &mol.positions;
-        let cut2 = self.cutoff * self.cutoff;
+        let pairs = ShellPairs::screened(mol, hb, self.cutoff, INTCUT);
         let parts = map_chunks(nat, self.parallel, |atoms| {
             let mut c = Chain::new(nat);
             let (mut sab, mut dsab) = ([0.0; MBLK], [[0.0; 3]; MBLK]);
@@ -526,109 +505,101 @@ impl Setup {
             for ia in atoms {
                 let za = mol.numbers[ia];
                 for ib in 0..ia {
+                    let Some(pr) = pairs.pair(ia, ib) else { continue };
                     let zb = mol.numbers[ib];
                     let rab = sub3(pos[ib], pos[ia]);
-                    let r2 = norm2_sq(rab);
-                    if r2 > cut2 || screened(amin[ia], amin[ib], r2) {
-                        continue;
-                    }
-                    let r = r2.sqrt();
+                    let r = pr.r2.sqrt();
                     let nv = [rab[0] / r, rab[1] / r, rab[2] / r];
                     let kmu = diat_scale(za, zb);
                     let radsum = model.h0_rad(za) + model.h0_rad(zb);
-                    let vec = sub3(pos[ia], pos[ib]);
                     // bond-frame projectors and their derivatives per l <= 2, once per bond
                     let mut proj: [Option<BondProj>; 3] = [None, None, None];
                     let mut tdir = [0.0; 3];
                     let mut dedr = 0.0;
-                    for (isa, sa) in sh[ia].iter().enumerate() {
+                    pairs.for_each(&pr, |shp| {
+                        let (sa, sb) = (shp.ci, shp.cj);
                         let (pia, dpia) = shell_poly(za, sa.l, r, radsum);
-                        for (isb, sb) in sh[ib].iter().enumerate() {
-                            if screened(min_exponent(sa), min_exponent(sb), r2) {
-                                continue;
-                            }
-                            let (pib, dpib) = shell_poly(zb, sb.l, r, radsum);
-                            overlap_grad_coeff(
-                                sb,
-                                sa,
-                                Some(&dsh[ib][isb]),
-                                Some(&dsh[ia][isa]),
-                                vec,
-                                INTCUT,
-                                &mut sab,
-                                &mut dsab,
-                                &mut bb,
-                                &mut ba,
-                            );
-                            let (la, lb) = (sa.l, sb.l);
-                            let (na, nb) = (2 * la + 1, 2 * lb + 1);
-                            let nab = na * nb;
-                            // the block in (a, b) row-major order: S[b + nb a] is the same index
-                            let raw = &sab[..nab];
-                            let ks = kshell(la, lb);
-                            let mut wst = [0.0; MBLK];
-                            let mut wcn = [0.0; MBLK];
-                            for a in 0..na {
-                                let i = first[ia][isa] + a;
-                                for b in 0..nb {
-                                    let j = first[ib][isb] + b;
-                                    let pij = 2.0 * p[i * n + j];
-                                    wst[a * nb + b] = pij * 0.5 * (level[i] + level[j]) * ks * pia * pib;
-                                    wcn[a * nb + b] = pij * 0.5 * ks * pia * pib;
-                                }
-                            }
-                            let mut st = [0.0; MBLK];
-                            let mut mw = [0.0; MBLK];
-                            if la <= 2 && lb <= 2 {
-                                for l in [la, lb] {
-                                    if proj[l].is_none() {
-                                        proj[l] = Some(BondProj::new(l, nv));
-                                    }
-                                }
-                                let (pa, pb) = (proj[la].as_ref().unwrap(), proj[lb].as_ref().unwrap());
-                                for mu in 0..=la.min(lb) {
-                                    let a1 = mm(&mm(&pa.p[mu], raw, na, na, nb), &pb.p[mu], na, nb, nb);
-                                    let a2 = mm(&mm(&pa.p[mu], &wst, na, na, nb), &pb.p[mu], na, nb, nb);
-                                    for x in 0..nab {
-                                        st[x] += kmu[mu] * a1[x];
-                                        mw[x] += kmu[mu] * a2[x];
-                                    }
-                                    let sp = mm(raw, &pb.p[mu], na, nb, nb);
-                                    let ps = mm(&pa.p[mu], raw, na, na, nb);
-                                    for k3 in 0..3 {
-                                        let t1 = mm(&pa.dp[mu][k3], &sp, na, na, nb);
-                                        let t2 = mm(&ps, &pb.dp[mu][k3], na, nb, nb);
-                                        let mut t = 0.0;
-                                        for x in 0..nab {
-                                            t += wst[x] * (t1[x] + t2[x]);
-                                        }
-                                        tdir[k3] += kmu[mu] * t;
-                                    }
-                                }
-                            } else {
-                                st[..nab].copy_from_slice(raw);
-                                mw[..nab].copy_from_slice(&wst[..nab]);
-                            }
-                            for a in 0..na {
-                                let i = first[ia][isa] + a;
-                                for b in 0..nb {
-                                    let j = first[ib][isb] + b;
-                                    let x = a * nb + b;
-                                    let k = b + nb * a;
-                                    for k3 in 0..3 {
-                                        c.g[ia][k3] += mw[x] * dsab[k][k3];
-                                        c.g[ib][k3] -= mw[x] * dsab[k][k3];
-                                    }
-                                    c.dqeff0[ia] += mw[x] * ba[k];
-                                    c.dqeff0[ib] += mw[x] * bb[k];
-                                    c.dcn[ia] += wcn[x] * st[x] * dlevel[i];
-                                    c.dcn[ib] += wcn[x] * st[x] * dlevel[j];
-                                    let pij = 2.0 * p[i * n + j];
-                                    dedr += pij * 0.5 * (level[i] + level[j]) * ks * (dpia * pib + pia * dpib) * st[x];
-                                }
+                        let (pib, dpib) = shell_poly(zb, sb.l, r, radsum);
+                        overlap_grad_coeff(
+                            sb,
+                            sa,
+                            Some(&dsh[ib][shp.jsh]),
+                            Some(&dsh[ia][shp.ish]),
+                            pr.vec,
+                            INTCUT,
+                            &mut sab,
+                            &mut dsab,
+                            &mut bb,
+                            &mut ba,
+                        );
+                        let (la, lb) = (sa.l, sb.l);
+                        let (na, nb) = (2 * la + 1, 2 * lb + 1);
+                        let nab = na * nb;
+                        // the block in (a, b) row-major order: S[b + nb a] is the same index
+                        let raw = &sab[..nab];
+                        let ks = kshell(la, lb);
+                        let mut wst = [0.0; MBLK];
+                        let mut wcn = [0.0; MBLK];
+                        for a in 0..na {
+                            let i = shp.ii + a;
+                            for b in 0..nb {
+                                let j = shp.jj + b;
+                                let pij = 2.0 * p[i * n + j];
+                                wst[a * nb + b] = pij * 0.5 * (level[i] + level[j]) * ks * pia * pib;
+                                wcn[a * nb + b] = pij * 0.5 * ks * pia * pib;
                             }
                         }
-                    }
+                        let mut st = [0.0; MBLK];
+                        let mut mw = [0.0; MBLK];
+                        if la <= 2 && lb <= 2 {
+                            for l in [la, lb] {
+                                if proj[l].is_none() {
+                                    proj[l] = Some(BondProj::new(l, nv));
+                                }
+                            }
+                            let (pa, pb) = (proj[la].as_ref().unwrap(), proj[lb].as_ref().unwrap());
+                            for mu in 0..=la.min(lb) {
+                                let a1 = mm(&mm(&pa.p[mu], raw, na, na, nb), &pb.p[mu], na, nb, nb);
+                                let a2 = mm(&mm(&pa.p[mu], &wst, na, na, nb), &pb.p[mu], na, nb, nb);
+                                for x in 0..nab {
+                                    st[x] += kmu[mu] * a1[x];
+                                    mw[x] += kmu[mu] * a2[x];
+                                }
+                                let sp = mm(raw, &pb.p[mu], na, nb, nb);
+                                let ps = mm(&pa.p[mu], raw, na, na, nb);
+                                for k3 in 0..3 {
+                                    let t1 = mm(&pa.dp[mu][k3], &sp, na, na, nb);
+                                    let t2 = mm(&ps, &pb.dp[mu][k3], na, nb, nb);
+                                    let mut t = 0.0;
+                                    for x in 0..nab {
+                                        t += wst[x] * (t1[x] + t2[x]);
+                                    }
+                                    tdir[k3] += kmu[mu] * t;
+                                }
+                            }
+                        } else {
+                            st[..nab].copy_from_slice(raw);
+                            mw[..nab].copy_from_slice(&wst[..nab]);
+                        }
+                        for a in 0..na {
+                            let i = shp.ii + a;
+                            for b in 0..nb {
+                                let j = shp.jj + b;
+                                let x = a * nb + b;
+                                let k = b + nb * a;
+                                for k3 in 0..3 {
+                                    c.g[ia][k3] += mw[x] * dsab[k][k3];
+                                    c.g[ib][k3] -= mw[x] * dsab[k][k3];
+                                }
+                                c.dqeff0[ia] += mw[x] * ba[k];
+                                c.dqeff0[ib] += mw[x] * bb[k];
+                                c.dcn[ia] += wcn[x] * st[x] * dlevel[i];
+                                c.dcn[ib] += wcn[x] * st[x] * dlevel[j];
+                                let pij = 2.0 * p[i * n + j];
+                                dedr += pij * 0.5 * (level[i] + level[j]) * ks * (dpia * pib + pia * dpib) * st[x];
+                            }
+                        }
+                    });
                     // n = (R_b - R_a)/r: dn/dR_b = (1 - n n^T)/r
                     let tn: f64 = (0..3).map(|k3| tdir[k3] * nv[k3]).sum();
                     let tperp = [0, 1, 2].map(|k3| (tdir[k3] - tn * nv[k3]) / r);
@@ -652,13 +623,13 @@ impl Setup {
         let n = self.nao;
         let mol = &self.mol;
         let nat = mol.nat();
-        let shells = &self.basis.shells;
+        let bas = &self.basis.scf;
         let set = AcpSet::new(mol);
         let nrow = set.nrow;
         if nrow == 0 {
             return Ok(());
         }
-        let sp = acp_overlaps(mol, shells, &set, self.cutoff, self.parallel);
+        let sp = acp_overlaps(mol, bas, &set, self.cutoff, self.parallel);
         // pc = P S_p^T (row-major n x nrow)
         let mut pc = vec![0.0; n * nrow];
         faer::linalg::matmul::matmul(
@@ -670,10 +641,7 @@ impl Setup {
             self.par,
         );
         drop(sp);
-        let first = ao_offsets(shells);
-        let amin = atom_min_exponents(shells);
-        let pos = &mol.positions;
-        let cut2 = self.cutoff * self.cutoff;
+        let pairs = ShellPairs::screened(mol, bas, self.cutoff, INTCUT);
         let parts = map_chunks(set.list.len(), self.parallel, |projs| {
             let mut c = Chain::new(nat);
             let (mut s, mut ds, mut sj, mut bq) = ([0.0; MBLK], [[0.0; 3]; MBLK], [0.0; MBLK], [0.0; MBLK]);
@@ -681,21 +649,15 @@ impl Setup {
                 let (ip, ref proj, w, row) = set.list[k];
                 let np = 2 * proj.l + 1;
                 for ia in 0..nat {
-                    let vec = sub3(pos[ia], pos[ip]);
-                    let r2 = norm2_sq(vec);
-                    if r2 > cut2 || screened(proj.alpha[0], amin[ia], r2) {
-                        continue;
-                    }
-                    for (is, sh) in shells[ia].iter().enumerate() {
-                        if screened(proj.alpha[0], min_exponent(sh), r2) {
-                            continue;
-                        }
+                    let Some(pr) = pairs.pair_with(ia, ip, proj.min_alpha()) else { continue };
+                    pairs.for_each_against(&pr, proj, |shp| {
+                        let sh = shp.ci;
                         overlap_grad_coeff(
                             proj,
                             sh,
                             None,
-                            Some(&dsh[ia][is]),
-                            vec,
+                            Some(&dsh[ia][shp.ish]),
+                            pr.vec,
                             INTCUT,
                             &mut s,
                             &mut ds,
@@ -703,7 +665,7 @@ impl Setup {
                             &mut bq,
                         );
                         for a in 0..2 * sh.l + 1 {
-                            let mu = first[ia][is] + a;
+                            let mu = shp.ii + a;
                             for m in 0..np {
                                 let fac = 2.0 * w * pc[mu * nrow + row + m];
                                 let kk = m + np * a;
@@ -716,7 +678,7 @@ impl Setup {
                                 c.dqeff[ia] += fac * bq[kk];
                             }
                         }
-                    }
+                    });
                 }
             }
             c

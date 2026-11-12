@@ -19,7 +19,7 @@
 
 use super::basis::Basis;
 use super::cn::gxtb_cn;
-use super::coulomb::{shell_list, spin_energy, spin_potential, Coulomb, Shell};
+use super::coulomb::{spin_energy, spin_potential, Coulomb, Shell};
 use super::disp::RevD4;
 use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
@@ -29,6 +29,7 @@ use super::Model;
 use crate::calculator::Version;
 use crate::data_v2::{INCREMENT, REF_OCC, ZEFF_SHELL};
 use crate::eeqbc::{EeqBcCharges, EeqBcSolution};
+use crate::fock::shell_list;
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
 use axtb::{Error, Molecule, Result};
@@ -160,26 +161,23 @@ impl Setup {
         let basis = Basis::new(&model, mol, &eeq.charges)?;
         let cutoff = basis.pair_cutoff(&model);
         t.lap("setup: cn+basis");
-        let shells = shell_list(mol);
-        let mut ao_shell = Vec::new();
-        for (ish, &(_, _, l)) in shells.iter().enumerate() {
-            ao_shell.extend(std::iter::repeat_n(ish, 2 * l + 1));
-        }
-        let nao = ao_shell.len();
+        let shells = shell_list(&basis.scf);
+        let ao_shell = basis.scf.ao2sh.clone();
+        let ao_atom = basis.scf.ao2at.clone();
+        let nao = basis.scf.nao;
         axtb_base::threads::check(threads)?;
         let dense = axtb_base::threads::dense_par(threads, nao);
-        let ao_atom: Vec<usize> = ao_shell.iter().map(|&s| shells[s].0).collect();
-        let (s, dpint, qpint) = super::basis::integrals(mol, &basis.shells, cutoff, parallel);
+        let (s, dpint, qpint) = super::basis::integrals(mol, &basis.scf, cutoff, parallel);
         t.lap("setup: integrals");
-        let mut h = build_h0(&model, mol, &basis.h0_shells, &cn, cutoff, parallel);
+        let mut h = build_h0(&model, mol, &basis.h0, &cn, cutoff, parallel);
         t.lap("setup: h0");
-        add_acp(mol, &basis.shells, cutoff, &mut h, dense, parallel);
+        add_acp(mol, &basis.scf, cutoff, &mut h, dense, parallel);
         t.lap("setup: acp");
         let aniso = anisotropy_par(&model, mol, parallel);
         mirror_add_anisotropy(nao, &ao_atom, &dpint, &aniso, &mut h, parallel);
         t.lap("setup: anisotropy");
         let ref_occ: Vec<f64> = shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect();
-        let coulomb = Coulomb::new_par(&model, mol, &cn, parallel);
+        let coulomb = Coulomb::new_par(&model, mol, &shells, &cn, parallel);
         let rep = Repulsion::new_par(&model, mol, &cn, parallel);
         t.lap("setup: coulomb+repulsion");
         let disp = RevD4::new_par(&model, mol, parallel)?;

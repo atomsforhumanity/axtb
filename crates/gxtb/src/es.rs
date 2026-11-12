@@ -3,7 +3,7 @@
 //! converged density to ~1e-16 Eh (reference tests).
 //!
 //! Shell charges q_l = n^ref_l - Mulliken population, atomic charges q_A = sum_l q_l, with
-//! the shell list in basis order (`kernels::shell_list`), the g-xTB CN and the second-order
+//! the shell list in basis order (`fock::shell_list`), the g-xTB CN and the second-order
 //! kernel gamma2 (full nsh x nsh).
 //!
 //! - First order ("ES1", P-Eqs. 25-28):

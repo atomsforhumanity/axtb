@@ -2,12 +2,20 @@
 //! scripts/make_reference.py): input geometry handling, EEQ-BC charges, the basis CN, the
 //! q-vSZP effective charges and contracted shells.
 
+use axtb::basis::Basis;
 use axtb_gxtb::eeqbc::eeqbc_charges;
+use axtb_gxtb::fock::shell_list;
 use axtb_gxtb::params::{EeqBcParams, QvszpParams};
 use axtb_gxtb::qvszp::{raw_shell_coefficients, QvszpBasis};
 use axtb_gxtb::read_xyz;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
+
+/// (atom, shell, l) of every AO of a basis.
+fn ao_list(bas: &Basis) -> Vec<(usize, usize, usize)> {
+    let shells = shell_list(bas);
+    bas.ao2sh.iter().map(|&s| shells[s]).collect()
+}
 
 fn reference_dirs() -> Vec<PathBuf> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference");
@@ -160,7 +168,7 @@ fn qvszp_primitives_match_program() {
         let mut k = 0;
         for (iat, &z) in c.mol.numbers.iter().enumerate() {
             let raw = raw_shell_coefficients(&basis, z, qeff_ref[iat]).unwrap();
-            for (ish, sh) in b.shells[iat].iter().enumerate() {
+            for (ish, sh) in b.scf.cgto[iat].iter().enumerate() {
                 let ncart = (sh.l + 1) * (sh.l + 2) / 2;
                 for comp in 0..ncart {
                     for p in 0..sh.nprim {
@@ -205,7 +213,7 @@ fn qvszp_shells_match_molden() {
                 }
                 lines.next();
                 let nprim: usize = f[1].parse().unwrap();
-                let sh = &b.shells[iat][ish];
+                let sh = &b.scf.cgto[iat][ish];
                 assert_eq!(nprim, sh.nprim);
                 assert_eq!("spdfg".find(f[0]).unwrap(), sh.l, "{}: shell type", c.name);
                 for p in 0..nprim {
@@ -222,7 +230,7 @@ fn qvszp_shells_match_molden() {
                 }
                 ish += 1;
             }
-            assert_eq!(ish, b.shells[iat].len(), "{}: shells of atom {iat}", c.name);
+            assert_eq!(ish, b.scf.cgto[iat].len(), "{}: shells of atom {iat}", c.name);
             iat += 1;
         }
         assert_eq!(iat, c.mol.nat());
@@ -268,12 +276,12 @@ fn overlap_orthonormalizes_program_mos() {
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let b = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        if b.shells.iter().flatten().any(|s| s.l > 1) {
+        if b.scf.cgto.iter().flatten().any(|s| s.l > 1) {
             continue;
         }
         // AO list in molden order: atom, shell, (s) or (x, y, z)
         let mut aos = Vec::new(); // (atom, shell, spherical index in axtb order)
-        for (iat, sh) in b.shells.iter().enumerate() {
+        for (iat, sh) in b.scf.cgto.iter().enumerate() {
             for (ish, s) in sh.iter().enumerate() {
                 match s.l {
                     0 => aos.push((iat, ish, 0)),
@@ -286,7 +294,7 @@ fn overlap_orthonormalizes_program_mos() {
         let mut blk = [0.0; MBLK];
         for (i, &(ia, is, im)) in aos.iter().enumerate() {
             for (j, &(ja, js, jm)) in aos.iter().enumerate() {
-                let (ci, cj) = (&b.shells[ia][is], &b.shells[ja][js]);
+                let (ci, cj) = (&b.scf.cgto[ia][is], &b.scf.cgto[ja][js]);
                 let ri = c.mol.positions[ia];
                 let rj = c.mol.positions[ja];
                 let vec = [ri[0] - rj[0], ri[1] - rj[1], ri[2] - rj[2]];
@@ -422,7 +430,7 @@ fn acp_matches_program() {
         let cn = gxtb_cn(&p, &c.mol).unwrap();
         let h0 = build_h0(&p, &basis, &c.mol, &qb, &cn).unwrap();
         let mut h = h0.h.clone();
-        add_acp(&p, &c.mol, &qb.shells, &cn, &mut h).unwrap();
+        add_acp(&p, &c.mol, &qb.scf, &cn, &mut h).unwrap();
         let map = program_ao_map(&h0.ao, PROGRAM_D_ORDER);
         let n = h0.nao;
         let ha = floats(&r["h0_acp_packed"]);
@@ -458,15 +466,15 @@ fn acp_matches_program() {
 
 #[test]
 fn scf_overlap_matches_program() {
-    use axtb_gxtb::ints::{ao_list, overlap_matrix};
+    use axtb_gxtb::ints::overlap_matrix;
     let basis = QvszpParams::v1_1();
     let mut worst = 0.0f64;
     for c in cases() {
         let r = json(&c.dir.join("scf.json"));
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let s = overlap_matrix(&c.mol, &qb.shells);
-        let ao = ao_list(&qb.shells);
+        let s = overlap_matrix(&c.mol, &qb.scf);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
         let n = ao.len();
         let sp = floats(&r["s_packed"]);
@@ -486,8 +494,7 @@ fn scf_overlap_matches_program() {
 #[test]
 fn kernels_match_program() {
     use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::ints::ao_list;
-    use axtb_gxtb::kernels::{gamma2, gamma_mfx, hubbard_u, shell_list};
+    use axtb_gxtb::kernels::{gamma2, gamma_mfx, hubbard_u};
     use axtb_gxtb::params::GxtbParams;
     let p = GxtbParams::v1_1();
     let basis = QvszpParams::v1_1();
@@ -497,7 +504,7 @@ fn kernels_match_program() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
         let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.shells);
+        let sh = shell_list(&qb.scf);
         let ns = sh.len();
         assert_eq!(r["nsh"].as_u64().unwrap() as usize, ns);
         let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
@@ -513,7 +520,7 @@ fn kernels_match_program() {
             }
         }
         let gx = gamma_mfx(&p, &c.mol, &sh).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
         let n = ao.len();
         // AO -> shell index
@@ -562,8 +569,8 @@ fn program_densities(c: &Case, map: &[usize]) -> Vec<Vec<f64>> {
 fn mfx_energy_matches_program() {
     use axtb_gxtb::classical::gxtb_cn;
     use axtb_gxtb::exchange::mfx_energy;
-    use axtb_gxtb::ints::{ao_list, overlap_matrix};
-    use axtb_gxtb::kernels::{gamma_mfx, shell_list};
+    use axtb_gxtb::ints::overlap_matrix;
+    use axtb_gxtb::kernels::gamma_mfx;
     use axtb_gxtb::params::GxtbParams;
     let p = GxtbParams::v1_1();
     let basis = QvszpParams::v1_1();
@@ -572,9 +579,9 @@ fn mfx_energy_matches_program() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
         let _cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.shells);
+        let sh = shell_list(&qb.scf);
         let ns = sh.len();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let n = ao.len();
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
         let gs = gamma_mfx(&p, &c.mol, &sh).unwrap();
@@ -588,7 +595,7 @@ fn mfx_energy_matches_program() {
                 g[i * n + j] = gs[ao_sh[i] * ns + ao_sh[j]];
             }
         }
-        let s = overlap_matrix(&c.mol, &qb.shells);
+        let s = overlap_matrix(&c.mol, &qb.scf);
         let dens = program_densities(&c, &map);
         let e = mfx_energy(n, &s, &dens, &g);
         let r = json(&c.dir.join("kernels.json"));
@@ -601,17 +608,17 @@ fn mfx_energy_matches_program() {
 
 #[test]
 fn mulliken_charges_match_program() {
-    use axtb_gxtb::ints::{ao_list, mulliken_shell_charges, overlap_matrix};
+    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
     let basis = QvszpParams::v1_1();
     let mut worst = 0.0f64;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.shells);
+        let s = overlap_matrix(&c.mol, &qb.scf);
         let dens = program_densities(&c, &map);
-        let q = mulliken_shell_charges(&c.mol.numbers, &qb.shells, &s, &dens);
+        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens);
         let r = json(&c.dir.join("scf.json"));
         let qp = floats(&r["shell_charges"]);
         let d = max_abs_diff(&q, &qp);
@@ -625,8 +632,8 @@ fn mulliken_charges_match_program() {
 fn isotropic_charge_energies_match_program() {
     use axtb_gxtb::classical::gxtb_cn;
     use axtb_gxtb::es::{first_order_energy, higher_order_energies};
-    use axtb_gxtb::ints::{ao_list, mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::kernels::{gamma2, hubbard_u, shell_list, tau3};
+    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
+    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
     use axtb_gxtb::params::GxtbParams;
     let p = GxtbParams::v1_1();
     let basis = QvszpParams::v1_1();
@@ -634,12 +641,12 @@ fn isotropic_charge_energies_match_program() {
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.shells);
-        let q = mulliken_shell_charges(&c.mol.numbers, &qb.shells, &s, &program_densities(&c, &map));
+        let s = overlap_matrix(&c.mol, &qb.scf);
+        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &program_densities(&c, &map));
         let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.shells);
+        let sh = shell_list(&qb.scf);
         let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
         let g2 = gamma2(&p, &c.mol, &sh, &u);
         let e1 = first_order_energy(&p, &c.mol, &sh, &cn, &q, &g2).unwrap();
@@ -669,15 +676,15 @@ fn isotropic_charge_energies_match_program() {
 #[test]
 fn ofx_energy_matches_program() {
     use axtb_gxtb::exchange::ofx_energy;
-    use axtb_gxtb::ints::{ao_list, overlap_matrix};
+    use axtb_gxtb::ints::overlap_matrix;
     let basis = QvszpParams::v1_1();
     let mut worst = 0.0f64;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.shells);
+        let s = overlap_matrix(&c.mol, &qb.scf);
         let e = ofx_energy(&c.mol.numbers, &ao, &s, &program_densities(&c, &map));
         let e_ref = json(&c.dir.join("kernels.json"))["final_energies"]["ofx"].as_f64().unwrap();
         worst = worst.max((e - e_ref).abs());
@@ -689,8 +696,7 @@ fn ofx_energy_matches_program() {
 #[test]
 fn spin_energy_matches_program() {
     use axtb_gxtb::es::spin_energy;
-    use axtb_gxtb::ints::{ao_list, mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::kernels::shell_list;
+    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
     use axtb_gxtb::params::GxtbParams;
     let p = GxtbParams::v1_1();
     let basis = QvszpParams::v1_1();
@@ -700,15 +706,15 @@ fn spin_energy_matches_program() {
         let Some(e_ref) = fe.get("spin").and_then(|v| v.as_f64()) else { continue };
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.shells);
+        let s = overlap_matrix(&c.mol, &qb.scf);
         let d = program_densities(&c, &map);
         // magnetization = population(alpha) - population(beta) = q(beta) - q(alpha)
-        let qa = mulliken_shell_charges(&c.mol.numbers, &qb.shells, &s, &d[..1]);
-        let qbeta = mulliken_shell_charges(&c.mol.numbers, &qb.shells, &s, &d[1..]);
+        let qa = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &d[..1]);
+        let qbeta = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &d[1..]);
         let mag: Vec<f64> = qa.iter().zip(&qbeta).map(|(a, b)| b - a).collect();
-        let e = spin_energy(&p, &c.mol, &shell_list(&qb.shells), &mag).unwrap();
+        let e = spin_energy(&p, &c.mol, &shell_list(&qb.scf), &mag).unwrap();
         assert!((e - e_ref).abs() < 1e-14, "{}: E_spin {e} vs {e_ref}", c.name);
         n_open += 1;
     }
@@ -718,7 +724,6 @@ fn spin_energy_matches_program() {
 #[test]
 fn aes_matches_program() {
     use axtb_gxtb::aes::{aes_energy, aes_kernels, atomic_moments};
-    use axtb_gxtb::ints::ao_list;
     use axtb_gxtb::params::GxtbParams;
     let p = GxtbParams::v1_1();
     let basis = QvszpParams::v1_1();
@@ -743,12 +748,12 @@ fn aes_matches_program() {
         }
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.shells);
+        let ao = ao_list(&qb.scf);
         let map = program_ao_map(&ao, PROGRAM_D_ORDER);
         let dens = program_densities(&c, &map);
         let nao = ao.len();
         let ptot: Vec<f64> = (0..nao * nao).map(|x| dens.iter().map(|d| d[x]).sum()).collect();
-        let (dip, qp) = atomic_moments(&c.mol, &qb.shells, &ptot);
+        let (dip, qp) = atomic_moments(&c.mol, &qb.scf.cgto, &ptot);
         let (dr, qr) = (floats(&aes["dip"]), floats(&aes["qp"]));
         for a in 0..n {
             for x in 0..3 {

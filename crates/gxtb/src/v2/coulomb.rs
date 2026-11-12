@@ -118,25 +118,16 @@ pub struct Coulomb {
     pub dip_scale: Vec<f64>,
 }
 
-/// The shells of a molecule: (atom, shell index, l).
-pub fn shell_list(mol: &Molecule) -> Vec<Shell> {
-    let mut v = Vec::new();
-    for (iat, &z) in mol.numbers.iter().enumerate() {
-        for (ish, sh) in super::element_shells(z).iter().enumerate() {
-            v.push((iat, ish, sh.l));
-        }
-    }
-    v
-}
-
 impl Coulomb {
-    pub fn new(model: &Model, mol: &Molecule, cn: &[f64]) -> Self {
-        Self::new_par(model, mol, cn, false)
+    /// The electrostatics of `mol` with the SCF-basis shells `shells`
+    /// ([`crate::fock::shell_list`]) and the g-xTB CN `cn`.
+    pub fn new(model: &Model, mol: &Molecule, shells: &[Shell], cn: &[f64]) -> Self {
+        Self::new_par(model, mol, shells, cn, false)
     }
 
     /// [`Coulomb::new`], kernel rows in parallel when `parallel` (same result).
-    pub fn new_par(model: &Model, mol: &Molecule, cn: &[f64], parallel: bool) -> Self {
-        let shells = shell_list(mol);
+    pub fn new_par(model: &Model, mol: &Molecule, shells: &[Shell], cn: &[f64], parallel: bool) -> Self {
+        let shells = shells.to_vec();
         let nsh = shells.len();
         let nat = mol.nat();
         let mut mu = Vec::with_capacity(nsh);
