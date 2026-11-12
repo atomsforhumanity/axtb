@@ -35,7 +35,7 @@ use super::coulomb::Coulomb;
 use super::disp::RevD4;
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
 use super::explicit::STEP;
-use super::gradient::{exchange_kernel_weights, KernelRef, Potentials};
+use super::gradient::{exchange_kernel_weights, Potentials};
 use super::h0::{anisotropy, anisotropy_gradient};
 use super::intermediates::Slots;
 use super::repulsion::Repulsion;
@@ -105,20 +105,6 @@ impl<'a> Kernels<'a> {
     /// The geometry of the terms at this geometry (one thread).
     fn term_geometry(&self) -> Geometry<'_> {
         Geometry { mol: &self.mol, layout: self.layout, values: &self.values, parallel: false }
-    }
-
-    pub fn view(&self) -> KernelRef<'_> {
-        KernelRef {
-            model: &self.model,
-            mol: &self.mol,
-            cn: &self.cn,
-            coulomb: &self.coulomb,
-            rep: &self.rep,
-            disp: &self.disp,
-            exch: self.exch,
-            slots: self.slots,
-            parallel: false,
-        }
     }
 
     /// Potentials at fixed SCC variables (packed): shell potential without the exchange,

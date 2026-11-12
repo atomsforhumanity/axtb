@@ -32,6 +32,7 @@ use crate::eeqbc::erf_f64;
 use crate::es::spin_index;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
+use axtb::terms::{Chain, Geometry};
 use axtb::Molecule;
 use faer::{Accum, MatMut, MatRef, Par};
 use rayon::prelude::*;
@@ -595,6 +596,45 @@ impl Exchange {
             });
         }
         out
+    }
+}
+
+impl Exchange {
+    /// Add the gradient of the exchange kernels (MFX shell kernel, bond-order kernel) at fixed
+    /// weights dE/dG (`tsh`, shell pairs) and dE/dK (`tat`, atom pairs; from
+    /// [`Exchange::kernel_weights_with`]) to `ch.g`: shell rows, then atom rows, each in fixed
+    /// chunks (in parallel with `geo.parallel`) summed in order.
+    pub fn add_kernel_gradient(&self, model: &Model, geo: &Geometry<'_>, tsh: &[f64], tat: &[f64], ch: &mut Chain) {
+        use super::gradient::{add_pair, chain_rows};
+        let mol = geo.mol;
+        let nsh = self.shells.len();
+        let nat = mol.nat();
+        let shells = &self.shells;
+        let acc = chain_rows(nsh, ch, geo.parallel, |i, ch| {
+            for j in 0..i {
+                let (ia, ja) = (shells[i].0, shells[j].0);
+                if ia == ja {
+                    continue;
+                }
+                let v = sub3(mol.positions[ia], mol.positions[ja]);
+                let r = norm2_sq(v).sqrt();
+                let (kap, etag) = mfx_pair(model, mol, shells, i, j);
+                let dg = mfx_kernel(r, kap, etag).1;
+                let w = tsh[i * nsh + j] + tsh[j * nsh + i];
+                add_pair(&mut ch.g, ia, ja, w * dg / r, v);
+            }
+        });
+        ch.add(&acc);
+        let acc = chain_rows(nat, ch, geo.parallel, |i, ch| {
+            for j in 0..i {
+                let v = sub3(mol.positions[i], mol.positions[j]);
+                let r = norm2_sq(v).sqrt();
+                let dk = bo_kernel(model, mol.numbers[i], mol.numbers[j], r).1;
+                let w = tat[i * nat + j] + tat[j * nat + i];
+                add_pair(&mut ch.g, i, j, w * dk / r, v);
+            }
+        });
+        ch.add(&acc);
     }
 }
 

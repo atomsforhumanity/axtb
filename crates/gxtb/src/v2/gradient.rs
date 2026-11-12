@@ -16,16 +16,15 @@
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
 use super::basis::{h0_shells, scf_shells, INTCUT};
-use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Products};
+use super::exchange::Products;
 use super::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
-use super::intermediates::Slots;
 use super::scf::{ScfResult, Setup, State};
 use crate::h0::bond_projectors_deriv;
 use crate::timing::Laps;
 use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
-use axtb::molecule::{norm2_sq, sub3};
+use axtb::molecule::sub3;
 use axtb::terms::{Chain, MomentTerm, Potentials as TermPotentials, TermEnergy};
 use axtb::Result;
 use axtb_base::threads::map_chunks;
@@ -87,22 +86,6 @@ pub struct Potentials {
     pub w: Option<Vec<f64>>,
 }
 
-/// The integral-free, geometry-dependent kernels of one geometry: everything the
-/// charge-, multipole- and exchange-kernel terms of the energy need besides the SCC variables.
-pub struct KernelRef<'a> {
-    pub model: &'a super::Model,
-    pub mol: &'a axtb::Molecule,
-    pub cn: &'a [f64],
-    pub coulomb: &'a super::coulomb::Coulomb,
-    pub rep: &'a super::repulsion::Repulsion,
-    pub disp: &'a super::disp::RevD4,
-    pub exch: &'a super::exchange::Exchange,
-    /// The slots of the intermediates.
-    pub slots: Slots,
-    /// Pair loops in fixed chunks on the current rayon pool.
-    pub parallel: bool,
-}
-
 /// `f(i, chain)` for every row i of `0..n` with a [`Chain`] of the shape of `like` per fixed chunk
 /// of rows (in parallel when `parallel`), the chunks' chains summed in order.
 pub(crate) fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
@@ -121,59 +104,7 @@ pub fn exchange_kernel_weights(
     x.kernel_weights_with(p, &pr, !matches!(par, faer::Par::Seq))
 }
 
-impl KernelRef<'_> {
-    /// Exchange kernels (MFX shell kernel, bond-order kernel) at fixed weights dE/dG (`tsh`,
-    /// shell pairs) and dE/dK (`tat`, atom pairs) from [`exchange_kernel_weights`].
-    pub fn add_exchange_kernels(&self, tsh: &[f64], tat: &[f64], ch: &mut Chain) {
-        let mol = self.mol;
-        let x = self.exch;
-        let nsh = x.shells.len();
-        let nat = mol.nat();
-        let shells = &x.shells;
-        let acc = chain_rows(nsh, ch, self.parallel, |i, ch| {
-            for j in 0..i {
-                let (ia, ja) = (shells[i].0, shells[j].0);
-                if ia == ja {
-                    continue;
-                }
-                let v = sub3(mol.positions[ia], mol.positions[ja]);
-                let r = norm2_sq(v).sqrt();
-                let (kap, etag) = mfx_pair(self.model, mol, shells, i, j);
-                let dg = mfx_kernel(r, kap, etag).1;
-                let w = tsh[i * nsh + j] + tsh[j * nsh + i];
-                add_pair(&mut ch.g, ia, ja, w * dg / r, v);
-            }
-        });
-        ch.add(&acc);
-        let acc = chain_rows(nat, ch, self.parallel, |i, ch| {
-            for j in 0..i {
-                let v = sub3(mol.positions[i], mol.positions[j]);
-                let r = norm2_sq(v).sqrt();
-                let dk = bo_kernel(self.model, mol.numbers[i], mol.numbers[j], r).1;
-                let w = tat[i * nat + j] + tat[j * nat + i];
-                add_pair(&mut ch.g, i, j, w * dk / r, v);
-            }
-        });
-        ch.add(&acc);
-    }
-}
-
 impl Setup {
-    /// The kernels of this setup.
-    pub fn kernel_ref(&self) -> KernelRef<'_> {
-        KernelRef {
-            model: &self.model,
-            mol: &self.mol,
-            cn: &self.cn,
-            coulomb: &self.coulomb,
-            rep: &self.rep,
-            disp: &self.disp,
-            exch: &self.exch,
-            slots: self.slots,
-            parallel: self.parallel,
-        }
-    }
-
     pub fn potentials(&self, st: &State) -> Potentials {
         self.potentials_with(st, &self.exch.products(&self.s, &st.p, self.par))
     }
@@ -653,9 +584,8 @@ impl Setup {
         self.terms.iso.gradient(&tg, &self.coulomb, &s, &mut ch);
         self.terms.aes.gradient_with(&tg, &self.coulomb, &s, &pot_now.vd_scaled, &mut ch);
         t.lap("gradient: electrostatics");
-        let k = self.kernel_ref();
         let (tsh, tat) = self.exch.kernel_weights_with(&st.p, &pr, self.parallel);
-        k.add_exchange_kernels(&tsh, &tat, &mut ch);
+        self.exch.add_kernel_gradient(&self.model, &tg, &tsh, &tat, &mut ch);
         t.lap("gradient: exchange kernels");
         self.terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
         self.terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
