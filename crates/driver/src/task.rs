@@ -1,8 +1,9 @@
 //! What a call computes besides the energy, checked against the method.
 
 use crate::error::{Error, Result};
-use crate::names::{self, Method};
+use crate::names;
 use crate::request::Request;
+use axtb::method::{AnalysisDefaults, HessianMethod, MethodInfo};
 use axtb::vibrations::{Conventions as VibConventions, ThermoOptions, VibOptions};
 
 /// Settings of the thermochemistry; `None`: the default.
@@ -54,11 +55,11 @@ impl VibSettings {
         Ok(Self { conventions, masses: req.masses.clone(), thermo })
     }
 
-    /// The options of `axtb::vibrations::analyze`; `default` are the calculation's
-    /// conventions. GFN-FF analyzed in an xtb program's conventions takes xtb's frequency
-    /// scale 1.03 unless one is given.
-    pub(crate) fn options(&self, default: VibConventions, gfnff: bool) -> VibOptions {
-        let conventions = self.conventions.unwrap_or(default);
+    /// The options of `axtb::vibrations::analyze`; `defaults` are the method's (its
+    /// calculation's conventions, and a frequency scale in the xtb programs' conventions:
+    /// GFN-FF's 1.03, as xtb scales them, unless one is given).
+    pub(crate) fn options(&self, defaults: &AnalysisDefaults) -> VibOptions {
+        let conventions = self.conventions.unwrap_or(defaults.conventions);
         let thermo = self.thermo.as_ref().map(|t| {
             let d = ThermoOptions::default();
             ThermoOptions {
@@ -66,11 +67,9 @@ impl VibSettings {
                 pressure: t.pressure.unwrap_or(d.pressure),
                 rotor_cutoff: t.rotor_cutoff.unwrap_or(d.rotor_cutoff),
                 imaginary_cutoff: t.imaginary_cutoff.unwrap_or(d.imaginary_cutoff),
-                frequency_scale: t.frequency_scale.unwrap_or(if gfnff && conventions.is_xtb() {
-                    1.03
-                } else {
-                    d.frequency_scale
-                }),
+                frequency_scale: t
+                    .frequency_scale
+                    .unwrap_or(defaults.frequency_scale(conventions).unwrap_or(d.frequency_scale)),
                 symmetry_number: t.symmetry_number,
                 symmetry_threshold: t.symmetry_threshold.unwrap_or(d.symmetry_threshold),
                 ..d
@@ -85,7 +84,7 @@ impl VibSettings {
 pub struct HessianTask {
     /// `None`: the method's default (analytic; g-xTB v1.1 numerical; the composite each
     /// part's).
-    pub method: Option<axtb::HessianMethod>,
+    pub method: Option<HessianMethod>,
     pub step: Option<f64>,
     pub accuracy: Option<f64>,
     /// `None`: no vibrational analysis.
@@ -113,10 +112,11 @@ pub struct Task {
 }
 
 impl Task {
-    /// The task of a request for `method`; refuses settings that do not apply (a Hessian's
-    /// settings without a Hessian, the analysis' without an analysis, orbitals of GFN-FF, a
-    /// step of an analytic Hessian, ...).
-    pub fn from_request(req: &Request, method: Method) -> Result<Self> {
+    /// The task of a request; refuses settings that do not apply to any method (a Hessian's
+    /// settings without a Hessian, the analysis' without an analysis, ...). What depends on
+    /// the method is checked when the task runs ([`Task::check`], and the method's own
+    /// refusals: GFN-FF's orbitals, Hessian methods a method does not have, ...).
+    pub fn from_request(req: &Request) -> Result<Self> {
         if req.analyze_hessian.is_some() || req.dipole_derivatives.is_some() || req.energy.is_some() {
             return Err(Error::Input(
                 "analyze_hessian, dipole_derivatives and energy are for the analysis of a given Hessian, \
@@ -146,23 +146,6 @@ impl Task {
             } else {
                 Some(VibSettings::from_request(req)?)
             };
-            let resolved = hm.unwrap_or(match method {
-                Method::GxtbV1_1 => axtb::HessianMethod::Numerical,
-                _ => axtb::HessianMethod::Analytic,
-            });
-            if req.hessian_step.is_some() && resolved == axtb::HessianMethod::Analytic {
-                return Err(Error::Input(
-                    "hessian_step is a setting of the numerical and response Hessians, not of the analytic one".into(),
-                ));
-            }
-            if method == Method::Gfnff {
-                if hm == Some(axtb::HessianMethod::Response) {
-                    return Err(Error::Input("gfnff Hessians are analytic or numerical (no SCF response)".into()));
-                }
-                if req.hessian_accuracy.is_some() {
-                    return Err(Error::Input("gfnff Hessians take no hessian_accuracy (no SCF)".into()));
-                }
-            }
             Some(HessianTask { method: hm, step: req.hessian_step, accuracy: req.hessian_accuracy, vibrations })
         } else {
             None
@@ -179,9 +162,19 @@ impl Task {
             text: req.molden,
             file: req.molden_file.clone(),
         });
-        if method == Method::Gfnff && (molden.is_some() || req.bond_orders) {
-            return Err(Error::Input("gfnff has no orbitals (no Molden file, no bond orders; see topology)".into()));
-        }
         Ok(Self { gradient: req.gradient, hessian, molden, bond_orders: req.bond_orders })
+    }
+
+    /// Refuse what the task asks of the method `info` describes that does not apply: a
+    /// Hessian step for a Hessian that resolves to the analytic one.
+    pub fn check(&self, info: &MethodInfo) -> Result<()> {
+        if let Some(h) = &self.hessian {
+            if h.step.is_some() && h.method.unwrap_or(info.hessian.default) == HessianMethod::Analytic {
+                return Err(Error::Input(
+                    "hessian_step is a setting of the numerical and response Hessians, not of the analytic one".into(),
+                ));
+            }
+        }
+        Ok(())
     }
 }

@@ -44,7 +44,7 @@ use crate::calculator::{Calculator, Options, Version};
 use crate::scf::Conventions;
 use axtb::method::{
     Composite, Correction as CompositeCorrection, Detail, Fingerprint, Guard, HessianOptions, Method, MethodInfo, Part,
-    Restart, RetryLadder, RetryOn, Rung, ScfSettings, SinglePoint, Want, Wavefunction,
+    Restart, RetryLadder, RetryOn, Rung, ScfSettings, SinglePoint, Want, Wavefunction, WavefunctionData,
 };
 use axtb::{Error, MixerKind, Result, SolvationModel, SolvationSpec};
 use axtb_base::threads::{self, Threads};
@@ -458,7 +458,16 @@ impl Method for CompositeCalculator {
         self.inner.wavefunction()
     }
 
+    /// The parts' wavefunctions of another composite of this method and molecule; starting
+    /// moments are refused as for g-xTB alone.
     fn set_wavefunction(&mut self, wf: &Wavefunction) -> Result<()> {
+        if matches!(wf.data(), WavefunctionData::Scf(d) if d.densities.is_empty()) {
+            return Err(Error::Input(
+                "starting moments are GFN2-only; g-xTB starts from a whole wavefunction (the guess of another \
+                 calculator)"
+                    .into(),
+            ));
+        }
         self.inner.set_wavefunction(wf)
     }
 

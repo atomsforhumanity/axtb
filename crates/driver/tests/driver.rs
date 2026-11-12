@@ -128,8 +128,7 @@ fn calculator_gives_the_one_shot_results() {
         let req = Request { gradient: true, hessian: true, ..with(method) };
         let one = run(&req).unwrap();
         let mut calc = Calculator::new(&with(method)).unwrap();
-        let task = Task::from_request(&Request { gradient: true, hessian: true, ..Request::default() }, calc.method())
-            .unwrap();
+        let task = Task::from_request(&Request { gradient: true, hessian: true, ..Request::default() }).unwrap();
         let r = calc.compute(&req.positions, &task).unwrap();
         assert_eq!(one.energy, r.energy, "{method}");
         assert_eq!(one.gradient, r.gradient, "{method}");
@@ -170,4 +169,63 @@ fn analysis_of_a_given_hessian() {
     assert_eq!((r.method, r.conventions), (None, "xtb"));
     let t = r.vibrations.unwrap().thermo.unwrap();
     assert_eq!(t.last.free_energy, Some(-5.0 + t.last.g_rrho));
+}
+
+/// A wavefunction starts only an SCF of its method and molecule (atomic numbers, charge,
+/// unpaired electrons; conventions may differ), and of its kind (a composite's parts or one
+/// SCF's); a given wavefunction starts the next SCF whatever the restart policy says.
+#[test]
+fn wavefunctions_belong_to_one_method_and_molecule() {
+    let energy = Task::from_request(&Request::default()).unwrap();
+    let refused = |calc: &mut Calculator, wf: &axtb_driver::Wavefunction| match calc.set_wavefunction(wf) {
+        Err(Error::Input(m)) => m,
+        other => panic!("expected an input error, got {other:?}"),
+    };
+    let mut gfn2 = Calculator::new(&with("gfn2")).unwrap();
+    assert!(gfn2.wavefunction().is_none());
+    gfn2.compute(&water().positions, &energy).unwrap();
+    let wf = gfn2.wavefunction().unwrap();
+    assert_eq!((wf.method(), wf.natoms()), ("gfn2", 3));
+    // another method, other atoms, charge, unpaired electrons
+    let mut gxtb = Calculator::new(&with("gxtb-v2.0.1")).unwrap();
+    assert_eq!(refused(&mut gxtb, &wf), "a gfn2 wavefunction of 3 atoms cannot start a gxtb-v2.0.1 SCF of 3 atoms");
+    let mut h2s = Calculator::new(&Request { numbers: vec![16, 1, 1], ..with("gfn2") }).unwrap();
+    assert!(refused(&mut h2s, &wf).contains("another molecule (other atomic numbers)"));
+    let mut cation = Calculator::new(&Request { charge: 1.0, ..with("gfn2") }).unwrap();
+    assert!(refused(&mut cation, &wf).contains("(charge 0 instead of 1)"));
+    let mut triplet = Calculator::new(&Request { uhf: Some(2), ..with("gfn2") }).unwrap();
+    assert!(refused(&mut triplet, &wf).contains("(0 unpaired electrons instead of 2)"));
+    // other conventions are fine; a given wavefunction wins over guess "fresh"
+    let fresh = Request { conventions: Some("xtb".into()), guess: Some("fresh".into()), ..with("gfn2") };
+    let mut other = Calculator::new(&fresh).unwrap();
+    other.set_wavefunction(&wf).unwrap();
+    let r = other.compute(&water().positions, &energy).unwrap();
+    assert_eq!(r.scf.unwrap().guess, "previous");
+    assert_eq!(other.compute(&water().positions, &energy).unwrap().scf.unwrap().guess, "eeq");
+    // GFN-FF has no SCF; g-xTB takes no starting moments
+    let mut gfnff = Calculator::new(&with("gfnff")).unwrap();
+    assert!(refused(&mut gfnff, &wf).contains("cannot start a gfnff SCF"));
+    let moments = |c: &mut Calculator| match c.set_moments(vec![0.0; 5], vec![[0.0; 3]; 3], vec![[0.0; 6]; 3]) {
+        Err(Error::Input(m)) => m,
+        other => panic!("expected an input error, got {other:?}"),
+    };
+    assert_eq!(moments(&mut gfnff), "gfnff has no SCF; starting moments are GFN2-only");
+    assert!(moments(&mut gxtb).starts_with("starting moments are GFN2-only; g-xTB starts from a whole wavefunction"));
+    // a plain g-xTB wavefunction does not start a composite, nor the reverse
+    gxtb.compute(&water().positions, &energy).unwrap();
+    let plain = gxtb.wavefunction().unwrap();
+    let solvated =
+        Request { alpb: Some("water".into()), solvation_correction: Some("gfn2".into()), ..with("gxtb-v2.0.1") };
+    let mut composite = Calculator::new(&solvated).unwrap();
+    assert_eq!(refused(&mut composite, &plain), "the wavefunction belongs to another kind of calculation");
+    composite.compute(&water().positions, &energy).unwrap();
+    let parts = composite.wavefunction().unwrap();
+    assert_eq!(refused(&mut gxtb, &parts), "the wavefunction belongs to another kind of calculation");
+    // the 0.1 reset of the g-xTB part alone keeps the GFN2 halves' wavefunctions
+    composite.reset_wavefunction(true);
+    let kept = composite.wavefunction().unwrap();
+    let axtb::method::WavefunctionData::Parts(p) = kept.data() else { panic!("a composite's parts") };
+    assert!(p[0].is_none() && p[1].is_some() && p[2].is_some());
+    composite.reset_wavefunction(false);
+    assert!(composite.wavefunction().is_none());
 }

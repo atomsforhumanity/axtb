@@ -108,24 +108,14 @@ pub(crate) fn gxtb_conventions(name: &str) -> Result<axtb_gxtb::Conventions> {
     }
 }
 
-/// The canonical name of g-xTB conventions.
-#[cfg(feature = "gxtb")]
-pub(crate) fn gxtb_conventions_label(c: axtb_gxtb::Conventions) -> &'static str {
-    match c {
-        axtb_gxtb::Conventions::Axtb => "axtb",
-        axtb_gxtb::Conventions::Gxtb => "gxtb",
-    }
-}
-
-/// GFN-FF conventions: `axtb` (also `default`) and `xtb` (also `xtb-6.8.0`) run xtb 6.8.0's
-/// force field, `xtb-6.7.1` xtb 6.7.1's. Returns the force field, the analysis conventions
-/// of its Hessians (`axtb`, or that xtb version's) and the canonical name.
-pub(crate) fn gfnff_conventions(name: &str) -> Result<(axtb_gfnff::Conventions, VibConventions, &'static str)> {
+/// GFN-FF conventions: `axtb` (also `default`; xtb 6.8.0's force field), `xtb` (also
+/// `xtb-6.8.0`) or `xtb-6.7.1`.
+pub(crate) fn gfnff_conventions(name: &str) -> Result<axtb_gfnff::Conventions> {
     use axtb_gfnff::Conventions as Ff;
     match key(name).as_str() {
-        "axtb" | "default" => Ok((Ff::Axtb, VibConventions::Axtb, "axtb")),
-        "xtb" | "xtb680" => Ok((Ff::Xtb680, VibConventions::Xtb, "xtb")),
-        "xtb671" => Ok((Ff::Xtb671, VibConventions::Xtb671, "xtb-6.7.1")),
+        "axtb" | "default" => Ok(Ff::Axtb),
+        "xtb" | "xtb680" => Ok(Ff::Xtb680),
+        "xtb671" => Ok(Ff::Xtb671),
         _ => Err(Error::Input(format!(
             "unknown gfnff conventions {name:?}; use \"axtb\", \"xtb\" (xtb 6.8.0) or \"xtb-6.7.1\""
         ))),
@@ -262,7 +252,7 @@ mod tests {
         assert_eq!(gfn2_conventions("XTB 6.7.1").unwrap(), axtb::Conventions::Xtb671);
         assert_eq!(gfn2_conventions("default").unwrap(), axtb::Conventions::Axtb);
         assert_eq!(gfn2_conventions("xtb-6.8.0").unwrap(), axtb::Conventions::Xtb);
-        assert_eq!(gfnff_conventions("xtb_6.7.1").unwrap().2, "xtb-6.7.1");
+        assert_eq!(gfnff_conventions("xtb_6.7.1").unwrap().label(), "xtb-6.7.1");
         assert_eq!(analysis_conventions("gxtb").unwrap(), VibConventions::Xtb671);
         assert_eq!(solvation_state("BAR 1M").unwrap(), axtb::ReferenceState::Bar1M);
         assert_eq!(guess("eeq-bc").unwrap(), Guess::EeqBc);

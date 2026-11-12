@@ -303,13 +303,13 @@ fn warn_threads(py: Python<'_>, method: Method, threads: usize) -> PyResult<()> 
 
 /// A converged SCF wavefunction kept in memory: `Calculator.guess_state()` returns it,
 /// `Calculator.set_guess_state(state)` starts another calculator's next SCF from it (Rust:
-/// `axtb_driver::Calculator::guess` and `set_guess`). GFN2-xTB: shell charges and atomic
+/// `axtb_driver::Calculator::wavefunction` and `set_wavefunction`). GFN2-xTB: shell charges and atomic
 /// moments; g-xTB: what its program's restart file holds (v1.1 the density matrices; 2.0.1 shell
 /// charges, atomic moments, magnetizations and densities); the composite: those of its three
 /// parts. Opaque; `method` and `natoms` say what it belongs to.
 #[pyclass(module = "axtb", frozen)]
 struct ScfState {
-    inner: axtb_driver::ScfState,
+    inner: axtb_driver::Wavefunction,
 }
 
 #[pymethods]
@@ -317,7 +317,7 @@ impl ScfState {
     /// The method of the calculation the wavefunction belongs to.
     #[getter]
     fn method(&self) -> &'static str {
-        self.inner.method().name()
+        self.inner.method()
     }
 
     /// Atoms of the molecule.
@@ -327,7 +327,7 @@ impl ScfState {
     }
 
     fn __repr__(&self) -> String {
-        format!("ScfState(method={:?}, natoms={})", self.inner.method().name(), self.inner.natoms())
+        format!("ScfState(method={:?}, natoms={})", self.inner.method(), self.inner.natoms())
     }
 }
 
@@ -435,7 +435,7 @@ impl Calculator {
         let pos = rows3(&positions, self.inner.numbers().len(), "positions")?;
         let mut req = Request { gradient, bond_orders, ..Request::default() };
         molden_into(&mut req, molden)?;
-        let task = Task::from_request(&req, self.inner.method()).map_err(|e| py_err(py, e))?;
+        let task = Task::from_request(&req).map_err(|e| py_err(py, e))?;
         warn_threads(py, self.inner.method(), self.inner.threads())?;
         let inner = &mut self.inner;
         let r = guarded(py, || inner.compute(&pos, &task))?;
@@ -495,7 +495,7 @@ impl Calculator {
             ..Request::default()
         };
         molden_into(&mut req, molden)?;
-        let task = Task::from_request(&req, self.inner.method()).map_err(|e| py_err(py, e))?;
+        let task = Task::from_request(&req).map_err(|e| py_err(py, e))?;
         let inner = &mut self.inner;
         let r = guarded(py, || inner.compute(&pos, &task))?;
         finish(py, r)
@@ -503,22 +503,23 @@ impl Calculator {
 
     /// The converged wavefunction of the last SCF (`None` before the first, and for GFN-FF),
     /// to start another calculator for the same method and molecule from it
-    /// (`set_guess_state`). Rust: `axtb_driver::Calculator::guess`.
+    /// (`set_guess_state`). Rust: `axtb_driver::Calculator::wavefunction`.
     fn guess_state(&self) -> Option<ScfState> {
-        self.inner.guess().map(|inner| ScfState { inner })
+        self.inner.wavefunction().map(|inner| ScfState { inner })
     }
 
     /// Start the next SCF from `state` (the `guess_state()` of a calculator for the same
-    /// method and molecule), whatever `guess` says. Rust: `axtb_driver::Calculator::set_guess`.
+    /// method and molecule), whatever `guess` says. Rust:
+    /// `axtb_driver::Calculator::set_wavefunction`.
     fn set_guess_state(&mut self, py: Python<'_>, state: &ScfState) -> PyResult<()> {
-        self.inner.set_guess(&state.inner).map_err(|e| py_err(py, e))
+        self.inner.set_wavefunction(&state.inner).map_err(|e| py_err(py, e))
     }
 
     /// Forget the previous wavefunction (the next SCF starts from the method's own guess);
     /// `gxtb_only`: of the composite only the g-xTB part's.
     #[pyo3(signature = (gxtb_only=false))]
     fn reset_guess(&mut self, gxtb_only: bool) {
-        self.inner.reset_guess(gxtb_only);
+        self.inner.reset_wavefunction(gxtb_only);
     }
 
     /// GFN2-xTB: start the next SCF from given moments: shell charges (nsh,), atomic dipoles

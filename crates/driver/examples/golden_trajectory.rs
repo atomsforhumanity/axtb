@@ -11,7 +11,7 @@
 //!
 //! `cargo build --release -p axtb-driver --example golden_trajectory`
 
-use axtb_driver::{Calculator, Method, Request, Task};
+use axtb_driver::{Calculator, Request, Task};
 use std::io::Read;
 use std::process::ExitCode;
 
@@ -24,8 +24,7 @@ struct Input {
 
 fn run(input: &Input) -> axtb_driver::Result<()> {
     let req = &input.request;
-    let method = Method::parse(req.method.as_deref().unwrap_or("gfn2"))?;
-    let task = Task::from_request(req, method)?;
+    let task = Task::from_request(req)?;
     let mut calc = Calculator::new(req)?;
     for positions in &input.trajectory {
         let response = calc.compute(positions, &task)?;

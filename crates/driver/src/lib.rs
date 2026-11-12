@@ -31,7 +31,7 @@ mod request;
 mod response;
 mod task;
 
-pub use calculator::{gxtb_solvent_hint, Calculator, ScfState};
+pub use calculator::{gxtb_solvent_hint, Calculator, Wavefunction};
 pub use error::{Error, Result};
 pub use names::{canonical_method, Method};
 pub use request::{Request, Temperatures};
@@ -52,8 +52,7 @@ pub fn run(req: &Request) -> Result<Response> {
     let mut out = if req.analyze_hessian.is_some() {
         analyze(req)?
     } else {
-        let method = Method::parse(req.method.as_deref().unwrap_or("gfn2"))?;
-        let task = Task::from_request(req, method)?;
+        let task = Task::from_request(req)?;
         let mut calc = Calculator::new(req)?;
         calc.compute(&req.positions, &task)?
     };
@@ -119,7 +118,8 @@ pub fn analyze(req: &Request) -> Result<Response> {
     }
     let flat: Vec<f64> = h.iter().flatten().copied().collect();
     let settings = VibSettings::from_request(req)?;
-    let opts = settings.options(axtb::vibrations::Conventions::Axtb, false);
+    let defaults = axtb::method::AnalysisDefaults { conventions: Default::default(), xtb_frequency_scale: None };
+    let opts = settings.options(&defaults);
     let v = axtb::vibrations::analyze(&req.numbers, &req.positions, &flat, req.dipole_derivatives.as_deref(), &opts)?;
     Ok(Response {
         program: PROGRAM,
@@ -145,8 +145,7 @@ pub fn read_xyz(text: &str, method: Method, conventions: Option<&str>) -> Result
             _ => MCTC_AATOAU,
         },
         Method::Gfnff => {
-            let (_, analysis, _) = names::gfnff_conventions(conventions.unwrap_or("axtb"))?;
-            if analysis.is_xtb() {
+            if names::gfnff_conventions(conventions.unwrap_or("axtb"))?.is_xtb() {
                 MCTC_AATOAU
             } else {
                 AATOAU

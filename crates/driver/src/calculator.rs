@@ -1,5 +1,5 @@
-//! A method bound to one molecule: dispatch to GFN2-xTB, g-xTB (and its solvation composite)
-//! and GFN-FF, and the response of each.
+//! A method bound to one molecule: the request's method built behind axtb-base's [`Method`]
+//! trait (GFN2-xTB, g-xTB and its solvation composite, GFN-FF), and the response of any of them.
 
 use crate::error::{Error, Result};
 use crate::names::{self, Method};
@@ -9,68 +9,25 @@ use crate::response::{
     Vibrations,
 };
 use crate::task::Task;
-use axtb::method::{Fingerprint, Method as _, Restart, ScfData, Want, Wavefunction, WavefunctionData};
-use axtb::vibrations::Conventions as VibConventions;
+use axtb::method::{
+    Fingerprint, HessianOptions, Method as MethodTrait, Restart, ScfData, SinglePoint, Want, WavefunctionData,
+};
 use axtb::ToMolden;
 use std::time::Instant;
 
-/// The calculator of a method.
-enum Engine {
-    Gfn2(Box<axtb::Calculator>),
-    #[cfg(feature = "gxtb")]
-    Gxtb(Box<axtb_gxtb::Calculator>),
-    /// g-xTB in implicit solvent (the solvation composite).
-    #[cfg(feature = "gxtb")]
-    Composite(Box<axtb_gxtb::CompositeCalculator>),
-    Gfnff(Box<axtb_gfnff::Calculator>),
-}
-
-/// A converged wavefunction of one calculator, to start another calculator's SCF from it
-/// ([`Calculator::guess`], [`Calculator::set_guess`]). Opaque.
-#[derive(Clone)]
-pub struct ScfState {
-    inner: StateInner,
-    method: Method,
-    natoms: usize,
-}
-
-#[derive(Clone)]
-#[allow(clippy::large_enum_variant)] // (until the driver holds the trait object)
-enum StateInner {
-    Gfn2(Wavefunction),
-    #[cfg(feature = "gxtb")]
-    Gxtb(Wavefunction),
-    /// the composite's parts': g-xTB, GFN2 gas phase, GFN2 solvated
-    #[cfg(feature = "gxtb")]
-    Composite(Wavefunction),
-}
-
-impl ScfState {
-    /// The method of the calculation the wavefunction belongs to.
-    pub fn method(&self) -> Method {
-        self.method
-    }
-
-    /// Atoms of the molecule.
-    pub fn natoms(&self) -> usize {
-        self.natoms
-    }
-}
+pub use axtb::method::Wavefunction;
 
 /// A method bound to one molecule (atomic numbers, charge, unpaired electrons) with its
 /// settings, built from a [`Request`]: [`Calculator::compute`] runs a [`Task`] at any
 /// geometry and starts each SCF from the previous geometry's wavefunction (as the method's
 /// conventions or the request's `guess` say).
 pub struct Calculator {
-    engine: Engine,
-    method: Method,
-    conventions: &'static str,
+    method: Box<dyn MethodTrait>,
+    kind: Method,
     numbers: Vec<usize>,
     charge: f64,
     uhf: Option<usize>,
     threads: usize,
-    /// The analysis conventions of the calculation's conventions.
-    analysis: VibConventions,
 }
 
 fn input(msg: impl Into<String>) -> Error {
@@ -119,7 +76,7 @@ impl Calculator {
     /// [`Error::Input`]); the fields of what to compute are not read (see
     /// [`Task::from_request`]).
     pub fn new(req: &Request) -> Result<Self> {
-        let method = Method::parse(req.method.as_deref().unwrap_or("gfn2"))?;
+        let kind = Method::parse(req.method.as_deref().unwrap_or("gfn2"))?;
         let nat = req.numbers.len();
         if req.positions.len() != nat {
             return Err(input(format!("positions must have one row per atom ({nat}), not {}", req.positions.len())));
@@ -133,10 +90,10 @@ impl Calculator {
         if req.max_iter == Some(0) {
             return Err(input("max_iter must be at least 1"));
         }
-        if method != Method::Gfnff && (req.fragment_charges.is_some() || req.topology_positions.is_some()) {
+        if kind != Method::Gfnff && (req.fragment_charges.is_some() || req.topology_positions.is_some()) {
             return Err(input("fragment_charges and topology_positions are GFN-FF settings"));
         }
-        if !method.is_gxtb() && (req.solvation_correction.is_some() || req.correction_conventions.is_some()) {
+        if !kind.is_gxtb() && (req.solvation_correction.is_some() || req.correction_conventions.is_some()) {
             return Err(input(
                 "solvation_correction and correction_conventions are settings of g-xTB in solvent; GFN2-xTB has its \
                  own implicit solvent (alpb or gbsa alone)",
@@ -145,7 +102,7 @@ impl Calculator {
         let threads = req.threads.unwrap_or(1);
         let uhf = req.uhf.map(|u| u as usize);
         let guess = req.guess.as_deref().map(names::guess).transpose()?;
-        let (engine, conventions, analysis) = match method {
+        let method: Box<dyn MethodTrait> = match kind {
             Method::Gfn2 => {
                 let conventions =
                     req.conventions.as_deref().map(names::gfn2_conventions).transpose()?.unwrap_or_default();
@@ -183,7 +140,7 @@ impl Calculator {
                     uhf,
                     opts,
                 )?;
-                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into())
+                Box::new(calc)
             }
             Method::Gfnff => {
                 let mut bad = Vec::new();
@@ -202,8 +159,8 @@ impl Calculator {
                 {
                     bad.push("SCF settings (accuracy, etemp, max_iter, mixer, guess, scf_trace)");
                 }
-                refuse(method, &bad)?;
-                let (ff, analysis, label) = names::gfnff_conventions(req.conventions.as_deref().unwrap_or("axtb"))?;
+                refuse(kind, &bad)?;
+                let conventions = names::gfnff_conventions(req.conventions.as_deref().unwrap_or("axtb"))?;
                 let setup = match &req.topology_positions {
                     Some(t) if t.len() != nat => {
                         return Err(input(format!("topology_positions must have one row per atom ({nat})")))
@@ -214,50 +171,34 @@ impl Calculator {
                 let opts = axtb_gfnff::Options {
                     threads,
                     fragment_charges: req.fragment_charges.clone(),
-                    conventions: ff,
+                    conventions,
                     ..Default::default()
                 };
-                let calc = axtb_gfnff::Calculator::new(&req.numbers, setup, req.charge, opts)?;
-                (Engine::Gfnff(Box::new(calc)), label, analysis)
+                Box::new(axtb_gfnff::Calculator::new(&req.numbers, setup, req.charge, opts)?)
             }
             Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
                 #[cfg(feature = "gxtb")]
                 {
-                    let (engine, conventions) = gxtb_engine(req, method, threads, uhf, guess)?;
-                    // the g-xTB 2.0.1 program is a 6.7.1-based xtb build
-                    let analysis = match conventions {
-                        axtb_gxtb::Conventions::Gxtb => VibConventions::Xtb671,
-                        axtb_gxtb::Conventions::Axtb => VibConventions::Axtb,
-                    };
-                    (engine, names::gxtb_conventions_label(conventions), analysis)
+                    gxtb_method(req, kind, threads, uhf, guess)?
                 }
                 #[cfg(not(feature = "gxtb"))]
                 {
                     let _ = (uhf, guess);
-                    return Err(input(format!("{method}: this axtb was built without g-xTB (feature `gxtb`)")));
+                    return Err(input(format!("{kind}: this axtb was built without g-xTB (feature `gxtb`)")));
                 }
             }
         };
-        Ok(Self {
-            engine,
-            method,
-            conventions,
-            numbers: req.numbers.clone(),
-            charge: req.charge,
-            uhf,
-            threads,
-            analysis,
-        })
+        Ok(Self { method, kind, numbers: req.numbers.clone(), charge: req.charge, uhf, threads })
     }
 
     /// The method.
     pub fn method(&self) -> Method {
-        self.method
+        self.kind
     }
 
     /// The canonical name of the method's conventions.
     pub fn conventions(&self) -> &'static str {
-        self.conventions
+        self.method.info().conventions
     }
 
     /// Atomic numbers of the molecule.
@@ -280,106 +221,30 @@ impl Calculator {
         if positions.len() != nat {
             return Err(input(format!("positions must have one row per atom ({nat}), not {}", positions.len())));
         }
+        let want = Want {
+            gradient: task.gradient || task.hessian.is_some(),
+            orbitals: task.molden.is_some(),
+            bond_orders: task.bond_orders,
+        };
+        let hessian =
+            task.hessian.as_ref().map(|h| HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy });
+        task.check(self.method.info())?;
+        self.method.check(&want, hessian.as_ref())?;
+        let hessian = hessian.map(|o| self.method.hessian(positions, &o)).transpose()?;
+        let sp = self.method.singlepoint(positions, &want)?;
+        let info = self.method.info();
         let mut out = Response {
             program: response::PROGRAM,
             version: response::VERSION,
-            method: Some(self.method.name()),
-            conventions: self.conventions,
+            method: Some(info.name),
+            conventions: info.conventions,
             ..Default::default()
         };
-        let molden = task.molden.is_some();
-        let orbitals = match &mut self.engine {
-            Engine::Gfn2(calc) => {
-                let hess = match &task.hessian {
-                    Some(h) => {
-                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
-                        Some(calc.hessian(positions, &o)?)
-                    }
-                    None => None,
-                };
-                let want =
-                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
-                let sp = calc.singlepoint(positions, &want)?;
-                out.hessian = hess.map(hessian_part);
-                report_into(&mut out, sp)
-            }
-            #[cfg(feature = "gxtb")]
-            Engine::Gxtb(calc) => {
-                let hess = match &task.hessian {
-                    Some(h) => {
-                        // afterwards g-xTB holds no wavefunction: the single point below starts
-                        // from its own guess, as without the Hessian
-                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
-                        Some(calc.hessian(positions, &o)?)
-                    }
-                    None => None,
-                };
-                let want =
-                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
-                let sp = calc.singlepoint(positions, &want)?;
-                out.hessian = hess.map(hessian_part);
-                report_into(&mut out, sp)
-            }
-            #[cfg(feature = "gxtb")]
-            Engine::Composite(calc) => {
-                let hess = match &task.hessian {
-                    // afterwards the g-xTB part holds no wavefunction: its single point below
-                    // starts from its own guess, as without the Hessian
-                    Some(h) => {
-                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
-                        Some(calc.hessian(positions, &o)?)
-                    }
-                    None => None,
-                };
-                let want =
-                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
-                let mut sp = calc.singlepoint(positions, &want)?;
-                let report = sp.extras.composite.take().expect("the composite's report");
-                out.composite = Some(composite_response(*report, hess.as_ref().map(|h| h.parts.as_slice())));
-                out.hessian = hess.map(hessian_part);
-                report_into(&mut out, sp)
-            }
-            Engine::Gfnff(calc) => {
-                let hess = match &task.hessian {
-                    Some(h) => {
-                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
-                        Some(hessian_part(calc.hessian(positions, &o)?))
-                    }
-                    None => None,
-                };
-                let r = calc.singlepoint(positions, &Want::gradient(task.gradient || hess.is_some()))?;
-                let g = r.extras.gfnff.expect("GFN-FF reports its topology");
-                let t = g.topology;
-                out.energy = Some(r.energy);
-                out.gradient = r.gradient;
-                out.charges = Some(r.charges);
-                out.dipole = Some(r.dipole);
-                out.terms = Some(Named::new(r.terms.iter().map(|t| (t.name, t.value)).collect()));
-                out.timings = Some(Named::new(r.timings));
-                out.gfnff = Some(Gfnff {
-                    n_hbonds: g.n_hbonds[0] + g.n_hbonds[1],
-                    n_xbonds: g.n_xbonds,
-                    topology: Topology {
-                        bonds: t.bonds,
-                        pi_bond_orders: t.pi_bond_orders,
-                        bond_types: t.bond_types,
-                        hybridization: t.hybridization,
-                        pi_atoms: t.pi_atoms,
-                        fragments: t.fragments,
-                        fragment_charges: t.fragment_charges,
-                        topology_charges: t.topology_charges,
-                        n_angles: t.n_angles,
-                        n_torsions: t.n_torsions,
-                    },
-                });
-                out.hessian = hess;
-                None
-            }
-        };
+        let orbitals = fill(&mut out, sp, hessian);
         check_finite(&out)?;
         if let Some(m) = &task.molden {
             let orbitals = orbitals.ok_or_else(|| Error::Numerical("the calculation returned no orbitals".into()))?;
-            let title = format!("axtb {} {}", response::VERSION, self.method);
+            let title = format!("axtb {} {}", response::VERSION, self.kind);
             let text = orbitals.to_molden(m.functions, &title)?;
             if let Some(path) = &m.file {
                 std::fs::write(path, &text).map_err(|e| input(format!("cannot write the Molden file {path}: {e}")))?;
@@ -389,7 +254,7 @@ impl Calculator {
         }
         if let (Some(h), Some(hp)) = (&task.hessian, &out.hessian) {
             if let Some(v) = &h.vibrations {
-                let opts = v.options(self.analysis, self.method == Method::Gfnff);
+                let opts = v.options(&info.analysis);
                 let a = axtb::vibrations::analyze(
                     &self.numbers,
                     positions,
@@ -404,41 +269,17 @@ impl Calculator {
         Ok(out)
     }
 
-    /// The converged wavefunction of the last SCF (`None` before the first, and for GFN-FF),
-    /// for another calculator of the same method and molecule ([`Calculator::set_guess`]).
-    pub fn guess(&self) -> Option<ScfState> {
-        let inner = match &self.engine {
-            Engine::Gfn2(c) => c.wavefunction().map(StateInner::Gfn2),
-            #[cfg(feature = "gxtb")]
-            Engine::Gxtb(c) => c.wavefunction().map(StateInner::Gxtb),
-            #[cfg(feature = "gxtb")]
-            Engine::Composite(c) => c.wavefunction().map(StateInner::Composite),
-            Engine::Gfnff(_) => None,
-        }?;
-        Some(ScfState { inner, method: self.method, natoms: self.numbers.len() })
+    /// The converged wavefunction of the last SCF (`None` before the first, after an error and
+    /// for GFN-FF), for another calculator of the same method and molecule
+    /// ([`Calculator::set_wavefunction`]).
+    pub fn wavefunction(&self) -> Option<Wavefunction> {
+        self.method.wavefunction()
     }
 
-    /// Start the next SCF from `state` (from [`Calculator::guess`] of a calculator for the same
-    /// method and molecule), whatever the `guess` setting says.
-    pub fn set_guess(&mut self, state: &ScfState) -> Result<()> {
-        if state.method != self.method || state.natoms != self.numbers.len() {
-            return Err(input(format!(
-                "a {} wavefunction of {} atoms cannot start a {} SCF of {} atoms",
-                state.method,
-                state.natoms,
-                self.method,
-                self.numbers.len()
-            )));
-        }
-        match (&mut self.engine, &state.inner) {
-            (Engine::Gfn2(c), StateInner::Gfn2(g)) => c.set_wavefunction(g)?,
-            #[cfg(feature = "gxtb")]
-            (Engine::Gxtb(c), StateInner::Gxtb(g)) => c.set_wavefunction(g)?,
-            #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), StateInner::Composite(w)) => c.set_wavefunction(w)?,
-            _ => return Err(input("the wavefunction belongs to another kind of calculation")),
-        }
-        Ok(())
+    /// Start the next SCF from `wf` (from [`Calculator::wavefunction`] of a calculator for the
+    /// same method and molecule), whatever the `guess` setting says.
+    pub fn set_wavefunction(&mut self, wf: &Wavefunction) -> Result<()> {
+        Ok(self.method.set_wavefunction(wf)?)
     }
 
     /// Start the next GFN2-xTB SCF from given moments: shell charges, atomic dipoles and
@@ -449,57 +290,49 @@ impl Calculator {
         dipoles: Vec<[f64; 3]>,
         quadrupoles: Vec<[f64; 6]>,
     ) -> Result<()> {
-        match &mut self.engine {
-            Engine::Gfn2(c) => {
-                let data = ScfData {
-                    shell_charges,
-                    atomic_dipoles: dipoles,
-                    atomic_quadrupoles: quadrupoles,
-                    ..ScfData::default()
-                };
-                let fingerprint = Fingerprint::new(c.info().name, &self.numbers, self.charge, self.uhf);
-                Ok(c.set_wavefunction(&Wavefunction::new(fingerprint, WavefunctionData::Scf(data)))?)
-            }
-            Engine::Gfnff(_) => Err(input("gfnff has no SCF; starting moments are GFN2-only")),
-            #[cfg(feature = "gxtb")]
-            _ => Err(input(
-                "starting moments are GFN2-only; g-xTB starts from a whole wavefunction (the guess of another \
-                 calculator)",
-            )),
-        }
+        let data =
+            ScfData { shell_charges, atomic_dipoles: dipoles, atomic_quadrupoles: quadrupoles, ..ScfData::default() };
+        let fingerprint = Fingerprint::new(self.method.info().name, &self.numbers, self.charge, self.uhf);
+        Ok(self.method.set_wavefunction(&Wavefunction::new(fingerprint, WavefunctionData::Scf(data)))?)
     }
 
     /// Forget the previous wavefunction(s): the next SCF starts from the method's own guess.
-    /// `gxtb_only`: of the composite only the g-xTB part's (for every other method nothing
-    /// but g-xTB's).
-    pub fn reset_guess(&mut self, gxtb_only: bool) {
-        match (&mut self.engine, gxtb_only) {
-            (Engine::Gfn2(c), false) => c.reset_wavefunction(),
-            #[cfg(feature = "gxtb")]
-            (Engine::Gxtb(c), _) => c.reset_wavefunction(),
-            #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), true) => c.composite_mut().base_mut().method.reset_wavefunction(),
-            #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), false) => c.reset_wavefunction(),
-            _ => {}
+    /// `gxtb_only`: of g-xTB only (the composite's g-xTB part; for every other method nothing).
+    pub fn reset_wavefunction(&mut self, gxtb_only: bool) {
+        if !gxtb_only {
+            return self.method.reset_wavefunction();
+        }
+        if !self.kind.is_gxtb() {
+            return;
+        }
+        // a composite: every part's but the base's back (WavefunctionData::Parts, base first)
+        let kept = self.method.wavefunction();
+        self.method.reset_wavefunction();
+        if let Some(wf) = kept {
+            if let WavefunctionData::Parts(parts) = wf.data() {
+                let mut parts = parts.clone();
+                parts[0] = None;
+                let rest = Wavefunction::new(wf.fingerprint().clone(), WavefunctionData::Parts(parts));
+                self.method.set_wavefunction(&rest).expect("a composite takes its own parts back");
+            }
         }
     }
 }
 
-/// The g-xTB calculator of a request: plain, or the solvation composite with
+/// The g-xTB method of a request: plain, or the solvation composite with
 /// `solvation_correction`.
 #[cfg(feature = "gxtb")]
-fn gxtb_engine(
+fn gxtb_method(
     req: &Request,
-    method: Method,
+    kind: Method,
     threads: usize,
     uhf: Option<usize>,
     guess: Option<names::Guess>,
-) -> Result<(Engine, axtb_gxtb::Conventions)> {
-    let version = method.gxtb_version().expect("a g-xTB method");
+) -> Result<Box<dyn MethodTrait>> {
+    let version = kind.gxtb_version().expect("a g-xTB method");
     let conventions = req.conventions.as_deref().map(names::gxtb_conventions).transpose()?.unwrap_or_default();
     if req.scf_trace {
-        return Err(input(format!("{method} does not support scf_trace (GFN2-xTB only)")));
+        return Err(input(format!("{kind} does not support scf_trace (GFN2-xTB only)")));
     }
     if let Some(c) = &req.solvation_correction {
         if req.dispersion == Some(false) {
@@ -530,18 +363,17 @@ fn gxtb_engine(
         };
         o.correction_conventions = req.correction_conventions.as_deref().map(names::gfn2_conventions).transpose()?;
         o.mixer = req.mixer.as_deref().map(names::mixer).transpose()?;
-        let calc = axtb_gxtb::CompositeCalculator::new(&req.numbers, &req.positions, req.charge, uhf, o)?;
-        return Ok((Engine::Composite(Box::new(calc)), conventions));
+        return Ok(Box::new(axtb_gxtb::CompositeCalculator::new(&req.numbers, &req.positions, req.charge, uhf, o)?));
     }
     if req.alpb.is_some() || req.gbsa.is_some() || req.solvation_state.is_some() || req.correction_conventions.is_some()
     {
-        return Err(input(gxtb_solvent_hint(method)));
+        return Err(input(gxtb_solvent_hint(kind)));
     }
     if req.dispersion == Some(false) {
-        return Err(input(format!("{method} does not support switching off dispersion")));
+        return Err(input(format!("{kind} does not support switching off dispersion")));
     }
     if req.mixer.is_some() {
-        return Err(input(format!("{method} does not support choosing the SCF mixer")));
+        return Err(input(format!("{kind} does not support choosing the SCF mixer")));
     }
     let mut o = axtb_gxtb::Options { threads, conventions, ..Default::default() };
     if let Some(a) = req.accuracy {
@@ -554,14 +386,13 @@ fn gxtb_engine(
         Some(names::Guess::Previous) => Some(Restart::Previous),
         Some(names::Guess::Fresh | names::Guess::EeqBc) => Some(Restart::Fresh),
         Some(names::Guess::Eeq | names::Guess::Sad) => {
-            return Err(input(format!("{method} starts from the program's EEQ-BC charges: guess \"eeq-bc\"")))
+            return Err(input(format!("{kind} starts from the program's EEQ-BC charges: guess \"eeq-bc\"")))
         }
     };
-    let calc = axtb_gxtb::Calculator::new(version, &req.numbers, &req.positions, req.charge, uhf, o)?;
-    Ok((Engine::Gxtb(Box::new(calc)), conventions))
+    Ok(Box::new(axtb_gxtb::Calculator::new(version, &req.numbers, &req.positions, req.charge, uhf, o)?))
 }
 
-/// A Hessian of an SCF method in the response.
+/// A Hessian in the response.
 fn hessian_part(h: axtb::Hessian) -> HessianPart {
     HessianPart {
         hessian: Matrix::square(h.hessian),
@@ -572,18 +403,44 @@ fn hessian_part(h: axtb::Hessian) -> HessianPart {
     }
 }
 
-/// Fill the single point of an SCF method into `out`; returns its orbitals (when kept).
-fn report_into(out: &mut Response, sp: axtb::method::SinglePoint) -> Option<axtb::Orbitals> {
-    let e = sp.electronic.expect("an SCF method's electronic structure");
-    let [a, b] = axtb::properties::alpha_beta(&e.levels);
+/// Fill a single point and its Hessian into `out`: the energy, gradient, charges, dipole,
+/// terms and timings of every method, the SCF group of an SCF method, GFN-FF's and a
+/// composite's groups; returns the orbitals (when kept).
+fn fill(out: &mut Response, mut sp: SinglePoint, hessian: Option<axtb::Hessian>) -> Option<axtb::Orbitals> {
+    if let Some(report) = sp.extras.composite.take() {
+        out.composite = Some(composite_response(*report, hessian.as_ref().map(|h| h.parts.as_slice())));
+    }
+    if let Some(g) = sp.extras.gfnff.take() {
+        let t = g.topology;
+        out.gfnff = Some(Gfnff {
+            n_hbonds: g.n_hbonds[0] + g.n_hbonds[1],
+            n_xbonds: g.n_xbonds,
+            topology: Topology {
+                bonds: t.bonds,
+                pi_bond_orders: t.pi_bond_orders,
+                bond_types: t.bond_types,
+                hybridization: t.hybridization,
+                pi_atoms: t.pi_atoms,
+                fragments: t.fragments,
+                fragment_charges: t.fragment_charges,
+                topology_charges: t.topology_charges,
+                n_angles: t.n_angles,
+                n_torsions: t.n_torsions,
+            },
+        });
+    }
+    out.hessian = hessian.map(hessian_part);
     let nat = sp.charges.len();
-    let s = e.scf;
-    out.eigensolver = Some(s.eigensolver);
     out.energy = Some(sp.energy);
     out.gradient = sp.gradient;
     out.dipole = Some(sp.dipole);
     out.terms = Some(Named::new(sp.terms.iter().map(|t| (t.name, t.value)).collect()));
     out.timings = Some(Named::new(sp.timings));
+    out.charges = Some(sp.charges);
+    let e = sp.electronic?;
+    let [a, b] = axtb::properties::alpha_beta(&e.levels);
+    let s = e.scf;
+    out.eigensolver = Some(s.eigensolver);
     out.scf = Some(Scf {
         iterations: s.iterations,
         guess: s.start,
@@ -605,7 +462,6 @@ fn report_into(out: &mut Response, sp: axtb::method::SinglePoint) -> Option<axtb
         occupations_beta: b.occupations,
         bond_orders: e.bond_orders.map(|bo| Matrix { rows: nat, cols: nat, data: bo }),
     });
-    out.charges = Some(sp.charges);
     e.orbitals
 }
 
