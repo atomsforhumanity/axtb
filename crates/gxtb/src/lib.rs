@@ -59,8 +59,8 @@
 //!   electrostatics ([`aes`]); the Mulliken-exchange and onsite-exchange energies
 //!   ([`exchange`]);
 //! - the revD4 dispersion ([`disp`], built on `axtb_d4`);
-//! - the Fock matrices of all terms ([`fock`]) and the SCF driver with the program's start
-//!   density ([`scf`]), its Fock mixing and convergence criteria (`strategy`);
+//! - the Fock matrices of all terms ([`fock`]) and the program's SCF from its start density on
+//!   the core's SCF driver ([`scf`]), with its Fock mixing and convergence criteria (`strategy`);
 //! - analytic nuclear gradients ([`scf::Setup::gradient`]): the explicit geometry derivative
 //!   of every term ([`gradient`]) and the Z-vector response of the program's non-variational
 //!   Fock matrix ([`response`]), checked against finite differences of the energy (≤ 6e-10

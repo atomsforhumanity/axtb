@@ -1,7 +1,7 @@
 //! The SCF strategy of the g-xTB 1.1.0 program (v1.1): its Fock mixing (`diisfock_`),
 //! [`Gxtb110FockMixer`], and its convergence test with the final unmixed iteration,
 //! [`Gxtb110Rule`], for the core's SCF traits (`axtb::scf`). [`crate::scf::Setup::scf_from`]
-//! runs them.
+//! runs them with the core's SCF driver.
 
 use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
 use axtb::Result;

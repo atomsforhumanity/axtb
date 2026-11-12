@@ -1,5 +1,6 @@
 //! g-xTB v1.1 single points: the geometry-dependent setup, the energy and Fock matrices as
-//! functions of the spin densities, and the SCF driver.
+//! functions of the spin densities, and the 1.1.0 program's SCF as a model of the core's SCF
+//! driver (`axtb::scf::run_scf`) with the program's strategy (`crate::strategy`).
 
 use crate::aes::{aes_energy, aes_kernels, INTCUT as AES_INTCUT};
 use crate::calculator::Version;

@@ -1,5 +1,6 @@
 //! g-xTB 2.0.1 single points: the geometry-dependent setup, the energy and Fock matrices of a
-//! density, and tblite's SCF as the 2.0.1 program runs it (spec §4.17):
+//! density, and tblite's SCF as the 2.0.1 program runs it (spec §4.17; a model of the core's
+//! SCF driver, `axtb::scf::run_scf`):
 //!
 //! - start: EEQ-BC atomic charges partitioned to shells, q_l = n0_l/n0_A q_A; no density and no
 //!   multipoles in iteration 1;
