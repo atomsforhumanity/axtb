@@ -4,7 +4,7 @@
 use crate::basis::Basis;
 use crate::conventions::{SccGradient, OCCUPATION_CUTOFF};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, MultipoleCache, OnsiteThirdOrder};
-use crate::hamiltonian::{H0Params, Integrals};
+use crate::hamiltonian::{H0Params, Integrals, MultipoleNeglect};
 use crate::linalg::{weighted_outer, weighted_outer_sym, GenEigSolver};
 use crate::molden::{MoSet, Orbitals, Spin};
 use crate::molecule::Molecule;
@@ -13,13 +13,17 @@ use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
 use crate::scf::convergence::XtbRule;
 use crate::scf::mixing::{MixerKind, MixerPlan, ScfAttempt};
-use crate::scf::{dot, fock, mulliken, ConvergenceRule, Iteration, ScfVariables, Verdict};
+use crate::scf::{
+    dot, fock, mulliken, run_scf, Accelerator, FockSource, Iteration, ScfModel, ScfStrategy, ScfVariables, Stop,
+};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
 use axtb_base::threads;
-use faer::Mat;
+use axtb_base::timing::Laps;
+use faer::{Mat, Par};
 use rayon::prelude::*;
+use std::ops::ControlFlow;
 
 /// An atom-resolved, charge-dependent energy term that enters the SCF (e.g. the
 /// self-consistent D4 dispersion of GFN2-xTB).
@@ -514,7 +518,7 @@ impl XtbModel {
         want_gradient: bool,
         keep_state: bool,
     ) -> Result<(SinglePoint, Option<ScfState>)> {
-        let mut timer = axtb_base::timing::Laps::new();
+        let mut timer = Laps::new();
         check_scf_options(opts)?;
         let nat = mol.nat();
         let bas = &self.basis;
@@ -533,13 +537,11 @@ impl XtbModel {
         let kt = if opts.etemp <= self.params.aufbau_max_etemp { 0.0 } else { opts.etemp * self.params.kb };
 
         let mut grad = if want_gradient { Some(vec![[0.0; 3]; nat]) } else { None };
-        let mut terms = EnergyTerms::default();
 
         // non-self-consistent contributions
         let mut energies = vec![0.0; nat];
         let mut erep = vec![0.0; nat];
         self.repulsion.compute(mol, &mut erep, grad.as_deref_mut());
-        terms.repulsion = erep.iter().sum();
         // geometry-dependent setup
         let geo = self.geometry(mol, extra);
         // fixed (charge-independent) energy of every extra term
@@ -558,9 +560,6 @@ impl XtbModel {
 
         timer.lap("classical");
         let ints: Integrals = self.h0.build(mol, bas, &geo.se, geo.cutoff, parallel);
-        let gamma = &geo.gamma;
-        let mp_cache = &geo.mp_cache;
-        let caches = &geo.caches;
         timer.lap("integrals");
         // xtb 6.7.1's Fock matrix leaves out small multipole integrals
         // (`ConventionParams::scc_multipole_neglect`)
@@ -569,7 +568,7 @@ impl XtbModel {
         } else {
             None
         };
-        let mut solver = GenEigSolver::new(ints.overlap.as_ref(), par)?;
+        let solver = GenEigSolver::new(ints.overlap.as_ref(), par)?;
         timer.lap("cholesky");
 
         // SCF variables: shell charges, atomic dipoles, atomic quadrupoles (tblite, xtb 6.8.0:
@@ -579,19 +578,17 @@ impl XtbModel {
         let vars = ScfVariables::new(nsh, nat, has_mp, false).with_quad_offdiag_scale(self.params.scc_quadrupole_scale);
         let ndim = vars.dim();
         let kind = opts.mixer.unwrap_or(self.params.mixer);
-        let mut qsh = vec![0.0; nsh];
-        let mut qat = vec![0.0; nat];
-        let mut dpat = vec![[0.0; 3]; nat];
-        let mut qpat = vec![[0.0; 6]; nat];
+        let mut start =
+            Moments { qsh: vec![0.0; nsh], qat: vec![0.0; nat], dpat: vec![[0.0; 3]; nat], qpat: vec![[0.0; 6]; nat] };
         // where the SCF starts (`SinglePoint::guess`): a given guess of this molecule's size,
         // else EEQ charges when the options and conventions ask for them and the EEQ system
         // can be solved, else neutral atoms
         let start_label = match guess {
             Some(g) if g.qsh.len() == nsh && g.dpat.len() == nat && g.qpat.len() == nat => {
-                qsh.copy_from_slice(&g.qsh);
-                dpat.copy_from_slice(&g.dpat);
-                qpat.copy_from_slice(&g.qpat);
-                qat_from_qsh(bas, &qsh, &mut qat);
+                start.qsh.copy_from_slice(&g.qsh);
+                start.dpat.copy_from_slice(&g.dpat);
+                start.qpat.copy_from_slice(&g.qpat);
+                qat_from_qsh(bas, &start.qsh, &mut start.qat);
                 "previous"
             }
             _ if opts.guess == InitialGuess::Eeq && self.params.eeq_guess => {
@@ -603,10 +600,10 @@ impl XtbModel {
                             let nsa = bas.nsh_at[iat];
                             let tot: f64 = n0sh[is..is + nsa].iter().sum();
                             for ish in 0..nsa {
-                                qsh[is + ish] = if tot > 0.0 { q[iat] * n0sh[is + ish] / tot } else { 0.0 };
+                                start.qsh[is + ish] = if tot > 0.0 { q[iat] * n0sh[is + ish] / tot } else { 0.0 };
                             }
                         }
-                        qat_from_qsh(bas, &qsh, &mut qat);
+                        qat_from_qsh(bas, &start.qsh, &mut start.qat);
                         "eeq"
                     }
                     Err(_) => "sad",
@@ -614,244 +611,131 @@ impl XtbModel {
             }
             _ => "sad",
         };
-        let mut fock = Mat::<f64>::zeros(nao, nao);
-        let mut work = Mat::<f64>::zeros(nao, nao);
-        let mut coeff = Mat::<f64>::zeros(nao, nao);
         // eigenvectors of the occupied orbitals only, where nothing needs all of them
         let all_orbitals = keep_state || opts.keep_orbitals || (opts.bond_orders && nalpha != nbeta);
         let lowest = self.params.occupied_orbitals_only && !all_orbitals;
-        // the orbitals with eigenvectors (the first kocc columns of `coeff`)
-        let mut kocc = nao;
-        let mut density = Mat::<f64>::zeros(nao, nao);
-        let mut emo = vec![0.0; nao];
-        let mut focc = vec![0.0; nao];
-        let mut occ_a = vec![0.0; nao];
-        let mut occ_b = vec![0.0; nao];
-        let mut efermi = [None, None];
-        let mut pot =
-            Potential { vat: vec![0.0; nat], vsh: vec![0.0; nsh], vdp: vec![[0.0; 3]; nat], vqp: vec![[0.0; 6]; nat] };
-        let mut vao = vec![0.0; nao];
-        let mut eelec = vec![0.0; nat];
-        let mut vsh_out = vec![0.0; nsh];
-        // the output moments in the mixer's layout
-        let mut packed_out = vec![0.0; ndim];
-        let mut converged = false;
-        let mut iscf = 0;
-        // xtb 6.7.1: the moments of the last iteration's input and as mixed after it
-        type Moments = (Vec<f64>, Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>);
-        let unpack = |q: &[f64]| -> Moments {
-            let mut m: Moments = (vec![0.0; nsh], vec![0.0; nat], vec![[0.0; 3]; nat], vec![[0.0; 6]; nat]);
-            vars.unpack(q, &mut m.0, &mut m.2, &mut m.3, None);
-            qat_from_qsh(bas, &m.0, &mut m.1);
-            m
+        let mut scf = Gfn2Scf {
+            xtb: self,
+            mol,
+            extra,
+            geo,
+            ints,
+            neglect,
+            solver,
+            vars,
+            n0sh,
+            efixed,
+            nalpha,
+            nbeta,
+            kt,
+            etemp: opts.etemp,
+            lowest,
+            parallel,
+            par,
+            trace: opts.trace,
+            fock: Mat::zeros(nao, nao),
+            work: Mat::zeros(nao, nao),
+            coeff: Mat::zeros(nao, nao),
+            kocc: nao,
+            density: Mat::zeros(nao, nao),
+            emo: vec![0.0; nao],
+            focc: vec![0.0; nao],
+            occ_a: vec![0.0; nao],
+            occ_b: vec![0.0; nao],
+            efermi: [None, None],
+            ts: 0.0,
+            pot: Potential {
+                vat: vec![0.0; nat],
+                vsh: vec![0.0; nsh],
+                vdp: vec![[0.0; 3]; nat],
+                vqp: vec![[0.0; 6]; nat],
+            },
+            vao: vec![0.0; nao],
+            eelec: vec![0.0; nat],
+            vsh_out: vec![0.0; nsh],
+            terms: EnergyTerms::default(),
+            failure: None,
         };
-        let mut xtb_moments: Option<(Moments, Moments)> = None;
-        let (mut de_last, mut pnorm) = (0.0, 0.0);
 
-        // one attempt per mixer of the plan (auto: Broyden, then DIIS from the initial guess)
+        // one SCF per mixer of the plan (auto: Broyden, then DIIS from the initial guess)
         let mut plan = MixerPlan::new(kind);
         let mixers = plan.mixers();
-        let start = (qsh.clone(), qat.clone(), dpat.clone(), qpat.clone());
+        let mut start = Some(start);
+        // the converged moments, and xtb's moments of the gradient besides them
+        let mut result: Option<(Moments, Option<(Moments, Moments)>)> = None;
+        let (mut iscf, mut de_last, mut pnorm) = (0, 0.0, 0.0);
         for (ia, &mk) in mixers.iter().enumerate() {
             let last_attempt = ia + 1 == mixers.len();
             if ia > 0 {
-                solver.restart();
-                qsh.copy_from_slice(&start.0);
-                qat.copy_from_slice(&start.1);
-                dpat.copy_from_slice(&start.2);
-                qpat.copy_from_slice(&start.3);
-                eelec.iter_mut().for_each(|x| *x = 0.0);
-                iscf = 0;
-                (de_last, pnorm) = (0.0, 0.0);
+                scf.restart();
             }
+            let st = if last_attempt { start.take() } else { start.clone() }.expect("the start of every attempt");
             let mut mixer = mk.mixer(ndim, opts.max_iter, opts.damping);
             // the conventions' test: the residual norm (xtb 6.7.1: per atom) and xtb 6.7.1's
             // extra iteration (`ConventionParams::scc_residual`, `scc_extra_iteration`)
             let mut rule = XtbRule::new(&self.params, acc, nat, has_mp);
-            let mut stop = false;
-            while !stop && iscf < opts.max_iter {
-                let elast: f64 = eelec.iter().sum();
-                if iscf > 0 {
-                    if !mixer.next() {
-                        if last_attempt {
-                            let name = if mk == MixerKind::Broyden { "Broyden" } else { "DIIS" };
-                            return Err(Error::Numerical(format!("{name} mixing failed")));
-                        }
-                        break;
-                    }
-                    // (without multipoles the dipoles and quadrupoles stay zero, as the
-                    // Mulliken analysis left them)
-                    vars.unpack(mixer.input(), &mut qsh, &mut dpat, &mut qpat, None);
-                    qat_from_qsh(bas, &qsh, &mut qat);
+            let strategy = ScfStrategy {
+                accelerator: Accelerator::Moments(&mut *mixer),
+                rule: &mut rule,
+                max_iter: opts.max_iter,
+            };
+            let out = run_scf(&mut scf, strategy, st, &mut timer)?;
+            // a failed mixer or a lost Fermi level ends the last attempt with its error; an
+            // earlier attempt gives way to the next mixer, which starts from the initial guess
+            // again and reports the failure if it hits it too
+            match out.stop {
+                Stop::MixerFailed if last_attempt => {
+                    let name = if mk == MixerKind::Broyden { "Broyden" } else { "DIIS" };
+                    return Err(Error::Numerical(format!("{name} mixing failed")));
                 }
-                iscf += 1;
-
-                // potential from the input moments
-                self.potentials(mol, extra, &geo, &qsh, &qat, &dpat, &qpat, &mut pot, parallel);
-                timer.lap("scf: potentials");
-                for mu in 0..nao {
-                    vao[mu] = pot.vsh[bas.ao2sh[mu]] + pot.vat[bas.ao2at[mu]];
+                Stop::Model if last_attempt => {
+                    return Err(scf.failure.take().expect("a stopped GFN2-xTB SCF says why"));
                 }
-                fock::from_potentials(bas, &ints, &vao, &pot.vdp, &pot.vqp, &mut work, &mut fock, parallel);
-                if let Some(ng) = &neglect {
-                    ng.apply(mol, &pot.vdp, &pot.vqp, &mut fock);
-                }
-                if (0..nao).any(|j| fock.col_as_slice(j).iter().any(|x| !x.is_finite())) {
-                    return Err(Error::Numerical(format!("non-finite Fock matrix in SCF iteration {iscf}")));
-                }
-                timer.lap("scf: fock");
-
-                vars.pack(&qsh, &dpat, &qpat, None, mixer.input_mut());
-
-                // new density
-                if lowest {
-                    // the orbitals with occupation above the cutoff (from the eigenvalues)
-                    kocc = solver.solve_lowest(fock.as_ref(), &mut emo, &mut coeff, |e| {
-                        let (mut a, mut b) = (vec![0.0; e.len()], vec![0.0; e.len()]);
-                        occupations::fill_tblite(nalpha, kt, e, &mut a, Newton::XTB680);
-                        occupations::fill_tblite(nbeta, kt, e, &mut b, Newton::XTB680);
-                        (0..e.len()).rposition(|i| a[i] + b[i] > OCCUPATION_CUTOFF).map_or(0, |i| i + 1)
-                    })?;
-                } else {
-                    solver.solve(fock.as_ref(), &mut emo, &mut coeff)?;
-                }
-                // tblite's Fermi filling (xtb 6.8.0's `fermismear`) in every convention
-                efermi[0] = occupations::fill_tblite(nalpha, kt, &emo, &mut occ_a, Newton::XTB680);
-                efermi[1] = occupations::fill_tblite(nbeta, kt, &emo, &mut occ_b, Newton::XTB680);
-                // The Newton search for the Fermi level stops after 200 steps or when no orbital
-                // is fractionally occupied at the trial level; a guard against occupations that
-                // do not add up to the electrons (fractional electron counts, where this used
-                // to happen, are input errors).
-                // (an earlier attempt that gets here gives way to the next mixer, which starts
-                // from the initial guess again and reports the failure if it hits it too)
-                let mut fermi_failure = None;
-                for (n, occ) in [(nalpha, &occ_a), (nbeta, &occ_b)] {
-                    let placed: f64 = occ.iter().sum();
-                    if (placed - n).abs() > 1e-6 && fermi_failure.is_none() {
-                        fermi_failure = Some(Error::Numerical(format!(
-                            "Fermi level not found: {placed} of {n} electrons of one spin placed at {} K",
-                            opts.etemp
-                        )));
-                    }
-                }
-                if let Some(e) = fermi_failure {
-                    if last_attempt {
-                        return Err(e);
-                    }
-                    break;
-                }
-                let ts = occupations::entropy_tblite(&occ_a, kt) + occupations::entropy_tblite(&occ_b, kt);
-                for i in 0..nao {
-                    focc[i] = occ_a[i] + occ_b[i];
-                }
-                timer.lap("scf: diagonalization");
-                // the axtb conventions: the lower triangle alone (the xtb and tblite conventions
-                // keep the full product, bit for bit)
-                let outer = if self.params.occupied_orbitals_only { weighted_outer_sym } else { weighted_outer };
-                outer(coeff.as_ref(), &focc[..kocc], &mut density, par);
-                timer.lap("scf: density");
-
-                // output moments
-                mulliken::moments(bas, &ints, &density, &n0sh, &mut qsh, &mut dpat, &mut qpat, has_mp, parallel);
-                qat_from_qsh(bas, &qsh, &mut qat);
-                timer.lap("scf: mulliken");
-                vars.pack(&qsh, &dpat, &qpat, None, &mut packed_out);
-                mixer.set_residual(&packed_out);
-
-                // energy with the output moments
-                eelec.iter_mut().for_each(|x| *x = 0.0);
-                // γ q of the output charges: the second-order energy, distributed over the atoms
-                // of the shells
-                gamma_rows(gamma, &qsh, &mut vsh_out, parallel);
-                terms.isotropic_es = 0.5 * (0..nsh).fold(0.0, |e, a| e + qsh[a] * vsh_out[a]);
-                for a in 0..nsh {
-                    eelec[bas.sh2at[a]] += 0.5 * qsh[a] * vsh_out[a];
-                }
-                let mut e3 = vec![0.0; nat];
-                if let Some(es3) = &self.es3 {
-                    es3.energy(mol, &bas.ish_at, &qsh, &mut e3);
-                }
-                terms.third_order = e3.iter().sum();
-                let mut eaes = vec![0.0; nat];
-                if let (Some(aes), Some(c)) = (&self.aes2, mp_cache) {
-                    aes.energy(mol, c, &qat, &dpat, &qpat, &mut eaes, parallel);
-                }
-                terms.anisotropic = eaes.iter().sum();
-                let mut edsc = vec![0.0; nat];
-                terms.dispersion = 0.0;
-                terms.solvation = 0.0;
-                for (k, (t, c)) in extra.iter().zip(caches).enumerate() {
-                    let mut e = vec![0.0; nat];
-                    t.energy(mol, c.as_ref(), &qat, &mut e, parallel);
-                    let total = efixed[k] + e.iter().sum::<f64>();
-                    match t.name() {
-                        "dispersion" => terms.dispersion += total,
-                        _ => terms.solvation += total,
-                    }
-                    for i in 0..nat {
-                        edsc[i] += e[i];
-                    }
-                }
-                terms.entropy = ts;
-                for i in 0..nat {
-                    eelec[i] += e3[i] + eaes[i] + edsc[i] + ts / nat as f64;
-                }
-                let eh0 = |nu: usize| dot(ints.h0.col_as_slice(nu), density.col_as_slice(nu));
-                let eh0 = threads::map_with_min_len(nao, parallel, 16, eh0);
-                for (nu, e) in eh0.into_iter().enumerate() {
-                    eelec[bas.ao2at[nu]] += e;
-                }
-
-                let eiter: f64 = eelec.iter().sum();
-                if !eiter.is_finite() {
-                    return Err(Error::Numerical(format!("non-finite energy in SCF iteration {iscf}")));
-                }
-                de_last = eiter - elast;
-                pnorm = rule.residual_norm(mixer.residual());
-                let it = Iteration {
-                    iteration: iscf,
-                    energy: eiter,
-                    energy_change: de_last,
-                    residual: pnorm,
-                    density_change: f64::NAN,
-                };
-                stop = rule.update(&it) == Verdict::Done;
-                if opts.trace {
-                    eprintln!("scf {iscf:4} E {eiter:.12} dE {de_last:.3e} res {pnorm:.3e}");
-                }
-                timer.lap("scf: energy+mixing");
+                _ => {}
             }
-            converged = rule.converged();
-            plan.record(ScfAttempt { mixer: mk, iterations: iscf, converged });
-            if converged {
+            (iscf, de_last, pnorm) = (out.iterations, out.last.energy_change, out.last.residual);
+            plan.record(ScfAttempt { mixer: mk, iterations: iscf, converged: out.converged });
+            if out.converged {
                 // the moments of the gradient besides the output moments
                 // (`ConventionParams::scc_gradient`): the last iteration's input, and xtb 6.7.1's
                 // moments as mixed once more after the last iteration
-                let input = unpack(mixer.input());
-                match self.params.scc_gradient {
-                    SccGradient::Output => {}
-                    SccGradient::OutputAes => {
-                        let mut out: Moments = (qsh.clone(), vec![0.0; nat], dpat.clone(), qpat.clone());
-                        qat_from_qsh(bas, &out.0, &mut out.1);
-                        xtb_moments = Some((input, out));
-                    }
-                    SccGradient::Mixed => {
-                        if mixer.next() {
-                            xtb_moments = Some((input, unpack(mixer.input())));
-                        }
-                    }
-                }
+                let input = scf.moments(mixer.input());
+                let xtb_moments = match self.params.scc_gradient {
+                    SccGradient::Output => None,
+                    SccGradient::OutputAes => Some((input, out.state.clone())),
+                    SccGradient::Mixed => mixer.next().then(|| (input, scf.moments(mixer.input()))),
+                };
+                result = Some((out.state, xtb_moments));
                 break;
             }
         }
-        if !converged {
+        let Some((Moments { qsh, qat, dpat, qpat }, xtb_moments)) = result else {
             return Err(Error::ScfNotConverged {
                 iterations: plan.iterations(),
                 energy_change: de_last,
                 residual: pnorm,
             });
-        }
+        };
         let mixer_used = plan.used();
+        let Gfn2Scf {
+            geo,
+            ints,
+            solver,
+            coeff,
+            kocc,
+            density,
+            emo,
+            focc,
+            occ_a,
+            occ_b,
+            efermi,
+            pot,
+            eelec,
+            mut terms,
+            ..
+        } = scf;
+        terms.repulsion = erep.iter().sum();
+        let mp_cache = &geo.mp_cache;
         for i in 0..nat {
             energies[i] += eelec[i];
         }
@@ -882,13 +766,23 @@ impl XtbModel {
                     if let (Some(aes), Some(c)) = (&self.aes2, mp_cache) {
                         let (mut v_in, mut v_mixed) = (vec![0.0; nat], vec![0.0; nat]);
                         let (mut d0, mut q0) = (vec![[0.0; 3]; nat], vec![[0.0; 6]; nat]);
-                        aes.potential(mol, c, &input.1, &input.2, &input.3, &mut v_in, &mut d0, &mut q0, parallel);
                         aes.potential(
                             mol,
                             c,
-                            &mixed.1,
-                            &mixed.2,
-                            &mixed.3,
+                            &input.qat,
+                            &input.dpat,
+                            &input.qpat,
+                            &mut v_in,
+                            &mut d0,
+                            &mut q0,
+                            parallel,
+                        );
+                        aes.potential(
+                            mol,
+                            c,
+                            &mixed.qat,
+                            &mixed.dpat,
+                            &mixed.qpat,
                             &mut v_mixed,
                             &mut pg.vdp,
                             &mut pg.vqp,
@@ -902,7 +796,18 @@ impl XtbModel {
                         pg.vqp.clone_from(&pot.vqp);
                     }
                     self.add_scc_gradient(
-                        mol, extra, &geo, &density, &wdensity, &mixed.0, &mixed.1, &mixed.2, &mixed.3, &pg, g, parallel,
+                        mol,
+                        extra,
+                        &geo,
+                        &density,
+                        &wdensity,
+                        &mixed.qsh,
+                        &mixed.qat,
+                        &mixed.dpat,
+                        &mixed.qpat,
+                        &pg,
+                        g,
+                        parallel,
                     );
                 }
                 None => self.add_scc_gradient(
@@ -1013,6 +918,267 @@ impl XtbModel {
             },
             state,
         ))
+    }
+}
+
+/// The SCC moments of an SCF iteration (GFN2-xTB's SCF state): shell charges, atomic charges,
+/// atomic dipoles and quadrupoles.
+#[derive(Clone, Debug)]
+pub(crate) struct Moments {
+    pub qsh: Vec<f64>,
+    pub qat: Vec<f64>,
+    pub dpat: Vec<[f64; 3]>,
+    pub qpat: Vec<[f64; 6]>,
+}
+
+/// One GFN2-xTB SCF of [`XtbModel::singlepoint_state`] as the core's SCF model: the Fock
+/// matrix of the mixed input moments, all or only the occupied eigenpairs, tblite's Fermi
+/// filling, the density, its Mulliken moments and their energy; the moments are mixed as the
+/// vector of [`ScfVariables`].
+struct Gfn2Scf<'a> {
+    xtb: &'a XtbModel,
+    mol: &'a Molecule,
+    extra: &'a [&'a dyn ChargeDependentTerm],
+    geo: Geometry,
+    ints: Integrals,
+    neglect: Option<MultipoleNeglect>,
+    solver: GenEigSolver,
+    vars: ScfVariables,
+    /// Reference shell occupations; charge-independent energies of the extra terms.
+    n0sh: Vec<f64>,
+    efixed: Vec<f64>,
+    nalpha: f64,
+    nbeta: f64,
+    /// kT (Eh) of the Fermi filling, and the temperature (K) for the error message.
+    kt: f64,
+    etemp: f64,
+    /// Eigenvectors of the occupied orbitals only.
+    lowest: bool,
+    parallel: bool,
+    par: Par,
+    trace: bool,
+    fock: Mat<f64>,
+    work: Mat<f64>,
+    /// The orbitals of the last iteration: the first `kocc` columns of `coeff` have
+    /// eigenvectors.
+    coeff: Mat<f64>,
+    kocc: usize,
+    density: Mat<f64>,
+    emo: Vec<f64>,
+    focc: Vec<f64>,
+    occ_a: Vec<f64>,
+    occ_b: Vec<f64>,
+    efermi: [Option<f64>; 2],
+    /// Entropy term -TS of the last occupations.
+    ts: f64,
+    /// Potential of the last Fock matrix.
+    pot: Potential,
+    vao: Vec<f64>,
+    /// Electronic energy per atom and the SCF terms of the last iteration.
+    eelec: Vec<f64>,
+    vsh_out: Vec<f64>,
+    terms: EnergyTerms,
+    /// Why the last diagonalization broke off the SCF.
+    failure: Option<Error>,
+}
+
+impl Gfn2Scf<'_> {
+    /// Ready for another SCF with the same overlap (the next attempt of the plan).
+    fn restart(&mut self) {
+        self.solver.restart();
+        self.eelec.iter_mut().for_each(|x| *x = 0.0);
+    }
+
+    /// The moments of the vector `v` (in the layout of `vars`).
+    fn moments(&self, v: &[f64]) -> Moments {
+        let (nsh, nat) = (self.xtb.basis.nsh, self.mol.nat());
+        let mut m =
+            Moments { qsh: vec![0.0; nsh], qat: vec![0.0; nat], dpat: vec![[0.0; 3]; nat], qpat: vec![[0.0; 6]; nat] };
+        self.unpack(v, &mut m);
+        m
+    }
+}
+
+impl ScfModel for Gfn2Scf<'_> {
+    type State = Moments;
+
+    fn vector_len(&self) -> usize {
+        self.vars.dim()
+    }
+
+    fn pack(&self, m: &Moments, v: &mut [f64]) {
+        self.vars.pack(&m.qsh, &m.dpat, &m.qpat, None, v);
+    }
+
+    fn unpack(&self, v: &[f64], m: &mut Moments) {
+        // (without multipoles the dipoles and quadrupoles stay zero, as the Mulliken analysis
+        // left them)
+        self.vars.unpack(v, &mut m.qsh, &mut m.dpat, &mut m.qpat, None);
+        qat_from_qsh(&self.xtb.basis, &m.qsh, &mut m.qat);
+    }
+
+    fn build_fock(&mut self, iter: usize, m: &Moments, laps: &mut Laps) -> Result<()> {
+        let bas = &self.xtb.basis;
+        let geo = &self.geo;
+        self.xtb.potentials(self.mol, self.extra, geo, &m.qsh, &m.qat, &m.dpat, &m.qpat, &mut self.pot, self.parallel);
+        laps.lap("scf: potentials");
+        let pot = &self.pot;
+        for mu in 0..bas.nao {
+            self.vao[mu] = pot.vsh[bas.ao2sh[mu]] + pot.vat[bas.ao2at[mu]];
+        }
+        fock::from_potentials(
+            bas,
+            &self.ints,
+            &self.vao,
+            &pot.vdp,
+            &pot.vqp,
+            &mut self.work,
+            &mut self.fock,
+            self.parallel,
+        );
+        if let Some(ng) = &self.neglect {
+            ng.apply(self.mol, &pot.vdp, &pot.vqp, &mut self.fock);
+        }
+        if (0..bas.nao).any(|j| self.fock.col_as_slice(j).iter().any(|x| !x.is_finite())) {
+            return Err(Error::Numerical(format!("non-finite Fock matrix in SCF iteration {iter}")));
+        }
+        laps.lap("scf: fock");
+        Ok(())
+    }
+
+    fn diagonalize(&mut self, _fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+        let (nalpha, nbeta, kt) = (self.nalpha, self.nbeta, self.kt);
+        if self.lowest {
+            // the orbitals with occupation above the cutoff (from the eigenvalues)
+            self.kocc = self.solver.solve_lowest(self.fock.as_ref(), &mut self.emo, &mut self.coeff, |e| {
+                let (mut a, mut b) = (vec![0.0; e.len()], vec![0.0; e.len()]);
+                occupations::fill_tblite(nalpha, kt, e, &mut a, Newton::XTB680);
+                occupations::fill_tblite(nbeta, kt, e, &mut b, Newton::XTB680);
+                (0..e.len()).rposition(|i| a[i] + b[i] > OCCUPATION_CUTOFF).map_or(0, |i| i + 1)
+            })?;
+        } else {
+            self.solver.solve(self.fock.as_ref(), &mut self.emo, &mut self.coeff)?;
+        }
+        // tblite's Fermi filling (xtb 6.8.0's `fermismear`) in every convention
+        self.efermi[0] = occupations::fill_tblite(nalpha, kt, &self.emo, &mut self.occ_a, Newton::XTB680);
+        self.efermi[1] = occupations::fill_tblite(nbeta, kt, &self.emo, &mut self.occ_b, Newton::XTB680);
+        // The Newton search for the Fermi level stops after 200 steps or when no orbital
+        // is fractionally occupied at the trial level; a guard against occupations that
+        // do not add up to the electrons (fractional electron counts, where this used
+        // to happen, are input errors).
+        for (n, occ) in [(nalpha, &self.occ_a), (nbeta, &self.occ_b)] {
+            let placed: f64 = occ.iter().sum();
+            if (placed - n).abs() > 1e-6 {
+                self.failure = Some(Error::Numerical(format!(
+                    "Fermi level not found: {placed} of {n} electrons of one spin placed at {} K",
+                    self.etemp
+                )));
+                return Ok(ControlFlow::Break(()));
+            }
+        }
+        self.ts = occupations::entropy_tblite(&self.occ_a, kt) + occupations::entropy_tblite(&self.occ_b, kt);
+        for i in 0..self.focc.len() {
+            self.focc[i] = self.occ_a[i] + self.occ_b[i];
+        }
+        Ok(ControlFlow::Continue(()))
+    }
+
+    fn density(&mut self) {
+        // the axtb conventions: the lower triangle alone (the xtb and tblite conventions keep
+        // the full product, bit for bit)
+        let outer = if self.xtb.params.occupied_orbitals_only { weighted_outer_sym } else { weighted_outer };
+        outer(self.coeff.as_ref(), &self.focc[..self.kocc], &mut self.density, self.par);
+    }
+
+    fn update_state(&mut self, m: &mut Moments) {
+        let bas = &self.xtb.basis;
+        let has_mp = self.xtb.aes2.is_some();
+        mulliken::moments(
+            bas,
+            &self.ints,
+            &self.density,
+            &self.n0sh,
+            &mut m.qsh,
+            &mut m.dpat,
+            &mut m.qpat,
+            has_mp,
+            self.parallel,
+        );
+        qat_from_qsh(bas, &m.qsh, &mut m.qat);
+    }
+
+    /// The energy of the output moments.
+    fn evaluate(
+        &mut self,
+        iter: usize,
+        m: &Moments,
+        _fock: bool,
+        _laps: &mut Laps,
+    ) -> Result<(f64, Option<Vec<Vec<f64>>>)> {
+        let (xtb, mol, parallel) = (self.xtb, self.mol, self.parallel);
+        let bas = &xtb.basis;
+        let (nat, nsh, nao) = (mol.nat(), bas.nsh, bas.nao);
+        let (qsh, qat) = (&m.qsh, &m.qat);
+        let terms = &mut self.terms;
+        let eelec = &mut self.eelec;
+        eelec.iter_mut().for_each(|x| *x = 0.0);
+        // γ q of the output charges: the second-order energy, distributed over the atoms of
+        // the shells
+        gamma_rows(&self.geo.gamma, qsh, &mut self.vsh_out, parallel);
+        let vsh_out = &self.vsh_out;
+        terms.isotropic_es = 0.5 * (0..nsh).fold(0.0, |e, a| e + qsh[a] * vsh_out[a]);
+        for a in 0..nsh {
+            eelec[bas.sh2at[a]] += 0.5 * qsh[a] * vsh_out[a];
+        }
+        let mut e3 = vec![0.0; nat];
+        if let Some(es3) = &xtb.es3 {
+            es3.energy(mol, &bas.ish_at, qsh, &mut e3);
+        }
+        terms.third_order = e3.iter().sum();
+        let mut eaes = vec![0.0; nat];
+        if let (Some(aes), Some(c)) = (&xtb.aes2, &self.geo.mp_cache) {
+            aes.energy(mol, c, qat, &m.dpat, &m.qpat, &mut eaes, parallel);
+        }
+        terms.anisotropic = eaes.iter().sum();
+        let mut edsc = vec![0.0; nat];
+        terms.dispersion = 0.0;
+        terms.solvation = 0.0;
+        for (k, (t, c)) in self.extra.iter().zip(&self.geo.caches).enumerate() {
+            let mut e = vec![0.0; nat];
+            t.energy(mol, c.as_ref(), qat, &mut e, parallel);
+            let total = self.efixed[k] + e.iter().sum::<f64>();
+            match t.name() {
+                "dispersion" => terms.dispersion += total,
+                _ => terms.solvation += total,
+            }
+            for i in 0..nat {
+                edsc[i] += e[i];
+            }
+        }
+        let ts = self.ts;
+        terms.entropy = ts;
+        for i in 0..nat {
+            eelec[i] += e3[i] + eaes[i] + edsc[i] + ts / nat as f64;
+        }
+        let (h0, density) = (&self.ints.h0, &self.density);
+        let eh0 = |nu: usize| dot(h0.col_as_slice(nu), density.col_as_slice(nu));
+        let eh0 = threads::map_with_min_len(nao, parallel, 16, eh0);
+        for (nu, e) in eh0.into_iter().enumerate() {
+            eelec[bas.ao2at[nu]] += e;
+        }
+
+        let energy: f64 = eelec.iter().sum();
+        if !energy.is_finite() {
+            return Err(Error::Numerical(format!("non-finite energy in SCF iteration {iter}")));
+        }
+        Ok((energy, None))
+    }
+
+    fn record(&mut self, it: &Iteration) {
+        if self.trace {
+            let (i, e, de, res) = (it.iteration, it.energy, it.energy_change, it.residual);
+            eprintln!("scf {i:4} E {e:.12} dE {de:.3e} res {res:.3e}");
+        }
     }
 }
 
