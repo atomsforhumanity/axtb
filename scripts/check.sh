@@ -179,6 +179,7 @@ GATES=(
   "gxtb-energy-differences|-|tests/gxtb_energy_differences.py --out \$OUT/gxtb_energy_differences.json"
   "gxtb-elements|AXTB_GXTB2/AXTB_GXTB11_DIR|tests/gxtb_elements.py --jobs \$JOBS --out \$OUT/gxtb_elements.json"
   "gxtb-parity|AXTB_GXTB2/AXTB_XTB680/AXTB_XTB671/AXTB_GXTB11_DIR|tests/gxtb_parity_features.py --only properties,restart --out \$OUT/gxtb_parity_features.json"
+  "gxtb-broken-symmetry|-|tests/gxtb_broken_symmetry.py --only h2,bonds,equilibrium,fd --out \$OUT/gxtb_broken_symmetry.json"
   "solvation-composite|AXTB_GXTB2|tests/solvation_composite.py --repeat 1 --out \$OUT/solvation_composite.json"
   "molden|AXTB_GXTB2/AXTB_GXTB11_DIR|tests/molden_check.py --out \$OUT/molden.json"
   "ts-example|-|bench/ts_example.py"

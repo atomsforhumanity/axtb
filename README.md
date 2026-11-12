@@ -224,6 +224,7 @@ stderr, exit code 2. Warnings go to stderr: more than 8 threads for one SCF sing
 | `alpb`, `gbsa`, `solvation_state` | `--alpb S`, `--gbsa S`, `--solvation-state R` | implicit solvent and its reference state (`gsolv`, `bar1M`, `reference`) |
 | `solvation_correction`, `correction_conventions` | `--solvation-correction gfn2`, `--correction-conventions C` | g-xTB in solvent, see [g-xTB in implicit solvent](#g-xtb-in-implicit-solvent) |
 | `guess` | — | where a calculator's SCFs start, see [Restarts](#restarts-the-previous-geometrys-wavefunction) |
+| `broken_symmetry` | `--broken-symmetry` | g-xTB singlets: the broken-symmetry unrestricted solution where it lies lower, see [Broken-symmetry singlets](#broken-symmetry-singlets-an-axtb-extension) |
 | `fragment_charges`, `topology_positions` | `--frag-charges Q1,Q2`, `--topology-ref ref.xyz` | GFN-FF, see [GFN-FF](#gfn-ff) |
 | `gradient` | `--grad` | the gradient |
 | `hessian`, `hessian_method`, `hessian_step`, `hessian_accuracy` | `--hess`, `--hess-method M`, `--hess-step H`, `--hess-acc X` | the Hessian, see [Hessians](#hessians) |
@@ -244,6 +245,7 @@ The response, for every front end (a field is present when it applies):
 | `hessian`, `hessian_method`, `hessian_max_asymmetry`, `hessian_timings`, `dipole_derivatives` | Hessian |
 | `vibrational_conventions`, `frequencies`, `normal_modes`, `reduced_masses`, `force_constants`, `ir_intensities`, `n_imaginary`, `linear`, `masses`, `thermo` | vibrational analysis |
 | `composite`, `components`, `parts`, `hessian_parts` | g-xTB in solvent |
+| `broken_symmetry` | g-xTB with `broken_symmetry` |
 
 ## Design rules
 
@@ -565,8 +567,8 @@ g-xTB v1.1: `method="gxtb-v1.1"` in Python and qccodec, `--method gxtb-v1.1` in 
 `axtb::SinglePoint`): energies, analytic gradients, semi-numerical Hessians. It uses the
 g-xTB 1.1.0 program's SCF (thresholds, start density, mixing; the CLI reads XYZ files with
 the program's Ångström factor), accepts `accuracy` (multiplier of the program's SCF
-thresholds), `etemp` (Fermi smearing, see below), `max_iter`, `threads` and `conventions`, and
-rejects the GFN2-only settings.
+thresholds), `etemp` (Fermi smearing, see below), `max_iter`, `threads`, `conventions` and
+`broken_symmetry` (see below), and rejects the GFN2-only settings.
 As for GFN2, the default is corrected and a mode reproduces the program exactly:
 `conventions="axtb"` (default) diagonalizes the exact derivative of the energy, so the SCF
 is stationary; `conventions="gxtb"` uses the program's Fock matrix (it leaves out two
@@ -611,6 +613,46 @@ iterations with their scale, and computes only the lowest N_α + 10 orbitals (th
 empty). `conventions="axtb"` uses the exact Fermi level and CODATA 2022 kB (9.4e-7 of −TS
 apart from the programs' kB: ≤ 3e-11 Eh unless −TS > 1e-4 Eh, at most 4.5e-8 Eh, EuCl3 at
 5000 K). The agreement with the programs at 300-5000 K is in docs/validation.md.
+
+### Broken-symmetry singlets (an axtb extension)
+
+Both g-xTB programs run a molecule without unpaired electrons with one set of orbitals, so a
+bond that breaks into two radicals on the singlet surface never reaches the radical pair: H₂ at
+3 Å lies 58 kcal/mol above the triplet, in the 2.0.1 program as in axtb. `broken_symmetry=True`
+(CLI `--broken-symmetry`, JSON `"broken_symmetry": true`, qccodec keyword, Rust
+`ScfOptions::broken_symmetry`) runs such a singlet unrestricted where that lowers the energy:
+
+1. the restricted SCF converges, as without the setting;
+2. its HOMO and LUMO are mixed, +45° for the α and −45° for the β electrons (one pair for each
+   orbital of the smaller degenerate frontier set), and an unrestricted SCF (two spin channels,
+   N_α = N_β) starts from that determinant;
+3. the unrestricted solution is the result if it lies more than 1e-6 Eh below the restricted
+   one; otherwise the restricted one is, the same as without the setting.
+
+- **Results.** The response's `broken_symmetry` says which solution it is: `broken`, `outcome`
+  (`broken`, `not-lower`, `collapsed`, `not-converged`, `no-frontier`), ⟨S²⟩ of the result
+  (`s2`, S_z(S_z + 1) + N_β − tr(P^α S P^β S)), both solutions' energies and every SCF of the
+  geometry (`scfs`). Gradients and Hessians (2.0.1 analytic and response, numerical for both
+  versions) are those of the returned solution.
+- **Restarts.** A calculator whose last result is unrestricted starts the next geometry's
+  unrestricted SCF from it, so a step along a path or an optimization costs one SCF. If its ⟨S²⟩
+  falls below 0.05, the restricted solution and a new HOMO–LUMO start are computed too, and the
+  lowest is kept.
+- **Cost.** A restricted result (every closed-shell molecule near its minimum) runs both SCFs at
+  every geometry: about 2.3 times the time of a restricted single point (taxol, one thread).
+- **Fallback.** When the restricted SCF of a fresh start does not converge, which stretched
+  bonds make likely, the orbitals of a restricted SCF at 1000 K (then 3000 K) make the start
+  (`start_etemp`).
+- **Where.** Both g-xTB versions, and the g-xTB part of the solvation composite (the GFN2-xTB
+  halves stay restricted). It is an input error for GFN2-xTB (no spin-dependent term: its
+  unrestricted singlet is the restricted one), GFN-FF (no electrons), `uhf` > 0 or an odd
+  electron count, and `conventions="gxtb"`, which promises the programs' results.
+
+**Caveat.** g-xTB was fitted on restricted singlets, and a broken-symmetry energy mixes singlet
+and triplet character (⟨S²⟩ ≈ 1 for two separated radicals): it describes the radical pair, not
+a pure singlet. H₂ at 3 Å lies 1.7 kcal/mol below the 2.0.1 triplet (v1.1: 1.2); the five bonds
+of issue #9 level off at their triplet energies, 0–8 kcal/mol above the UKS reference
+(docs/validation.md, "Broken-symmetry singlets").
 
 ## g-xTB in implicit solvent
 
@@ -913,6 +955,7 @@ limit, and `scripts/check.sh list` prints them all.
 | `gxtb-reproduction`, `gxtb2-reproduction`, `gxtb-etemp`, `gxtb-energy-differences` | nothing (committed program outputs) | g-xTB v1.1 and 2.0.1 in both conventions | v1.1 energies > 1e-11 Eh; 2.0.1 energies > 2.1e-12 Eh ((H2O)100 9.1e-12), terms, gradients and default conventions beyond the spec's tables, other iterations; at 300-5000 K as the spec (rounding-sensitive runs known); energy differences moved by the default conventions > 1.1e-5 Eh (v1.1), 4e-11 Eh (2.0.1) |
 | `gxtb-elements` | the g-xTB build and/or the g-xTB 1.1.0 program | every element with parameters | a molecule is not `ok` and not one of the known ones (spec §5.1 and §12), energies of the `ok` ones > 2.8e-12 Eh (v1.1) / 4.9e-11 Eh (2.0.1), gradients > 2.3e-10 Eh/bohr (2.0.1) |
 | `gxtb-parity` | any of the four programs (each its own cases) | bond orders, gap, quadrupole, restarts | bond orders and gaps beyond docs/validation.md's table, quadrupoles beyond the printed digits, restarted energies > 4.3e-11 Eh or other iterations |
+| `gxtb-broken-symmetry` | nothing (the g-xTB build, if set, for the H₂ triplet) | broken-symmetry singlets: H₂, issue #9's bonds, closed shells near their minima, finite differences | at 3 Å H₂ more than 1.7 (v1.1 1.2) kcal/mol from the triplet; the bonds at r0 + 4 Å more than 0.02 kcal/mol from the triplet or still rising by more than 0.3 per Å; a closed shell near its minimum changed by more than 1e-12 Eh or Eh/bohr; gradients > 3e-10 Eh/bohr (v1.1 2e-8) and 2.0.1 analytic Hessians > 2e-9 Eh/bohr² from finite differences |
 | `solvation-composite` | the g-xTB build | g-xTB in implicit solvent vs the three programs | energies > 9.7e-11 Eh, gradients > 5.3e-10 Eh/bohr, the Hessian > 5.6e-8 Eh/bohr² from finite differences |
 | `molden` | the g-xTB build and/or the g-xTB 1.1.0 program | Molden files vs the programs' | orbitals, occupied space and orbital energies beyond docs/validation.md's table, axtb's files orthonormal to worse than 6e-11 |
 | `ts-example` | xtb's source (the g-xTB build for its `xtb --hess` row) | an SN2 saddle point with analytic Hessians | no saddle point, not one imaginary mode, frequencies of the other Hessians off the analytic one's (`xtb --hess` by more than 1 cm⁻¹) |

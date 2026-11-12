@@ -21,6 +21,7 @@ each needs. The optional cross-checks against the private mepd workflow run only
 | g-xTB v1.1 (public parameters) energies, analytic gradients and semi-numerical Hessians, also at a finite electronic temperature (`etemp`, the program's `-tel`), method `"gxtb-v1.1"` in Rust (`axtb_gxtb::Calculator::new(Version::V1_1, …)`), CLI, Python and qccodec | done (`crates/gxtb`, spec in `docs/gxtb-v1.1-spec.md`) | g-xTB 1.1.0 program (`conventions="gxtb"`): total energies of 41 molecules to ≤ 1e-11 Eh, same SCF iterations; its numerical gradients to ≤ 3e-11 Eh/bohr at equal step; gradients vs finite differences ≤ 6e-10 Eh/bohr; every element with parameters (79; 140 molecules, `tests/gxtb_elements.py`): 130 agree to ≤ 2.8e-12 Eh with the same iterations, 6 are rounding-sensitive (degenerate, partly filled sets: UF6, VCl4, UCl4, YbCl2), 4 differ in a printed term by ≤ 1.7e-8 Eh (far-pair Fock elements, spec §4.16) |
 | g-xTB 2.0.1 energies, analytic gradients and analytic (default), response and numerical Hessians, also at a finite electronic temperature (`etemp`, the program's `--etemp`), method `"gxtb-v2.0.1"` in Rust (`axtb_gxtb::Calculator::new(Version::V2_0_1, …)`, the default version), CLI, Python and qccodec | done (`crates/gxtb/src/v2`, decoded from the program: `docs/gxtb-v2.0.1-spec.md`; Hessians §11) | g-xTB 2.0.1 program (`conventions="gxtb"`), 84 molecules H–Lr (23 with lanthanides or actinides) incl. two longer than 50 bohr: total energies ≤ 2.1e-12 Eh (9.1e-12 for (H2O)100), same SCF iterations, per-term energies ≤ 9.1e-12 Eh except TbCl3 2.6e-11 (an orbital of a near-degenerate HOMO set carries the program's fractional electron count, so the terms of the last, unconverged density follow the round-off while the totals agree; spec §10); every element H–Lr (169 molecules, `tests/gxtb_elements.py`): 155 agree to ≤ 4.9e-11 Eh with the same iterations and gradients ≤ 2.3e-10 Eh/bohr (NdCl3 2.5e-9), 12 are rounding-sensitive (open f shells at symmetric geometries, degenerate sets), 2 hit a program gradient error for bonds along an axis (spec §4.18); its analytic gradients ≤ 2e-11 Eh/bohr (default) and ≤ 6e-11 (tight; CeCl3 4.0e-9: 45 iterations around seven near-degenerate f orbitals, where the summation order of the density alone moves it by up to 6e-8); default conventions vs finite differences ≤ 6e-10 Eh/bohr; analytic Hessians vs tight references ≤ 8e-9 Eh/bohr² (water, O2 triplet, caffeine, [Cu(NH3)4]2+, ferrocene, Ni(CO)4, UF6, GdCl3; taxol 8e-8), response ≤ 4e-8; taxol analytic Hessian 95.6 s (1 thread) / 19.8 s (8) on the laptop vs the program's `--hess --acc 0.001` 533 / 95.5 s (`bench/results/final-laptop/`; 64-core node: 53.9 / 8.8 s vs 445 / 60.2 s), whose frequencies are off by up to 1.1 cm⁻¹ (default `--acc 1`: 149 cm⁻¹; spec §11.5); analytic Hessian memory O(N²) (`bench/results/gxtb2_hessian.json`, node): taxol 145 MB on 1 thread, (H2O)100 1.0 GB and (H2O)200 4.2 GB on 8. After 0.1.1 the response terms take a symmetric form (default; spec §11.3): the Hessian equals that of the 0.1.x solve to ≤ 2.2e-11 Eh/bohr² (15 cases, frequencies ≤ 2.5e-7 cm⁻¹) in 1.33-1.37x less time for taxol and (H2O)100, and keeps 2 · 3N · n_occ · n_virt single-precision numbers (taxol +53 MB, (H2O)100 +0.67 GB; `bench/results/gxtb2_hessian_symmetric.json`, laptop) |
 | g-xTB in implicit solvent: the composite E_gxtb + [E_GFN2+ALPB/GBSA − E_GFN2] for energies, gradients and analytic Hessians in one process (`axtb_gxtb::CompositeCalculator`; `solvation_correction="gfn2"` in Python, CLI and qccodec) | done (`crates/gxtb/src/composite.rs`, see [g-xTB in implicit solvent](#g-xtb-in-implicit-solvent)) | the three xtb programs it replaces (`xtb --gxtb`, `xtb --alpb water`, `xtb`; `conventions="gxtb"`), 9 molecules incl. a charged species, an ion pair, a path image and two retry-ladder cases: energies ≤ 9.7e-11 Eh, gradients ≤ 5.3e-10 Eh/bohr, same retry rung; mepd's own `SolvationCorrection` ≤ 9.1e-12 Eh; analytic Hessian vs finite differences of the composite gradient ≤ 6e-8 Eh/bohr² |
+| Broken-symmetry unrestricted g-xTB singlets (`broken_symmetry`, an axtb extension; both versions and the composite's g-xTB part) | done (`crates/gxtb/src/broken_symmetry.rs`, see [Broken-symmetry singlets](#broken-symmetry-singlets)) | no program has it: H₂ at 3 Å 1.7 kcal/mol below the 2.0.1 triplet (restricted: 58.1 above); issue #9's five bond scans level off at their triplet energies (≤ 0.01 kcal/mol at r0 + 4 Å); 47 closed shells near their minima unchanged (energies identical, gradients ≤ 3.3e-16 Eh/bohr); gradients vs finite differences ≤ 3.2e-11 Eh/bohr (2.0.1; v1.1 ≤ 1.8e-8, as its restricted gradient), 2.0.1 analytic Hessians ≤ 9.2e-10 Eh/bohr² |
 | Molden files of the converged orbitals (all three methods; spherical or Cartesian functions; Rust, Python, CLI `--molden`, qccodec `molden` keyword) | done (`crates/axtb/src/molden.rs`, see [Molden files](#molden-files)) | the programs' own `molden.input` (`tests/molden_check.py`, 23 cases): same orbitals as g-xTB 2.0.1 (`xtb --gxtb --molden`; 1 − \|⟨axtb\|program⟩\| ≤ 1.1e-9 per orbital, orbital energies ≤ 3.3e-12 Eh, incl. UF6, GdCl3, CeCl3, ferrocene, [Cu(NH3)4]2+), g-xTB 1.1.0 (≤ 6e-11) and GFN2 `xtb --molden` (≤ 1e-10 at `--acc 1e-4`); every file reads back with orthonormal orbitals (≤ 6e-11) |
 | Vibrational analysis of any Hessian: harmonic frequencies, normal modes, reduced masses, IR intensities (dipole derivatives from the response: GFN2-xTB, g-xTB 2.0.1; from displaced dipoles for numerical Hessians), quasi-RRHO thermochemistry with xtb's options and point-group symmetry numbers; Rust (`axtb::vibrations`), Python (`Calculator.hessian`, `axtb.vibrational_analysis`), CLI `--hess`, qccodec (`freqs_wavenumber`, `normal_modes_cartesian`, `gibbs_free_energy`) | done (see [Vibrational analysis](#vibrational-analysis-and-thermochemistry)) | `xtb --hess` of xtb 6.8.0 and 6.7.1 (GFN2) and `xtb --gxtb --hess` on their own Hessians (`tests/vibrational_check.py`: caffeine, CO2, HCN, benzene, NH3, CH4, SN2 TS): frequencies ≤ 5e-5 cm⁻¹ (their 4 printed decimals), ZPVE, H(T), T·S, G(RRHO) and G ≤ 8e-11 Eh (6.8.0: ≤ 1.4e-10, the `hessian` file's 10 decimals; against 6.8.0's `xtb thermo` on that file 2.4e-13), same point groups and symmetry numbers; `xtb thermo` on axtb's g-xTB Hessians ≤ 8e-12 Eh; dipole derivatives vs finite differences ≤ 1e-7 e (analytic, response), ≤ 3e-7 e (numerical) |
 | GFN-FF energies, analytic gradients and analytic (default) or numerical Hessians with dipole derivatives; topology (bonds, hybridization, fragments, topology charges) set up once and kept fixed, or taken from a reference structure; method `"gfnff"` in Rust (`axtb_gfnff::Calculator`), CLI, Python and qccodec | done (`crates/gfnff`, mapping to xtb's Fortran in `docs/gfnff-spec.md`; see [GFN-FF](#gfn-ff)) | xtb 6.8.0 `--gfnff` (default and `xtb` conventions) and xtb 6.7.1 (`xtb-6.7.1`) on 269 structures each (H-Rn, charges -3...+3, metal complexes, zwitterions, HB/XB dimers, water clusters, crambin with H): topology identical (every list of xtb's `gfnff_topo`) except D5h ferrocenium (degenerate Hückel pair), EEQ charges ≤ 5e-12 e, energies (each term) ≤ 9e-13 Eh, gradients ≤ 1e-11 Eh/bohr; `xtb --gfnff --hess` free energies and ZPVE ≤ 5e-13 Eh (6.8.0; 6.7.1: 2e-11; numerical Hessian, same step), frequencies ≤ 0.3 cm⁻¹ with the analytic Hessian (xtb's finite-difference error); analytic Hessian vs finite differences ≤ 1e-8 Eh/bohr² incl. linear and planar structures; (H2O)1700 (5100 atoms), where xtb runs out of 10 GiB, in 15 s and 461 MiB for energy + gradient (1 thread) |
@@ -284,6 +285,146 @@ whether they converge within 250 iterations at all, in either program (spec §4.
 Finite-temperature Hessians agree with tight references to ≤ 3e-9 Eh/bohr² (spec §11.6);
 `bench/results/gxtb_etemp.json` from `python tests/gxtb_etemp_reproduction.py`.
 
+## Broken-symmetry singlets
+
+`broken_symmetry` (README, "Broken-symmetry singlets"; an axtb extension, so there is no program
+to reproduce): `python tests/gxtb_broken_symmetry.py` → `bench/results/gxtb_broken_symmetry.json`
+(i9-11900H laptop, one thread unless stated). Energies in kcal/mol relative to the restricted
+singlet at the start geometry unless stated.
+
+**H₂** (each point a fresh calculation). The symmetry first breaks at 1.40 Å (2.0.1; v1.1 1.41 Å)
+and the broken-symmetry singlet approaches the triplet; at 3 Å it lies 1.68 kcal/mol below the
+2.0.1 triplet (v1.1: 1.17), where the restricted singlet lies 58.1 above it (v1.1: 55.0). The
+triplet itself is the program's: −0.9912054315949 Eh in `conventions="gxtb"` against the 2.0.1
+program's −0.991205431595 (singlet −0.898613968259 against −0.898613968259; default conventions
+−0.9912054316014). 2.0.1, Eh:
+
+| r (Å) | restricted | broken symmetry | ⟨S²⟩ | triplet | BS − triplet (kcal/mol) |
+|---|---|---|---|---|---|
+| 0.74 | −1.163059 | −1.163059 | 0 | −0.481755 | −427.5 |
+| 1.30 | −1.086011 | −1.086011 | 0 | −0.900088 | −116.7 |
+| 1.39 | −1.068015 | −1.068015 | 0 | −0.920033 | −92.9 |
+| 1.40 | −1.066053 | −1.066131 | 0.044 | −0.921942 | −90.5 |
+| 1.50 | −1.047023 | −1.049330 | 0.233 | −0.938319 | −69.7 |
+| 2.00 | −0.972211 | −1.007795 | 0.765 | −0.977363 | −19.1 |
+| 2.50 | −0.926491 | −0.996983 | 0.930 | −0.988120 | −5.56 |
+| 3.00 | −0.898614 | −0.993883 | 0.979 | −0.991205 | −1.68 |
+| 4.00 | −0.870694 | −0.992654 | 0.998 | −0.992437 | −0.14 |
+| 5.00 | −0.860507 | −0.992540 | 1.000 | −0.992527 | −0.008 |
+
+Near the onset (1.30-1.39 Å) the unrestricted SCF converges slowly onto the restricted solution
+and ends up to 1.1e-5 Eh above it or 1.6e-8 below it; the 1e-6 Eh tolerance returns the restricted
+one there.
+
+**The five bonds of issue #9.** Methyl formate, acetic acid and formic acid (z-matrix
+conformers: the methyl cis to C=O, the O–H syn), minimized with axtb g-xTB 2.0.1 (max |g| <
+1e-6 Eh/bohr); rigid scans move the leaving fragment along the bond axis in 0.25 Å steps.
+E(r0 + 4 Å) − E_singlet(r0), with issue #9's columns (ωB97X-D3BJ/def2-TZVP UKS, and its g-xTB
+values on its own structures):
+
+| bond | r0 (Å) | UKS | issue: triplet | issue: restricted | 2.0.1 broken symmetry | 2.0.1 triplet | 2.0.1 restricted | v1.1 broken symmetry | v1.1 triplet | v1.1 restricted |
+|---|---|---|---|---|---|---|---|---|---|---|
+| CH3–OCHO | 1.435 | 105.8 | 107.2 | 155.5 | 105.8 | 105.8 | 154.2 | 104.7 | 104.7 | 148.0 |
+| HCO–OCH3 | 1.339 | 106.7 | 113.3 | 161.5 | 113.8 | 113.8 | 161.0 | 113.5 | 113.5 | 154.9 |
+| CH3–COOH | 1.489 | 111.9 | 119.6 | 174.7 | 119.2 | 119.2 | 174.3 | 119.8 | 119.8 | 171.3 |
+| H–COOH | 1.102 | 107.6 | 116.0 | 180.6 | 115.1 | 115.1 | 178.8 | 115.2 | 115.2 | 171.7 |
+| HCO–OH | 1.339 | 115.6 | 123.9 | 171.8 | 123.4 | 123.4 | 170.3 | 120.5 | 120.5 | 162.6 |
+
+(v1.1 on the 2.0.1 minima.) The broken-symmetry curves level off: from r0 + 3 Å to r0 + 4 Å
+they rise by 0.05-0.27 kcal/mol (the triplets by 0.04-0.19, the restricted singlets by 5-9),
+and at r0 + 4 Å they equal the triplets to ≤ 0.01 kcal/mol, 0-8 kcal/mol above UKS. The
+symmetry breaks between r0 + 0.75 Å and r0 + 1.25 Å. The 2.0.1 scans (⟨S²⟩ in parentheses):
+
+| Δ (Å) | CH3–OCHO | HCO–OCH3 | CH3–COOH | H–COOH | HCO–OH |
+|---|---|---|---|---|---|
+| 0 | 0.0 (0) | 0.0 (0) | 0.0 (0) | 0.0 (0) | 0.0 (0) |
+| 0.5 | 37.6 (0) | 45.5 (0) | 39.2 (0) | 41.8 (0) | 45.4 (0) |
+| 1.0 | 80.2 (0.20) | 90.1 (0) | 86.7 (0) | 92.0 (0.33) | 92.1 (0.02) |
+| 1.5 | 98.3 (0.77) | 107.2 (0.76) | 111.3 (0.76) | 108.5 (0.85) | 113.0 (0.68) |
+| 2.0 | 104.5 (0.99) | 112.2 (0.96) | 117.3 (0.98) | 112.9 (0.97) | 120.6 (0.89) |
+| 2.5 | 105.6 (1.05) | 113.3 (1.01) | 118.7 (1.03) | 114.3 (1.00) | 122.9 (0.99) |
+| 3.0 | 105.7 (1.05) | 113.6 (1.01) | 119.0 (1.03) | 114.8 (1.00) | 123.3 (1.01) |
+| 4.0 | 105.8 (1.05) | 113.8 (1.01) | 119.2 (1.03) | 115.1 (1.00) | 123.4 (1.01) |
+
+One calculator along each scan (restarts) and a fresh calculation at every point agree to ≤ 1.3e-6
+Eh (0.0008 kcal/mol) beyond r0 + 1.5 Å with 2.0.1. With v1.1 they differ by up to 0.016 kcal/mol,
+and at HCO–OCH3 + 3 Å the fresh start ends 0.83 kcal/mol high: v1.1's convergence test (the
+1.1.0 program's open-shell thresholds) stops its unrestricted SCF after 14 iterations on this flat
+surface, while at accuracy 0.01 it reaches the restarts' energy after 922. Two cases needed the
+fallbacks: at HCO–OH + 1.25 Å the restart from the
+weakly broken state of + 1 Å (⟨S²⟩ 0.02) collapsed, and the new HOMO-LUMO start found the broken
+solution 3.5 kcal/mol below the restricted one; at HCO–OH + 3 Å the restricted SCF of a fresh
+start does not converge in 250 iterations, and the orbitals of the 1000 K restricted SCF start
+the unrestricted one.
+
+**Closed shells near their minima** (47 molecules with 2.0.1, 45 with v1.1: the 2.0.1 minima
+and transition states of `tests/structures/energy_differences`, the golden corpus' closed-shell
+molecules, closed-shell reference molecules of `crates/gxtb/tests/reference_v2` incl. anions,
+cations, Cr(CO)6, Mo(CO)6, OsO4, RuO4, UF6, WF6, TiCl4, [PdCl4]²⁻, [PtCl4]²⁻, taxol and C50H102):
+no symmetry breaks, and the result is the restricted one, |E_BS − E_R| = 0 and gradients equal to
+≤ 3.3e-16 Eh/bohr. The unrestricted SCFs end on the restricted solution: with 2.0.1 within
+1.0e-7 Eh, at most that far below it, as the restricted SCF stops at the looser thresholds of a
+fresh start; with v1.1 up to 1.7e-5 Eh above it (the program's looser open-shell thresholds), and
+for RuO4 on another solution 1.5e-4 Eh above it (⟨S²⟩ 0.008). Of the two textbook cases, O3 (1.272
+Å, 116.8°) stays restricted in both versions and Cr2 at 1.68 Å breaks in v1.1 (11.8 kcal/mol
+lower, ⟨S²⟩ 0.57) but not in 2.0.1. The SCF-hard gh106 of the golden corpus (every bond stretched
+1.89 times; not in the count above): with 2.0.1 the unrestricted SCF does not converge in 250
+iterations and the restricted result is returned (`not-converged`); v1.1's restricted SCF does
+not converge in 1000. The setting costs about twice a restricted single point near a minimum
+(taxol 2.1x, C50H102 2.0x on one thread); the v1.1 unrestricted SCFs converge more slowly (OsO4:
+571 iterations).
+
+**Finite differences** (five-point, h = 1e-3 bohr, SCF accuracy 1e-8; Hessians: of the analytic
+gradients), where the symmetry is broken; Eh/bohr and Eh/bohr²:
+
+| case | version | ⟨S²⟩ | gradient | analytic Hessian | response Hessian | numerical Hessian (accuracy 0.01, 1e-5) |
+|---|---|---|---|---|---|---|
+| H2, 2 Å | 2.0.1 | 0.77 | 3.4e-13 | 3.1e-12 | 1.1e-10 | 2.6e-7, 2.6e-7 |
+| H2, 2 Å | v1.1 | 0.77 | 2.7e-11 | — | — | 2.3e-7, 2.3e-7 |
+| ethane, C–C 3 Å | 2.0.1 | 0.82 | 1.3e-11 | 8.8e-12 | 1.6e-8 | 1.0e-5, 9.9e-6 |
+| ethane, C–C 3 Å | v1.1 | 0.84 | 1.8e-11 | — | — | 1.5e-4, 7.7e-6 |
+| methyl formate, CH3–OCHO + 2 Å | 2.0.1 | 0.99 | 3.2e-11 | 9.2e-10 | 4.4e-8 | 5.9e-5, 2.9e-5 |
+| methyl formate, CH3–OCHO + 2 Å | v1.1 | 0.99 | 1.8e-8 | — | — | 5.5e-3, 1.0e-4 |
+
+The analytic gradient already holds for N_α = N_β (it follows the result's spin channels, as for
+`uhf` > 0), and so do the 2.0.1 analytic and response Hessians (the response Hessian's own step,
+2e-4 bohr, accounts for its 4e-8). The v1.1 gradient of methyl formate differs from the
+differences by 2e-8 Eh/bohr also for its restricted and triplet states (5.7e-8 at the minimum): a
+property of v1.1's gradient there, not of the unrestricted singlet. The numerical Hessians differ
+by their step (0.005 bohr) and, at their default displacement accuracy 0.01, by the SCF noise of
+v1.1's open-shell thresholds.
+
+**Restarts along a scan** (CH3–OCHO, 2.0.1, SCF iterations per point, restricted + unrestricted):
+
+| Δ (Å) | 0 | 0.5 | 1.0 | 1.25 | 1.5 | 2.0 | 2.5 | 3.0 | 3.5 | 4.0 | total (17 points) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| restarts | 9 + 10 | 8 + 14 | 9 + 18 | 0 + 14 | 0 + 13 | 0 + 9 | 0 + 8 | 0 + 7 | 0 + 6 | 0 + 5 | 216 |
+| fresh at every point | 9 + 10 | 9 + 14 | 10 + 18 | 11 + 16 | 11 + 16 | 14 + 17 | 22 + 16 | 18 + 17 | 15 + 16 | 15 + 16 | 494 |
+| restricted, restarts | 9 | 8 | 9 | 9 | 9 | 10 | 11 | 10 | 9 | 9 | 157 |
+
+Once the state is unrestricted, a step costs one SCF of 5-14 iterations. A restricted result
+(before the bond breaks, and every closed shell near its minimum) runs both SCFs at the next
+geometry too. Taxol, energy and gradient (medians of 3, with other jobs on the laptop): the first
+point takes 0.621 s against 0.273 s restricted (2.3x; 4 threads 0.286 s against 0.115 s, 2.5x)
+and a second point 0.01 bohr away 0.664 s against 0.305 s (2.2x; 4 threads 2.3x): the restricted
+SCF (9 iterations), every orbital of it, and an unrestricted SCF of 10 iterations that does not end
+lower.
+
+**A radical pair** (issue #9's use case): CH3 + HCO2 with the C–O distance 3.5 Å (the methyl
+group of methyl formate pulled out along the bond and turned by 0°, 60°, 120°, 180°), minimized
+with L-BFGS-B to max |g| < 4.5e-4 Eh/bohr. On the restricted singlet it recombines to methyl
+formate in three orientations (C–O 1.435 Å), and in the fourth the restricted SCF at the start does
+not converge. On the broken-symmetry singlet it stays a radical pair in three (C–O 3.44-3.82 Å,
+⟨S²⟩ 1.03) and recombines in the fourth (180°, the methyl hydrogens facing the oxygen).
+
+**Default results unchanged.** Without the setting, the golden corpus (`scripts/golden.py
+compare`, 86 cases: every method, convention and feature) is identical bit for bit. The SCF loops
+are untouched (the setting branches once per single point), and `scripts/perf_gate.py` against
+the parent commit's CLI, new/old medians: g-xTB 2.0.1 taxol energy + gradient 0.983 (1 thread),
+0.997 (8), (H2O)200 0.954 (8), v1.1 caffeine 0.970, 2.0.1 caffeine Hessian 0.976; the taxol
+Hessian cell did not get the quiet machine the gate waits for (other benchmarks were running).
+The results file's `default` holds these.
+
 ## g-xTB in implicit solvent
 
 **Validation** (`python tests/solvation_composite.py` →
@@ -499,6 +640,8 @@ python tests/gxtb_etemp_reproduction.py  # g-xTB 2.0.1 and v1.1 at 300-5000 K vs
 python tests/gxtb_elements.py            # g-xTB both versions, every element H-Lr vs the programs (bench/results/gxtb_elements.json)
 python tests/gxtb_energy_differences.py  # g-xTB energy differences, default vs program conventions [--optimize: rebuild the structures]
 python tests/solvation_composite.py      # g-xTB in solvent vs the three xtb programs (bench/results/solvation_composite.json)
+python tests/gxtb_broken_symmetry.py     # broken-symmetry singlets: H2, bond scans, closed shells, FD, restarts (bench/results/gxtb_broken_symmetry.json)
+python -m pytest crates/axtb-py/tests/test_broken_symmetry.py  # the same setting through Python, codec and CLI
 python bench/run_benchmarks.py           # full accuracy + performance suite
 cargo test --release -p axtb --lib       # incl. response/Hessian validation against finite differences
 python bench/hessian_benchmark.py        # Hessian timings and accuracy, all methods vs xtb --hess

@@ -5,6 +5,20 @@ Rust crates, the CLI and the Python package share one version.
 
 ## Unreleased
 
+- Broken-symmetry unrestricted g-xTB singlets, an axtb extension (issue #9; README "Broken-symmetry
+  singlets"): `broken_symmetry` (request and Python, CLI `--broken-symmetry`, qccodec keyword,
+  `ScfOptions::broken_symmetry` and `CompositeOptions::broken_symmetry` in Rust) runs a g-xTB
+  singlet (both versions, also the solvation composite's g-xTB part) unrestricted from its
+  HOMO-LUMO mixed restricted orbitals and returns that solution where it lies more than 1e-6 Eh
+  below the restricted one, with gradients and Hessians on that surface; restarts carry the
+  unrestricted state to the next geometry (one SCF per step). Responses with the setting have a
+  `broken_symmetry` group: which solution, ⟨S²⟩, both energies, every SCF. Refused for GFN2-xTB,
+  GFN-FF, open shells and `conventions="gxtb"`. H₂ at 3 Å drops from 58.1 kcal/mol above the
+  2.0.1 triplet to 1.7 below it; the five bonds of the issue level off at their triplet
+  energies (105.8-123.4 kcal/mol at r0 + 4 Å instead of 154-179 restricted; UKS 105.8-115.6);
+  closed-shell molecules near their minima (47 with 2.0.1, 45 with v1.1) are unchanged to the
+  last bit (`tests/gxtb_broken_symmetry.py`, docs/validation.md). Results without the setting
+  are unchanged, bit for bit.
 - g-xTB 2.0.1 analytic Hessians: the response terms in a symmetric form
   (`AnalyticOptions::symmetric`, on by default) whose error is quadratic in the response
   solver's tolerance, and a default tolerance of 1e-6 (was 1e-10). Over 15 cases (closed and
