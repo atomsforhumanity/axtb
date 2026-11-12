@@ -16,6 +16,7 @@ use crate::scf::mixing::{MixerKind, MixerPlan, ScfAttempt};
 use crate::scf::{
     dot, fock, mulliken, run_scf, Accelerator, FockSource, Iteration, ScfModel, ScfStrategy, ScfVariables, Stop,
 };
+use crate::terms::{self, Chain, ChainLayout, Slot, Values};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
@@ -34,7 +35,7 @@ use std::ops::ControlFlow;
 pub(crate) trait ChargeDependentTerm: Send + Sync {
     /// Name used in energy decompositions.
     fn name(&self) -> &'static str;
-    /// Geometry-dependent setup; returns an opaque cache.
+    /// GeometryData-dependent setup; returns an opaque cache.
     fn update(&self, mol: &Molecule) -> Box<dyn std::any::Any + Send + Sync>;
     /// Charge-independent energy (per atom) and optional gradient, evaluated once.
     fn fixed_energy(
@@ -163,6 +164,10 @@ pub(crate) struct XtbModel {
     pub basis: Basis,
     pub h0: H0Params,
     pub ncoord: Ncoord,
+    /// The intermediates of the gradient (the coordination number `ncoord`) and the slot of
+    /// the coordination number.
+    pub layout: ChainLayout,
+    pub cn: Slot,
     pub repulsion: Repulsion,
     pub es2: EffectiveCoulomb,
     pub es3: Option<OnsiteThirdOrder>,
@@ -312,10 +317,11 @@ impl SinglePoint {
     }
 }
 
-/// Geometry-dependent intermediates of one geometry (everything but the AO matrices).
-pub(crate) struct Geometry {
-    /// Coordination numbers (H0 self-energies and multipole damping radii).
-    pub cn: Vec<f64>,
+/// GeometryData-dependent intermediates of one geometry (everything but the AO matrices).
+pub(crate) struct GeometryData {
+    /// The values of the intermediates: the coordination numbers (H0 self-energies and
+    /// multipole damping radii).
+    pub values: Values,
     /// Shell self-energies and their CN derivatives.
     pub se: Vec<f64>,
     pub dsedcn: Vec<f64>,
@@ -347,7 +353,7 @@ impl Potential {
 /// Converged SCF wavefunction with the intermediates it was computed from: the starting
 /// point of the response (coupled-perturbed SCC) and Hessian code.
 pub(crate) struct ScfState {
-    pub geo: Geometry,
+    pub geo: GeometryData,
     pub ints: Integrals,
     /// MO coefficients (columns) and orbital energies (ascending).
     pub coeff: Mat<f64>,
@@ -372,7 +378,7 @@ pub(crate) struct ScfState {
 
 impl XtbModel {
     /// Coordination numbers, self-energies, Coulomb kernels and extra-term caches.
-    pub(crate) fn geometry(&self, mol: &Molecule, extra: &[&dyn ChargeDependentTerm]) -> Geometry {
+    pub(crate) fn geometry(&self, mol: &Molecule, extra: &[&dyn ChargeDependentTerm]) -> GeometryData {
         let bas = &self.basis;
         let cn = self.ncoord.compute(mol);
         let (se, dsedcn) = self.h0.selfenergy(mol, bas, &cn);
@@ -380,7 +386,30 @@ impl XtbModel {
         let gamma = self.es2.matrix(mol, &bas.ish_at, &bas.nsh_at, bas.nsh);
         let mp_cache = self.aes2.as_ref().map(|m| m.update(mol, &cn));
         let caches = extra.iter().map(|t| t.update(mol)).collect();
-        Geometry { cn, se, dsedcn, cutoff, gamma, mp_cache, caches }
+        let mut values = Values::new(&self.layout);
+        values.set(self.cn, cn);
+        GeometryData { values, se, dsedcn, cutoff, gamma, mp_cache, caches }
+    }
+
+    /// The geometry of the terms: `mol` with the values of the intermediates of `geo`.
+    pub(crate) fn term_geometry<'a>(
+        &'a self,
+        mol: &'a Molecule,
+        geo: &'a GeometryData,
+        parallel: bool,
+    ) -> terms::Geometry<'a> {
+        terms::Geometry { mol, layout: &self.layout, values: &geo.values, parallel }
+    }
+
+    /// The gradient of `chain` with the chain rules of the intermediates applied.
+    pub(crate) fn finish_gradient(
+        &self,
+        mol: &Molecule,
+        geo: &GeometryData,
+        chain: Chain,
+        parallel: bool,
+    ) -> Vec<[f64; 3]> {
+        chain.finish(&self.term_geometry(mol, geo, parallel)).expect("the GFN2-xTB chain rules cannot fail")
     }
 
     /// Potentials of all charge-dependent terms for the given moments.
@@ -388,7 +417,7 @@ impl XtbModel {
         &self,
         mol: &Molecule,
         extra: &[&dyn ChargeDependentTerm],
-        geo: &Geometry,
+        geo: &GeometryData,
         qsh: &[f64],
         qat: &[f64],
         dpat: &[[f64; 3]],
@@ -413,13 +442,14 @@ impl XtbModel {
     }
 
     /// Gradient of the self-consistent part at fixed density `p`, energy-weighted density
-    /// `w`, moments and potential: explicit electrostatics and extra terms, the core
-    /// Hamiltonian/overlap/multipole integral derivatives and the CN chain rule.
+    /// `w`, moments and potential: explicit electrostatics and extra terms and the core
+    /// Hamiltonian/overlap/multipole integral derivatives, added to `chain` (its CN slot: the
+    /// self-energies' dE/dCN; [`XtbModel::finish_gradient`] applies the chain rule).
     pub(crate) fn add_scc_gradient(
         &self,
         mol: &Molecule,
         extra: &[&dyn ChargeDependentTerm],
-        geo: &Geometry,
+        geo: &GeometryData,
         p: &Mat<f64>,
         w: &Mat<f64>,
         qsh: &[f64],
@@ -427,20 +457,19 @@ impl XtbModel {
         dpat: &[[f64; 3]],
         qpat: &[[f64; 6]],
         pot: &Potential,
-        g: &mut [[f64; 3]],
+        chain: &mut Chain,
         parallel: bool,
     ) {
         let bas = &self.basis;
-        let nat = mol.nat();
-        self.es2.add_gradient(mol, &bas.ish_at, &bas.nsh_at, qsh, g);
+        self.es2.add_gradient(mol, &bas.ish_at, &bas.nsh_at, qsh, &mut chain.g);
         if let (Some(aes), Some(c)) = (&self.aes2, &geo.mp_cache) {
-            aes.add_gradient(mol, c, qat, dpat, qpat, g);
+            aes.add_gradient(&self.term_geometry(mol, geo, parallel), c, qat, dpat, qpat, chain);
         }
         for (t, c) in extra.iter().zip(&geo.caches) {
-            t.gradient(mol, c.as_ref(), qat, g);
+            t.gradient(mol, c.as_ref(), qat, &mut chain.g);
         }
         let vao = pot.vao(bas);
-        let mut dedcn = vec![0.0; nat];
+        let (g, dedcn) = chain.g_and_slot(self.cn);
         self.h0.add_gradient(
             mol,
             bas,
@@ -452,11 +481,10 @@ impl XtbModel {
             &vao,
             &pot.vdp,
             &pot.vqp,
-            &mut dedcn,
+            dedcn,
             g,
             parallel,
         );
-        self.ncoord.add_gradient(mol, &dedcn, g);
     }
 
     /// Full nuclear gradient at `mol` for a given density `p`, energy-weighted density `w`
@@ -475,12 +503,12 @@ impl XtbModel {
     ) -> Vec<[f64; 3]> {
         let nat = mol.nat();
         let bas = &self.basis;
-        let mut g = vec![[0.0; 3]; nat];
+        let mut chain = Chain::new(&self.layout, nat);
         let mut e = vec![0.0; nat];
-        self.repulsion.compute(mol, &mut e, Some(&mut g));
+        self.repulsion.compute(mol, &mut e, Some(&mut chain.g));
         let geo = self.geometry(mol, extra);
         for (t, c) in extra.iter().zip(&geo.caches) {
-            t.fixed_energy(mol, c.as_ref(), &mut e, Some(&mut g), parallel);
+            t.fixed_energy(mol, c.as_ref(), &mut e, Some(&mut chain.g), parallel);
         }
         let mut qat = vec![0.0; nat];
         qat_from_qsh(bas, qsh, &mut qat);
@@ -491,8 +519,8 @@ impl XtbModel {
             vqp: vec![[0.0; 6]; nat],
         };
         self.potentials(mol, extra, &geo, qsh, &qat, dpat, qpat, &mut pot, parallel);
-        self.add_scc_gradient(mol, extra, &geo, p, w, qsh, &qat, dpat, qpat, &pot, &mut g, parallel);
-        g
+        self.add_scc_gradient(mol, extra, &geo, p, w, qsh, &qat, dpat, qpat, &pot, &mut chain, parallel);
+        self.finish_gradient(mol, &geo, chain, parallel)
     }
 
     /// Run the SCF and optionally the analytic gradient.
@@ -536,19 +564,19 @@ impl XtbModel {
         let (nalpha, nbeta) = electrons(mol, nref, nao)?;
         let kt = if opts.etemp <= self.params.aufbau_max_etemp { 0.0 } else { opts.etemp * self.params.kb };
 
-        let mut grad = if want_gradient { Some(vec![[0.0; 3]; nat]) } else { None };
+        let mut chain = want_gradient.then(|| Chain::new(&self.layout, nat));
 
         // non-self-consistent contributions
         let mut energies = vec![0.0; nat];
         let mut erep = vec![0.0; nat];
-        self.repulsion.compute(mol, &mut erep, grad.as_deref_mut());
+        self.repulsion.compute(mol, &mut erep, chain.as_mut().map(|c| &mut c.g[..]));
         // geometry-dependent setup
         let geo = self.geometry(mol, extra);
         // fixed (charge-independent) energy of every extra term
         let mut efixed = vec![0.0; extra.len()];
         for (k, (t, c)) in extra.iter().zip(&geo.caches).enumerate() {
             let mut e = vec![0.0; nat];
-            t.fixed_energy(mol, c.as_ref(), &mut e, grad.as_deref_mut(), parallel);
+            t.fixed_energy(mol, c.as_ref(), &mut e, chain.as_mut().map(|c| &mut c.g[..]), parallel);
             efixed[k] = e.iter().sum();
             for i in 0..nat {
                 energies[i] += e[i];
@@ -751,7 +779,7 @@ impl XtbModel {
         } else {
             Mat::zeros(0, 0)
         };
-        if let Some(g) = grad.as_mut() {
+        let grad = chain.map(|mut ch| {
             match &xtb_moments {
                 // xtb (scf_module.F90): the isotropic shell shifts of the last iteration's input,
                 // the multipole potentials and all explicit charge derivatives from the moments
@@ -806,16 +834,18 @@ impl XtbModel {
                         &mixed.dpat,
                         &mixed.qpat,
                         &pg,
-                        g,
+                        &mut ch,
                         parallel,
                     );
                 }
                 None => self.add_scc_gradient(
-                    mol, extra, &geo, &density, &wdensity, &qsh, &qat, &dpat, &qpat, &pot, g, parallel,
+                    mol, extra, &geo, &density, &wdensity, &qsh, &qat, &dpat, &qpat, &pot, &mut ch, parallel,
                 ),
             }
+            let g = self.finish_gradient(mol, &geo, ch, parallel);
             timer.lap("gradient");
-        }
+            g
+        });
 
         let mut dipole = [0.0; 3];
         for i in 0..nat {
@@ -939,7 +969,7 @@ struct Gfn2Scf<'a> {
     xtb: &'a XtbModel,
     mol: &'a Molecule,
     extra: &'a [&'a dyn ChargeDependentTerm],
-    geo: Geometry,
+    geo: GeometryData,
     ints: Integrals,
     neglect: Option<MultipoleNeglect>,
     solver: GenEigSolver,

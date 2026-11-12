@@ -280,10 +280,12 @@ pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
         let cache = aes.update(mol, &cn);
         aes.add_hessian(mol, &cache, &cn, &jac, &st.qat, &st.dpat, &st.qpat, &mut h);
         worst = worst.max(fd_check("AES", mol, &h, |m| {
-            let mut g = vec![[0.0; 3]; m.nat()];
-            let cache = aes.update(m, &model.ncoord.compute(m));
-            aes.add_gradient(m, &cache, &st.qat, &st.dpat, &st.qpat, &mut g);
-            g
+            let values = model.layout.compute(m).unwrap();
+            let geo = crate::terms::Geometry { mol: m, layout: &model.layout, values: &values, parallel: false };
+            let cache = aes.update(m, values.get(model.cn));
+            let mut chain = crate::terms::Chain::new(&model.layout, m.nat());
+            aes.add_gradient(&geo, &cache, &st.qat, &st.dpat, &st.qpat, &mut chain);
+            chain.finish(&geo).unwrap()
         }));
     }
     // repulsion

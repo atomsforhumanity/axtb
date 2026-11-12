@@ -3,6 +3,7 @@
 
 use crate::molecule::{dot3, norm2_sq, sub3, Molecule};
 use crate::ncoord::Ncoord;
+use crate::terms::{Chain, Geometry, Slot};
 use axtb_base::math::add_radial_hessian;
 
 /// Isotropic second-order electrostatics with the generalized Mataga–Nishimoto–Ohno–Klopman
@@ -223,6 +224,8 @@ pub struct DampedMultipole {
     pub rad: Vec<f64>,
     pub vcn: Vec<f64>,
     pub ncoord: Ncoord,
+    /// The slot of the GFN2-xTB coordination number (`ncoord`) in the model's chain layout.
+    pub cn: Slot,
 }
 
 /// Geometry-dependent data of the multipole term.
@@ -247,8 +250,8 @@ const QSCALE: [f64; 6] = [1.0, 2.0, 1.0, 2.0, 2.0, 1.0];
 impl DampedMultipole {
     /// On-site kernels, damping radii and valence CNs per species, and the coordination
     /// number of the damping radii.
-    pub fn new(dkernel: Vec<f64>, qkernel: Vec<f64>, rad: Vec<f64>, vcn: Vec<f64>, ncoord: Ncoord) -> Self {
-        Self { kdmp3: 3.0, kdmp5: 4.0, dkernel, qkernel, shift: 1.2, kexp: 4.0, rmax: 5.0, rad, vcn, ncoord }
+    pub fn new(dkernel: Vec<f64>, qkernel: Vec<f64>, rad: Vec<f64>, vcn: Vec<f64>, ncoord: Ncoord, cn: Slot) -> Self {
+        Self { kdmp3: 3.0, kdmp5: 4.0, dkernel, qkernel, shift: 1.2, kexp: 4.0, rmax: 5.0, rad, vcn, ncoord, cn }
     }
 
     pub fn update(&self, mol: &Molecule, cn: &[f64]) -> MultipoleCache {
@@ -777,16 +780,19 @@ impl DampedMultipole {
     }
 
     /// Explicit nuclear gradient at fixed moments, including the CN dependence of the
-    /// damping radii.
+    /// damping radii, which it contracts at once (tblite's order: before the CN dependence of
+    /// the other terms is contracted).
     pub fn add_gradient(
         &self,
-        mol: &Molecule,
+        geo: &Geometry<'_>,
         cache: &MultipoleCache,
         qat: &[f64],
         dpat: &[[f64; 3]],
         qpat: &[[f64; 6]],
-        grad: &mut [[f64; 3]],
+        chain: &mut Chain,
     ) {
+        let mol = geo.mol;
+        let grad = &mut chain.g;
         let nat = mol.nat();
         let (kdmp3, kdmp5) = (self.kdmp3, self.kdmp5);
         let mut dedr = vec![0.0; nat];
@@ -859,6 +865,6 @@ impl DampedMultipole {
         for i in 0..nat {
             dedr[i] *= cache.dmrdcn[i];
         }
-        self.ncoord.add_gradient(mol, &dedr, grad);
+        chain.apply_now(geo, self.cn, &dedr).expect("the GFN2-xTB CN's chain rule cannot fail");
     }
 }

@@ -224,6 +224,13 @@ impl Chain {
         &mut self.w[s.0]
     }
 
+    /// The direct gradient and dE/dX of slot `s` together, for code that accumulates both in
+    /// one pass.
+    #[inline]
+    pub fn g_and_slot(&mut self, s: Slot) -> (&mut [[f64; 3]], &mut [f64]) {
+        (&mut self.g, &mut self.w[s.0])
+    }
+
     /// dE/dX of slot `s`.
     #[inline]
     pub fn weights(&self, s: Slot) -> &[f64] {

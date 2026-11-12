@@ -34,7 +34,7 @@
 //! Quantities that several terms differentiate through (coordination numbers, model charges)
 //! are [`Intermediate`]s registered in the model's [`ChainLayout`]; their values at a geometry
 //! are in [`Geometry::values`]. A term that depends on one is built with its [`Slot`] (found
-//! with [`ChainLayout::find`], e.g. `"gfn2 cn"`), reads its values and adds dE/dX to
+//! with [`ChainLayout::find`], e.g. [`Gfn2Cn::NAME`]), reads its values and adds dE/dX to
 //! [`Chain::slot`] in its gradient; [`Chain::finish`] applies every intermediate's chain rule
 //! once at the end. Second derivatives get the intermediates' Jacobians in [`Chain2`].
 //!
@@ -52,6 +52,7 @@ mod sinks;
 #[cfg(test)]
 mod tests;
 
+pub use crate::ncoord::Gfn2Cn;
 pub use chain::{Chain, Chain2, ChainLayout, Intermediate, Jacobians, Slot, Values};
 pub use sinks::{Geometry, Kernel, Needs, PotentialDerivative, Potentials, SccMoments, TermEnergy};
 

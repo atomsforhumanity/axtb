@@ -4,9 +4,10 @@ use crate::basis::{slater_to_gauss, Basis, StoExpansion};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, OnsiteThirdOrder};
 use crate::hamiltonian::H0Params;
 use crate::molecule::Molecule;
-use crate::ncoord::Ncoord;
+use crate::ncoord::{Gfn2Cn, Ncoord};
 use crate::param::gfn2_data::*;
 use crate::repulsion::Repulsion;
+use crate::terms::ChainLayout;
 use crate::xtb::XtbModel;
 use crate::ConventionParams;
 use crate::{Error, Result};
@@ -60,6 +61,9 @@ pub fn build(mol: &Molecule, acc: f64, params: &ConventionParams) -> Result<XtbM
     let pair_cutoff = (params.pair_cutoff)(&basis, acc);
     let en = params.pauling_en;
     let ncoord = Ncoord::with_radii(mol, params.cn_rcov, params.cn_cutoff);
+    // the intermediates: the coordination number of H0 and of the multipole damping radii
+    let mut layout = ChainLayout::new();
+    let cn = layout.register(std::sync::Arc::new(Gfn2Cn::new(ncoord.clone())))[0];
 
     // core Hamiltonian
     let per_shell = |f: &dyn Fn(usize, usize) -> f64| -> Vec<Vec<f64>> {
@@ -104,10 +108,23 @@ pub fn build(mol: &Molecule, acc: f64, params: &ConventionParams) -> Result<XtbM
         zs.iter().map(|&z| P_RAD[z - 1]).collect(),
         zs.iter().map(|&z| P_VCN[z - 1]).collect(),
         ncoord.clone(),
+        cn,
     );
     let alpha: Vec<f64> = zs.iter().map(|&z| REP_ALPHA[z - 1]).collect();
     let zeff: Vec<f64> = zs.iter().map(|&z| REP_ZEFF[z - 1]).collect();
     let repulsion = Repulsion::new(mol, &alpha, &zeff, 1.5, 1.0, 1.0).with_cutoff(params.repulsion_cutoff);
 
-    Ok(XtbModel { basis, h0, ncoord, repulsion, es2, es3: Some(es3), aes2: Some(aes2), pair_cutoff, params: *params })
+    Ok(XtbModel {
+        basis,
+        h0,
+        ncoord,
+        layout,
+        cn,
+        repulsion,
+        es2,
+        es3: Some(es3),
+        aes2: Some(aes2),
+        pair_cutoff,
+        params: *params,
+    })
 }

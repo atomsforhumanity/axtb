@@ -8,6 +8,8 @@
 //! memory).
 
 use crate::molecule::Molecule;
+use crate::terms::{Chain, Geometry, Intermediate, Jacobians, Values};
+use crate::Result;
 use axtb_base::ncoord::{CnModel, Cutoff, DoubleExp};
 
 /// A coordination number definition for one molecule.
@@ -50,5 +52,38 @@ impl Ncoord {
     /// Add `sum_i dE/dCN_i * dCN_i/dR` to `grad`.
     pub fn add_gradient(&self, mol: &Molecule, dedcn: &[f64], grad: &mut [[f64; 3]]) {
         self.model(mol).add_gradient(&mol.positions, dedcn, grad);
+    }
+}
+
+/// The coordination number of GFN2-xTB (see the [module](self)) as an intermediate of the
+/// GFN2-xTB model's chain layout, named [`Gfn2Cn::NAME`]: the H0 self-energies and the damping
+/// radii of the anisotropic electrostatics depend on it.
+pub struct Gfn2Cn(Ncoord);
+
+impl Gfn2Cn {
+    /// Its name in a chain layout.
+    pub const NAME: &'static str = "gfn2 cn";
+
+    pub(crate) fn new(ncoord: Ncoord) -> Self {
+        Self(ncoord)
+    }
+}
+
+impl Intermediate for Gfn2Cn {
+    fn name(&self) -> &'static str {
+        Self::NAME
+    }
+
+    fn compute(&self, mol: &Molecule, _values: &Values) -> Result<Vec<Vec<f64>>> {
+        Ok(vec![self.0.compute(mol)])
+    }
+
+    fn chain(&self, geo: &Geometry<'_>, w: &[&[f64]], chain: &mut Chain) -> Result<()> {
+        self.0.add_gradient(geo.mol, w[0], &mut chain.g);
+        Ok(())
+    }
+
+    fn jacobian(&self, geo: &Geometry<'_>, _deps: &Jacobians) -> Result<Vec<Vec<f64>>> {
+        Ok(vec![self.0.jacobian(geo.mol)])
     }
 }

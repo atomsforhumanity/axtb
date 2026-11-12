@@ -112,7 +112,7 @@ pub(crate) fn explicit(
     let t0 = std::time::Instant::now();
     model.es2.add_hessian(mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut h);
     if let (Some(aes), Some(cache)) = (&model.aes2, &geo.mp_cache) {
-        aes.add_hessian(mol, cache, &geo.cn, &resp.jac, &st.qat, &st.dpat, &st.qpat, &mut h);
+        aes.add_hessian(mol, cache, geo.values.get(model.cn), &resp.jac, &st.qat, &st.dpat, &st.qpat, &mut h);
     }
     model.repulsion.add_hessian(mol, &mut h);
     timings.push(("explicit: electrostatics+repulsion", t0.elapsed().as_secs_f64()));
