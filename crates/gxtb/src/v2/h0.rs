@@ -23,11 +23,11 @@ use crate::data_v2::{
 };
 use crate::eeqbc::erf_f64;
 use crate::h0::scale_diatomic_block;
-use crate::parallel::map_items;
 use axtb::basis::Cgto;
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
+use axtb_base::threads;
 use faer::linalg::matmul::triangular::BlockStructure;
 use faer::{Accum, MatMut, MatRef, Par};
 
@@ -161,7 +161,7 @@ pub fn anisotropy(model: &Model, mol: &Molecule) -> Vec<[f64; 3]> {
 /// [`anisotropy`], atoms in parallel when `parallel`.
 pub fn anisotropy_par(model: &Model, mol: &Molecule, parallel: bool) -> Vec<[f64; 3]> {
     let n = mol.nat();
-    map_items(n, parallel, |i| {
+    threads::map(n, parallel, |i| {
         let mut a = [0.0; 3];
         for j in 0..n {
             if i == j {
@@ -296,7 +296,7 @@ pub fn acp_overlaps(mol: &Molecule, shells: &[Vec<Cgto>], set: &AcpSet, cutoff: 
     let n: usize = shells.iter().flatten().map(|s| 2 * s.l + 1).sum();
     let amin = atom_min_exponents(shells);
     let cut2 = cutoff * cutoff;
-    let blocks = map_items(set.list.len(), parallel, |k| {
+    let blocks = threads::map(set.list.len(), parallel, |k| {
         let (ip, ref proj, _, _) = set.list[k];
         let np = 2 * proj.l + 1;
         let mut out = vec![0.0; np * n];

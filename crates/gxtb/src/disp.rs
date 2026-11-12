@@ -142,7 +142,7 @@ pub(crate) fn k_matrices(model: &D4Model, cn: &[f64], refq: &[f64; 826], paralle
     species.dedup();
     let sp: Vec<usize> = numbers.iter().map(|z| species.binary_search(z).unwrap()).collect();
     // the weights of atom i towards each element present
-    let w: Vec<Vec<([f64; MAX_REF], [f64; MAX_REF])>> = crate::parallel::map_items(nat, parallel, |i| {
+    let w: Vec<Vec<([f64; MAX_REF], [f64; MAX_REF])>> = axtb_base::threads::map(nat, parallel, |i| {
         let zi = numbers[i];
         species.iter().map(|&zj| scaled_cn_weights(zi, cn[i], K3_PAIR[(zj - 1) * MAX_Z + zi - 1], refq)).collect()
     });

@@ -262,7 +262,7 @@ impl RevD4 {
         let nat = self.numbers.len();
         let tab = self.pair_table(model, mol, parallel);
         let want = grad.is_some();
-        let parts = crate::parallel::map_chunks(nat, parallel, |rows| {
+        let parts = axtb_base::threads::map_chunks(nat, parallel, |rows| {
             let mut e = 0.0;
             let mut dedcn = if want { vec![0.0; nat] } else { Vec::new() };
             let mut gl = if want { vec![[0.0; 3]; nat] } else { Vec::new() };
@@ -416,7 +416,7 @@ impl RevD4 {
         let nat = self.numbers.len();
         let n0: Vec<f64> = (0..nat).map(|i| charge_function(self.numbers[i], 0.0).0).collect();
         let reach = model.reach(CUTOFF_3B);
-        let rows = crate::parallel::map_items(nat, parallel, |i| {
+        let rows = axtb_base::threads::map(nat, parallel, |i| {
             (0..i)
                 .map(|j| {
                     let v = sub3(mol.positions[i], mol.positions[j]);

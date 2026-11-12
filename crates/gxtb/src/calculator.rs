@@ -16,8 +16,8 @@
 //! that of a fresh program run.
 //!
 //! Threading (as in axtb): with `threads > 1` the calculator owns one rayon pool of exactly
-//! that size and runs everything inside it; with `threads = 1` no thread is spawned and
-//! faer's global parallelism is never touched.
+//! that size (`axtb_base::threads::Threads`) and runs everything inside it; with `threads = 1`
+//! no thread is spawned and faer's global parallelism is never touched.
 
 use crate::scf::{Conventions, Energies, Guess, ScfOptions, ScfResult, Setup};
 use crate::timing::Timings;
@@ -26,8 +26,8 @@ use axtb::molden::{MoSet, Orbitals, Spin};
 use axtb::properties::{homo_lumo_gap, mayer_bond_orders, GapRule, OrbitalLevels};
 use axtb::{EnergyTerms, Error, HessianMethod, HessianOptions, Molecule, Result, SinglePoint};
 use axtb_base::fd;
+use axtb_base::threads::Threads;
 use faer::Par;
-use std::sync::Arc;
 use std::time::Instant;
 
 /// The g-xTB versions.
@@ -181,7 +181,7 @@ pub struct Calculator {
     /// number the calculator was built with.
     pub options: ScfOptions,
     version: Version,
-    pool: Option<Arc<rayon::ThreadPool>>,
+    threads: Threads,
     /// Setup of the current geometry (built in `new`, reused while the positions are equal).
     setup: Option<AnySetup>,
     /// The last converged state (or one given with [`Calculator::set_guess`]).
@@ -235,44 +235,32 @@ impl Calculator {
         uhf: Option<usize>,
         options: ScfOptions,
     ) -> Result<Self> {
-        let pool = if options.threads > 1 {
-            Some(Arc::new(
-                rayon::ThreadPoolBuilder::new()
-                    .num_threads(options.threads)
-                    .build()
-                    .map_err(|e| Error::Input(format!("cannot create thread pool: {e}")))?,
-            ))
-        } else {
-            None
-        };
-        Self::with_pool(version, numbers, positions, charge, uhf, options, pool)
+        let threads = Threads::new(options.threads)?;
+        Self::with_threads(version, numbers, positions, charge, uhf, options, threads)
     }
 
-    /// As [`Calculator::new`], but running in `pool` (shared with other calculators, e.g. the
-    /// parts of a composite method) instead of a pool of its own. The pool must have
-    /// `options.threads` threads; `None` requires `threads = 1`.
-    pub fn with_pool(
+    /// As [`Calculator::new`], but running on `threads` (a pool shared with other calculators,
+    /// e.g. the parts of a composite method) instead of a pool of its own. It must have
+    /// `options.threads` threads.
+    pub fn with_threads(
         version: Version,
         numbers: &[usize],
         positions: &[[f64; 3]],
         charge: f64,
         uhf: Option<usize>,
         options: ScfOptions,
-        pool: Option<Arc<rayon::ThreadPool>>,
+        threads: Threads,
     ) -> Result<Self> {
         options.check(version)?;
-        let threads = pool.as_ref().map_or(1, |p| p.current_num_threads());
-        if threads != options.threads {
-            return Err(Error::Input(format!("a pool of {threads} threads for a calculation on {}", options.threads)));
+        let n = threads.count();
+        if n != options.threads {
+            return Err(Error::Input(format!("a pool of {n} threads for a calculation on {}", options.threads)));
         }
         let mol = Molecule::new(numbers, positions, charge, uhf)?;
         // fails early on elements without parameters and impossible charge/spin (built in the
         // pool: its loops use the calculator's threads)
-        let setup = match &pool {
-            Some(p) => p.install(|| new_setup(version, &mol, &options)),
-            None => new_setup(version, &mol, &options),
-        }?;
-        Ok(Self { mol, options, version, pool, setup: Some(setup), state: None, given: false })
+        let setup = threads.install(|| new_setup(version, &mol, &options))?;
+        Ok(Self { mol, options, version, threads, setup: Some(setup), state: None, given: false })
     }
 
     /// The g-xTB version.
@@ -330,7 +318,7 @@ impl Calculator {
     /// Check the options of the next calculation.
     fn check_options(&self) -> Result<()> {
         self.options.check(self.version)?;
-        let threads = self.pool.as_ref().map_or(1, |p| p.current_num_threads());
+        let threads = self.threads.count();
         if self.options.threads != threads {
             return Err(Error::Input(format!(
                 "threads changed from {threads} to {} after the calculator was built",
@@ -360,14 +348,6 @@ impl Calculator {
         Ok(())
     }
 
-    /// `f` inside the calculator's pool (sequential without one).
-    fn install<T: Send>(&self, f: impl FnOnce() -> T + Send) -> T {
-        match &self.pool {
-            Some(pool) => pool.install(f),
-            None => f(),
-        }
-    }
-
     /// Energy (and with `gradient` the analytic gradient, Eh/bohr) at `positions` (bohr).
     ///
     /// The SCF starts from the previous converged state when the calculator reuses it
@@ -380,7 +360,7 @@ impl Calculator {
         let mut setup = self.setup.take();
         let (mol, opts, version) = (&self.mol, &self.options, self.version);
         let go = |setup: Option<AnySetup>, start: Option<&GuessState>| {
-            self.install(|| run(version, mol, opts, setup, start, gradient))
+            self.threads.install(|| run(version, mol, opts, setup, start, gradient))
         };
         let (mut res, s) = go(setup.take(), start.as_ref());
         setup = s;
@@ -501,12 +481,10 @@ impl Calculator {
             let (_, g, mu) = point(&m)?;
             Ok((g, mu))
         };
-        let numerical =
-            |parallel| fd::numerical_hessian(&mol.positions, step, fd::Displacement::ForwardBack, parallel, displaced);
-        let nh = match &self.pool {
-            Some(pool) => pool.install(|| numerical(true)),
-            None => numerical(false),
-        }?;
+        let parallel = self.threads.parallel();
+        let nh = self.threads.install(|| {
+            fd::numerical_hessian(&mol.positions, step, fd::Displacement::ForwardBack, parallel, displaced)
+        })?;
         Ok(axtb::Hessian {
             energy,
             gradient,
@@ -574,7 +552,7 @@ impl Calculator {
             };
             Ok((hess, setup, state))
         };
-        let (hess, setup, state) = self.install(run)?;
+        let (hess, setup, state) = self.threads.install(run)?;
         self.setup = Some(AnySetup::V2(Box::new(setup)));
         self.state = Some(state);
         Ok(hess)

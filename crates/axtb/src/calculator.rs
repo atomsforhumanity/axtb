@@ -2,9 +2,10 @@
 //! gradients and Hessians at any number of geometries.
 //!
 //! Threading: a calculator created with `threads = n > 1` owns one rayon pool of exactly
-//! `n` threads and runs all of its parallel work inside it. Work that is parallel at the
-//! outer level (Hessian displacements) runs each inner single point sequentially, so the
-//! thread count never multiplies. With `threads = 1` no thread is ever spawned.
+//! `n` threads ([`Threads`]) and runs all of its parallel work inside it. Work that is
+//! parallel at the outer level (Hessian displacements) runs each inner single point
+//! sequentially, so the thread count never multiplies. With `threads = 1` no thread is ever
+//! spawned.
 
 use crate::hessian::{HessianMethod, HessianOptions};
 use crate::molecule::Molecule;
@@ -12,7 +13,7 @@ use crate::xtb::{check_scf_options, ChargeDependentTerm, ScfGuess, ScfOptions, S
 use crate::{Error, Result};
 use crate::{Method, Options};
 use axtb_base::fd;
-use std::sync::Arc;
+use axtb_base::threads::Threads;
 
 /// A nuclear Hessian.
 #[derive(Clone, Debug)]
@@ -45,7 +46,7 @@ pub struct Calculator {
     /// fixed when the calculator is built.
     pub options: Options,
     guess: Option<ScfGuess>,
-    pool: Option<Arc<rayon::ThreadPool>>,
+    threads: Threads,
 }
 
 impl Calculator {
@@ -59,42 +60,30 @@ impl Calculator {
         options: Options,
     ) -> Result<Self> {
         check_scf_options(&options.scf)?;
-        let pool = if options.scf.threads > 1 {
-            Some(Arc::new(
-                rayon::ThreadPoolBuilder::new()
-                    .num_threads(options.scf.threads)
-                    .build()
-                    .map_err(|e| Error::Input(format!("cannot create thread pool: {e}")))?,
-            ))
-        } else {
-            None
-        };
-        Self::with_pool(method, numbers, positions, charge, uhf, options, pool)
+        let threads = Threads::new(options.scf.threads)?;
+        Self::with_threads(method, numbers, positions, charge, uhf, options, threads)
     }
 
-    /// As [`Calculator::new`], but running in `pool` (shared with other calculators, e.g. the
-    /// parts of a composite method, so that they use one pool) instead of a pool of its own.
-    /// The pool must have `options.scf.threads` threads; `None` requires `threads = 1`.
-    pub fn with_pool(
+    /// As [`Calculator::new`], but running on `threads` (a pool shared with other
+    /// calculators, e.g. the parts of a composite method, so that they use one pool) instead
+    /// of a pool of its own. It must have `options.scf.threads` threads.
+    pub fn with_threads(
         method: Method,
         numbers: &[usize],
         positions: &[[f64; 3]],
         charge: f64,
         uhf: Option<usize>,
         options: Options,
-        pool: Option<Arc<rayon::ThreadPool>>,
+        threads: Threads,
     ) -> Result<Self> {
         check_scf_options(&options.scf)?;
-        let threads = pool.as_ref().map_or(1, |p| p.current_num_threads());
-        if threads != options.scf.threads {
-            return Err(Error::Input(format!(
-                "a pool of {threads} threads for a calculation on {}",
-                options.scf.threads
-            )));
+        let n = threads.count();
+        if n != options.scf.threads {
+            return Err(Error::Input(format!("a pool of {n} threads for a calculation on {}", options.scf.threads)));
         }
         let mol = Molecule::new(numbers, positions, charge, uhf)?;
         let (model, extra) = crate::build_method(method, &mol, &options)?;
-        Ok(Self { method, mol, model, extra, options, guess: None, pool })
+        Ok(Self { method, mol, model, extra, options, guess: None, threads })
     }
 
     /// The method of this calculator.
@@ -152,25 +141,15 @@ impl Calculator {
         Ok(sp)
     }
 
-    /// `f` inside this calculator's thread pool (directly without one): outside it, parallel
-    /// kernels would run on rayon's global pool, i.e. on every core instead of the threads
-    /// asked for.
-    fn in_pool<T: Send>(&self, f: impl FnOnce() -> T + Send) -> T {
-        match &self.pool {
-            Some(pool) => pool.install(f),
-            None => f(),
-        }
-    }
-
-    /// `run` at the calculator's geometry inside its thread pool.
+    /// `run` at the calculator's geometry inside its thread pool (outside it, parallel kernels
+    /// would run on rayon's global pool, i.e. on every core instead of the threads asked for).
     fn run_pooled(&self, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<SinglePoint> {
-        self.in_pool(|| self.run(&self.mol, scf, guess, gradient))
+        self.threads.install(|| self.run(&self.mol, scf, guess, gradient))
     }
 
     /// The SCF settings of a calculation, with the thread count of the calculator's pool.
     fn scf_options(&self) -> ScfOptions {
-        let threads = self.pool.as_ref().map_or(1, |p| p.current_num_threads());
-        ScfOptions { threads, ..self.options.scf.clone() }
+        ScfOptions { threads: self.threads.count(), ..self.options.scf.clone() }
     }
 
     /// Energy and optionally gradient at `positions`; starts from the previous geometry's
@@ -243,7 +222,7 @@ impl Calculator {
             let guess = reference.guess();
             Ok((finish(reference, h, max_asymmetry, dipd, opts.method, timings), guess))
         };
-        let (res, guess) = self.in_pool(run)?;
+        let (res, guess) = self.threads.install(run)?;
         self.guess = Some(guess);
         Ok(res)
     }
@@ -259,7 +238,7 @@ impl Calculator {
         scf.accuracy = accuracy.unwrap_or(0.01).min(scf.accuracy);
         scf.threads = 1;
         let t0 = std::time::Instant::now();
-        let reference = self.in_pool(|| self.run(&self.mol, &scf, self.guess.as_ref(), true))?;
+        let reference = self.threads.install(|| self.run(&self.mol, &scf, self.guess.as_ref(), true))?;
         let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
         let guess = reference.guess();
         let point = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
@@ -269,8 +248,8 @@ impl Calculator {
             Ok((r.gradient.unwrap(), r.dipole))
         };
         let t0 = std::time::Instant::now();
-        let parallel = self.pool.is_some();
-        let nh = self.in_pool(|| {
+        let parallel = self.threads.parallel();
+        let nh = self.threads.install(|| {
             fd::numerical_hessian(&self.mol.positions, step, fd::Displacement::ForwardBack, parallel, point)
         })?;
         timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));

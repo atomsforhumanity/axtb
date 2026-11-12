@@ -18,9 +18,9 @@ use crate::setup_util::jth_nb;
 use crate::terms::{self, BondPar, HbPar};
 use crate::topology::Topology;
 use axtb_base::eeq::{ChargeEquations, ChargeSolver, Constraints};
+use axtb_base::threads::Threads;
 use axtb_d4::data::{MAX_REF, NFREQ};
 use faer::Par;
-use rayon::prelude::*;
 
 /// Number of interleaved chunks of the parallel pair loops (fixed, so that their sums do not
 /// depend on the thread count).
@@ -371,19 +371,6 @@ pub struct Eval {
     pub timings: Vec<(&'static str, f64)>,
 }
 
-/// Run `f(chunk)` for the fixed chunks, in parallel inside `pool` if given; results in
-/// chunk order.
-pub fn map_chunks<R: Send>(
-    pool: Option<&rayon::ThreadPool>,
-    nchunks: usize,
-    f: impl Fn(usize) -> R + Sync + Send,
-) -> Vec<R> {
-    match pool {
-        Some(p) => p.install(|| (0..nchunks).into_par_iter().map(&f).collect()),
-        None => (0..nchunks).map(f).collect(),
-    }
-}
-
 fn add_grad(g: &mut [[f64; 3]], other: &[[f64; 3]]) {
     for (a, b) in g.iter_mut().zip(other) {
         a[0] += b[0];
@@ -429,15 +416,8 @@ pub struct State {
 }
 
 /// Energy (and gradient) at `xyz` (bohr).
-pub fn evaluate(
-    topo: &Topology,
-    model: &Model,
-    xyz: &[[f64; 3]],
-    want_grad: bool,
-    pool: Option<&rayon::ThreadPool>,
-    par: Par,
-) -> Result<Eval> {
-    Ok(evaluate_full(topo, model, xyz, want_grad, false, pool, par)?.0)
+pub fn evaluate(topo: &Topology, model: &Model, xyz: &[[f64; 3]], want_grad: bool, threads: &Threads) -> Result<Eval> {
+    Ok(evaluate_full(topo, model, xyz, want_grad, false, threads)?.0)
 }
 
 /// Energy (and gradient) at `xyz`, optionally keeping the intermediate [`State`].
@@ -447,8 +427,7 @@ pub fn evaluate_full(
     xyz: &[[f64; 3]],
     want_grad: bool,
     keep_state: bool,
-    pool: Option<&rayon::ThreadPool>,
-    par: Par,
+    threads: &Threads,
 ) -> Result<(Eval, Option<State>)> {
     let n = topo.natoms();
     let at = &topo.numbers;
@@ -473,7 +452,7 @@ pub fn evaluate_full(
     {
         let repthr = thr.rep;
         let rc = repthr.sqrt() * (1.0 + 1e-12) + 1e-9;
-        let parts = map_chunks(pool, nch, |c| {
+        let parts = threads.map(nch, |c| {
             let mut gl = if want_grad { vec![[0.0; 3]; n] } else { Vec::new() };
             let mut er = 0.0;
             let mut cand = Vec::new();
@@ -519,11 +498,11 @@ pub fn evaluate_full(
     lap("cn", &mut t);
 
     // EEQ charges and electrostatics
-    let (q, es, eeq_solver) = eeq(topo, xyz, cn, par)?;
+    let (q, es, eeq_solver) = eeq(topo, xyz, cn, threads.par())?;
     e.electrostatic = es;
     lap("eeq solve", &mut t);
     if want_grad {
-        let parts = map_chunks(pool, nch, |c| {
+        let parts = threads.map(nch, |c| {
             let mut gl = vec![[0.0; 3]; n];
             let mut i = c;
             while i < n {
@@ -551,7 +530,7 @@ pub fn evaluate_full(
         let dispthr = thr.disp;
         let rc = dispthr.sqrt() * (1.0 + 1e-12) + 1e-9;
         let weights: Vec<(Vec<f64>, Vec<f64>)> = (0..n).map(|i| model.disp.weights(at[i], cn[i])).collect();
-        let parts = map_chunks(pool, nch, |c| {
+        let parts = threads.map(nch, |c| {
             let mut gl = if want_grad { vec![[0.0; 3]; n] } else { Vec::new() };
             let mut wl = if want_grad { vec![0.0; n] } else { Vec::new() };
             let mut ed = 0.0;

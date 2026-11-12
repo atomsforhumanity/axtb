@@ -44,7 +44,7 @@ use crate::scf::{Conventions, Guess, ScfOptions};
 use axtb::{
     Error, HessianMethod, HessianOptions, MixerKind, Result, ScfAttempt, SinglePoint, SolvationModel, SolvationSpec,
 };
-use std::sync::Arc;
+use axtb_base::threads::{self, Threads};
 use std::time::Instant;
 
 /// The method that supplies the solvation correction.
@@ -297,9 +297,7 @@ impl CompositeCalculator {
         uhf: Option<usize>,
         options: CompositeOptions,
     ) -> Result<Self> {
-        if options.threads == 0 {
-            return Err(Error::Input("threads must be at least 1".into()));
-        }
+        threads::check(options.threads)?;
         if !(options.accuracy > 0.0 && options.accuracy.is_finite()) {
             return Err(Error::Input(format!("accuracy must be positive and finite, got {}", options.accuracy)));
         }
@@ -308,16 +306,7 @@ impl CompositeCalculator {
                 return Err(Error::Input(format!("electronic temperature must be >= 0 K and finite, got {t}")));
             }
         }
-        let pool = if options.threads > 1 {
-            Some(Arc::new(
-                rayon::ThreadPoolBuilder::new()
-                    .num_threads(options.threads)
-                    .build()
-                    .map_err(|e| Error::Input(format!("cannot create thread pool: {e}")))?,
-            ))
-        } else {
-            None
-        };
+        let threads = Threads::new(options.threads)?;
 
         // g-xTB part
         let gxtb_etemp = options.etemp.unwrap_or(GXTB_ETEMP);
@@ -332,7 +321,7 @@ impl CompositeCalculator {
             ..Default::default()
         };
         let gxtb_max_iter = gopts.iteration_limit(options.version);
-        let gxtb = Calculator::with_pool(options.version, numbers, positions, charge, uhf, gopts, pool.clone())?;
+        let gxtb = Calculator::with_threads(options.version, numbers, positions, charge, uhf, gopts, threads.clone())?;
 
         // the GFN2 halves: one set of options, the solvated half adds the solvent model
         let gfn2_conv = options.gfn2_conventions();
@@ -349,10 +338,18 @@ impl CompositeCalculator {
             o.scf.max_iter = m;
         }
         let gfn2_base = (o.scf.etemp, o.scf.max_iter);
-        let gas =
-            axtb::Calculator::with_pool(axtb::Method::Gfn2, numbers, positions, charge, uhf, o.clone(), pool.clone())?;
+        let gas = axtb::Calculator::with_threads(
+            axtb::Method::Gfn2,
+            numbers,
+            positions,
+            charge,
+            uhf,
+            o.clone(),
+            threads.clone(),
+        )?;
         let so = axtb::Options { solvation: Some(options.solvation.clone()), ..o };
-        let solvated = axtb::Calculator::with_pool(axtb::Method::Gfn2, numbers, positions, charge, uhf, so, pool)?;
+        let solvated =
+            axtb::Calculator::with_threads(axtb::Method::Gfn2, numbers, positions, charge, uhf, so, threads)?;
         let reuse_guess = options.reuse_guess.unwrap_or(gfn2_conv == axtb::Conventions::Axtb);
         Ok(Self {
             options,

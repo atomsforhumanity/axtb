@@ -41,8 +41,8 @@ use crate::molecule::Molecule;
 use crate::xtb::{mulliken, ChargeDependentTerm, ScfState, XtbModel};
 use crate::{Error, Result};
 use axtb_base::occupations::fermi;
+use axtb_base::threads;
 use faer::{Accum, Mat, MatRef, Par};
-use rayon::prelude::*;
 
 /// Index layout of the SCC variables.
 #[derive(Clone, Copy, Debug)]
@@ -238,7 +238,7 @@ impl<'a> Response<'a> {
         );
         let ao_off: Vec<usize> = (0..nat).map(|a| bas.iao_sh[bas.ish_at[a]]).collect();
         let jac = model.ncoord.jacobian(mol);
-        let par = if parallel { Par::rayon(threads) } else { Par::Seq };
+        let par = threads::par(threads);
         let c = st.coeff.as_ref();
         let mut sc = Mat::<f64>::zeros(nao, nao);
         faer::linalg::matmul::matmul(sc.as_mut(), Accum::Replace, st.ints.overlap.as_ref(), c, 1.0, par);
@@ -270,19 +270,11 @@ impl<'a> Response<'a> {
     }
 
     pub fn par(&self) -> Par {
-        if self.threads > 1 {
-            Par::rayon(self.threads)
-        } else {
-            Par::Seq
-        }
+        threads::par(self.threads)
     }
 
     fn map<T: Send>(&self, n: usize, f: impl Fn(usize) -> T + Sync + Send) -> Vec<T> {
-        if self.threads > 1 {
-            (0..n).into_par_iter().map(f).collect()
-        } else {
-            (0..n).map(f).collect()
-        }
+        threads::map(n, self.threads > 1, f)
     }
 
     /// `Õ_t,pq` for all SCC variables t (added to `out`).
@@ -329,16 +321,12 @@ impl<'a> Response<'a> {
         for chunk in pairs.chunks(NB) {
             let n = chunk.len();
             let cols = &mut buf[..m * n];
-            let fill = |(col, &(p, q, w)): (&mut [f64], &(u32, u32, f64))| {
+            threads::for_slices(cols, m, self.threads > 1, |k, col| {
+                let (p, q, w) = chunk[k];
                 col.iter_mut().for_each(|x| *x = 0.0);
                 self.pair_ops(p as usize, q as usize, col);
                 col.iter_mut().for_each(|x| *x *= w);
-            };
-            if self.threads > 1 {
-                cols.par_chunks_mut(m).zip(chunk.par_iter()).for_each(fill);
-            } else {
-                cols.chunks_mut(m).zip(chunk.iter()).for_each(fill);
-            }
+            });
             let a = MatRef::from_column_major_slice(cols, m, n);
             // symmetric rank-n update: lower triangle only
             use faer::linalg::matmul::triangular::{matmul as tmatmul, BlockStructure};

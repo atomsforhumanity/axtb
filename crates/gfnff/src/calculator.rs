@@ -3,9 +3,9 @@
 //! optimization.
 //!
 //! Threading: `threads > 1` creates one rayon pool of exactly that size owned by the
-//! calculator; all parallel work (pair loops, EEQ solve, Hessian) runs inside it. With
-//! `threads = 1` no thread is spawned. Results repeat bit for bit on a given thread count
-//! (see the crate documentation for different thread counts).
+//! calculator ([`Threads`]); all parallel work (pair loops, EEQ solve, Hessian) runs inside
+//! it. With `threads = 1` no thread is spawned. Results repeat bit for bit on a given thread
+//! count (see the crate documentation for different thread counts).
 
 use crate::conventions::Conventions;
 use crate::energy::{self, Energies, Model};
@@ -13,7 +13,7 @@ use crate::error::{Error, Result};
 use crate::hessian::{self, Hessian};
 use crate::setup::{check_positions, setup, SetupOptions};
 use crate::topology::Topology;
-use faer::Par;
+use axtb_base::threads::Threads;
 
 /// Options of a calculator.
 #[derive(Clone, Debug)]
@@ -65,8 +65,7 @@ pub struct Results {
 pub struct Calculator {
     topo: Topology,
     model: Model,
-    pool: Option<rayon::ThreadPool>,
-    threads: usize,
+    threads: Threads,
 }
 
 impl Calculator {
@@ -74,21 +73,17 @@ impl Calculator {
     /// `charge` (within ± the nuclear charge) and build the calculator. Positions must be
     /// finite and no two atoms closer than 0.1 bohr (also at every later geometry).
     pub fn new(numbers: &[usize], positions: &[[f64; 3]], charge: f64, options: Options) -> Result<Self> {
-        let threads = options.threads;
-        let pool = make_pool(threads)?;
+        let threads = Threads::new(options.threads)?;
         let sopts = SetupOptions {
             accuracy: options.accuracy,
             fragment_charges: options.fragment_charges,
-            par: Some(par_of(threads)),
+            par: Some(threads.par()),
             conventions: options.conventions,
         };
-        let topo = match &pool {
-            Some(p) => p.install(|| setup(numbers, positions, charge, &sopts))?,
-            None => setup(numbers, positions, charge, &sopts)?,
-        };
+        let topo = threads.install(|| setup(numbers, positions, charge, &sopts))?;
         check_topology(&topo)?;
         let model = Model::new(&topo);
-        Ok(Calculator { topo, model, pool, threads })
+        Ok(Calculator { topo, model, threads })
     }
 
     /// The topology (set up once, used for every geometry).
@@ -98,22 +93,14 @@ impl Calculator {
 
     /// Threads of the calculator's pool.
     pub fn threads(&self) -> usize {
-        self.threads
-    }
-
-    /// Run `f` with the calculator's parallelism inside its pool.
-    fn run<T: Send>(&self, f: impl FnOnce(Option<&rayon::ThreadPool>, Par) -> T + Send) -> T {
-        let par = par_of(self.threads);
-        match &self.pool {
-            Some(p) => p.install(|| f(Some(p), par)),
-            None => f(None, par),
-        }
+        self.threads.count()
     }
 
     /// Energy (and gradient) at `positions` (bohr) with the calculator's topology.
     pub fn singlepoint(&self, positions: &[[f64; 3]], gradient: bool) -> Result<Results> {
         check_positions(positions, self.topo.natoms())?;
-        let ev = self.run(|pool, par| energy::evaluate(&self.topo, &self.model, positions, gradient, pool, par))?;
+        let ev =
+            self.threads.install(|| energy::evaluate(&self.topo, &self.model, positions, gradient, &self.threads))?;
         let mut dipole = [0.0; 3];
         for (i, q) in ev.charges.iter().enumerate() {
             for c in 0..3 {
@@ -142,7 +129,7 @@ impl Calculator {
     /// C=O axis, grimme-lab/xtb#1516), where [`Calculator::numerical_hessian`] is.
     pub fn hessian(&self, positions: &[[f64; 3]]) -> Result<Hessian> {
         check_positions(positions, self.topo.natoms())?;
-        let h = self.run(|pool, par| hessian::hessian(&self.topo, &self.model, positions, pool, par))?;
+        let h = self.threads.install(|| hessian::hessian(&self.topo, &self.model, positions, &self.threads))?;
         check_hessian(&h)?;
         Ok(h)
     }
@@ -155,30 +142,11 @@ impl Calculator {
         if !(step.is_finite() && step > 0.0) {
             return Err(Error::Input(format!("the finite-difference step must be positive, not {step}")));
         }
-        let h =
-            self.run(|pool, par| hessian::numerical_hessian(&self.topo, &self.model, positions, step, pool, par))?;
+        let h = self
+            .threads
+            .install(|| hessian::numerical_hessian(&self.topo, &self.model, positions, step, &self.threads))?;
         check_hessian(&h)?;
         Ok(h)
-    }
-}
-
-fn make_pool(threads: usize) -> Result<Option<rayon::ThreadPool>> {
-    match threads {
-        0 => Err(Error::Input("threads must be at least 1".into())),
-        1 => Ok(None),
-        _ => rayon::ThreadPoolBuilder::new()
-            .num_threads(threads)
-            .build()
-            .map(Some)
-            .map_err(|e| Error::Input(format!("cannot create thread pool: {e}"))),
-    }
-}
-
-fn par_of(threads: usize) -> Par {
-    if threads > 1 {
-        Par::rayon(threads)
-    } else {
-        Par::Seq
     }
 }
 

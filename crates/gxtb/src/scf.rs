@@ -200,11 +200,12 @@ impl Setup {
     }
 
     /// Run the dense linear algebra (matrix products, eigensolver) on `threads` threads of the
-    /// current rayon pool, from [`crate::parallel::DENSE_MIN_AO`] basis functions on (below,
-    /// and for 1 thread, sequentially). The caller runs the setup's work inside a pool of that
-    /// size.
+    /// current rayon pool, from `axtb_base::threads::DENSE_MIN_AO` basis functions on (below,
+    /// and for 1 thread, sequentially; [`axtb_base::threads::dense_par`]). The caller runs the
+    /// setup's work inside a pool of that size. Zero threads is an input error.
     pub fn set_threads(&mut self, threads: usize) -> Result<()> {
-        self.par = crate::parallel::dense_par(threads, self.nao)?;
+        axtb_base::threads::check(threads)?;
+        self.par = axtb_base::threads::dense_par(threads, self.nao);
         Ok(())
     }
 
@@ -584,9 +585,7 @@ impl ScfOptions {
                 Err(Error::Input(format!("{name} must be positive and finite, got {x}")))
             }
         };
-        if self.threads == 0 {
-            return Err(Error::Input("threads must be at least 1".into()));
-        }
+        axtb_base::threads::check(self.threads)?;
         positive("accuracy", self.accuracy)?;
         for (name, tol) in
             [("energy_tol", self.energy_tol), ("density_tol", self.density_tol), ("residual_tol", self.residual_tol)]

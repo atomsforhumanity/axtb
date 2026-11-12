@@ -15,7 +15,8 @@ use crate::repulsion::Repulsion;
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
-use faer::{Mat, Par};
+use axtb_base::threads;
+use faer::Mat;
 use rayon::prelude::*;
 
 /// An atom-resolved, charge-dependent energy term that enters the SCF (e.g. the
@@ -135,7 +136,7 @@ pub(crate) fn fd_second_derivatives<T: ChargeDependentTerm + ?Sized>(
         })
     };
     let mut hess = hess;
-    for (x, (dvx, hx)) in fd::columns(n3, parallel, column).into_iter().enumerate() {
+    for (x, (dvx, hx)) in threads::map(n3, parallel, column).into_iter().enumerate() {
         for i in 0..nat {
             dv[i * n3 + x] += dvx[i];
         }
@@ -521,7 +522,7 @@ impl XtbModel {
         // faer's parallel dense kernels are slower than sequential ones for small matrices
         // (n = 100: 0.83 ms sequential vs 1.15 ms on 8 threads; n = 266: 7.45 vs 5.54 ms)
         // (bench/linalg), so small systems keep the linear algebra sequential
-        let par = if parallel && self.basis.nao >= 200 { Par::rayon(opts.threads) } else { Par::Seq };
+        let par = threads::dense_par(opts.threads, self.basis.nao);
         let acc = opts.accuracy;
         let econv = 1.0e-6 * acc;
         let pconv = 2.0e-5 * acc;
@@ -848,11 +849,7 @@ impl XtbModel {
                     eelec[i] += e3[i] + eaes[i] + edsc[i] + ts / nat as f64;
                 }
                 let eh0 = |nu: usize| dot(ints.h0.col_as_slice(nu), density.col_as_slice(nu));
-                let eh0: Vec<f64> = if parallel {
-                    (0..nao).into_par_iter().with_min_len(16).map(eh0).collect()
-                } else {
-                    (0..nao).map(eh0).collect()
-                };
+                let eh0 = threads::map_with_min_len(nao, parallel, 16, eh0);
                 for (nu, e) in eh0.into_iter().enumerate() {
                     eelec[bas.ao2at[nu]] += e;
                 }
@@ -1099,10 +1096,7 @@ pub(crate) fn check_scf_options(opts: &ScfOptions) -> Result<()> {
     if opts.max_iter == 0 {
         return Err(Error::Input("the SCF needs at least 1 iteration (max_iter = 0)".into()));
     }
-    if opts.threads == 0 {
-        return Err(Error::Input("threads must be at least 1".into()));
-    }
-    Ok(())
+    threads::check(opts.threads)
 }
 
 /// Number of alpha and beta electrons of `mol` given the electron count of the neutral
@@ -1288,11 +1282,7 @@ pub(crate) fn mulliken(
         }
         r
     };
-    let cols: Vec<[f64; 10]> = if parallel {
-        (0..nao).into_par_iter().with_min_len(16).map(column).collect()
-    } else {
-        (0..nao).map(column).collect()
-    };
+    let cols = threads::map_with_min_len(nao, parallel, 16, column);
     qsh.copy_from_slice(n0sh);
     dpat.iter_mut().for_each(|x| *x = [0.0; 3]);
     qpat.iter_mut().for_each(|x| *x = [0.0; 6]);

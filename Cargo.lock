@@ -136,7 +136,6 @@ dependencies = [
  "axtb-base",
  "axtb-d4",
  "faer",
- "rayon",
  "serde_json",
 ]
 

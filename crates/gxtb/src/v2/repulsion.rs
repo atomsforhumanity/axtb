@@ -118,7 +118,7 @@ impl Repulsion {
     pub fn potential_par(&self, q: &[f64], parallel: bool) -> Vec<f64> {
         let z = self.zeff(q);
         let n = self.nat;
-        crate::parallel::map_items(n, parallel, |i| {
+        axtb_base::threads::map(n, parallel, |i| {
             -self.kq[i] * self.z0[i] * (0..n).map(|j| self.m[i * n + j] * z[j]).sum::<f64>()
         })
     }

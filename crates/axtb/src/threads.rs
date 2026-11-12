@@ -1,4 +1,5 @@
-//! Guidance on thread counts, from the benchmarks in `bench/` (README, "Threads").
+//! Guidance on thread counts, from the benchmarks in `bench/` (README, "Threads"). The thread
+//! pool of a calculator and the parallel loops are in `axtb_base::threads` ([`crate::Threads`]).
 
 /// Above this many threads, one energy/gradient calculation got slower, not faster, on
 /// every CPU and linear-algebra library we measured: the dense eigensolver of the SCF

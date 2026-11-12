@@ -24,8 +24,8 @@ use crate::terms;
 use crate::topology::Topology;
 use axtb_base::fd;
 use axtb_base::ncoord::{dlog_cap, log_cap, XtbErf};
-use faer::{Mat, Par};
-use rayon::prelude::*;
+use axtb_base::threads::{for_slices, Threads};
+use faer::Mat;
 
 /// A nuclear Hessian.
 #[derive(Clone, Debug)]
@@ -594,29 +594,20 @@ impl<'a> Ctx<'a> {
 }
 
 /// Analytic Hessian at `xyz` (bohr).
-pub fn hessian(
-    topo: &Topology,
-    model: &Model,
-    xyz: &[[f64; 3]],
-    pool: Option<&rayon::ThreadPool>,
-    par: Par,
-) -> Result<Hessian> {
+pub fn hessian(topo: &Topology, model: &Model, xyz: &[[f64; 3]], threads: &Threads) -> Result<Hessian> {
     let n = topo.natoms();
     let n3 = 3 * n;
     let mut timings = Vec::new();
     let t0 = std::time::Instant::now();
-    let (ev, st) = energy::evaluate_full(topo, model, xyz, true, true, pool, par)?;
+    let (ev, st) = energy::evaluate_full(topo, model, xyz, true, true, threads)?;
     let st = st.unwrap();
     timings.push(("energy+gradient", t0.elapsed().as_secs_f64()));
     let t1 = std::time::Instant::now();
     let ctx = Ctx::new(topo, model, xyz, &st);
     // columns written straight into one column-major buffer (column col = chunk col)
     let mut hbuf = vec![0.0f64; n3 * n3];
-    let fill = |(col, chunk): (usize, &mut [f64])| chunk.copy_from_slice(&ctx.column(col / 3, col % 3));
-    match pool {
-        Some(p) => p.install(|| hbuf.par_chunks_mut(n3.max(1)).enumerate().for_each(fill)),
-        None => hbuf.chunks_mut(n3.max(1)).enumerate().for_each(fill),
-    }
+    let fill = |col: usize, chunk: &mut [f64]| chunk.copy_from_slice(&ctx.column(col / 3, col % 3));
+    threads.install(|| for_slices(&mut hbuf, n3.max(1), threads.parallel(), fill));
     timings.push(("columns", t1.elapsed().as_secs_f64()));
     let t2 = std::time::Instant::now();
     // EEQ charge response: H -= R^T [M^-1 R]_q
@@ -624,6 +615,7 @@ pub fn hessian(
     {
         let mut h = faer::MatMut::from_column_major_slice_mut(&mut hbuf, n3, n3);
         let r = ctx.eeq_r();
+        let par = threads.par();
         let block = 384;
         let mut start = 0;
         while start < n3 {
@@ -714,16 +706,15 @@ pub fn numerical_hessian(
     model: &Model,
     xyz: &[[f64; 3]],
     step: f64,
-    pool: Option<&rayon::ThreadPool>,
-    par: Par,
+    threads: &Threads,
 ) -> Result<Hessian> {
     let t0 = std::time::Instant::now();
-    let reference = energy::evaluate(topo, model, xyz, true, pool, par)?;
+    let reference = energy::evaluate(topo, model, xyz, true, threads)?;
     let mut timings = vec![("energy+gradient", t0.elapsed().as_secs_f64())];
     let t1 = std::time::Instant::now();
     // gradient and EEQ dipole (about the origin) of a displaced structure
     let point = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
-        let e = energy::evaluate(topo, model, x, true, None, Par::Seq)?;
+        let e = energy::evaluate(topo, model, x, true, &Threads::sequential())?;
         let mut d = [0.0; 3];
         for (xi, qi) in x.iter().zip(&e.charges) {
             for k in 0..3 {
@@ -732,11 +723,8 @@ pub fn numerical_hessian(
         }
         Ok((e.gradient.unwrap(), d))
     };
-    let numerical = |parallel| fd::numerical_hessian(xyz, step, fd::Displacement::FromReference, parallel, point);
-    let nh = match pool {
-        Some(p) => p.install(|| numerical(true)),
-        None => numerical(false),
-    }?;
+    let parallel = threads.parallel();
+    let nh = threads.install(|| fd::numerical_hessian(xyz, step, fd::Displacement::FromReference, parallel, point))?;
     timings.push(("displacements", t1.elapsed().as_secs_f64()));
     Ok(Hessian {
         energy: reference.energies.total,

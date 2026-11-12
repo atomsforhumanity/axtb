@@ -24,7 +24,6 @@ path = "src/lib.rs"
 axtb-base = { workspace = true, features = ["linalg"] }
 axtb-d4 = { workspace = true }
 faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"] }
-rayon = "1.10"
 
 [dev-dependencies]
 serde_json = "1"

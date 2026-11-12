@@ -128,7 +128,8 @@ fn invalid_mixer_and_thread_settings_are_input_errors() {
     let mut o = Options::default();
     o.scf.threads = 0;
     assert!(matches!(Calculator::new(Method::Gfn2, &z, &r, 0.0, None, o.clone()), Err(Error::Input(_))));
-    assert!(matches!(Calculator::with_pool(Method::Gfn2, &z, &r, 0.0, None, o, None), Err(Error::Input(_))));
+    let one = axtb::Threads::sequential();
+    assert!(matches!(Calculator::with_threads(Method::Gfn2, &z, &r, 0.0, None, o, one), Err(Error::Input(_))));
 }
 
 #[test]

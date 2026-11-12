@@ -1,12 +1,12 @@
 //! g-xTB 2.0.1 on several threads at a size where the dense linear algebra runs in parallel
-//! (at least `parallel::DENSE_MIN_AO` basis functions, and above the ~313 rows from which the
+//! (at least `axtb_base::threads::DENSE_MIN_AO` basis functions, and above the ~313 rows from which the
 //! eigensolver's tridiagonalization is threaded): energy and gradient on 4 threads equal the
 //! 1-thread results to round-off with the same SCF iterations, and a repeat on 4 threads gives
 //! the same bits. Both conventions, energy and analytic gradient.
 //!
 //! Own test binary: the 4-thread pools would disturb the thread counts of `threads.rs`.
 
-use axtb_gxtb::parallel::DENSE_MIN_AO;
+use axtb_base::threads::DENSE_MIN_AO;
 use axtb_gxtb::{Calculator, Conventions, ScfOptions, Version};
 
 #[test]

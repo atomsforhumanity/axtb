@@ -6,6 +6,7 @@ use crate::integrals::{
     MultipoleHess, Scratch, KL, MBLK,
 };
 use crate::molecule::{norm2_sq, sub3, Molecule};
+use axtb_base::threads;
 use faer::Mat;
 use rayon::prelude::*;
 
@@ -215,17 +216,13 @@ impl H0Params {
         let nat = mol.nat();
         // fixed chunks (the same for serial and parallel runs) reduced in order, so the
         // result does not depend on the thread count
-        let nchunk = nat.clamp(1, 64);
-        let bounds: Vec<(usize, usize)> = (0..nchunk).map(|c| (c * nat / nchunk, (c + 1) * nat / nchunk)).collect();
         let amin = MinExponents::new(bas);
-        let run = |&(a, b): &(usize, usize)| {
+        let parts = threads::map_chunks(nat, parallel, |atoms| {
             let mut gr = vec![[0.0; 3]; nat];
             let mut dc = vec![0.0; nat];
-            self.gradient_atoms(mol, bas, se, dsedcn, cutoff, &amin, p, w, vao, vdp, vqp, a..b, &mut dc, &mut gr);
+            self.gradient_atoms(mol, bas, se, dsedcn, cutoff, &amin, p, w, vao, vdp, vqp, atoms, &mut dc, &mut gr);
             (gr, dc)
-        };
-        let parts: Vec<(Vec<[f64; 3]>, Vec<f64>)> =
-            if parallel { bounds.par_iter().map(run).collect() } else { bounds.iter().map(run).collect() };
+        });
         for (gr, dc) in parts {
             for i in 0..nat {
                 dedcn[i] += dc[i];
@@ -517,11 +514,7 @@ impl H0Params {
         parallel: bool,
     ) -> Vec<AtomBlocks> {
         let task = |iat: usize| self.perturbation_atom(mol, bas, se, dsedcn, cutoff, p, vao, vdp, vqp, multipoles, iat);
-        if parallel {
-            (0..mol.nat()).into_par_iter().map(task).collect()
-        } else {
-            (0..mol.nat()).map(task).collect()
-        }
+        threads::map(mol.nat(), parallel, task)
     }
 
     fn perturbation_atom(
@@ -673,8 +666,7 @@ impl H0Params {
         let nat = mol.nat();
         let n3 = 3 * nat;
         let task = |iat: usize| self.hessian_atom(mol, bas, se, dsedcn, cutoff, p, w, vao, vdp, vqp, iat);
-        let rows: Vec<(Vec<f64>, Vec<f64>, f64)> =
-            if parallel { (0..nat).into_par_iter().map(task).collect() } else { (0..nat).map(task).collect() };
+        let rows = threads::map(nat, parallel, task);
         let mut dedcn = vec![0.0; nat];
         // X = d²Φ/dR dCN (n3 x nat)
         let mut x = vec![0.0; n3 * nat];

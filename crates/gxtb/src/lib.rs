@@ -39,9 +39,10 @@
 //! **Implicit solvent:** [`composite`], E_gxtb + [E_GFN2+ALPB/GBSA - E_GFN2] for energies,
 //! gradients and Hessians in one process ([`CompositeCalculator`]).
 //!
-//! **Threads:** a calculator with `threads > 1` owns one rayon pool of that size; the setups'
-//! loops and, from [`parallel::DENSE_MIN_AO`] basis functions on, their dense linear algebra
-//! run in it, in fixed chunks summed in order ([`parallel`]).
+//! **Threads:** a calculator with `threads > 1` owns one rayon pool of that size
+//! (`axtb_base::threads::Threads`); the setups' loops and, from
+//! `axtb_base::threads::DENSE_MIN_AO` basis functions on, their dense linear algebra run in
+//! it, in fixed chunks summed in order (`axtb_base::threads` and [`parallel`]).
 //!
 //! **The v1.1 modules**, each verified against the 1.1.0 program:
 //! - parsers for the three parameter files ([`params`]) and the compiled-in tables

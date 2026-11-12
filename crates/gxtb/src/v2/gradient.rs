@@ -27,12 +27,12 @@ use super::scf::{ScfResult, Setup, State};
 use super::sqrt_cn;
 use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, IPEA, IPEA_CN, SHELL_HUBBARD};
 use crate::h0::bond_projectors_deriv;
-use crate::parallel::map_chunks;
 use crate::timing::Laps;
 use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;
+use axtb_base::threads::map_chunks;
 
 /// Derivative accumulators before the chain rules.
 #[derive(Clone, Debug)]

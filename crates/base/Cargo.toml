@@ -1,6 +1,6 @@
 [package]
 name = "axtb-base"
-description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, coordination numbers, orbital occupations, timers, finite differences and (feature linalg) dense linear algebra and the EEQ charge equations"
+description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, coordination numbers, orbital occupations, timers, thread pools and parallel loops, finite differences and (feature linalg) dense linear algebra and the EEQ charge equations"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -19,7 +19,7 @@ name = "axtb_base"
 path = "src/lib.rs"
 
 [dependencies]
-# the parallel loops of the finite differences (`fd`), on the caller's pool
+# the thread pools and deterministic parallel loops (`threads`)
 rayon = "1.10"
 # the dense linear algebra of `linalg` (feature `linalg`)
 faer = { version = "0.22", default-features = false, features = ["std", "linalg", "rayon"], optional = true }

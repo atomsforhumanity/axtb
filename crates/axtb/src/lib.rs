@@ -48,6 +48,7 @@ pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
 pub use xtb::{EnergyTerms, InitialGuess, ScfGuess, ScfOptions, SinglePoint};
 
 pub use axtb_base::linalg;
+pub use axtb_base::threads::Threads;
 pub use axtb_base::units;
 pub use axtb_base::{Error, Molecule, Result, MIN_ATOM_DISTANCE};
 

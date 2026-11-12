@@ -47,7 +47,7 @@ fn for_each_ordered<T: Send>(
     let mut k0 = 0;
     while k0 < n {
         let k = chunk.min(n - k0);
-        for r in crate::parallel::map_items(k, parallel, |j| f(k0 + j)) {
+        for r in axtb_base::threads::map(k, parallel, |j| f(k0 + j)) {
             sink(r);
         }
         k0 += k;
@@ -621,7 +621,7 @@ impl Setup {
                 Ok(g.concat())
             })
         };
-        let cols = fd::columns(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let cols = axtb_base::threads::map(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
         let mut out = fd::from_columns(&cols, n3);
         // second derivatives of the q_eff formula itself
         for a in 0..nat {
@@ -668,7 +668,7 @@ impl Setup {
             let (a, v) = if c < n3 { (c / 3, c % 3) } else { (c - n3, 3) };
             fd::try_derivative(fd::Stencil::Central4, STEP, |d| local(a, v, d))
         };
-        let cols = fd::columns(nl, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let cols = axtb_base::threads::map(nl, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
         let mut hl = fd::from_columns(&cols, nl);
         fd::symmetrize(&mut hl, nl);
         // chain: J = [I; dCN/dR]
@@ -702,7 +702,7 @@ impl Setup {
                 g.concat()
             })
         };
-        let cc = fd::columns(n3, parallel, cncol);
+        let cc = axtb_base::threads::map(n3, parallel, cncol);
         let mut out = vec![0.0; n3 * n3];
         for x in 0..n3 {
             for y in 0..n3 {

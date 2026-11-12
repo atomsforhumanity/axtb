@@ -185,7 +185,7 @@ impl Coulomb {
     pub fn isotropic_energies(&self, q: &[f64], parallel: bool) -> [f64; 4] {
         let n = self.shells.len();
         let qa = self.atom_charges(q);
-        let parts = crate::parallel::map_chunks(n, parallel, |rows| {
+        let parts = axtb_base::threads::map_chunks(n, parallel, |rows| {
             let (mut e1, mut e2, mut e3, mut e4) = (0.0, 0.0, 0.0, 0.0);
             for i in rows {
                 let ia = self.shells[i].0;
@@ -221,10 +221,9 @@ impl Coulomb {
         for i in 0..n {
             muq[self.shells[i].0] += self.mu[i] * q[i];
         }
-        let tq: Vec<f64> =
-            crate::parallel::map_items(n, parallel, |i| (0..n).map(|j| self.tau[i * n + j] * q[j]).sum());
+        let tq: Vec<f64> = axtb_base::threads::map(n, parallel, |i| (0..n).map(|j| self.tau[i * n + j] * q[j]).sum());
         let w3: Vec<f64> = (0..n).map(|i| q[i] * q[i] * self.gam3[i]).collect();
-        crate::parallel::map_items(n, parallel, |i| {
+        axtb_base::threads::map(n, parallel, |i| {
             let ia = self.shells[i].0;
             let (g, dg) = first_order_g(qa[ia]);
             let mut vi = self.mu[i] * g + muq[ia] * dg;
@@ -288,7 +287,7 @@ impl Coulomb {
     /// (in parallel when `parallel`; same result).
     pub fn aes_energy(&self, mol: &Molecule, qa: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], parallel: bool) -> f64 {
         let d = self.scaled_dipoles(dip);
-        crate::parallel::map_chunks(mol.nat(), parallel, |rows| {
+        axtb_base::threads::map_chunks(mol.nat(), parallel, |rows| {
             crate::aes::aes_energy_rows(mol, qa, &d, qp, &self.aes, rows)
         })
         .into_iter()

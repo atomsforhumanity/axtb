@@ -141,8 +141,8 @@ impl Setup {
 
     /// [`Setup::new`] on `threads` threads of the current rayon pool (the caller runs it inside a
     /// pool of that size): the setup's loops in parallel, its dense linear algebra from
-    /// [`crate::parallel::DENSE_MIN_AO`] basis functions on, and so those of its SCF, gradient
-    /// and Hessians ([`Setup::set_threads`]).
+    /// `axtb_base::threads::DENSE_MIN_AO` basis functions on, and so those of its SCF, gradient
+    /// and Hessians ([`Setup::set_threads`]). Zero threads is an input error.
     pub fn with_threads(mol: &Molecule, conventions: Conventions, threads: usize) -> Result<Self> {
         let model = Model::new(conventions);
         let parallel = threads > 1;
@@ -161,7 +161,8 @@ impl Setup {
             ao_shell.extend(std::iter::repeat_n(ish, 2 * l + 1));
         }
         let nao = ao_shell.len();
-        let dense = crate::parallel::dense_par(threads, nao)?;
+        axtb_base::threads::check(threads)?;
+        let dense = axtb_base::threads::dense_par(threads, nao);
         let ao_atom: Vec<usize> = ao_shell.iter().map(|&s| shells[s].0).collect();
         let (s, dpint, qpint) = super::basis::integrals(mol, &basis.shells, cutoff, parallel);
         t.lap("setup: integrals");
@@ -244,11 +245,12 @@ impl Setup {
 
     /// Run the SCF, gradient and Hessians of this setup on `threads` threads of the current
     /// rayon pool (the caller runs them inside a pool of that size): the loops in parallel for
-    /// more than one thread, the dense linear algebra from [`crate::parallel::DENSE_MIN_AO`]
-    /// basis functions on. The Hessians run their displacements in parallel instead, each
-    /// sequentially.
+    /// more than one thread, the dense linear algebra from `axtb_base::threads::DENSE_MIN_AO`
+    /// basis functions on ([`axtb_base::threads::dense_par`]). The Hessians run their
+    /// displacements in parallel instead, each sequentially. Zero threads is an input error.
     pub fn set_threads(&mut self, threads: usize) -> Result<()> {
-        self.par = crate::parallel::dense_par(threads, self.nao)?;
+        axtb_base::threads::check(threads)?;
+        self.par = axtb_base::threads::dense_par(threads, self.nao);
         self.threads = threads;
         self.parallel = threads > 1;
         Ok(())
@@ -263,7 +265,7 @@ impl Setup {
     /// `self.parallel`; without `moments` only the first entry).
     fn row_moments(&self, p: &[f64], moments: bool) -> Vec<[f64; 10]> {
         let n = self.nao;
-        crate::parallel::map_items(n, self.parallel, |mu| {
+        axtb_base::threads::map(n, self.parallel, |mu| {
             let r = mu * n..(mu + 1) * n;
             let pr = &p[r.clone()];
             let mut out = [0.0; 10];
@@ -439,7 +441,7 @@ impl Setup {
         // multipole potential -1/2 (G_mn + G_nm), G_mn = vd(A(m)) . D_mn + vq(A(m)) . Q_mn (by rows)
         let mut g = vec![0.0; n * n];
         let ([d0, d1, d2], [q0, q1, q2, q3, q4, q5]) = (&self.dpint, &self.qpint);
-        crate::parallel::for_rows(&mut g, n, self.parallel, |m, row| {
+        axtb_base::threads::for_slices(&mut g, n, self.parallel, |m, row| {
             let (vdm, vqm) = (vd[self.ao_atom[m]], vq[self.ao_atom[m]]);
             for (k, x) in row.iter_mut().enumerate() {
                 let mk = m * n + k;

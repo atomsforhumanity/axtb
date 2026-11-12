@@ -342,7 +342,7 @@ impl Exchange {
                 b.chunks_mut(rows).zip(x.chunks_mut(rows)).enumerate().map(|(t, (bt, xt))| dense(t, bt, xt)).collect()
             }
         } else {
-            crate::parallel::map_items(ntile, parallel, |t| dense(t, &mut [], &mut []))
+            axtb_base::threads::map(ntile, parallel, |t| dense(t, &mut [], &mut []))
         };
         let mut e: f64 = parts.iter().sum();
         // atom blocks: the onsite (Lambda) and same-shell (r) parts of the kernels and their
@@ -430,7 +430,7 @@ impl Exchange {
         let sps = &pr.sps;
         let gx = &self.gx;
         let mut out = vec![0.0; n * n];
-        crate::parallel::for_rows(&mut out, TILE * n, parallel, |t, rows| {
+        axtb_base::threads::for_slices(&mut out, TILE * n, parallel, |t, rows| {
             let i0 = t * TILE;
             let i1 = (i0 + TILE).min(n);
             for j0 in (0..n).step_by(TILE) {
@@ -516,7 +516,7 @@ impl Exchange {
         let mut tat = vec![0.0; nat * nat];
         for (pm, prm) in p.iter().zip(pr) {
             let (ps, sps) = (&prm.ps, &prm.sps);
-            let rows: Vec<Vec<(f64, f64)>> = crate::parallel::map_items(nsh, parallel, |i| {
+            let rows: Vec<Vec<(f64, f64)>> = axtb_base::threads::map(nsh, parallel, |i| {
                 let (i0, i1) = sr[i];
                 sr.iter()
                     .map(|&(j0, j1)| {
@@ -579,7 +579,7 @@ impl Exchange {
                 par,
             );
             let y2 = &cp.y2;
-            crate::parallel::for_rows(&mut out, TILE * n, parallel, |t, rows| {
+            axtb_base::threads::for_slices(&mut out, TILE * n, parallel, |t, rows| {
                 let i0 = t * TILE;
                 let i1 = (i0 + TILE).min(n);
                 for j0 in (0..n).step_by(TILE) {

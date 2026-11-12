@@ -16,16 +16,18 @@
 //! - [`occupations`]: the Aufbau filling, tblite's and xtb's Fermi smearing and tblite's
 //!   electronic entropy term;
 //! - [`timing`]: wall time per named phase;
-//! - [`fd`]: finite differences (stencils, columns over coordinates, symmetrization and the
-//!   numerical Hessian of every method);
+//! - [`threads`]: the thread pool of a calculator, the rule for parallel dense linear algebra
+//!   and the deterministic parallel loops (fixed chunks, results in order);
+//! - [`fd`]: finite differences (stencils, symmetrization and the numerical Hessian of every
+//!   method);
 //! - `linalg`, with the feature `linalg`: dense linear algebra on faer (the SCF eigensolver
 //!   with its optional run-time LAPACK library, density matrices, linear solves);
 //! - `eeq`, with the feature `linalg`: the bordered linear system of the electronegativity
 //!   equilibration charge models (EEQ 2019, GFN-FF's two EEQs, g-xTB's EEQ-BC), its constraint
 //!   rows and solves.
 //!
-//! Without features its only dependency is rayon (the parallel loops of [`fd`], on the
-//! caller's pool), so that `axtb-d4` and `axtb-solvation` can use it as well as the
+//! Without features its only dependency is rayon (the thread pools and parallel loops of
+//! [`threads`]), so that `axtb-d4` and `axtb-solvation` can use it as well as the
 //! tight-binding framework `axtb`; the feature `linalg` adds faer, for `axtb`, `axtb-gfnff`
 //! and `axtb-gxtb`.
 
@@ -44,6 +46,7 @@ pub mod math;
 mod molecule;
 pub mod ncoord;
 pub mod occupations;
+pub mod threads;
 pub mod timing;
 pub mod units;
 

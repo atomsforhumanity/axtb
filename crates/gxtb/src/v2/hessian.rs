@@ -20,10 +20,9 @@
 
 use super::response::{from_mat, to_mat, Cpks, CpksOptions};
 use super::scf::{ScfResult, Setup};
-use crate::parallel::map_items;
 use crate::timing::Timings;
 use axtb::{Error, Result};
-use axtb_base::fd;
+use axtb_base::{fd, threads};
 use faer::{Mat, MatMut, MatRef, Par};
 
 /// A Hessian of [`Setup::response_hessian`] or [`Setup::analytic_hessian`]: the row-major
@@ -123,7 +122,7 @@ impl Setup {
             let (g, dmu) = fd::central2(&at(&sp, step)?, &at(&sm, -step)?, step);
             Ok((g.into_flattened(), dmu))
         };
-        let cols = fd::columns(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
+        let cols = threads::map(n3, parallel, column).into_iter().collect::<Result<Vec<_>>>()?;
         let (cols, dipd): (Vec<Vec<f64>>, Vec<[f64; 3]>) = cols.into_iter().unzip();
         let h = fd::from_columns(&cols, n3);
         timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
@@ -228,7 +227,7 @@ impl Setup {
         let mut y0 = 0;
         while y0 < n3 {
             let k = block.min(n3 - y0);
-            let res = map_items(k, parallel, |j| task(y0 + j));
+            let res = threads::map(k, parallel, |j| task(y0 + j));
             for (j, r) in res.into_iter().enumerate() {
                 let (d, col, dmu, tp, tr, zr) = r?;
                 t_pert += tp;

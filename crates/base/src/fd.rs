@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LGPL-3.0-or-later
-//! Finite differences, written once for every method: the central-difference stencils, the
-//! columns of a derivative over many coordinates, symmetrization, and the numerical Hessian
-//! from central differences of an analytic gradient.
+//! Finite differences, written once for every method: the central-difference stencils,
+//! symmetrization, and the numerical Hessian from central differences of an analytic gradient.
+//! The columns of a derivative over many coordinates are [`crate::threads::map`].
 //!
 //! The pieces keep the arithmetic of the code they replaced, so that results stay the same to
 //! the last bit:
@@ -10,9 +10,6 @@
 //!   [`Stencil::Central4`] 2h, −2h) and combines the values element by element with
 //!   [`central2`] or [`central4`]; the caller moves its own coordinate by the offset
 //!   (`x + d`), so the displaced coordinate is formed as before;
-//! - [`columns`] runs one closure per coordinate, sequentially or on the current rayon pool,
-//!   each call on one thread and its result at its index: the output is the same for every
-//!   thread count as long as the closure itself runs sequentially;
 //! - [`symmetrize`] replaces a matrix by `(H + Hᵀ)/2` with [`symmetric_part`] and reports the
 //!   largest asymmetry; since `a + b = b + a` exactly, it does not matter whether a caller
 //!   stored its columns as rows or as columns;
@@ -24,7 +21,7 @@
 //! code of the LGPL crates `axtb` (GFN2-xTB) and `axtb-gfnff` that moved here. The GPL g-xTB
 //! crate calls these routines from its own code; nothing here comes from it.
 
-use rayon::prelude::*;
+use crate::threads;
 use std::convert::Infallible;
 
 /// A central-difference stencil along one coordinate with step h.
@@ -107,19 +104,6 @@ pub fn try_derivative<V: Values, E>(stencil: Stencil, h: f64, mut f: impl FnMut(
     })
 }
 
-/// `f(y)` for every coordinate `y` in `0..n`, collected in index order. With `parallel` the
-/// calls are spread over the current rayon pool (the caller wraps the call in its pool's
-/// `install`); without it they run in order on the calling thread. Each call runs entirely on
-/// one thread, so if `f` does its own work sequentially the results are identical for any
-/// thread count.
-pub fn columns<T: Send>(n: usize, parallel: bool, f: impl Fn(usize) -> T + Sync + Send) -> Vec<T> {
-    if parallel {
-        (0..n).into_par_iter().map(f).collect()
-    } else {
-        (0..n).map(f).collect()
-    }
-}
-
 /// The row-major `rows x cols.len()` matrix whose column y is `cols[y]` (of length `rows`).
 pub fn from_columns<C: AsRef<[f64]>>(cols: &[C], rows: usize) -> Vec<f64> {
     let n = cols.len();
@@ -193,7 +177,7 @@ pub fn numerical_hessian<E: Send>(
     let n3 = 3 * positions.len();
     let mut hessian = vec![0.0; n3 * n3];
     // column y of the Hessian into row y of the buffer: its transpose, the same once symmetrized
-    let column = |(y, row): (usize, &mut [f64])| -> Result<[f64; 3], E> {
+    let column = |y: usize, row: &mut [f64]| -> Result<[f64; 3], E> {
         let (a, k) = (y / 3, y % 3);
         let mut x = positions.to_vec();
         let x0 = x[a][k];
@@ -216,12 +200,7 @@ pub fn numerical_hessian<E: Send>(
         }
         Ok(central2(&mup, &mum, step))
     };
-    let chunk = n3.max(1);
-    let dipd: Vec<Result<[f64; 3], E>> = if parallel {
-        hessian.par_chunks_mut(chunk).enumerate().map(column).collect()
-    } else {
-        hessian.chunks_mut(chunk).enumerate().map(column).collect()
-    };
+    let dipd = threads::map_slices(&mut hessian, n3.max(1), parallel, column);
     let dipole_derivatives = dipd.into_iter().collect::<Result<Vec<_>, E>>()?;
     let max_asymmetry = symmetrize(&mut hessian, n3);
     Ok(NumericalHessian { hessian, max_asymmetry, dipole_derivatives })
@@ -270,8 +249,7 @@ mod tests {
         let mut h = vec![1.0, 2.0, 3.0, 4.0];
         assert_eq!(symmetrize(&mut h, 2), 1.0);
         assert_eq!(h, [1.0, 2.5, 2.5, 4.0]);
-        let cols = columns(3, false, |y| vec![y as f64, 10.0 + y as f64]);
-        assert_eq!(cols, columns(3, true, |y| vec![y as f64, 10.0 + y as f64]));
+        let cols = threads::map(3, false, |y| vec![y as f64, 10.0 + y as f64]);
         assert_eq!(from_columns(&cols, 2), [0.0, 1.0, 2.0, 10.0, 11.0, 12.0]);
     }
 

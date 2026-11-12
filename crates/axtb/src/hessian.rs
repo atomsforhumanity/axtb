@@ -183,7 +183,7 @@ pub(crate) fn response_hessian(
         });
         g.into_flattened()
     };
-    let h = fd::from_columns(&fd::columns(n3, threads > 1, column), n3);
+    let h = fd::from_columns(&axtb_base::threads::map(n3, threads > 1, column), n3);
     timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
     Ok((h, dipd, timings))
 }
