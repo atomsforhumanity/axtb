@@ -60,7 +60,7 @@
 //!   ([`exchange`]);
 //! - the revD4 dispersion ([`disp`], built on `axtb_d4`);
 //! - the Fock matrices of all terms ([`fock`]) and the SCF driver with the program's start
-//!   density ([`scf`]), its Fock mixing and convergence criteria ([`strategy`]);
+//!   density ([`scf`]), its Fock mixing and convergence criteria (`strategy`);
 //! - analytic nuclear gradients ([`scf::Setup::gradient`]): the explicit geometry derivative
 //!   of every term ([`gradient`]) and the Z-vector response of the program's non-variational
 //!   Fock matrix ([`response`]), checked against finite differences of the energy (≤ 6e-10
@@ -106,7 +106,7 @@ pub mod params;
 pub mod qvszp;
 pub mod response;
 pub mod scf;
-pub mod strategy;
+pub(crate) mod strategy;
 pub mod timing;
 pub mod v2;
 

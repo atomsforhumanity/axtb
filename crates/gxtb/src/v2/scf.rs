@@ -13,11 +13,11 @@
 //!   iterations 3..k (at most 7), coefficients from the bordered B matrix; DIIS starts one
 //!   iteration early after an energy change |E_k - E_{k-1}| below 1e-12 Eh (tblite's mixer
 //!   stages; e.g. H2, whose density is fixed from iteration 1;
-//!   [`super::strategy::Gxtb201FockDiis`]);
+//!   `Gxtb201FockDiis`);
 //! - convergence after iteration k once |E_j - E_{j-1}| < 1e-6 acc Eh in some iteration j <= k
 //!   and the RMS of r_j over the full vector < 2e-5 acc in some iteration 1 < j <= k (tblite's
 //!   `check_convergence` sets each flag and never clears it); no extra iteration
-//!   ([`super::strategy::Gxtb201Rule`]).
+//!   (`Gxtb201Rule`).
 
 use super::basis::Basis;
 use super::cn::gxtb_cn;

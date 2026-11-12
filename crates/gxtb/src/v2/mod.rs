@@ -37,7 +37,7 @@ pub mod hessian;
 pub mod repulsion;
 pub mod response;
 pub mod scf;
-pub mod strategy;
+pub(crate) mod strategy;
 pub mod tangent;
 
 use crate::scf::Conventions;

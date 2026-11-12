@@ -21,7 +21,7 @@ use faer::{Mat, Par};
 /// own only, so Fs = F (found by comparing every iteration of the program's restarted runs).
 ///
 /// It measures no residual (the 1.1.0 SCF converges on the density change): `mix` returns NaN.
-pub struct Gxtb110FockMixer {
+pub(crate) struct Gxtb110FockMixer {
     /// AOs per channel.
     n: usize,
     alpha: f64,
@@ -37,7 +37,7 @@ impl Gxtb110FockMixer {
     /// The mixer for `n` AOs per channel with the damping `alpha`, the transition step in
     /// iteration `ndamp` (closed shell 3, open shell 4), at most `size` stored pairs (closed
     /// shell 7, open shell 8), for an SCF restarted from a given density or not.
-    pub fn new(n: usize, alpha: f64, ndamp: usize, size: usize, restart: bool) -> Self {
+    pub(crate) fn new(n: usize, alpha: f64, ndamp: usize, size: usize, restart: bool) -> Self {
         Self { n, alpha, ndamp, restart, size, fin: Vec::new(), hist: Vec::new() }
     }
 }
@@ -127,7 +127,7 @@ fn diis_coefficients(hist: &[(Vec<Vec<f64>>, Vec<f64>)], s: usize, npk: usize) -
 /// iteration. The program then diagonalizes the unmixed Fock matrix of the converged density
 /// once more ([`Verdict::OneMore`]), and that iteration is the result; an SCF whose iteration
 /// limit comes first is not converged.
-pub struct Gxtb110Rule {
+pub(crate) struct Gxtb110Rule {
     ethr: f64,
     pthr: f64,
     /// The convergence test was met; the next iteration is the last.
@@ -138,7 +138,7 @@ pub struct Gxtb110Rule {
 
 impl Gxtb110Rule {
     /// The test with the energy threshold `ethr` (Eh) and the density threshold `pthr`.
-    pub fn new(ethr: f64, pthr: f64) -> Self {
+    pub(crate) fn new(ethr: f64, pthr: f64) -> Self {
         Self { ethr, pthr, met: false, done: false }
     }
 }

@@ -26,7 +26,7 @@ const DIIS_SWITCH_ENERGY: f64 = 1e-12;
 /// The residual of iteration k is the RMS of r_k over the full vector (0 in iteration 1). The
 /// element loops and dot products run in the fixed chunks of [`crate::parallel`] (the same bits
 /// for every thread count).
-pub struct Gxtb201FockDiis {
+pub(crate) struct Gxtb201FockDiis {
     /// AOs per channel.
     n: usize,
     damping: f64,
@@ -46,7 +46,7 @@ impl Gxtb201FockDiis {
     /// The mixer for `n` AOs per channel with the damping factor `damping` (the program's 0.2)
     /// and at most `size` stored iterations (the program's 7); `parallel`: chunks on the
     /// current rayon pool.
-    pub fn new(n: usize, damping: f64, size: usize, parallel: bool) -> Self {
+    pub(crate) fn new(n: usize, damping: f64, size: usize, parallel: bool) -> Self {
         Self { n, damping, size, parallel, diis: false, fmix: Vec::new(), hist: Vec::new(), bmat: Vec::new() }
     }
 }
@@ -116,7 +116,7 @@ impl FockMixer for Gxtb201FockDiis {
 /// Solve the bordered DIIS equations of the matrix `b` (B_ij = r_i · r_j) with an unblocked LU
 /// with partial pivoting (LAPACK `getf2` order: the first maximum on ties) and return the
 /// coefficients; `None` if the equations are singular.
-pub fn diis_coefficients(b: &[Vec<f64>]) -> Option<Vec<f64>> {
+pub(crate) fn diis_coefficients(b: &[Vec<f64>]) -> Option<Vec<f64>> {
     let m = b.len();
     let n = m + 1;
     let mut a = vec![0.0; n * n];
@@ -190,7 +190,7 @@ pub fn diis_coefficients(b: &[Vec<f64>]) -> Option<Vec<f64>> {
 /// iteration k once |E_j − E_{j−1}| < `ethr` in some iteration j ≤ k and the Fock residual is
 /// below `pthr` in some iteration 1 < j ≤ k. Each criterion counts once met (tblite only ever
 /// sets its flags); no extra iteration.
-pub struct Gxtb201Rule {
+pub(crate) struct Gxtb201Rule {
     ethr: f64,
     pthr: f64,
     econverged: bool,
@@ -200,7 +200,7 @@ pub struct Gxtb201Rule {
 impl Gxtb201Rule {
     /// The test with the energy threshold `ethr` (Eh; the program's 1e-6·acc) and the residual
     /// threshold `pthr` (the program's 2e-5·acc).
-    pub fn new(ethr: f64, pthr: f64) -> Self {
+    pub(crate) fn new(ethr: f64, pthr: f64) -> Self {
         Self { ethr, pthr, econverged: false, pconverged: false }
     }
 }
