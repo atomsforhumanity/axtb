@@ -1,7 +1,10 @@
 # axtb-base
 
 The foundation every [axtb](https://github.com/atomsforhumanity/axtb) crate builds on: the
-molecule and its checks, the one error type, physical constants and the reference programs'
+molecule and its checks, the one error type, the `Method` trait every calculator implements
+(single points, Hessians, wavefunction restarts, one result type for every method, the retry
+ladders and the generic composite of methods), the orbital data of the Molden files, physical
+constants and the reference programs'
 unit factors, the element tables several crates share, the error function the reference
 programs use, small 3-vector helpers, coordination numbers (the counting functions of GFN2-xTB,
 dftd4 and GFN-FF with their derivatives), orbital occupations (Aufbau, tblite's and xtb's Fermi

@@ -4,6 +4,11 @@
 //! - [`Molecule`]: atomic numbers, positions (bohr), charge and unpaired electrons, checked once
 //!   for every method ([`MIN_ATOM_DISTANCE`]);
 //! - [`Error`] and [`Result`]: one error type with the kinds every front end reports;
+//! - [`method`]: the [`Method`] trait every calculator implements (GFN2-xTB, g-xTB, GFN-FF
+//!   and composites of them) with its results, settings, wavefunctions, retry ladders and the
+//!   generic [`method::Composite`];
+//! - [`orbitals`]: the orbitals an SCF method keeps on request (contracted Gaussians, MO sets,
+//!   orbital levels), for the Molden writer of `axtb`;
 //! - [`units`]: CODATA 2022 constants, and in [`units::reference`] the factors the reference
 //!   programs' parametrizations were tabulated with (never to be updated);
 //! - [`elements`]: the element tables the method crates share (Pauling electronegativities,

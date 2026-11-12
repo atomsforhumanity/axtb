@@ -167,8 +167,9 @@ structures GFN-FF cannot set up; `axtb.ScfNotConvergedError` (a `RuntimeError`) 
 `iterations`, `energy_change` and `residual`; `RuntimeError` for numerical failures (and, as
 a bug report, for an internal panic); each carries `kind` as the CLI's JSON error does. The
 calculator's construction and every calculation release the GIL. Python names that differ from
-the request's or Rust's: `Calculator.guess_state()` and `set_guess_state(state)` are
-`axtb_driver::Calculator::guess()` and `set_guess()`; `Calculator.set_guess(shell_charges,
+the request's or Rust's: `Calculator.guess_state()`, `set_guess_state(state)` and
+`reset_guess()` are `axtb_driver::Calculator::wavefunction()`, `set_wavefunction()` and
+`reset_wavefunction()`; `Calculator.set_guess(shell_charges,
 atomic_dipoles, atomic_quadrupoles)` (GFN2-xTB moments) is `set_moments`;
 `vibrational_analysis(conventions=...)` is the request's `analysis_conventions`; `molden=True`,
 `"spherical"` or `"cartesian"` is the request's `molden` and `molden_cartesian`; the arguments
@@ -335,7 +336,7 @@ gradient in one Python process, xtb conventions, seconds):
     enough to use them; later changes have no effect.
   - When the library cannot be loaded or is refused, faer solves instead. The CLI and the Python
     module warn ("AXTB_LAPACK not used"), and the `eigensolver` field of every response says
-    which solver ran (`faer` or the library); in Rust, `SinglePoint::eigensolver` and
+    which solver ran (`faer` or the library); in Rust, `ScfReport::eigensolver` and
     `axtb::linalg::runtime_lapack()`.
 
   Between thread counts, and against faer, the results differ by round-off (≤ 2e-12 Eh in the
@@ -411,7 +412,7 @@ before the g-xTB build). docs/validation.md compares the `xtb-6.7.1` conventions
 
 The SCC variables (shell charges, atomic dipoles and quadrupoles) are mixed between
 iterations by the mixer chosen with `mixer` (Python, CLI `--mixer`, JSON `"mixer"`, qccodec
-keyword, `ScfOptions::mixer` in Rust; default: the conventions' choice):
+keyword, `axtb::Options::mixing` in Rust; default: the conventions' choice):
 
 - `"broyden"`: modified Broyden mixing with tblite's weights, damping 0.4 and full history.
   The `xtb`, `xtb-6.7.1` and `tblite` conventions use it alone, so they reproduce the programs' iteration
@@ -428,8 +429,8 @@ keyword, `ScfOptions::mixer` in Rust; default: the conventions' choice):
 Results say which mixer produced them: `mixer_used` (`"broyden"`, `"diis"`, or
 `"diis-fallback"` when Broyden failed and DIIS converged) and `scf_attempts` (mixer,
 iterations, converged of each attempt; `iterations` is that of the converging attempt), in
-`SinglePoint` (Rust), the result dict (Python), the CLI's JSON and the qccodec `extras`, so a
-rescued point on a path is visible.
+`ScfReport` (Rust, `SinglePoint::scf()`), the result dict (Python), the CLI's JSON and the
+qccodec `extras`, so a rescued point on a path is visible.
 
 docs/validation.md has how the mixers do on a set of hard SCF cases.
 
@@ -482,10 +483,10 @@ charges and magnetizations, atomic dipoles and quadrupoles and the density matri
 (`xtbrestart`), taken over as they are although the charge- and CN-dependent q-vSZP basis of the
 new geometry differs (the programs do the same). An SCF from a previous state that does not
 converge runs once more from the program's EEQ-BC start. Results say which start produced them
-(`guess`: `previous`, `eeq-bc`, `eeq`, `sad`; Rust `SinglePoint::guess`).
+(`guess`: `previous`, `eeq-bc`, `eeq`, `sad`; Rust `ScfReport::start`).
 
 - `conventions="gxtb"` keeps the programs' fresh EEQ-BC start for every SCF, so each result is
-  that of a fresh program run. `guess="previous"` (Rust `ScfOptions::guess`) reproduces the
+  that of a fresh program run. `guess="previous"` (Rust `ScfSettings::restart`) reproduces the
   programs' restarts: a second run in the same directory or the next step of an optimization
   inside one run. Against the programs run that way (caffeine, water, triplet O2,
   [Cu(NH3)4]²⁺; the same geometry, then 0.02, 0.1 and 0.3 bohr rms displacements, each from the
@@ -507,9 +508,11 @@ converge runs once more from the program's EEQ-BC start. Results say which start
   times a fresh SCF's but at most 8e-6 Eh/bohr, and the optimizers take the same steps.
 - Python's `Calculator.guess_state()` returns the last converged state (an `axtb.ScfState`) and
   `set_guess_state(state)` starts another calculator for the same method and molecule from it.
-  In Rust these are `guess()` and `set_guess(state)`: of `axtb_driver::Calculator` (an
-  `axtb_driver::ScfState`, any method), `axtb::Calculator` (`ScfGuess`) and
-  `axtb_gxtb::Calculator` (`GuessState`). Python's `Calculator.set_guess(shell_charges,
+  In Rust these are `wavefunction()` and `set_wavefunction(wf)` of the `Method` trait, which
+  every calculator implements (an `axtb::method::Wavefunction`; it starts only a calculator of
+  its method and molecule: atomic numbers, charge and unpaired electrons), and of
+  `axtb_driver::Calculator`. A given wavefunction starts the next SCF whatever `guess` says,
+  and after a failed calculation a calculator has none. Python's `Calculator.set_guess(shell_charges,
   atomic_dipoles, atomic_quadrupoles)` starts GFN2-xTB from given moments
   (`axtb_driver::Calculator::set_moments`).
   The codec uses this for qccompute's `propagate_wfn=True`: optimizers (geomeTRIC, Sella) start
@@ -561,8 +564,8 @@ smoothed FD Hessian that xtb reports, without SCF noise.
 ## g-xTB
 
 g-xTB v1.1: `method="gxtb-v1.1"` in Python and qccodec, `--method gxtb-v1.1` in the CLI,
-`axtb_gxtb::Calculator` in Rust (same interface as `axtb::Calculator`, returns
-`axtb::SinglePoint`): energies, analytic gradients, semi-numerical Hessians. It uses the
+`axtb_gxtb::Calculator` in Rust (implements the `Method` trait, as `axtb::Calculator`
+does): energies, analytic gradients, semi-numerical Hessians. It uses the
 g-xTB 1.1.0 program's SCF (thresholds, start density, mixing; the CLI reads XYZ files with
 the program's Ångström factor), accepts `accuracy` (multiplier of the program's SCF
 thresholds), `etemp` (Fermi smearing, see below), `max_iter`, `threads` and `conventions`, and
@@ -797,8 +800,8 @@ Avogadro, IboView, Multiwfn, PySCF/IOData readers):
   `"molden": true` (the text in the response), `"molden_file"` and `"molden_cartesian"`;
 - qccodec: keyword `molden` (`True`, `"spherical"` or `"cartesian"`) puts the file into
   `output.results.files["molden.input"]`, for every calculation type;
-- Rust: `ScfOptions::keep_orbitals` (in `axtb` and `axtb_gxtb`) keeps them in
-  `SinglePoint::orbitals`, and `Orbitals::to_molden` writes the file.
+- Rust: `Want::orbitals` keeps them in `Electronic::orbitals` of the single point, and
+  `axtb::ToMolden::to_molden` writes the file.
 
 The file follows the Molden conventions standard readers use: `[Atoms] AU` with atomic
 numbers; `[GTO]` atom by atom, each atom with its own contracted shells (g-xTB's q-vSZP
@@ -828,10 +831,10 @@ and 2.0.1, the g-xTB part of the solvation composite):
 
 | output | Python result | CLI JSON | qccodec | Rust |
 |---|---|---|---|---|
-| Mayer–Wiberg bond orders (N x N), on request | `singlepoint(..., bond_orders=True)` → `bond_orders` | `--wbo` (`"bond_orders": true`) → `bond_orders` | keyword `bond_orders` → `extras['bond_orders']` | `ScfOptions::bond_orders` → `SinglePoint::bond_orders` |
-| orbital energies and occupations per spin | `orbital_energies_alpha/_beta`, `occupations_alpha/_beta` | the same | `wavefunction.scf_eigenvalues_a/b`, `scf_occupations_a/b`, `calcinfo_nbasis/nmo/nalpha/nbeta/natoms` | `SinglePoint::levels` |
-| HOMO–LUMO gap (Eh) | `homo_lumo_gap` | the same | `extras['homo_lumo_gap']` | `SinglePoint::homo_lumo_gap` |
-| molecular quadrupole (xx, xy, yy, xz, yz, zz; e·bohr², about the origin) | `quadrupole` | the same | `extras['quadrupole']` | `axtb::properties::molecular_quadrupole` |
+| Mayer–Wiberg bond orders (N x N), on request | `singlepoint(..., bond_orders=True)` → `bond_orders` | `--wbo` (`"bond_orders": true`) → `bond_orders` | keyword `bond_orders` → `extras['bond_orders']` | `Want::bond_orders` → `Electronic::bond_orders` |
+| orbital energies and occupations per spin | `orbital_energies_alpha/_beta`, `occupations_alpha/_beta` | the same | `wavefunction.scf_eigenvalues_a/b`, `scf_occupations_a/b`, `calcinfo_nbasis/nmo/nalpha/nbeta/natoms` | `Electronic::levels` |
+| HOMO–LUMO gap (Eh) | `homo_lumo_gap` | the same | `extras['homo_lumo_gap']` | `Electronic::homo_lumo_gap` |
+| molecular quadrupole (xx, xy, yy, xz, yz, zz; e·bohr², about the origin) | `quadrupole` | the same | `extras['quadrupole']` | `Electronic::quadrupole` |
 
 qcdata has fields for the orbital levels but none for bond orders or quadrupoles. Bond orders cost
 one matrix product per spin and are computed only when asked for; the levels, gap and

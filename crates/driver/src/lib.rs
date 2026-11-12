@@ -4,8 +4,10 @@
 //! arguments; [`run`] checks it, dispatches it to GFN2-xTB (`axtb`), g-xTB and its solvation
 //! composite (`axtb-gxtb`, feature `gxtb`) or GFN-FF (`axtb-gfnff`), and returns a
 //! [`Response`] with the same fields for every front end (the CLI writes it as JSON, Python
-//! returns it as a dict). A stateful [`Calculator`] (Python's `axtb.Calculator`) runs a [`Task`]
-//! at one geometry after another.
+//! returns it as a dict). A stateful [`Calculator`] (Python's `axtb.Calculator`) builds the
+//! request's method behind axtb-base's `Method` trait and runs a [`Task`] at one geometry
+//! after another, each SCF from the previous geometry's [`Wavefunction`] as the method's
+//! restart policy says.
 //!
 //! Rules every front end gets from here:
 //! - one alias rule for names ([`names`]): case and anything but letters and digits are

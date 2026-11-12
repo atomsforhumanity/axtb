@@ -1,7 +1,15 @@
 //! axtb: extended tight-binding quantum chemistry. This crate holds GFN2-xTB and what the
 //! methods of the workspace share (basis, integrals, Molden files, properties, vibrational
-//! analysis; the molecule and the eigensolver from `axtb-base`, re-exported); g-xTB is
-//! `axtb-gxtb`, GFN-FF `axtb-gfnff`.
+//! analysis; the molecule, the eigensolver and the [`Method`] trait from `axtb-base`,
+//! re-exported); g-xTB is `axtb-gxtb`, GFN-FF `axtb-gfnff`.
+//!
+//! **Use.** [`Calculator`] implements [`Method`]: `Calculator::new(Hamiltonian::Gfn2, numbers,
+//! positions, charge, uhf, Options::default())`, then [`Method::singlepoint`] (energy, terms,
+//! charges, dipole; the gradient, orbitals and bond orders as [`method::Want`] asks) and
+//! [`Method::hessian`] (analytic by default, response or numerical). [`Options`] holds the
+//! settings: [`Options::scf`] the SCF settings every SCF method shares
+//! ([`method::ScfSettings`]), the rest GFN2-xTB's own. [`ToMolden`] writes the orbitals of a
+//! single point as a Molden file.
 //!
 //! Design rules:
 //! - no implicit threading: every parallel region runs on the calculator's own rayon pool of
