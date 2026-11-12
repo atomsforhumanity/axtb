@@ -15,11 +15,11 @@
 //! revD4 (two- and three-body, through the revD4 CN); then the chain rules q_eff -> EEQ-BC charges
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
-use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
-use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
+use super::basis::{h0_shells, scf_shells, INTCUT};
 use super::coulomb::{aes_kernel, first_order_g, gamma_kernel, spin_potential, tau_kernel};
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Products};
 use super::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
+use super::intermediates::Slots;
 use super::scf::{ScfResult, Setup, State};
 use super::sqrt_cn;
 use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, IPEA, IPEA_CN, SHELL_HUBBARD};
@@ -29,49 +29,9 @@ use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
+use axtb::terms::Chain;
 use axtb::Result;
 use axtb_base::threads::map_chunks;
-
-/// Derivative accumulators before the chain rules.
-#[derive(Clone, Debug)]
-pub struct Chain {
-    /// Direct geometry derivative (Eh/bohr).
-    pub g: Vec<[f64; 3]>,
-    /// dE/dCN of the g-xTB CN, the basis CN and the revD4 CN.
-    pub dcn: Vec<f64>,
-    pub dcnb: Vec<f64>,
-    pub dcnd4: Vec<f64>,
-    /// dE/dq_eff of the SCF and of the H0 basis.
-    pub dqeff: Vec<f64>,
-    pub dqeff0: Vec<f64>,
-}
-
-impl Chain {
-    pub fn new(nat: usize) -> Self {
-        let z = || vec![0.0; nat];
-        Self { g: vec![[0.0; 3]; nat], dcn: z(), dcnb: z(), dcnd4: z(), dqeff: z(), dqeff0: z() }
-    }
-
-    /// Add the accumulators of `o`.
-    pub fn add(&mut self, o: &Chain) {
-        for (a, b) in self.g.iter_mut().zip(&o.g) {
-            for x in 0..3 {
-                a[x] += b[x];
-            }
-        }
-        for (a, b) in [
-            (&mut self.dcn, &o.dcn),
-            (&mut self.dcnb, &o.dcnb),
-            (&mut self.dcnd4, &o.dcnd4),
-            (&mut self.dqeff, &o.dqeff),
-            (&mut self.dqeff0, &o.dqeff0),
-        ] {
-            for (x, y) in a.iter_mut().zip(b) {
-                *x += y;
-            }
-        }
-    }
-}
 
 /// Bond-frame projectors P_mu and their derivatives dP_mu/dn_k of a shell with l <= 2
 /// ([`bond_projectors_deriv`]) in fixed-size row-major blocks.
@@ -140,14 +100,16 @@ pub struct KernelRef<'a> {
     pub rep: &'a super::repulsion::Repulsion,
     pub disp: &'a super::disp::RevD4,
     pub exch: &'a super::exchange::Exchange,
+    /// The slots of the intermediates.
+    pub slots: Slots,
     /// Pair loops in fixed chunks on the current rayon pool.
     pub parallel: bool,
 }
 
-/// `f(i, chain)` for every row i of `0..n` with a [`Chain`] per fixed chunk of rows (in
-/// parallel when `parallel`), the chunks' chains summed in order.
-fn chain_rows(n: usize, nat: usize, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
-    crate::parallel::reduce_rows(n, parallel, || Chain::new(nat), f, |a, b| a.add(&b))
+/// `f(i, chain)` for every row i of `0..n` with a [`Chain`] of the shape of `like` per fixed chunk
+/// of rows (in parallel when `parallel`), the chunks' chains summed in order.
+fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
+    crate::parallel::reduce_rows(n, parallel, || like.zeroed_like(), f, |a, b| a.add(&b))
 }
 
 /// dE/dG (shell pairs) and dE/dK (atom pairs) of the exchange at fixed spin densities `p`
@@ -171,16 +133,19 @@ impl KernelRef<'_> {
         let sh = &c.shells;
         let ns = sh.len();
         let qa = c.atom_charges(q);
+        let cn = self.slots.cn;
         let mut du = vec![0.0; ns];
+        let dcn = ch.slot(cn);
         for (i, &(iat, ish, _)) in sh.iter().enumerate() {
             let z = mol.numbers[iat] - 1;
             let df = sqrt_cn(self.cn[iat]).1;
             du[i] = SHELL_HUBBARD[z][ish] * HUBBARD[z] * HUBBARD_CN[z] * df;
             let g = first_order_g(qa[iat]).0;
-            ch.dcn[iat] += IPEA[z][ish] * IPEA_CN[z] * df * g * q[i];
+            dcn[iat] += IPEA[z][ish] * IPEA_CN[z] * df * g * q[i];
         }
         let u = &c.u;
-        let acc = chain_rows(ns, mol.nat(), self.parallel, |i, ch| {
+        let acc = chain_rows(ns, ch, self.parallel, |i, ch| {
+            let (g, dcn) = ch.g_and_slot(cn);
             for j in 0..=i {
                 let (ia, ja) = (sh[i].0, sh[j].0);
                 let same = ia == ja;
@@ -200,12 +165,12 @@ impl KernelRef<'_> {
                 let (_, dtdr, dtde) = tau_kernel(r, eta, same);
                 let dede = wg * dgde + wt * dtde;
                 let s2 = (u[i] + u[j]) * (u[i] + u[j]);
-                ch.dcn[ia] += dede * 2.0 * u[j] * u[j] / s2 * du[i];
-                ch.dcn[ja] += dede * 2.0 * u[i] * u[i] / s2 * du[j];
+                dcn[ia] += dede * 2.0 * u[j] * u[j] / s2 * du[i];
+                dcn[ja] += dede * 2.0 * u[i] * u[i] / s2 * du[j];
                 if !same {
                     let dedr = wg * dgdr + wt * dtdr;
                     let v = sub3(mol.positions[ia], mol.positions[ja]);
-                    add_pair(&mut ch.g, ia, ja, dedr / r, v);
+                    add_pair(g, ia, ja, dedr / r, v);
                 }
             }
         });
@@ -218,16 +183,17 @@ impl KernelRef<'_> {
         let mol = self.mol;
         let n = mol.nat();
         let d = self.coulomb.scaled_dipoles(dip);
+        let dcn = ch.slot(self.slots.cn);
         for i in 0..n {
             let z = mol.numbers[i] - 1;
             let dc = AES_DIP_SCALE[z] * sqrt_cn(self.cn[i]).1;
-            ch.dcn[i] += dc * (0..3).map(|x| dip[i][x] * vd_scaled[i][x]).sum::<f64>();
+            dcn[i] += dc * (0..3).map(|x| dip[i][x] * vd_scaled[i][x]).sum::<f64>();
         }
         let dot = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
         let qm = |q: &[f64; 6]| [[q[0], q[1], q[3]], [q[1], q[2], q[4]], [q[3], q[4], q[5]]];
         let mv = |m: &[[f64; 3]; 3], v: [f64; 3]| [dot(m[0], v), dot(m[1], v), dot(m[2], v)];
         let q = qa;
-        let acc = chain_rows(n, n, self.parallel, |i, ch| {
+        let acc = chain_rows(n, ch, self.parallel, |i, ch| {
             for j in 0..i {
                 let r = sub3(mol.positions[j], mol.positions[i]);
                 let r2 = dot(r, r);
@@ -293,7 +259,7 @@ impl KernelRef<'_> {
         let nsh = x.shells.len();
         let nat = mol.nat();
         let shells = &x.shells;
-        let acc = chain_rows(nsh, nat, self.parallel, |i, ch| {
+        let acc = chain_rows(nsh, ch, self.parallel, |i, ch| {
             for j in 0..i {
                 let (ia, ja) = (shells[i].0, shells[j].0);
                 if ia == ja {
@@ -308,7 +274,7 @@ impl KernelRef<'_> {
             }
         });
         ch.add(&acc);
-        let acc = chain_rows(nat, nat, self.parallel, |i, ch| {
+        let acc = chain_rows(nat, ch, self.parallel, |i, ch| {
             for j in 0..i {
                 let v = sub3(mol.positions[i], mol.positions[j]);
                 let r = norm2_sq(v).sqrt();
@@ -332,6 +298,7 @@ impl Setup {
             rep: &self.rep,
             disp: &self.disp,
             exch: &self.exch,
+            slots: self.slots,
             parallel: self.parallel,
         }
     }
@@ -383,8 +350,10 @@ impl Setup {
             vd[0] * d[0] + vd[1] * d[1] + vd[2] * d[2] + (0..6).map(|c| vq[c] * q[c]).sum::<f64>()
         };
         let pairs = ShellPairs::screened(mol, &self.basis.scf, self.cutoff, INTCUT);
+        let qeff = self.slots.qeff;
         let parts = map_chunks(nat, self.parallel, |atoms| {
-            let mut c = Chain::new(nat);
+            let mut c = ch.zeroed_like();
+            let (cg, [cq]) = c.g_and_slots([qeff]);
             let mut mg = MultipoleGrad::default();
             let mut scr = Scratch::default();
             // moments with the q_eff derivatives of B's (mj) and A's (mi) contraction coefficients
@@ -435,11 +404,11 @@ impl Setup {
                                             + vdot(vdb, vqb, &mj.d_j[k], &mj.q_j[k]));
                                 }
                                 for k3 in 0..3 {
-                                    c.g[ia][k3] += dg[k3];
-                                    c.g[ib][k3] -= dg[k3];
+                                    cg[ia][k3] += dg[k3];
+                                    cg[ib][k3] -= dg[k3];
                                 }
-                                c.dqeff[ia] += dqa;
-                                c.dqeff[ib] += dqb;
+                                cq[ia] += dqa;
+                                cq[ib] += dqb;
                             }
                         }
                     });
@@ -458,7 +427,7 @@ impl Setup {
                             let k = b + nb * a;
                             let pmn = p[mu * n + nu];
                             let (vda, vqa) = (&vd[ia], &vq[ia]);
-                            c.dqeff[ia] -= pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
+                            cq[ia] -= pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
                         }
                     }
                 });
@@ -487,19 +456,22 @@ impl Setup {
         }
         let mut level = vec![0.0; n];
         let mut dlevel = vec![0.0; n];
+        let (cn, qeff0) = (self.slots.cn, self.slots.qeff0);
+        let dcn = ch.slot(cn);
         for (ia, is, s) in hb.shell_iter() {
             let (e, de) = selfenergy(mol.numbers[ia], is, self.cn[ia]);
             let first = hb.iao_sh[hb.ish_at[ia] + is];
             for mu in first..first + 2 * s.l + 1 {
                 level[mu] = e;
                 dlevel[mu] = de;
-                ch.dcn[ia] += p[mu * n + mu] * de;
+                dcn[ia] += p[mu * n + mu] * de;
             }
         }
         let pos = &mol.positions;
         let pairs = ShellPairs::screened(mol, hb, self.cutoff, INTCUT);
         let parts = map_chunks(nat, self.parallel, |atoms| {
-            let mut c = Chain::new(nat);
+            let mut c = ch.zeroed_like();
+            let (cg, [cq0, ccn]) = c.g_and_slots([qeff0, cn]);
             let (mut sab, mut dsab) = ([0.0; MBLK], [[0.0; 3]; MBLK]);
             let (mut ba, mut bb) = ([0.0; MBLK], [0.0; MBLK]);
             for ia in atoms {
@@ -588,13 +560,13 @@ impl Setup {
                                 let x = a * nb + b;
                                 let k = b + nb * a;
                                 for k3 in 0..3 {
-                                    c.g[ia][k3] += mw[x] * dsab[k][k3];
-                                    c.g[ib][k3] -= mw[x] * dsab[k][k3];
+                                    cg[ia][k3] += mw[x] * dsab[k][k3];
+                                    cg[ib][k3] -= mw[x] * dsab[k][k3];
                                 }
-                                c.dqeff0[ia] += mw[x] * ba[k];
-                                c.dqeff0[ib] += mw[x] * bb[k];
-                                c.dcn[ia] += wcn[x] * st[x] * dlevel[i];
-                                c.dcn[ib] += wcn[x] * st[x] * dlevel[j];
+                                cq0[ia] += mw[x] * ba[k];
+                                cq0[ib] += mw[x] * bb[k];
+                                ccn[ia] += wcn[x] * st[x] * dlevel[i];
+                                ccn[ib] += wcn[x] * st[x] * dlevel[j];
                                 let pij = 2.0 * p[i * n + j];
                                 dedr += pij * 0.5 * (level[i] + level[j]) * ks * (dpia * pib + pia * dpib) * st[x];
                             }
@@ -603,8 +575,8 @@ impl Setup {
                     // n = (R_b - R_a)/r: dn/dR_b = (1 - n n^T)/r
                     let tn: f64 = (0..3).map(|k3| tdir[k3] * nv[k3]).sum();
                     let tperp = [0, 1, 2].map(|k3| (tdir[k3] - tn * nv[k3]) / r);
-                    add_pair(&mut c.g, ib, ia, 1.0, tperp);
-                    add_pair(&mut c.g, ib, ia, dedr, nv);
+                    add_pair(cg, ib, ia, 1.0, tperp);
+                    add_pair(cg, ib, ia, dedr, nv);
                 }
             }
             c
@@ -642,8 +614,10 @@ impl Setup {
         );
         drop(sp);
         let pairs = ShellPairs::screened(mol, bas, self.cutoff, INTCUT);
+        let qeff = self.slots.qeff;
         let parts = map_chunks(set.list.len(), self.parallel, |projs| {
-            let mut c = Chain::new(nat);
+            let mut c = ch.zeroed_like();
+            let (cg, [cq]) = c.g_and_slots([qeff]);
             let (mut s, mut ds, mut sj, mut bq) = ([0.0; MBLK], [[0.0; 3]; MBLK], [0.0; MBLK], [0.0; MBLK]);
             for k in projs {
                 let (ip, ref proj, w, row) = set.list[k];
@@ -671,11 +645,11 @@ impl Setup {
                                 let kk = m + np * a;
                                 if ia != ip {
                                     for x in 0..3 {
-                                        c.g[ia][x] += fac * ds[kk][x];
-                                        c.g[ip][x] -= fac * ds[kk][x];
+                                        cg[ia][x] += fac * ds[kk][x];
+                                        cg[ip][x] -= fac * ds[kk][x];
                                     }
                                 }
-                                c.dqeff[ia] += fac * bq[kk];
+                                cq[ia] += fac * bq[kk];
                             }
                         }
                     });
@@ -689,27 +663,10 @@ impl Setup {
         Ok(())
     }
 
-    /// Chain rules: effective charges -> EEQ-BC charges and basis CN; CNs and EEQ-BC charges ->
-    /// geometry.
-    pub fn finish_chain(&self, mut ch: Chain) -> Result<Vec<[f64; 3]>> {
-        let mol = &self.mol;
-        let n = mol.nat();
-        let mut dqeeq = vec![0.0; n];
-        for i in 0..n {
-            let z = mol.numbers[i];
-            let (q, cnb) = (self.eeq.charges[i], self.basis.cn[i]);
-            let (a, b) = effective_charge_deriv(qeff_weights(z), q, cnb);
-            let (a0, b0) = effective_charge_deriv(qeff_h0_weights(z), q, cnb);
-            dqeeq[i] += ch.dqeff[i] * a + ch.dqeff0[i] * a0;
-            ch.dcnb[i] += ch.dqeff[i] * b + ch.dqeff0[i] * b0;
-        }
-        let mut g = ch.g;
-        gxtb_cn_gradient(&self.model, mol, &ch.dcn, &mut g);
-        basis_cn_gradient(&self.model, mol, &ch.dcnb, &mut g);
-        super::disp::add_cn_gradient(&self.model, mol, &ch.dcnd4, &mut g);
-        // the setup's factorization of the EEQ-BC equations (this geometry, the same kernel)
-        super::eeqbc::eeqbc(&self.model, mol)?.add_charge_gradient(&self.eeq_solution, &dqeeq, &mut g);
-        Ok(g)
+    /// Chain rules ([`super::intermediates`]): effective charges -> EEQ-BC charges and basis CN;
+    /// CNs and EEQ-BC charges (the setup's factorization) -> geometry.
+    pub fn finish_chain(&self, ch: Chain) -> Result<Vec<[f64; 3]>> {
+        ch.finish(&self.term_geometry())
     }
 
     /// Energy-weighted density W = sum_s C n e C^T of a converged SCF (total).
@@ -779,7 +736,7 @@ impl Setup {
         let pot_now = self.potentials_with(st, &pr);
         let pot_other = (!std::ptr::eq(st, pot_state)).then(|| self.potentials(pot_state));
         let pot = pot_other.as_ref().unwrap_or(&pot_now);
-        let mut ch = Chain::new(nat);
+        let mut ch = Chain::new(&self.layout, nat);
         t.lap("gradient: potentials");
         // overlap weight: Mulliken charges, magnetizations, exchange
         let mut x = self.exch.overlap_weight_with(&st.p, &pr, &st.q, self.par, self.parallel);
@@ -823,12 +780,14 @@ impl Setup {
         let (tsh, tat) = self.exch.kernel_weights_with(&st.p, &pr, self.parallel);
         k.add_exchange_kernels(&tsh, &tat, &mut ch);
         t.lap("gradient: exchange kernels");
-        self.rep.gradient_par(&self.model, mol, &self.cn, &st.qa, &mut ch.g, &mut ch.dcn, self.parallel);
+        let (g, dcn) = ch.g_and_slot(self.slots.cn);
+        self.rep.gradient_par(&self.model, mol, &self.cn, &st.qa, g, dcn, self.parallel);
         let d2 = self.disp.two_body_gradient_par(&self.model, mol, &st.qa, &mut ch.g, self.parallel);
         t.lap("gradient: repulsion+revd4");
         let (_, d3) = self.disp.three_body_par(&self.model, mol, Some(&mut ch.g), self.parallel);
+        let dcnd4 = ch.slot(self.slots.cnd4);
         for i in 0..nat {
-            ch.dcnd4[i] += d2[i] + d3[i];
+            dcnd4[i] += d2[i] + d3[i];
         }
         t.lap("gradient: revd4 three-body");
         Ok(ch)

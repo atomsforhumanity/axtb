@@ -317,9 +317,9 @@ impl Setup {
         }
         for a in 0..nat {
             for x in 0..n3 {
-                j[(n3 + a) * n3 + x] = jac.qeff[a * n3 + x];
-                j[(n3 + nat + a) * n3 + x] = jac.qeff0[a * n3 + x];
-                j[(n3 + 2 * nat + a) * n3 + x] = jac.cn[a * n3 + x];
+                j[(n3 + a) * n3 + x] = jac.qeff()[a * n3 + x];
+                j[(n3 + nat + a) * n3 + x] = jac.qeff0()[a * n3 + x];
+                j[(n3 + 2 * nat + a) * n3 + x] = jac.cn()[a * n3 + x];
             }
         }
         let jm = faer::MatRef::from_row_major_slice(&j, nl, n3);
@@ -330,8 +330,9 @@ impl Setup {
         faer::linalg::matmul::matmul(hi.as_mut(), faer::Accum::Replace, jm.transpose(), tmp.as_ref(), 1.0, Par::Seq);
         let ch = seq.explicit_chain(&r.state, &r.state, Some(&wneg))?;
         let dcn_h0 = seq.h0_cn_weights(&ptot)?;
-        let j2 = seq.chain_second_derivatives(jac, &ch.dqeff, &ch.dqeff0, &dcn_h0, parallel)?;
-        let h3 = seq.three_body_hessian(&jac.cnd4, parallel)?;
+        let (dqeff, dqeff0) = (ch.weights(seq.slots.qeff), ch.weights(seq.slots.qeff0));
+        let j2 = seq.chain_second_derivatives(jac, dqeff, dqeff0, &dcn_h0, parallel)?;
+        let h3 = seq.three_body_hessian(jac.cnd4(), parallel)?;
         let hx = an.exchange_kernel_hessian();
         for x in 0..n3 {
             for y in 0..n3 {

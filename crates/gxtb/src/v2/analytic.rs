@@ -35,8 +35,9 @@ use super::coulomb::Coulomb;
 use super::disp::RevD4;
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
 use super::explicit::STEP;
-use super::gradient::{exchange_kernel_weights, Chain, KernelRef, Potentials};
+use super::gradient::{exchange_kernel_weights, KernelRef, Potentials};
 use super::h0::{anisotropy, anisotropy_gradient};
+use super::intermediates::Slots;
 use super::repulsion::Repulsion;
 use super::response::KernelData;
 use super::scf::{Setup, State};
@@ -46,6 +47,7 @@ use crate::dense::dot;
 use crate::fock::{add_charge_potential, add_potentials_rows};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::scf::ScfVariables;
+use axtb::terms::{Chain, ChainLayout};
 use axtb::{Molecule, Result};
 use axtb_base::fd;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -62,10 +64,19 @@ pub struct Kernels<'a> {
     pub disp: RevD4,
     pub exch: &'a Exchange,
     pub aniso: Vec<[f64; 3]>,
+    /// The setup's chain layout (the shape of the gradient's accumulators) and its slots.
+    pub layout: &'a ChainLayout,
+    pub slots: Slots,
 }
 
 impl<'a> Kernels<'a> {
-    pub fn new(model: &Model, mol: &Molecule, exch: &'a Exchange) -> Result<Self> {
+    pub fn new(
+        model: &Model,
+        mol: &Molecule,
+        exch: &'a Exchange,
+        layout: &'a ChainLayout,
+        slots: Slots,
+    ) -> Result<Self> {
         let cn = gxtb_cn(model, mol);
         Ok(Self {
             mol: mol.clone(),
@@ -76,6 +87,8 @@ impl<'a> Kernels<'a> {
             exch,
             aniso: anisotropy(model, mol),
             cn,
+            layout,
+            slots,
         })
     }
 
@@ -88,6 +101,7 @@ impl<'a> Kernels<'a> {
             rep: &self.rep,
             disp: &self.disp,
             exch: self.exch,
+            slots: self.slots,
             parallel: false,
         }
     }
@@ -122,14 +136,16 @@ impl<'a> Kernels<'a> {
         let mol = &self.mol;
         let nat = mol.nat();
         let k = self.view();
-        let mut ch = Chain::new(nat);
+        let mut ch = Chain::new(self.layout, nat);
         k.add_isotropic(&st.q, &mut ch);
         let (_, vd_scaled, _) = self.coulomb.aes_potentials_raw(mol, &st.qa, &st.dip, &st.qp, false);
         k.add_aes(&st.qa, &st.dip, &st.qp, &vd_scaled, &mut ch);
-        self.rep.gradient(&self.model, mol, &self.cn, &st.qa, &mut ch.g, &mut ch.dcn);
+        let (g, dcn) = ch.g_and_slot(self.slots.cn);
+        self.rep.gradient(&self.model, mol, &self.cn, &st.qa, g, dcn);
         let d2 = self.disp.two_body_gradient(&self.model, mol, &st.qa, &mut ch.g);
         anisotropy_gradient(&self.model, mol, &st.dip, &mut ch.g);
-        super::cn::gxtb_cn_gradient(&self.model, mol, &ch.dcn, &mut ch.g);
+        let dcn = ch.weights(self.slots.cn).to_vec();
+        super::cn::gxtb_cn_gradient(&self.model, mol, &dcn, &mut ch.g);
         super::disp::add_cn_gradient(&self.model, mol, &d2, &mut ch.g);
         ch.g.concat()
     }
@@ -339,7 +355,7 @@ impl<'a> Analytic<'a> {
         faer::linalg::matmul::matmul(
             MatMut::from_row_major_slice_mut(&mut bmat, n3, dim),
             Accum::Add,
-            MatRef::from_row_major_slice(&tan.jac.qeff, nat, n3).transpose(),
+            MatRef::from_row_major_slice(tan.jac.qeff(), nat, n3).transpose(),
             MatRef::from_row_major_slice(&mq, nat, dim),
             1.0,
             Par::Seq,
@@ -391,7 +407,7 @@ impl<'a> Analytic<'a> {
     fn kernel_at(&self, x: usize, d: f64) -> Result<(Vec<f64>, Vec<f64>)> {
         let mut m = self.setup.mol.clone();
         m.positions[x / 3][x % 3] += d;
-        let k = Kernels::new(&self.setup.model, &m, &self.setup.exch)?;
+        let k = Kernels::new(&self.setup.model, &m, &self.setup.exch, &self.setup.layout, self.setup.slots)?;
         Ok((k.potentials(self.st, &self.lay), k.gradient(self.st)))
     }
 
@@ -464,7 +480,7 @@ impl<'a> Analytic<'a> {
             }
             let w = rows(a, &tan.qeff[a].s);
             for y in 0..n3 {
-                out[y] += w * tan.jac.qeff[a * n3 + y];
+                out[y] += w * tan.jac.qeff()[a * n3 + y];
             }
         }
         out
@@ -499,7 +515,7 @@ impl<'a> Analytic<'a> {
         self.add_rows(&mut sr, ax, &tan.disp[ax][cx].s, 1.0);
         self.add_rows(&mut fr0, ax, &self.rows.f_disp[ax][cx], 1.0);
         for a in 0..nat {
-            let (jq, jq0, jc) = (jac.qeff[a * n3 + x], jac.qeff0[a * n3 + x], jac.cn[a * n3 + x]);
+            let (jq, jq0, jc) = (jac.qeff()[a * n3 + x], jac.qeff0()[a * n3 + x], jac.cn()[a * n3 + x]);
             self.add_rows(&mut sr, a, &tan.qeff[a].s, jq);
             self.add_rows(&mut fr0, a, &self.rows.f_qeff[a], jq);
             self.add_rows(&mut fr0, a, &tan.h_qeff0[a], jq0);
@@ -723,8 +739,11 @@ impl<'a> Analytic<'a> {
             wcn[a] = dot(&tan.h_cn[a], xa);
         }
         for a in 0..nat {
-            let (jq, jq0, jc) =
-                (&jac.qeff[a * n3..(a + 1) * n3], &jac.qeff0[a * n3..(a + 1) * n3], &jac.cn[a * n3..(a + 1) * n3]);
+            let (jq, jq0, jc) = (
+                &jac.qeff()[a * n3..(a + 1) * n3],
+                &jac.qeff0()[a * n3..(a + 1) * n3],
+                &jac.cn()[a * n3..(a + 1) * n3],
+            );
             for x in 0..n3 {
                 h[x] += jq[x] * wq[a] + jq0[x] * wq0[a] + jc[x] * wcn[a];
             }

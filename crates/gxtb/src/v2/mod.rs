@@ -34,6 +34,7 @@ pub mod fermi;
 pub mod gradient;
 pub mod h0;
 pub mod hessian;
+pub mod intermediates;
 pub mod repulsion;
 pub mod response;
 pub mod scf;

@@ -22,7 +22,7 @@
 
 use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
-use super::gradient::{Chain, Potentials};
+use super::gradient::Potentials;
 use super::h0::acp_projectors;
 use super::scf::{Setup, State};
 use super::tangent::{h0_pair, Jacobians};
@@ -624,7 +624,7 @@ impl Setup {
         let mut out = fd::from_columns(&cols, n3);
         // second derivatives of the q_eff formula itself
         for a in 0..nat {
-            let (je, jb) = (&jac.eeq[a * n3..(a + 1) * n3], &jac.cnb[a * n3..(a + 1) * n3]);
+            let (je, jb) = (&jac.eeq()[a * n3..(a + 1) * n3], &jac.cnb()[a * n3..(a + 1) * n3]);
             for x in 0..n3 {
                 for y in 0..n3 {
                     out[x * n3 + y] +=
@@ -713,8 +713,8 @@ impl Setup {
 
     /// The H0 part of dE/dCN (self-energies) at total density `p`.
     pub fn h0_cn_weights(&self, p: &[f64]) -> Result<Vec<f64>> {
-        let mut ch = Chain::new(self.mol.nat());
+        let mut ch = axtb::terms::Chain::new(&self.layout, self.mol.nat());
         self.add_h0(p, &mut ch)?;
-        Ok(ch.dcn)
+        Ok(ch.weights(self.slots.cn).to_vec())
     }
 }

@@ -79,6 +79,12 @@ pub struct ChainLayout {
     slots: usize,
 }
 
+impl std::fmt::Debug for ChainLayout {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.list.iter().map(|x| x.name())).finish()
+    }
+}
+
 impl ChainLayout {
     /// A layout without intermediates.
     pub fn new() -> Self {
@@ -229,6 +235,13 @@ impl Chain {
     #[inline]
     pub fn g_and_slot(&mut self, s: Slot) -> (&mut [[f64; 3]], &mut [f64]) {
         (&mut self.g, &mut self.w[s.0])
+    }
+
+    /// The direct gradient and dE/dX of the distinct slots `s` together.
+    #[inline]
+    pub fn g_and_slots<const N: usize>(&mut self, s: [Slot; N]) -> (&mut [[f64; 3]], [&mut [f64]; N]) {
+        let w = self.w.get_disjoint_mut(s.map(|s| s.0)).expect("distinct slots of the layout");
+        (&mut self.g, w.map(|v| v.as_mut_slice()))
     }
 
     /// dE/dX of slot `s`.

@@ -27,17 +27,19 @@ use super::disp::RevD4;
 use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
 use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
+use super::intermediates::Slots;
 use super::repulsion::Repulsion;
 use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
 use super::Model;
 use crate::calculator::Version;
 use crate::data_v2::{INCREMENT, REF_OCC, ZEFF_SHELL};
-use crate::eeqbc::{EeqBcCharges, EeqBcSolution};
+use crate::eeqbc::EeqBcCharges;
 use crate::fock::shell_list;
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
+use axtb::terms::{ChainLayout, Geometry, Values};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -50,10 +52,6 @@ pub struct Setup {
     pub mol: Molecule,
     pub model: Model,
     pub eeq: EeqBcCharges,
-    /// The factorized EEQ-BC equations the charges `eeq` were solved from: the 2.0.1 gradient
-    /// uses the same kernel, so the gradients at this geometry (the analytic gradient, the
-    /// Jacobian rows of the Hessian) reuse them instead of factorizing again.
-    pub(crate) eeq_solution: Arc<EeqBcSolution>,
     /// g-xTB coordination numbers.
     pub cn: Vec<f64>,
     /// The SCF and H0 bases (the AO maps of the SCF basis: `basis.scf.ao2sh`, `ao2at`).
@@ -94,6 +92,11 @@ pub struct Setup {
     pub(crate) parallel: bool,
     /// Wall time of the setup phases (taken by the first single point that reports them).
     pub timings: Timings,
+    /// The intermediates of the gradient ([`super::intermediates`]), their slots and their
+    /// values at this geometry (the charges, CNs and effective charges above).
+    pub layout: ChainLayout,
+    pub slots: Slots,
+    pub values: Values,
 }
 
 /// Energy terms of one density (Eh), named after the program's containers.
@@ -217,11 +220,22 @@ impl Setup {
             return Err(Error::Input("g-xTB 2.0.1: more occupied orbitals than basis functions".into()));
         }
         let nspin = if uhf > 0 { 2 } else { 1 };
+        // the intermediates; the EEQ-BC charges keep the factorized equations the charges were
+        // solved from: the gradients at this geometry (the analytic gradient, the Jacobian rows
+        // of the Hessian) reuse them instead of factorizing again
+        let eeq_solution = Arc::new(eeq_solution);
+        let (layout, slots) = super::intermediates::layout(&model, mol, Arc::clone(&eeq_solution));
+        let mut values = Values::new(&layout);
+        values.set(slots.eeq, eeq.charges.clone());
+        values.set(slots.cnd4, disp.cn.clone());
+        values.set(slots.cnb, basis.cn.clone());
+        values.set(slots.cn, cn.clone());
+        values.set(slots.qeff, basis.qeff.clone());
+        values.set(slots.qeff0, basis.qeff_h0.clone());
         Ok(Self {
             mol: mol.clone(),
             model,
             eeq,
-            eeq_solution: Arc::new(eeq_solution),
             cn,
             basis,
             cutoff,
@@ -247,7 +261,16 @@ impl Setup {
             par: dense,
             parallel,
             timings: t.laps,
+            layout,
+            slots,
+            values,
         })
+    }
+
+    /// The geometry of the terms and intermediates: the molecule with the values of the
+    /// intermediates, the setup's loops in parallel when it runs on more than one thread.
+    pub fn term_geometry(&self) -> Geometry<'_> {
+        Geometry { mol: &self.mol, layout: &self.layout, values: &self.values, parallel: self.parallel }
     }
 
     /// Run the SCF, gradient and Hessians of this setup on `threads` threads of the current

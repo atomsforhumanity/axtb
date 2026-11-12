@@ -11,8 +11,7 @@
 //! Jacobians d q_eff/dR (EEQ-BC charges and basis CN), d q_eff0/dR and d CN/dR
 //! ([`Jacobians`]); the ACP projectors of a displaced atom add a low-rank term.
 
-use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
-use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
+use super::basis::{h0_shells, scf_shells, INTCUT};
 use super::h0::{acp_projectors, diat_scale, kshell, selfenergy, shell_poly};
 use super::scf::Setup;
 use crate::acp::projector;
@@ -23,15 +22,39 @@ use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;
 
 /// Jacobians (row-major N x 3N, row = atom, column = Cartesian displacement) of the
-/// coordination numbers, the EEQ-BC charges and the effective charges.
+/// coordination numbers, the EEQ-BC charges and the effective charges: the core
+/// [`axtb::terms::Jacobians`] of the setup's intermediates, by name.
 #[derive(Clone, Debug)]
 pub struct Jacobians {
-    pub cn: Vec<f64>,
-    pub cnb: Vec<f64>,
-    pub cnd4: Vec<f64>,
-    pub eeq: Vec<f64>,
-    pub qeff: Vec<f64>,
-    pub qeff0: Vec<f64>,
+    pub all: axtb::terms::Jacobians,
+    pub slots: super::intermediates::Slots,
+}
+
+impl Jacobians {
+    /// The g-xTB CN.
+    pub fn cn(&self) -> &[f64] {
+        self.all.get(self.slots.cn)
+    }
+    /// The basis CN.
+    pub fn cnb(&self) -> &[f64] {
+        self.all.get(self.slots.cnb)
+    }
+    /// The revD4 CN.
+    pub fn cnd4(&self) -> &[f64] {
+        self.all.get(self.slots.cnd4)
+    }
+    /// The EEQ-BC charges.
+    pub fn eeq(&self) -> &[f64] {
+        self.all.get(self.slots.eeq)
+    }
+    /// The effective charges of the SCF basis.
+    pub fn qeff(&self) -> &[f64] {
+        self.all.get(self.slots.qeff)
+    }
+    /// The effective charges of the H0 basis.
+    pub fn qeff0(&self) -> &[f64] {
+        self.all.get(self.slots.qeff0)
+    }
 }
 
 /// Derivative of the SCF-basis integrals local to one atom: rows (n_A x n, row-major) of the
@@ -244,57 +267,11 @@ pub fn h0_pair(
 }
 
 impl Setup {
-    /// Jacobians of the coordination numbers, EEQ-BC charges and effective charges.
+    /// Jacobians of the coordination numbers, EEQ-BC charges and effective charges (the
+    /// intermediates' [`axtb::terms::Intermediate::jacobian`]: the EEQ-BC rows from the setup's
+    /// factorization).
     pub fn jacobians(&self) -> Result<Jacobians> {
-        let mol = &self.mol;
-        let nat = mol.nat();
-        let n3 = 3 * nat;
-        type Chain<'f> = &'f dyn Fn(&[f64], &mut [[f64; 3]]) -> Result<()>;
-        let rows = |f: Chain| -> Result<Vec<f64>> {
-            let mut out = vec![0.0; nat * n3];
-            for a in 0..nat {
-                let mut w = vec![0.0; nat];
-                w[a] = 1.0;
-                let mut g = vec![[0.0; 3]; nat];
-                f(&w, &mut g)?;
-                for (k, v) in g.iter().flatten().enumerate() {
-                    out[a * n3 + k] = *v;
-                }
-            }
-            Ok(out)
-        };
-        let cn = rows(&|w, g| {
-            gxtb_cn_gradient(&self.model, mol, w, g);
-            Ok(())
-        })?;
-        let cnb = rows(&|w, g| {
-            basis_cn_gradient(&self.model, mol, w, g);
-            Ok(())
-        })?;
-        let cnd4 = rows(&|w, g| {
-            super::disp::add_cn_gradient(&self.model, mol, w, g);
-            Ok(())
-        })?;
-        // all rows from the setup's factorization of the EEQ-BC equations
-        let eeqbc = super::eeqbc::eeqbc(&self.model, mol)?;
-        let eeq = rows(&|w, g| {
-            eeqbc.add_charge_gradient(&self.eeq_solution, w, g);
-            Ok(())
-        })?;
-        let mut qeff = vec![0.0; nat * n3];
-        let mut qeff0 = vec![0.0; nat * n3];
-        for a in 0..nat {
-            let z = mol.numbers[a];
-            let (q, c) = (self.eeq.charges[a], self.basis.cn[a]);
-            let (fq, fc) = effective_charge_deriv(qeff_weights(z), q, c);
-            let (gq, gc) = effective_charge_deriv(qeff_h0_weights(z), q, c);
-            for x in 0..n3 {
-                let (e, b) = (eeq[a * n3 + x], cnb[a * n3 + x]);
-                qeff[a * n3 + x] = fq * e + fc * b;
-                qeff0[a * n3 + x] = gq * e + gc * b;
-            }
-        }
-        Ok(Jacobians { cn, cnb, cnd4, eeq, qeff, qeff0 })
+        Ok(Jacobians { all: self.layout.jacobians(&self.term_geometry())?, slots: self.slots })
     }
 
     /// Local derivative blocks and Jacobians.
@@ -625,7 +602,7 @@ impl Tangents {
         let mut h = z();
         self.add_rows(&mut h, ax, &self.h_disp[ax][c], 1.0);
         for a in 0..nat {
-            let (jq, jq0, jc) = (self.jac.qeff[a * n3 + x], self.jac.qeff0[a * n3 + x], self.jac.cn[a * n3 + x]);
+            let (jq, jq0, jc) = (self.jac.qeff()[a * n3 + x], self.jac.qeff0()[a * n3 + x], self.jac.cn()[a * n3 + x]);
             self.add_block(&mut t, a, &self.qeff[a], jq);
             self.add_rows(&mut h, a, &self.h_qeff[a], jq);
             self.add_rows(&mut h, a, &self.h_qeff0[a], jq0);
