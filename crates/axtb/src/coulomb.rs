@@ -1,10 +1,30 @@
 //! Electrostatics of the GFN-xTB methods: isotropic second order (shell-resolved γ
 //! kernel), on-site third order, and damped anisotropic multipole electrostatics (GFN2).
 
+use crate::basis::Basis;
 use crate::molecule::{dot3, norm2_sq, sub3, Molecule};
 use crate::ncoord::Ncoord;
-use crate::terms::{Chain, Geometry, Slot};
+use crate::terms::{
+    Chain, Chain2, Geometry, Kernel, MomentTerm, Needs, PotentialDerivative, Potentials, SccMoments, Slot, TermEnergy,
+};
+use crate::Result;
 use axtb_base::math::add_radial_hessian;
+use rayon::prelude::*;
+
+/// The shells of a molecule's atoms: first shell and number of shells of every atom, atom of
+/// every shell.
+#[derive(Clone, Debug)]
+pub struct ShellLayout {
+    pub ish_at: Vec<usize>,
+    pub nsh_at: Vec<usize>,
+    pub sh2at: Vec<usize>,
+}
+
+impl ShellLayout {
+    pub fn of(bas: &Basis) -> Self {
+        Self { ish_at: bas.ish_at.clone(), nsh_at: bas.nsh_at.clone(), sh2at: bas.sh2at.clone() }
+    }
+}
 
 /// Isotropic second-order electrostatics with the generalized Mataga–Nishimoto–Ohno–Klopman
 /// kernel `γ = 1 / (r^g + η^-g)^(1/g)`, shell resolved.
@@ -13,12 +33,14 @@ pub struct EffectiveCoulomb {
     gexp: f64,
     /// Averaged hardness `eta[isp][jsp][ish][jsh]`.
     eta: Vec<Vec<Vec<Vec<f64>>>>,
+    /// The shells of the molecule.
+    shells: ShellLayout,
 }
 
 impl EffectiveCoulomb {
     /// `hardness[isp][ish]` are the shell hardnesses of each species; a shell pair has their
-    /// arithmetic mean (GFN2-xTB).
-    pub fn new(hardness: &[Vec<f64>], gexp: f64) -> Self {
+    /// arithmetic mean (GFN2-xTB). `bas`: the basis of the molecule (its shells).
+    pub fn new(hardness: &[Vec<f64>], gexp: f64, bas: &Basis) -> Self {
         let eta = hardness
             .iter()
             .map(|hi| {
@@ -28,7 +50,7 @@ impl EffectiveCoulomb {
                     .collect()
             })
             .collect();
-        Self { gexp, eta }
+        Self { gexp, eta, shells: ShellLayout::of(bas) }
     }
 
     /// Dense γ matrix over all shells (row-major `nsh x nsh`).
@@ -176,33 +198,17 @@ impl EffectiveCoulomb {
 pub struct OnsiteThirdOrder {
     /// Hubbard derivative per species and shell.
     pub gamma: Vec<Vec<f64>>,
+    /// First shell of every atom.
+    pub ish_at: Vec<usize>,
 }
 
 impl OnsiteThirdOrder {
-    pub fn energy(&self, mol: &Molecule, ish_at: &[usize], qsh: &[f64], energies: &mut [f64]) {
+    /// `f(shell, Γ)` for every shell, atom by atom.
+    fn for_shells(&self, mol: &Molecule, mut f: impl FnMut(usize, f64)) {
         for iat in 0..mol.nat() {
-            let ii = ish_at[iat];
+            let ii = self.ish_at[iat];
             for (ish, &gam) in self.gamma[mol.id[iat]].iter().enumerate() {
-                energies[iat] += qsh[ii + ish].powi(3) * gam / 3.0;
-            }
-        }
-    }
-
-    pub fn potential(&self, mol: &Molecule, ish_at: &[usize], qsh: &[f64], vsh: &mut [f64]) {
-        for iat in 0..mol.nat() {
-            let ii = ish_at[iat];
-            for (ish, &gam) in self.gamma[mol.id[iat]].iter().enumerate() {
-                vsh[ii + ish] += qsh[ii + ish].powi(2) * gam;
-            }
-        }
-    }
-
-    /// Diagonal second derivatives `2 Γ q` with respect to the shell charges, added to `kdiag`.
-    pub fn kernel_diagonal(&self, mol: &Molecule, ish_at: &[usize], qsh: &[f64], kdiag: &mut [f64]) {
-        for iat in 0..mol.nat() {
-            let ii = ish_at[iat];
-            for (ish, &gam) in self.gamma[mol.id[iat]].iter().enumerate() {
-                kdiag[ii + ish] += 2.0 * qsh[ii + ish] * gam;
+                f(ii + ish, gam);
             }
         }
     }
@@ -254,7 +260,8 @@ impl DampedMultipole {
         Self { kdmp3: 3.0, kdmp5: 4.0, dkernel, qkernel, shift: 1.2, kexp: 4.0, rmax: 5.0, rad, vcn, ncoord, cn }
     }
 
-    pub fn update(&self, mol: &Molecule, cn: &[f64]) -> MultipoleCache {
+    /// The damping radii of the coordination numbers `cn` and the damped pair kernels.
+    pub fn cache(&self, mol: &Molecule, cn: &[f64]) -> MultipoleCache {
         let nat = mol.nat();
         let mut mrad = vec![0.0; nat];
         let mut dmrdcn = vec![0.0; nat];
@@ -293,7 +300,7 @@ impl DampedMultipole {
     /// current rayon pool. The terms of the second atom of a pair are those of the first with
     /// R_a - R_b negated, which is exact, so the blocks change no bit: the same result for any
     /// thread count.
-    pub fn potential(
+    pub fn add_potentials(
         &self,
         mol: &Molecule,
         cache: &MultipoleCache,
@@ -393,7 +400,7 @@ impl DampedMultipole {
     /// Second derivatives of the multipole energy with respect to the moments in the atomic
     /// layout `[q (nat) | μ (3 nat) | Θ (6 nat, packed)]`, added to `k` (row-major,
     /// `10 nat` square). The energy is bilinear in the moments, so this is its full kernel.
-    pub fn kernel(&self, mol: &Molecule, cache: &MultipoleCache, k: &mut [f64]) {
+    pub fn add_kernel(&self, mol: &Molecule, cache: &MultipoleCache, k: &mut [f64]) {
         let nat = mol.nat();
         let n = 10 * nat;
         let id = |i: usize, c: usize| nat + 3 * i + c;
@@ -554,7 +561,7 @@ impl DampedMultipole {
     }
 
     /// Multipole energy per atom (pair terms split evenly, on-site kernels on the atom).
-    pub fn energy(
+    pub fn atom_energies(
         &self,
         mol: &Molecule,
         cache: &MultipoleCache,
@@ -866,5 +873,276 @@ impl DampedMultipole {
             dedr[i] *= cache.dmrdcn[i];
         }
         chain.apply_now(geo, self.cn, &dedr).expect("the GFN2-xTB CN's chain rule cannot fail");
+    }
+}
+
+/// `out = γ q` for the row-major square `gamma`, rows in parallel when asked (each row summed
+/// in order: the same bits); with `add`, `out += γ q`.
+fn gamma_rows(gamma: &[f64], q: &[f64], out: &mut [f64], parallel: bool, add: bool) {
+    let n = q.len();
+    let row = |a: usize| -> f64 { gamma[a * n..(a + 1) * n].iter().zip(q).map(|(g, x)| g * x).sum() };
+    let set = |(a, v): (usize, &mut f64)| {
+        if add {
+            *v += row(a)
+        } else {
+            *v = row(a)
+        }
+    };
+    if parallel {
+        out[..n].par_iter_mut().enumerate().with_min_len(32).for_each(set);
+    } else {
+        out[..n].iter_mut().enumerate().for_each(set);
+    }
+}
+
+/// The energy row of a term that partitions its energy: the model's row, or a scratch row.
+fn atoms_row<'a>(e: &'a mut TermEnergy<'_>, own: &'a mut Vec<f64>, nat: usize) -> &'a mut [f64] {
+    match e.atoms.as_deref_mut() {
+        Some(row) => row,
+        None => {
+            own.resize(nat, 0.0);
+            &mut own[..]
+        }
+    }
+}
+
+/// GFN2-xTB's isotropic second-order electrostatics: energy split over the shells' atoms,
+/// shell potential γ q, kernel γ, analytic gradient and second derivatives. The cache is γ.
+impl MomentTerm for EffectiveCoulomb {
+    type Cache = Vec<f64>;
+
+    fn names(&self) -> &[&'static str] {
+        &["isotropic_es"]
+    }
+
+    fn needs(&self) -> Needs {
+        Needs { shell: true, ..Needs::default() }
+    }
+
+    fn partitions_energy(&self) -> bool {
+        true
+    }
+
+    fn update(&self, geo: &Geometry<'_>) -> Result<Vec<f64>> {
+        let sh = &self.shells;
+        Ok(self.matrix(geo.mol, &sh.ish_at, &sh.nsh_at, sh.sh2at.len()))
+    }
+
+    /// E = q^T γ q / 2 (folded over the shells); per atom, each shell's q_a (γ q)_a / 2 on its
+    /// atom.
+    fn energy(&self, geo: &Geometry<'_>, gamma: &Vec<f64>, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        let (qsh, nsh) = (s.qsh, s.qsh.len());
+        let mut v = vec![0.0; nsh];
+        gamma_rows(gamma, qsh, &mut v, geo.parallel, false);
+        e.pieces[0] = 0.5 * (0..nsh).fold(0.0, |e, a| e + qsh[a] * v[a]);
+        if let Some(atoms) = e.atoms.as_deref_mut() {
+            for a in 0..nsh {
+                atoms[self.shells.sh2at[a]] += 0.5 * qsh[a] * v[a];
+            }
+        }
+    }
+
+    fn potential(&self, geo: &Geometry<'_>, gamma: &Vec<f64>, s: &SccMoments<'_>, v: &mut Potentials) {
+        // Added to the shell potentials, which GFN2-xTB zeroes before (it assigned γ q before):
+        // 0 + x differs from x only for x = -0, and a row Σ_b γ_ab q_b is -0 only if every q_b
+        // is -0 (γ > 0). Mulliken shell charges n0 - pop never are (n0 >= +0), nor are the
+        // mixers' sums of such values, so the bits are the same.
+        gamma_rows(gamma, s.qsh, &mut v.shell, geo.parallel, true);
+    }
+
+    fn gradient(&self, geo: &Geometry<'_>, _gamma: &Vec<f64>, s: &SccMoments<'_>, chain: &mut Chain) {
+        self.add_gradient(geo.mol, &self.shells.ish_at, &self.shells.nsh_at, s.qsh, &mut chain.g);
+    }
+
+    fn kernel(&self, _geo: &Geometry<'_>, gamma: &Vec<f64>, _s: &SccMoments<'_>, k: &mut Kernel) {
+        for (x, g) in k.shell.iter_mut().zip(gamma) {
+            *x += g;
+        }
+    }
+
+    fn kernel_apply(
+        &self,
+        geo: &Geometry<'_>,
+        gamma: &Vec<f64>,
+        _s: &SccMoments<'_>,
+        ds: &SccMoments<'_>,
+        dv: &mut Potentials,
+    ) {
+        gamma_rows(gamma, ds.qsh, &mut dv.shell, geo.parallel, true);
+    }
+
+    fn second_derivatives(
+        &self,
+        geo: &Geometry<'_>,
+        _gamma: &Vec<f64>,
+        s: &SccMoments<'_>,
+        dv: Option<&mut PotentialDerivative>,
+        h: Option<&mut Chain2<'_>>,
+    ) -> Result<()> {
+        let sh = &self.shells;
+        if let Some(dv) = dv {
+            self.potential_derivative(geo.mol, &sh.ish_at, &sh.nsh_at, s.qsh, &mut dv.shell);
+        }
+        if let Some(h) = h {
+            self.add_hessian(geo.mol, &sh.ish_at, &sh.nsh_at, s.qsh, h.h);
+        }
+        Ok(())
+    }
+}
+
+/// GFN2-xTB's on-site third order: no geometry dependence.
+impl MomentTerm for OnsiteThirdOrder {
+    type Cache = ();
+
+    fn names(&self) -> &[&'static str] {
+        &["third_order"]
+    }
+
+    fn needs(&self) -> Needs {
+        Needs { shell: true, ..Needs::default() }
+    }
+
+    fn partitions_energy(&self) -> bool {
+        true
+    }
+
+    fn update(&self, _geo: &Geometry<'_>) -> Result<()> {
+        Ok(())
+    }
+
+    fn energy(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        let mut own = Vec::new();
+        let atoms = atoms_row(e, &mut own, geo.mol.nat());
+        let ish_at = &self.ish_at;
+        for iat in 0..geo.mol.nat() {
+            let ii = ish_at[iat];
+            for (ish, &gam) in self.gamma[geo.mol.id[iat]].iter().enumerate() {
+                atoms[iat] += s.qsh[ii + ish].powi(3) * gam / 3.0;
+            }
+        }
+        let total = atoms.iter().sum();
+        e.pieces[0] = total;
+    }
+
+    fn potential(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, v: &mut Potentials) {
+        self.for_shells(geo.mol, |a, gam| v.shell[a] += s.qsh[a].powi(2) * gam);
+    }
+
+    fn gradient(&self, _geo: &Geometry<'_>, _c: &(), _s: &SccMoments<'_>, _chain: &mut Chain) {}
+
+    /// The diagonal 2 Γ q.
+    fn kernel(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, k: &mut Kernel) {
+        let nsh = s.qsh.len();
+        self.for_shells(geo.mol, |a, gam| k.shell[a * nsh + a] += 2.0 * s.qsh[a] * gam);
+    }
+
+    fn kernel_apply(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, ds: &SccMoments<'_>, dv: &mut Potentials) {
+        self.for_shells(geo.mol, |a, gam| dv.shell[a] += 2.0 * s.qsh[a] * gam * ds.qsh[a]);
+    }
+
+    fn second_derivatives(
+        &self,
+        _geo: &Geometry<'_>,
+        _c: &(),
+        _s: &SccMoments<'_>,
+        _dv: Option<&mut PotentialDerivative>,
+        _h: Option<&mut Chain2<'_>>,
+    ) -> Result<()> {
+        Ok(())
+    }
+}
+
+/// GFN2-xTB's damped anisotropic electrostatics; the damping radii depend on the GFN2-xTB
+/// coordination number. The cache is the radii and the damped pair kernels.
+impl MomentTerm for DampedMultipole {
+    type Cache = MultipoleCache;
+
+    fn names(&self) -> &[&'static str] {
+        &["anisotropic"]
+    }
+
+    fn needs(&self) -> Needs {
+        Needs { atom: true, dipole: true, quadrupole: true, ..Needs::default() }
+    }
+
+    fn partitions_energy(&self) -> bool {
+        true
+    }
+
+    fn slots(&self) -> &[Slot] {
+        std::slice::from_ref(&self.cn)
+    }
+
+    fn update(&self, geo: &Geometry<'_>) -> Result<MultipoleCache> {
+        Ok(self.cache(geo.mol, geo.value(self.cn)))
+    }
+
+    fn energy(&self, geo: &Geometry<'_>, c: &MultipoleCache, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        let mut own = Vec::new();
+        let atoms = atoms_row(e, &mut own, geo.mol.nat());
+        self.atom_energies(geo.mol, c, s.qat, s.dip, s.quad, atoms, geo.parallel);
+        let total = atoms.iter().sum();
+        e.pieces[0] = total;
+    }
+
+    fn potential(&self, geo: &Geometry<'_>, c: &MultipoleCache, s: &SccMoments<'_>, v: &mut Potentials) {
+        self.add_potentials(
+            geo.mol,
+            c,
+            s.qat,
+            s.dip,
+            s.quad,
+            &mut v.atom,
+            &mut v.dipole,
+            &mut v.quadrupole,
+            geo.parallel,
+        );
+    }
+
+    fn gradient(&self, geo: &Geometry<'_>, c: &MultipoleCache, s: &SccMoments<'_>, chain: &mut Chain) {
+        self.add_gradient(geo, c, s.qat, s.dip, s.quad, chain);
+    }
+
+    fn kernel(&self, geo: &Geometry<'_>, c: &MultipoleCache, _s: &SccMoments<'_>, k: &mut Kernel) {
+        self.add_kernel(geo.mol, c, &mut k.multipole);
+    }
+
+    /// The energy is bilinear in the moments: the kernel times δs is the potential of δs.
+    fn kernel_apply(
+        &self,
+        geo: &Geometry<'_>,
+        c: &MultipoleCache,
+        _s: &SccMoments<'_>,
+        ds: &SccMoments<'_>,
+        dv: &mut Potentials,
+    ) {
+        self.potential(geo, c, ds, dv);
+    }
+
+    /// The potential derivatives at fixed coordination numbers to the atomic rows, through the
+    /// damping radii to the rows with respect to the CN; the Hessian with its CN chain rule.
+    fn second_derivatives(
+        &self,
+        geo: &Geometry<'_>,
+        c: &MultipoleCache,
+        s: &SccMoments<'_>,
+        dv: Option<&mut PotentialDerivative>,
+        h: Option<&mut Chain2<'_>>,
+    ) -> Result<()> {
+        let mol = geo.mol;
+        let nat = mol.nat();
+        if let Some(dv) = dv {
+            let mut dvcn = vec![0.0; 10 * nat * nat];
+            self.potential_derivative(mol, c, s.qat, s.dip, s.quad, &mut dv.atomic, &mut dvcn);
+            // (0 + x is x but for -0, and the model's chain rule skips zeros)
+            for (x, y) in dv.wrt(self.cn, 10 * nat, nat).iter_mut().zip(dvcn) {
+                *x += y;
+            }
+        }
+        if let Some(h) = h {
+            let jac = h.jacobians.get(self.cn);
+            self.add_hessian(mol, c, geo.value(self.cn), jac, s.qat, s.dip, s.quad, h.h);
+        }
+        Ok(())
     }
 }

@@ -16,14 +16,15 @@ use crate::scf::mixing::{MixerKind, MixerPlan, ScfAttempt};
 use crate::scf::{
     dot, fock, mulliken, run_scf, Accelerator, FockSource, Iteration, ScfModel, ScfStrategy, ScfVariables, Stop,
 };
-use crate::terms::{self, Chain, ChainLayout, GeometryTerm, Slot, TermEnergy, Values};
+use crate::terms::{
+    self, Chain, ChainLayout, GeometryTerm, MomentTerm, Potentials, SccMoments, Slot, TermEnergy, Values,
+};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
 use axtb_base::threads;
 use axtb_base::timing::Laps;
 use faer::{Mat, Par};
-use rayon::prelude::*;
 use std::ops::ControlFlow;
 
 /// An atom-resolved, charge-dependent energy term that enters the SCF (e.g. the
@@ -334,20 +335,9 @@ pub(crate) struct GeometryData {
     pub caches: Vec<Box<dyn std::any::Any + Send + Sync>>,
 }
 
-/// Potential shifts from the charge-dependent terms.
-#[derive(Clone, Debug)]
-pub(crate) struct Potential {
-    pub vat: Vec<f64>,
-    pub vsh: Vec<f64>,
-    pub vdp: Vec<[f64; 3]>,
-    pub vqp: Vec<[f64; 6]>,
-}
-
-impl Potential {
-    /// Charge potential per AO (shell plus atom part).
-    pub fn vao(&self, bas: &Basis) -> Vec<f64> {
-        (0..bas.nao).map(|mu| self.vsh[bas.ao2sh[mu]] + self.vat[bas.ao2at[mu]]).collect()
-    }
+/// Charge potential per AO of the potentials `pot` (shell plus atom part).
+pub(crate) fn vao(pot: &Potentials, bas: &Basis) -> Vec<f64> {
+    (0..bas.nao).map(|mu| pot.shell[bas.ao2sh[mu]] + pot.atom[bas.ao2at[mu]]).collect()
 }
 
 /// Converged SCF wavefunction with the intermediates it was computed from: the starting
@@ -373,7 +363,14 @@ pub(crate) struct ScfState {
     pub dpat: Vec<[f64; 3]>,
     pub qpat: Vec<[f64; 6]>,
     /// Potential of the final Fock matrix.
-    pub pot: Potential,
+    pub pot: Potentials,
+}
+
+impl ScfState {
+    /// The SCC moments of the converged SCF.
+    pub fn moments(&self) -> SccMoments<'_> {
+        SccMoments { qsh: &self.qsh, qat: &self.qat, dip: &self.dpat, quad: &self.qpat, mag: None }
+    }
 }
 
 impl XtbModel {
@@ -384,7 +381,7 @@ impl XtbModel {
         let (se, dsedcn) = self.h0.selfenergy(mol, bas, &cn);
         let cutoff = self.pair_cutoff;
         let gamma = self.es2.matrix(mol, &bas.ish_at, &bas.nsh_at, bas.nsh);
-        let mp_cache = self.aes2.as_ref().map(|m| m.update(mol, &cn));
+        let mp_cache = self.aes2.as_ref().map(|m| m.cache(mol, &cn));
         let caches = extra.iter().map(|t| t.update(mol)).collect();
         let mut values = Values::new(&self.layout);
         values.set(self.cn, cn);
@@ -422,22 +419,21 @@ impl XtbModel {
         qat: &[f64],
         dpat: &[[f64; 3]],
         qpat: &[[f64; 6]],
-        pot: &mut Potential,
+        pot: &mut Potentials,
         parallel: bool,
     ) {
-        let bas = &self.basis;
-        pot.vat.iter_mut().for_each(|x| *x = 0.0);
-        pot.vdp.iter_mut().for_each(|x| *x = [0.0; 3]);
-        pot.vqp.iter_mut().for_each(|x| *x = [0.0; 6]);
-        gamma_rows(&geo.gamma, qsh, &mut pot.vsh, parallel);
+        let tg = self.term_geometry(mol, geo, parallel);
+        let s = SccMoments { qsh, qat, dip: dpat, quad: qpat, mag: None };
+        pot.zero();
+        self.es2.potential(&tg, &geo.gamma, &s, pot);
         if let Some(es3) = &self.es3 {
-            es3.potential(mol, &bas.ish_at, qsh, &mut pot.vsh);
+            es3.potential(&tg, &(), &s, pot);
         }
         if let (Some(aes), Some(c)) = (&self.aes2, &geo.mp_cache) {
-            aes.potential(mol, c, qat, dpat, qpat, &mut pot.vat, &mut pot.vdp, &mut pot.vqp, parallel);
+            aes.potential(&tg, c, &s, pot);
         }
         for (t, c) in extra.iter().zip(&geo.caches) {
-            t.potential(mol, c.as_ref(), qat, &mut pot.vat, parallel);
+            t.potential(mol, c.as_ref(), qat, &mut pot.atom, parallel);
         }
     }
 
@@ -456,19 +452,21 @@ impl XtbModel {
         qat: &[f64],
         dpat: &[[f64; 3]],
         qpat: &[[f64; 6]],
-        pot: &Potential,
+        pot: &Potentials,
         chain: &mut Chain,
         parallel: bool,
     ) {
         let bas = &self.basis;
-        self.es2.add_gradient(mol, &bas.ish_at, &bas.nsh_at, qsh, &mut chain.g);
+        let tg = self.term_geometry(mol, geo, parallel);
+        let s = SccMoments { qsh, qat, dip: dpat, quad: qpat, mag: None };
+        self.es2.gradient(&tg, &geo.gamma, &s, chain);
         if let (Some(aes), Some(c)) = (&self.aes2, &geo.mp_cache) {
-            aes.add_gradient(&self.term_geometry(mol, geo, parallel), c, qat, dpat, qpat, chain);
+            aes.gradient(&tg, c, &s, chain);
         }
         for (t, c) in extra.iter().zip(&geo.caches) {
             t.gradient(mol, c.as_ref(), qat, &mut chain.g);
         }
-        let vao = pot.vao(bas);
+        let vao = vao(pot, bas);
         let (g, dedcn) = chain.g_and_slot(self.cn);
         self.h0.add_gradient(
             mol,
@@ -479,8 +477,8 @@ impl XtbModel {
             p,
             w,
             &vao,
-            &pot.vdp,
-            &pot.vqp,
+            &pot.dipole,
+            &pot.quadrupole,
             dedcn,
             g,
             parallel,
@@ -514,12 +512,7 @@ impl XtbModel {
         }
         let mut qat = vec![0.0; nat];
         qat_from_qsh(bas, qsh, &mut qat);
-        let mut pot = Potential {
-            vat: vec![0.0; nat],
-            vsh: vec![0.0; bas.nsh],
-            vdp: vec![[0.0; 3]; nat],
-            vqp: vec![[0.0; 6]; nat],
-        };
+        let mut pot = Potentials::new(bas.nsh, nat, false);
         self.potentials(mol, extra, &geo, qsh, &qat, dpat, qpat, &mut pot, parallel);
         self.add_scc_gradient(mol, extra, &geo, p, w, qsh, &qat, dpat, qpat, &pot, &mut chain, parallel);
         self.finish_gradient(mol, &geo, chain, parallel)
@@ -676,15 +669,9 @@ impl XtbModel {
             occ_b: vec![0.0; nao],
             efermi: [None, None],
             ts: 0.0,
-            pot: Potential {
-                vat: vec![0.0; nat],
-                vsh: vec![0.0; nsh],
-                vdp: vec![[0.0; 3]; nat],
-                vqp: vec![[0.0; 6]; nat],
-            },
+            pot: Potentials::new(nsh, nat, false),
             vao: vec![0.0; nao],
             eelec: vec![0.0; nat],
-            vsh_out: vec![0.0; nsh],
             terms: EnergyTerms::default(),
             failure: None,
         };
@@ -789,43 +776,25 @@ impl XtbModel {
                 // the multipole potentials and all explicit charge derivatives from the moments
                 // after the SCF (6.8.0: the output moments, 6.7.1: as mixed once more)
                 Some((input, mixed)) => {
-                    let mut pg = Potential {
-                        vat: pot.vat.clone(),
-                        vsh: pot.vsh.clone(),
-                        vdp: vec![[0.0; 3]; nat],
-                        vqp: vec![[0.0; 6]; nat],
+                    let mut pg = Potentials {
+                        shell: pot.shell.clone(),
+                        atom: pot.atom.clone(),
+                        dipole: vec![[0.0; 3]; nat],
+                        quadrupole: vec![[0.0; 6]; nat],
+                        magnetization: Vec::new(),
                     };
                     if let (Some(aes), Some(c)) = (&self.aes2, mp_cache) {
-                        let (mut v_in, mut v_mixed) = (vec![0.0; nat], vec![0.0; nat]);
-                        let (mut d0, mut q0) = (vec![[0.0; 3]; nat], vec![[0.0; 6]; nat]);
-                        aes.potential(
-                            mol,
-                            c,
-                            &input.qat,
-                            &input.dpat,
-                            &input.qpat,
-                            &mut v_in,
-                            &mut d0,
-                            &mut q0,
-                            parallel,
-                        );
-                        aes.potential(
-                            mol,
-                            c,
-                            &mixed.qat,
-                            &mixed.dpat,
-                            &mixed.qpat,
-                            &mut v_mixed,
-                            &mut pg.vdp,
-                            &mut pg.vqp,
-                            parallel,
-                        );
+                        let tg = self.term_geometry(mol, &geo, parallel);
+                        let (mut p_in, mut p_mixed) = (Potentials::new(0, nat, false), Potentials::new(0, nat, false));
+                        aes.potential(&tg, c, &input.view(), &mut p_in);
+                        aes.potential(&tg, c, &mixed.view(), &mut p_mixed);
+                        (pg.dipole, pg.quadrupole) = (p_mixed.dipole, p_mixed.quadrupole);
                         for i in 0..nat {
-                            pg.vat[i] += v_mixed[i] - v_in[i];
+                            pg.atom[i] += p_mixed.atom[i] - p_in.atom[i];
                         }
                     } else {
-                        pg.vdp.clone_from(&pot.vdp);
-                        pg.vqp.clone_from(&pot.vqp);
+                        pg.dipole.clone_from(&pot.dipole);
+                        pg.quadrupole.clone_from(&pot.quadrupole);
                     }
                     self.add_scc_gradient(
                         mol,
@@ -965,6 +934,13 @@ pub(crate) struct Moments {
     pub qpat: Vec<[f64; 6]>,
 }
 
+impl Moments {
+    /// The moments as the terms read them.
+    fn view(&self) -> SccMoments<'_> {
+        SccMoments { qsh: &self.qsh, qat: &self.qat, dip: &self.dpat, quad: &self.qpat, mag: None }
+    }
+}
+
 /// One GFN2-xTB SCF of [`XtbModel::singlepoint_state`] as the core's SCF model: the Fock
 /// matrix of the mixed input moments, all or only the occupied eigenpairs, tblite's Fermi
 /// filling, the density, its Mulliken moments and their energy; the moments are mixed as the
@@ -1006,11 +982,10 @@ struct Gfn2Scf<'a> {
     /// Entropy term -TS of the last occupations.
     ts: f64,
     /// Potential of the last Fock matrix.
-    pot: Potential,
+    pot: Potentials,
     vao: Vec<f64>,
     /// Electronic energy per atom and the SCF terms of the last iteration.
     eelec: Vec<f64>,
-    vsh_out: Vec<f64>,
     terms: EnergyTerms,
     /// Why the last diagonalization broke off the SCF.
     failure: Option<Error>,
@@ -1058,20 +1033,20 @@ impl ScfModel for Gfn2Scf<'_> {
         laps.lap("scf: potentials");
         let pot = &self.pot;
         for mu in 0..bas.nao {
-            self.vao[mu] = pot.vsh[bas.ao2sh[mu]] + pot.vat[bas.ao2at[mu]];
+            self.vao[mu] = pot.shell[bas.ao2sh[mu]] + pot.atom[bas.ao2at[mu]];
         }
         fock::from_potentials(
             bas,
             &self.ints,
             &self.vao,
-            &pot.vdp,
-            &pot.vqp,
+            &pot.dipole,
+            &pot.quadrupole,
             &mut self.work,
             &mut self.fock,
             self.parallel,
         );
         if let Some(ng) = &self.neglect {
-            ng.apply(self.mol, &pot.vdp, &pot.vqp, &mut self.fock);
+            ng.apply(self.mol, &pot.dipole, &pot.quadrupole, &mut self.fock);
         }
         if (0..bas.nao).any(|j| self.fock.col_as_slice(j).iter().any(|x| !x.is_finite())) {
             return Err(Error::Numerical(format!("non-finite Fock matrix in SCF iteration {iter}")));
@@ -1151,29 +1126,31 @@ impl ScfModel for Gfn2Scf<'_> {
     ) -> Result<(f64, Option<Vec<Vec<f64>>>)> {
         let (xtb, mol, parallel) = (self.xtb, self.mol, self.parallel);
         let bas = &xtb.basis;
-        let (nat, nsh, nao) = (mol.nat(), bas.nsh, bas.nao);
-        let (qsh, qat) = (&m.qsh, &m.qat);
+        let (nat, nao) = (mol.nat(), bas.nao);
+        let qat = &m.qat;
         let terms = &mut self.terms;
         let eelec = &mut self.eelec;
         eelec.iter_mut().for_each(|x| *x = 0.0);
-        // γ q of the output charges: the second-order energy, distributed over the atoms of
-        // the shells
-        gamma_rows(&self.geo.gamma, qsh, &mut self.vsh_out, parallel);
-        let vsh_out = &self.vsh_out;
-        terms.isotropic_es = 0.5 * (0..nsh).fold(0.0, |e, a| e + qsh[a] * vsh_out[a]);
-        for a in 0..nsh {
-            eelec[bas.sh2at[a]] += 0.5 * qsh[a] * vsh_out[a];
-        }
+        let tg = xtb.term_geometry(mol, &self.geo, parallel);
+        let s = SccMoments { qsh: &m.qsh, qat, dip: &m.dpat, quad: &m.qpat, mag: None };
+        // the second-order energy of the output charges, distributed over the atoms of the
+        // shells (the first per-atom energy: into the zeroed `eelec`)
+        let mut piece = [0.0];
+        xtb.es2.energy(&tg, &self.geo.gamma, &s, &mut TermEnergy { pieces: &mut piece, atoms: Some(eelec) });
+        terms.isotropic_es = piece[0];
         let mut e3 = vec![0.0; nat];
+        let mut piece = [0.0];
         if let Some(es3) = &xtb.es3 {
-            es3.energy(mol, &bas.ish_at, qsh, &mut e3);
+            es3.energy(&tg, &(), &s, &mut TermEnergy { pieces: &mut piece, atoms: Some(&mut e3) });
         }
-        terms.third_order = e3.iter().sum();
+        terms.third_order = piece[0];
         let mut eaes = vec![0.0; nat];
+        let mut piece = [0.0];
         if let (Some(aes), Some(c)) = (&xtb.aes2, &self.geo.mp_cache) {
-            aes.energy(mol, c, qat, &m.dpat, &m.qpat, &mut eaes, parallel);
+            aes.energy(&tg, c, &s, &mut TermEnergy { pieces: &mut piece, atoms: Some(&mut eaes) });
         }
-        terms.anisotropic = eaes.iter().sum();
+        terms.anisotropic = piece[0];
+        let eelec = &mut self.eelec;
         let mut edsc = vec![0.0; nat];
         terms.dispersion = 0.0;
         terms.solvation = 0.0;
@@ -1276,16 +1253,4 @@ pub(crate) fn electrons(mol: &Molecule, nref: f64, nao: usize) -> Result<(f64, f
 
 pub(crate) fn qat_from_qsh(bas: &Basis, qsh: &[f64], qat: &mut [f64]) {
     axtb_base::math::atom_charges_into(qat, bas.sh2at.iter().copied(), qsh);
-}
-
-/// `out = γ q` for the row-major square `gamma`, rows in parallel when asked (each row summed
-/// in order: the same bits).
-fn gamma_rows(gamma: &[f64], q: &[f64], out: &mut [f64], parallel: bool) {
-    let n = q.len();
-    let row = |a: usize| -> f64 { gamma[a * n..(a + 1) * n].iter().zip(q).map(|(g, x)| g * x).sum() };
-    if parallel {
-        out[..n].par_iter_mut().enumerate().with_min_len(32).for_each(|(a, v)| *v = row(a));
-    } else {
-        out[..n].iter_mut().enumerate().for_each(|(a, v)| *v = row(a));
-    }
 }

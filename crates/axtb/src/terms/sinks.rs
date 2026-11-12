@@ -2,7 +2,7 @@
 //! (energies, potentials, kernels, potential derivatives). Every sink is added to, never
 //! assigned: the model sizes and zeroes it and decides which terms share it.
 
-use super::chain::{ChainLayout, Slot, Values};
+use super::chain::{ChainLayout, Jacobians, Slot, Values};
 use crate::molecule::Molecule;
 
 /// The geometry a term is bound to: the molecule (positions, atomic numbers, species), the
@@ -172,5 +172,28 @@ impl PotentialDerivative {
     /// The derivatives with respect to intermediates written so far.
     pub fn wrt_slots(&self) -> &[(Slot, Vec<f64>)] {
         &self.wrt
+    }
+
+    /// Add the derivatives with respect to intermediates, chained with their Jacobians
+    /// (`jacobians`, of a molecule of `nat` atoms), to the atomic rows, and drop them: row r of
+    /// `atomic` gains Σ_A w_rA dX_A/dR (in the order of the slots, then of r and A; exact zeros
+    /// of w skipped).
+    pub fn chain_wrt(&mut self, jacobians: &Jacobians, nat: usize) {
+        let n3 = 3 * nat;
+        for (s, w) in std::mem::take(&mut self.wrt) {
+            let jac = jacobians.get(s);
+            for r in 0..w.len() / nat.max(1) {
+                for a in 0..nat {
+                    let x = w[r * nat + a];
+                    if x != 0.0 {
+                        let jrow = &jac[a * n3..(a + 1) * n3];
+                        let out = &mut self.atomic[r * n3..(r + 1) * n3];
+                        for k in 0..n3 {
+                            out[k] += x * jrow[k];
+                        }
+                    }
+                }
+            }
+        }
     }
 }

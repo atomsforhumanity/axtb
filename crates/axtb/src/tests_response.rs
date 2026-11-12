@@ -82,7 +82,6 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
 
 /// Explicit potential derivatives `∂V/∂R|_s` against central differences of the potentials.
 pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
-    use crate::xtb::Potential;
     let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
     let extra: Vec<&dyn ChargeDependentTerm> = extra_box.iter().map(|b| b.as_ref()).collect();
     let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
@@ -101,15 +100,10 @@ pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
             let mut mm = mol.clone();
             mm.positions[a][k] += sign * h;
             let geo = model.geometry(&mm, &extra);
-            let mut pot = Potential {
-                vat: vec![0.0; nat],
-                vsh: vec![0.0; nsh],
-                vdp: vec![[0.0; 3]; nat],
-                vqp: vec![[0.0; 6]; nat],
-            };
+            let mut pot = crate::terms::Potentials::new(nsh, nat, false);
             model.potentials(&mm, &extra, &geo, &st.qsh, &st.qat, &st.dpat, &st.qpat, &mut pot, false);
-            let vsh: Vec<f64> = (0..nsh).map(|s| pot.vsh[s] + pot.vat[model.basis.sh2at[s]]).collect();
-            lay.pack(&vsh, &pot.vdp, &pot.vqp, None, &mut v[i]);
+            let vsh: Vec<f64> = (0..nsh).map(|s| pot.shell[s] + pot.atom[model.basis.sh2at[s]]).collect();
+            lay.pack(&vsh, &pot.dipole, &pot.quadrupole, None, &mut v[i]);
         }
         let mut err = [0.0f64; 3];
         let mut scale: f64 = 0.0;
@@ -277,12 +271,12 @@ pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
         let mut h = vec![0.0; n3 * n3];
         let cn = model.ncoord.compute(mol);
         let jac = model.ncoord.jacobian(mol);
-        let cache = aes.update(mol, &cn);
+        let cache = aes.cache(mol, &cn);
         aes.add_hessian(mol, &cache, &cn, &jac, &st.qat, &st.dpat, &st.qpat, &mut h);
         worst = worst.max(fd_check("AES", mol, &h, |m| {
             let values = model.layout.compute(m).unwrap();
             let geo = crate::terms::Geometry { mol: m, layout: &model.layout, values: &values, parallel: false };
-            let cache = aes.update(m, values.get(model.cn));
+            let cache = aes.cache(m, values.get(model.cn));
             let mut chain = crate::terms::Chain::new(&model.layout, m.nat());
             aes.add_gradient(&geo, &cache, &st.qat, &st.dpat, &st.qpat, &mut chain);
             chain.finish(&geo).unwrap()

@@ -31,7 +31,7 @@ use crate::hamiltonian::AtomBlocks;
 use crate::linalg::Lu;
 use crate::molecule::Molecule;
 use crate::scf::{mulliken, ScfVariables};
-use crate::terms::Jacobians;
+use crate::terms::{Jacobians, Kernel, MomentTerm, PotentialDerivative};
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::{Error, Result};
 use axtb_base::occupations::fermi;
@@ -98,7 +98,7 @@ impl<'a> Response<'a> {
         let occ = occupations(st);
         let n_f = occ.n_full(1.0, OCC_THR);
         let parallel = threads > 1;
-        let vao = st.pot.vao(bas);
+        let vao = crate::xtb::vao(&st.pot, bas);
         let blocks = model.h0.perturbation_blocks(
             mol,
             bas,
@@ -107,8 +107,8 @@ impl<'a> Response<'a> {
             st.geo.cutoff,
             &st.density,
             &vao,
-            &st.pot.vdp,
-            &st.pot.vqp,
+            &st.pot.dipole,
+            &st.pot.quadrupole,
             &lay,
             parallel,
         );
@@ -259,29 +259,35 @@ impl<'a> Response<'a> {
         let lay = self.lay;
         let (nsh, nat) = (lay.nsh, lay.nat);
         let m = lay.dim();
+        let n10 = 10 * nat;
+        let tg = self.model.term_geometry(self.mol, &st.geo, false);
+        let s = st.moments();
+        // the shell block (second and third order), the atomic charges of the extra terms, the
+        // multipole kernel in the atomic layout [q | μ | Θ]
+        let mut ks = Kernel {
+            shell: vec![0.0; nsh * nsh],
+            atom: vec![0.0; nat * nat],
+            multipole: vec![0.0; if lay.multipoles { n10 * n10 } else { 0 }],
+            magnetization: Vec::new(),
+        };
+        self.model.es2.kernel(&tg, &st.geo.gamma, &s, &mut ks);
+        if let Some(es3) = &self.model.es3 {
+            es3.kernel(&tg, &(), &s, &mut ks);
+        }
         let mut k = Mat::<f64>::zeros(m, m);
         for a in 0..nsh {
             for b in 0..nsh {
-                k[(a, b)] = st.geo.gamma[a * nsh + b];
+                k[(a, b)] = ks.shell[a * nsh + b];
             }
         }
-        if let Some(es3) = &self.model.es3 {
-            let mut d = vec![0.0; nsh];
-            es3.kernel_diagonal(self.mol, &bas.ish_at, &st.qsh, &mut d);
-            for a in 0..nsh {
-                k[(a, a)] += d[a];
-            }
-        }
-        // atomic-charge kernels of the extra terms
-        let mut kq = vec![0.0; nat * nat];
         for (t, c) in self.extra.iter().zip(&st.geo.caches) {
-            t.kernel(self.mol, c.as_ref(), &st.qat, &mut kq);
+            t.kernel(self.mol, c.as_ref(), &st.qat, &mut ks.atom);
         }
-        // multipole kernel in the atomic layout [q | μ | Θ]
-        let n10 = 10 * nat;
-        let mut k10 = vec![0.0; if lay.multipoles { n10 * n10 } else { 0 }];
         if let (Some(aes), Some(c)) = (&self.model.aes2, &st.geo.mp_cache) {
-            aes.kernel(self.mol, c, &mut k10);
+            aes.kernel(&tg, c, &s, &mut ks);
+        }
+        let Kernel { atom: kq, multipole: mut k10, .. } = ks;
+        if self.model.aes2.is_some() && st.geo.mp_cache.is_some() {
             for i in 0..nat {
                 for j in 0..nat {
                     k10[i * n10 + j] += kq[i * nat + j];
@@ -332,16 +338,18 @@ impl<'a> Response<'a> {
         let n3 = 3 * nat;
         let m = lay.dim();
         let mut c = Mat::<f64>::zeros(m, n3);
-        let mut dsh = vec![0.0; nsh * n3];
-        self.model.es2.potential_derivative(self.mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut dsh);
+        let n10 = 10 * nat;
+        let tg = self.model.term_geometry(self.mol, &st.geo, self.threads > 1);
+        let s = st.moments();
+        let mut pd = PotentialDerivative::new(nsh, n10, n3);
+        let seconds = "GFN2-xTB's electrostatic second derivatives cannot fail";
+        self.model.es2.second_derivatives(&tg, &st.geo.gamma, &s, Some(&mut pd), None).expect(seconds);
         for a in 0..nsh {
             for x in 0..n3 {
-                c[(a, x)] = dsh[a * n3 + x];
+                c[(a, x)] = pd.shell[a * n3 + x];
             }
         }
         // atomic potentials: extra terms, multipole terms
-        let n10 = 10 * nat;
-        let mut dv = vec![0.0; n10 * n3];
         if let Some(h) = extra_hessian.as_deref_mut() {
             h.clear();
             h.resize(n3 * n3, 0.0);
@@ -351,28 +359,17 @@ impl<'a> Response<'a> {
                 self.mol,
                 cc.as_ref(),
                 &st.qat,
-                &mut dv[..nat * n3],
+                &mut pd.atomic[..nat * n3],
                 extra_hessian.as_deref_mut().map(|h| h.as_mut_slice()),
                 self.threads > 1,
             );
         }
         if let (Some(aes), Some(cache)) = (&self.model.aes2, &st.geo.mp_cache) {
-            let mut dvcn = vec![0.0; n10 * nat];
-            aes.potential_derivative(self.mol, cache, &st.qat, &st.dpat, &st.qpat, &mut dv, &mut dvcn);
+            aes.second_derivatives(&tg, cache, &s, Some(&mut pd), None).expect(seconds);
             // chain through the coordination numbers
-            for r in 0..n10 {
-                for a in 0..nat {
-                    let w = dvcn[r * nat + a];
-                    if w != 0.0 {
-                        let jrow = &self.jac()[a * n3..(a + 1) * n3];
-                        let out = &mut dv[r * n3..(r + 1) * n3];
-                        for x in 0..n3 {
-                            out[x] += w * jrow[x];
-                        }
-                    }
-                }
-            }
+            pd.chain_wrt(&self.jacobians, nat);
         }
+        let dv = &pd.atomic;
         for a in 0..nsh {
             let at = bas.sh2at[a];
             for x in 0..n3 {

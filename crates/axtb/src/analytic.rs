@@ -20,7 +20,7 @@
 
 use crate::molecule::Molecule;
 use crate::response::Response;
-use crate::terms::{Chain2, GeometryTerm};
+use crate::terms::{Chain2, GeometryTerm, MomentTerm};
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::Result;
 use faer::{Accum, Mat};
@@ -91,7 +91,7 @@ pub(crate) fn explicit(
     let t0 = std::time::Instant::now();
     let mut h = extra_hessian.to_vec();
     h.resize(n3 * n3, 0.0);
-    let vao = st.pot.vao(bas);
+    let vao = crate::xtb::vao(&st.pot, bas);
     let geo = &st.geo;
     model.h0.add_hessian(
         mol,
@@ -102,8 +102,8 @@ pub(crate) fn explicit(
         &st.density,
         &st.wdensity,
         &vao,
-        &st.pot.vdp,
-        &st.pot.vqp,
+        &st.pot.dipole,
+        &st.pot.quadrupole,
         &model.ncoord,
         resp.jac(),
         &mut h,
@@ -111,13 +111,15 @@ pub(crate) fn explicit(
     );
     timings.push(("explicit: integrals", t0.elapsed().as_secs_f64()));
     let t0 = std::time::Instant::now();
-    model.es2.add_hessian(mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut h);
-    if let (Some(aes), Some(cache)) = (&model.aes2, &geo.mp_cache) {
-        aes.add_hessian(mol, cache, geo.values.get(model.cn), resp.jac(), &st.qat, &st.dpat, &st.qpat, &mut h);
-    }
     let tg = model.term_geometry(mol, geo, parallel);
+    let s = st.moments();
     let h2 = &mut Chain2 { h: &mut h, jacobians: &resp.jacobians };
-    model.repulsion.add_hessian(&tg, &(), h2).expect("the repulsion's Hessian cannot fail");
+    let seconds = "GFN2-xTB's analytic second derivatives cannot fail";
+    model.es2.second_derivatives(&tg, &geo.gamma, &s, None, Some(&mut *h2)).expect(seconds);
+    if let (Some(aes), Some(cache)) = (&model.aes2, &geo.mp_cache) {
+        aes.second_derivatives(&tg, cache, &s, None, Some(&mut *h2)).expect(seconds);
+    }
+    model.repulsion.add_hessian(&tg, &(), h2).expect(seconds);
     timings.push(("explicit: electrostatics+repulsion", t0.elapsed().as_secs_f64()));
     h
 }

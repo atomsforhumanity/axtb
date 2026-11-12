@@ -99,9 +99,11 @@ pub fn build(mol: &Molecule, acc: f64, params: &ConventionParams) -> Result<XtbM
 
     // electrostatics
     let hardness = per_shell(&|iz, ish| HUBBARD_PARAMETER[iz] * SHELL_HUBBARD[iz][ang(iz, ish)]);
-    let es2 = EffectiveCoulomb::new(&hardness, GEXP);
-    let es3 =
-        OnsiteThirdOrder { gamma: per_shell(&|iz, ish| P_HUBBARD_DERIVS[iz] * SHELL_HUBBARD_DERIVS[ang(iz, ish)]) };
+    let es2 = EffectiveCoulomb::new(&hardness, GEXP, &basis);
+    let es3 = OnsiteThirdOrder {
+        gamma: per_shell(&|iz, ish| P_HUBBARD_DERIVS[iz] * SHELL_HUBBARD_DERIVS[ang(iz, ish)]),
+        ish_at: basis.ish_at.clone(),
+    };
     let aes2 = DampedMultipole::new(
         zs.iter().map(|&z| P_DKERNEL[z - 1]).collect(),
         zs.iter().map(|&z| P_QKERNEL[z - 1]).collect(),
