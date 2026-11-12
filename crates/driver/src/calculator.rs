@@ -4,7 +4,10 @@
 use crate::error::{Error, Result};
 use crate::names::{self, Method};
 use crate::request::Request;
-use crate::response::{self, Attempt, Gfnff, HessianPart, Matrix, Named, Response, Scf, Topology, Vibrations};
+use crate::response::{
+    self, Attempt, Composite, Details, Gfnff, HessianPart, Matrix, Named, Part, Parts, Response, Scf, Topology,
+    Vibrations,
+};
 use crate::task::Task;
 use axtb::method::{Fingerprint, Method as _, Restart, ScfData, Want, Wavefunction, WavefunctionData};
 use axtb::vibrations::Conventions as VibConventions;
@@ -37,9 +40,9 @@ enum StateInner {
     Gfn2(Wavefunction),
     #[cfg(feature = "gxtb")]
     Gxtb(Wavefunction),
-    /// g-xTB part, GFN2 gas phase, GFN2 solvated
+    /// the composite's parts': g-xTB, GFN2 gas phase, GFN2 solvated
     #[cfg(feature = "gxtb")]
-    Composite(Option<Wavefunction>, Option<Wavefunction>, Option<Wavefunction>),
+    Composite(Wavefunction),
 }
 
 impl ScfState {
@@ -322,15 +325,19 @@ impl Calculator {
                 let hess = match &task.hessian {
                     // afterwards the g-xTB part holds no wavefunction: its single point below
                     // starts from its own guess, as without the Hessian
-                    Some(h) => Some(calc.hessian(positions, h.method, h.step, h.accuracy)?),
+                    Some(h) => {
+                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
+                        Some(calc.hessian(positions, &o)?)
+                    }
                     None => None,
                 };
                 let want =
                     Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
-                let r = calc.singlepoint(positions, &want)?;
-                out.composite = Some(composite::response(calc, &r, hess.as_ref().map(|h| &h.parts)));
-                out.hessian = hess.map(|h| hessian_part(h.total));
-                report_into(&mut out, r.singlepoint)
+                let mut sp = calc.singlepoint(positions, &want)?;
+                let report = sp.extras.composite.take().expect("the composite's report");
+                out.composite = Some(composite_response(*report, hess.as_ref().map(|h| h.parts.as_slice())));
+                out.hessian = hess.map(hessian_part);
+                report_into(&mut out, sp)
             }
             Engine::Gfnff(calc) => {
                 let hess = match &task.hessian {
@@ -405,11 +412,7 @@ impl Calculator {
             #[cfg(feature = "gxtb")]
             Engine::Gxtb(c) => c.wavefunction().map(StateInner::Gxtb),
             #[cfg(feature = "gxtb")]
-            Engine::Composite(c) => {
-                let (gas, solv) = c.gfn2_guesses();
-                let g = c.gxtb().wavefunction();
-                (g.is_some() || gas.is_some() || solv.is_some()).then_some(StateInner::Composite(g, gas, solv))
-            }
+            Engine::Composite(c) => c.wavefunction().map(StateInner::Composite),
             Engine::Gfnff(_) => None,
         }?;
         Some(ScfState { inner, method: self.method, natoms: self.numbers.len() })
@@ -432,18 +435,7 @@ impl Calculator {
             #[cfg(feature = "gxtb")]
             (Engine::Gxtb(c), StateInner::Gxtb(g)) => c.set_wavefunction(g)?,
             #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), StateInner::Composite(g, gas, solv)) => {
-                if let Some(g) = g {
-                    c.gxtb_mut().set_wavefunction(g)?;
-                }
-                let (cg, cs) = c.gfn2_mut();
-                if let Some(x) = gas {
-                    cg.set_wavefunction(x)?;
-                }
-                if let Some(x) = solv {
-                    cs.set_wavefunction(x)?;
-                }
-            }
+            (Engine::Composite(c), StateInner::Composite(w)) => c.set_wavefunction(w)?,
             _ => return Err(input("the wavefunction belongs to another kind of calculation")),
         }
         Ok(())
@@ -486,9 +478,9 @@ impl Calculator {
             #[cfg(feature = "gxtb")]
             (Engine::Gxtb(c), _) => c.reset_wavefunction(),
             #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), true) => c.gxtb_mut().reset_wavefunction(),
+            (Engine::Composite(c), true) => c.composite_mut().base_mut().method.reset_wavefunction(),
             #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), false) => c.reset_guess(),
+            (Engine::Composite(c), false) => c.reset_wavefunction(),
             _ => {}
         }
     }
@@ -633,19 +625,19 @@ fn check_finite(out: &Response) -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "gxtb")]
-mod composite {
-    use crate::response::{Attempt, Components, Composite, CompositeEtemp, CompositeInfo, Part, Parts};
-
-    fn part(p: &axtb_gxtb::PartInfo) -> Part {
-        Part {
-            method: p.method.clone(),
+/// A composite's report as the response's `composite` group (`hessian`: the parts of its
+/// Hessian).
+fn composite_response(r: axtb::method::CompositeReport, hessian: Option<&[axtb::method::PartReport]>) -> Composite {
+    let part = |p: &axtb::method::PartReport| {
+        let scf = p.scf.as_ref();
+        let attempts = scf.map_or(&[][..], |s| &s.attempts[..]);
+        let part = Part {
+            method: p.label.clone(),
             conventions: p.conventions,
             energy: p.energy,
-            iterations: p.iterations,
-            mixer_used: p.mixer_used,
-            scf_attempts: p
-                .scf_attempts
+            iterations: scf.map_or(0, |s| s.iterations),
+            mixer_used: scf.and_then(|s| s.mixer_used),
+            scf_attempts: attempts
                 .iter()
                 .map(|a| Attempt { mixer: a.mixer, iterations: a.iterations, converged: a.converged })
                 .collect(),
@@ -653,48 +645,14 @@ mod composite {
             max_iter: p.max_iter,
             retry: p.retry.clone(),
             seconds: p.seconds,
-            hessian_method: p.hessian_method.map(crate::names::hessian_method_label),
-        }
-    }
-
-    fn parts(p: &[axtb_gxtb::PartInfo; 3]) -> Parts {
-        Parts { gxtb: part(&p[0]), gfn2_solvated: part(&p[1]), gfn2_gas: part(&p[2]) }
-    }
-
-    /// The composite's definition, settings, components and parts (`hessian`: the parts of
-    /// its Hessian).
-    pub(super) fn response(
-        c: &axtb_gxtb::CompositeCalculator,
-        r: &axtb_gxtb::CompositeResults,
-        hessian: Option<&[axtb_gxtb::PartInfo; 3]>,
-    ) -> Composite {
-        let o = c.options();
-        let (model, state) = c.solvation_labels();
-        let (conventions, correction_conventions) = c.conventions_labels();
-        let (gxtb, gfn2) = c.etemps();
-        Composite {
-            composite: CompositeInfo {
-                definition: c.definition(),
-                method: o.version.method(),
-                solvation_correction: o.correction.name(),
-                solvation_model: model,
-                solvent: o.solvation.solvent.clone(),
-                solvation_state: state,
-                conventions,
-                correction_conventions,
-                etemp: CompositeEtemp { gxtb, gfn2 },
-                reuse_guess: c.reuses_guess(),
-                gxtb_reuse_guess: c.gxtb_reuses_guess(),
-                retries: o.retries,
-            },
-            components: Components {
-                gxtb: r.gxtb.energy,
-                gfn2_solvated: r.gfn2_solvated.energy,
-                gfn2_gas: r.gfn2_gas.energy,
-                solvation_correction: r.solvation_energy,
-            },
-            parts: parts(&r.parts),
-            hessian_parts: hessian.map(parts),
-        }
+            hessian_method: p.hessian_method.map(names::hessian_method_label),
+        };
+        (p.key, part)
+    };
+    Composite {
+        composite: Details(r.description),
+        components: Named(r.components),
+        parts: Parts(r.parts.iter().map(part).collect()),
+        hessian_parts: hessian.map(|h| Parts(h.iter().map(part).collect())),
     }
 }

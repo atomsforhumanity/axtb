@@ -3,8 +3,7 @@
 //! nothing, the GFN2 pair follows its retry ladder, and the settings resolve as documented.
 //! The comparison with the three xtb programs is `tests/solvation_composite.py`.
 
-use axtb::method::Want;
-use axtb::method::{Method, ScfSettings};
+use axtb::method::{CompositeReport, Method, ScfSettings, SinglePoint, Want};
 use axtb::{HessianMethod, HessianOptions, SolvationModel, SolvationSpec};
 use axtb_gxtb::composite::GFN2_ETEMP;
 use axtb_gxtb::{Calculator, CompositeCalculator, CompositeOptions, Conventions, Options, Version};
@@ -22,6 +21,21 @@ fn acetate() -> (Vec<usize>, Vec<[f64; 3]>) {
         (1, [0.57813, -0.91714, -0.46504]),
     ];
     (xyz.iter().map(|x| x.0).collect(), xyz.iter().map(|x| [x.1[0] * a, x.1[1] * a, x.1[2] * a]).collect())
+}
+
+/// The composite's report of a single point.
+fn report(sp: &SinglePoint) -> &CompositeReport {
+    sp.extras.composite.as_deref().expect("the composite's report")
+}
+
+/// The energy of the component `key` of a composite single point.
+fn component(sp: &SinglePoint, key: &str) -> f64 {
+    report(sp).components.iter().find(|(k, _)| *k == key).expect("the component").1
+}
+
+/// ΔG_solv of a composite single point.
+fn dg_solv(sp: &SinglePoint) -> f64 {
+    sp.term("solvation_correction").expect("the correction term")
 }
 
 fn water() -> (Vec<usize>, Vec<[f64; 3]>) {
@@ -69,23 +83,26 @@ fn composite_is_the_sum_of_its_parts() {
         let (e, g, dg, eg) = parts(&nums, &pos, -1.0, conv);
         let mut c = CompositeCalculator::new(&nums, &pos, -1.0, None, opts(conv)).unwrap();
         let r = c.singlepoint(&pos, &Want::GRADIENT).unwrap();
-        assert!((r.singlepoint.energy - e).abs() < 1e-12, "{conv:?}: {} vs {e}", r.singlepoint.energy);
-        assert!((r.solvation_energy - dg).abs() < 1e-12);
-        assert!((r.gxtb.energy - eg).abs() < 1e-12);
-        assert_eq!(r.singlepoint.term("solvation_correction").unwrap(), r.solvation_energy);
-        assert!(r.solvation_energy < -0.05, "acetate in water: dG_solv {}", r.solvation_energy);
-        let gr = r.singlepoint.gradient.as_ref().unwrap();
+        assert!((r.energy - e).abs() < 1e-12, "{conv:?}: {} vs {e}", r.energy);
+        assert!((dg_solv(&r) - dg).abs() < 1e-12);
+        assert!((component(&r, "gxtb") - eg).abs() < 1e-12);
+        assert_eq!(component(&r, "solvation_correction"), dg_solv(&r));
+        assert!(dg_solv(&r) < -0.05, "acetate in water: dG_solv {}", dg_solv(&r));
+        // the pieces: g-xTB's and the correction
+        assert!((r.pieces() - r.energy).abs() < 1e-10);
+        let gr = r.gradient.as_ref().unwrap();
         for (a, b) in gr.iter().zip(&g) {
             for k in 0..3 {
                 assert!((a[k] - b[k]).abs() < 1e-11);
             }
         }
         // what each part ran with: the programs' defaults, g-xTB 0 K and GFN2 300 K, no retry
-        assert_eq!(r.parts[0].etemp, 0.0);
-        assert_eq!((r.parts[1].etemp, r.parts[2].etemp), (300.0, 300.0));
-        assert!(r.parts.iter().all(|p| p.retry.is_none()));
-        assert_eq!(r.parts[0].method, "gxtb-v2.0.1");
-        assert_eq!(r.parts[1].method, "gfn2+alpb");
+        let parts = &report(&r).parts;
+        assert_eq!(parts[0].etemp, 0.0);
+        assert_eq!((parts[1].etemp, parts[2].etemp), (300.0, 300.0));
+        assert!(parts.iter().all(|p| p.retry.is_none()));
+        assert_eq!(parts[0].label, "gxtb-v2.0.1");
+        assert_eq!(parts[1].label, "gfn2+alpb");
         let expect = if conv == Conventions::Axtb { ("axtb", "axtb", true) } else { ("gxtb", "xtb-6.7.1", false) };
         assert_eq!((c.conventions_labels().0, c.conventions_labels().1, c.reuses_guess()), expect);
         assert_eq!(c.definition(), "E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])");
@@ -97,15 +114,15 @@ fn gradient_is_the_derivative_of_the_energy() {
     let (nums, pos) = acetate();
     let o = CompositeOptions { accuracy: 1e-6, ..opts(Conventions::Axtb) };
     let mut c = CompositeCalculator::new(&nums, &pos, -1.0, None, o).unwrap();
-    let g = c.singlepoint(&pos, &Want::GRADIENT).unwrap().singlepoint.gradient.unwrap();
+    let g = c.singlepoint(&pos, &Want::GRADIENT).unwrap().gradient.unwrap();
     let h = 1e-4;
     let mut worst: f64 = 0.0;
     for (atom, dir) in [(0, 0), (1, 2), (2, 1), (3, 0), (6, 2)] {
         let mut p = pos.clone();
         p[atom][dir] += h;
-        let ep = c.singlepoint(&p, &Want::ENERGY).unwrap().singlepoint.energy;
+        let ep = c.singlepoint(&p, &Want::ENERGY).unwrap().energy;
         p[atom][dir] -= 2.0 * h;
-        let em = c.singlepoint(&p, &Want::ENERGY).unwrap().singlepoint.energy;
+        let em = c.singlepoint(&p, &Want::ENERGY).unwrap().energy;
         worst = worst.max(((ep - em) / (2.0 * h) - g[atom][dir]).abs());
     }
     assert!(worst < 2e-7, "gradient vs finite differences: {worst:.2e}");
@@ -115,8 +132,8 @@ fn gradient_is_the_derivative_of_the_energy() {
 fn hessian_is_the_derivative_of_the_gradient() {
     let (nums, pos) = water();
     let mut c = CompositeCalculator::new(&nums, &pos, 0.0, None, opts(Conventions::Axtb)).unwrap();
-    let h = c.hessian(&pos, None, None, None).unwrap();
-    assert_eq!(h.total.method, HessianMethod::Analytic);
+    let h = c.hessian(&pos, &HessianOptions::default()).unwrap();
+    assert_eq!(h.method, HessianMethod::Analytic);
     assert!(h.parts.iter().all(|p| p.hessian_method == Some(HessianMethod::Analytic)));
     let o = CompositeOptions { accuracy: 1e-6, ..opts(Conventions::Axtb) };
     let mut f = CompositeCalculator::new(&nums, &pos, 0.0, None, o).unwrap();
@@ -126,23 +143,33 @@ fn hessian_is_the_derivative_of_the_gradient() {
     for col in 0..n3 {
         let mut p = pos.clone();
         p[col / 3][col % 3] += step;
-        let gp = f.singlepoint(&p, &Want::GRADIENT).unwrap().singlepoint.gradient.unwrap();
+        let gp = f.singlepoint(&p, &Want::GRADIENT).unwrap().gradient.unwrap();
         p[col / 3][col % 3] -= 2.0 * step;
-        let gm = f.singlepoint(&p, &Want::GRADIENT).unwrap().singlepoint.gradient.unwrap();
+        let gm = f.singlepoint(&p, &Want::GRADIENT).unwrap().gradient.unwrap();
         for row in 0..n3 {
             let fd = (gp[row / 3][row % 3] - gm[row / 3][row % 3]) / (2.0 * step);
-            worst = worst.max((fd - h.total.hessian[row * n3 + col]).abs());
+            worst = worst.max((fd - h.hessian[row * n3 + col]).abs());
         }
     }
     assert!(worst < 2e-5, "Hessian vs finite differences of the gradient: {worst:.2e}");
-    // the total is the sum of the parts
+    // the total is the sum of the parts, each from its own calculator
+    let ho = HessianOptions::default();
+    let mut g = Calculator::new(Version::V2_0_1, &nums, &pos, 0.0, None, Options::default()).unwrap();
+    let hg = g.hessian(&pos, &ho).unwrap().hessian;
+    let mut o =
+        axtb::Options { scf: ScfSettings { etemp: Some(GFN2_ETEMP), ..Default::default() }, ..Default::default() };
+    let mut gas = axtb::Calculator::new(axtb::Hamiltonian::Gfn2, &nums, &pos, 0.0, None, o.clone()).unwrap();
+    let hgas = gas.hessian(&pos, &ho).unwrap().hessian;
+    o.solvation = Some(water_alpb());
+    let mut solv = axtb::Calculator::new(axtb::Hamiltonian::Gfn2, &nums, &pos, 0.0, None, o).unwrap();
+    let hsolv = solv.hessian(&pos, &ho).unwrap().hessian;
     for i in 0..n3 * n3 {
-        let s = h.gxtb.hessian[i] + (h.gfn2_solvated.hessian[i] - h.gfn2_gas.hessian[i]);
-        assert!((s - h.total.hessian[i]).abs() < 1e-14);
+        let s = hg[i] + (hsolv[i] - hgas[i]);
+        assert_eq!(s, h.hessian[i]);
     }
     // and its energy and gradient are those of the single point
     let r = c.singlepoint(&pos, &Want::GRADIENT).unwrap();
-    assert!((r.singlepoint.energy - h.total.energy).abs() < 1e-8);
+    assert!((r.energy - h.energy).abs() < 1e-8);
 }
 
 #[test]
@@ -152,17 +179,17 @@ fn threads_change_nothing() {
     let mut two =
         CompositeCalculator::new(&nums, &pos, -1.0, None, CompositeOptions { threads: 2, ..opts(Conventions::Axtb) })
             .unwrap();
-    let a = one.singlepoint(&pos, &Want::GRADIENT).unwrap().singlepoint;
-    let b = two.singlepoint(&pos, &Want::GRADIENT).unwrap().singlepoint;
+    let a = one.singlepoint(&pos, &Want::GRADIENT).unwrap();
+    let b = two.singlepoint(&pos, &Want::GRADIENT).unwrap();
     assert!((a.energy - b.energy).abs() < 1e-12);
-    let ha = one.hessian(&pos, None, None, None).unwrap().total.hessian;
-    let hb = two.hessian(&pos, None, None, None).unwrap().total.hessian;
+    let ha = one.hessian(&pos, &HessianOptions::default()).unwrap().hessian;
+    let hb = two.hessian(&pos, &HessianOptions::default()).unwrap().hessian;
     assert!(ha.iter().zip(&hb).all(|(x, y)| (x - y).abs() < 1e-11));
 }
 
 /// The GFN2 pair of a diatomic at distance `r` (Å) in xtb conventions: the composite's
 /// solvation energy, the rung both halves converged on, and the same halves run directly there.
-fn ladder(z: [usize; 2], r: f64, etemp: f64) -> (Vec<usize>, Vec<[f64; 3]>, axtb_gxtb::CompositeResults, f64) {
+fn ladder(z: [usize; 2], r: f64, etemp: f64) -> (Vec<usize>, Vec<[f64; 3]>, SinglePoint, f64) {
     let r = r / axtb_gxtb::BOHR_ANGSTROM;
     let (nums, pos) = (z.to_vec(), vec![[0.0, 0.0, -0.5 * r], [0.0, 0.0, 0.5 * r]]);
     let mut c = CompositeCalculator::new(&nums, &pos, 0.0, None, opts(Conventions::Gxtb)).unwrap();
@@ -183,12 +210,13 @@ fn ladder(z: [usize; 2], r: f64, etemp: f64) -> (Vec<usize>, Vec<[f64; 3]>, axtb
 #[test]
 fn gfn2_pair_follows_the_retry_ladder() {
     let (nums, pos, res, direct) = ladder([9, 9], 3.0, 1000.0);
-    assert!(res.parts[0].retry.is_none());
-    for p in &res.parts[1..] {
+    let parts = &report(&res).parts;
+    assert!(parts[0].retry.is_none());
+    for p in &parts[1..] {
         assert_eq!(p.retry.as_deref(), Some("etemp 1000 K, 1000 iterations"));
         assert_eq!((p.etemp, p.max_iter), (1000.0, 1000));
     }
-    assert!((res.solvation_energy - direct).abs() < 1e-12);
+    assert!((dg_solv(&res) - direct).abs() < 1e-12);
     // without retries it fails like the first program call
     let mut strict = CompositeCalculator::new(
         &nums,
@@ -203,7 +231,8 @@ fn gfn2_pair_follows_the_retry_ladder() {
     let p2 = water();
     let mut w = CompositeCalculator::new(&p2.0, &p2.1, 0.0, None, opts(Conventions::Gxtb)).unwrap();
     let rw = w.singlepoint(&p2.1, &Want::ENERGY).unwrap();
-    assert!(rw.parts[1].retry.is_none() && rw.parts[1].etemp == 300.0);
+    let parts = &report(&rw).parts;
+    assert!(parts[1].retry.is_none() && parts[1].etemp == 300.0);
 }
 
 /// HF at 3.0 Å: the gas-phase half fails at 300 K, at 1000 K and with 1000 iterations and
@@ -213,10 +242,10 @@ fn gfn2_pair_follows_the_retry_ladder() {
 #[ignore = "slow: about a minute of failing 1000-iteration rungs"]
 fn gfn2_pair_reaches_the_last_rung() {
     let (_, _, res, direct) = ladder([1, 9], 3.0, 5000.0);
-    for p in &res.parts[1..] {
+    for p in &report(&res).parts[1..] {
         assert_eq!(p.retry.as_deref(), Some("etemp 5000 K, 1000 iterations"));
     }
-    assert!((res.solvation_energy - direct).abs() < 1e-12);
+    assert!((dg_solv(&res) - direct).abs() < 1e-12);
 }
 
 #[test]
@@ -242,7 +271,7 @@ fn settings_resolve_as_documented() {
     .unwrap();
     assert_eq!(hot.etemps(), (3000.0, 3000.0));
     let r = hot.singlepoint(&pos, &Want::GRADIENT).unwrap();
-    assert!(r.parts.iter().all(|p| p.etemp == 3000.0));
+    assert!(report(&r).parts.iter().all(|p| p.etemp == 3000.0));
     let mut g = Calculator::new(
         Version::V2_0_1,
         &nums,
@@ -252,7 +281,7 @@ fn settings_resolve_as_documented() {
         Options { scf: ScfSettings { etemp: Some(3000.0), ..Default::default() }, ..Default::default() },
     )
     .unwrap();
-    assert_eq!(r.gxtb.energy, g.singlepoint(&pos, &Want::ENERGY).unwrap().energy);
+    assert_eq!(component(&r, "gxtb"), g.singlepoint(&pos, &Want::ENERGY).unwrap().energy);
     let v1 = CompositeOptions { version: Version::V1_1, etemp: Some(300.0), ..opts(Conventions::Axtb) };
     assert_eq!(CompositeCalculator::new(&nums, &pos, 0.0, None, v1).unwrap().etemps(), (300.0, 300.0));
     for t in [-1.0, f64::NAN, f64::INFINITY] {
@@ -287,7 +316,7 @@ fn settings_resolve_as_documented() {
         CompositeOptions { version: Version::V1_1, ..opts(Conventions::Axtb) },
     )
     .unwrap();
-    assert_eq!(v1.default_hessian_method(), HessianMethod::Numerical);
+    assert_eq!(v1.info().hessian.default, HessianMethod::Numerical);
     assert!(v1.singlepoint(&pos, &Want::GRADIENT).is_ok());
     let _ = HessianOptions::default();
 }

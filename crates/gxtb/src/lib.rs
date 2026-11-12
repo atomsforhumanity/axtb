@@ -113,7 +113,7 @@ pub mod v2;
 
 pub use axtb::{method, Method};
 pub use calculator::{Calculator, ConvergerSettings, Options, Version, RESTART_ACCURACY};
-pub use composite::{CompositeCalculator, CompositeHessian, CompositeOptions, CompositeResults, Correction, PartInfo};
+pub use composite::{CompositeCalculator, CompositeOptions, Correction};
 pub use scf::{singlepoint, Conventions, Energies, ScfOptions, ScfResult, Setup};
 
 use axtb::{Error, Molecule, Result};

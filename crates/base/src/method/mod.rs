@@ -17,7 +17,8 @@
 //! ([`Extras`]).
 //!
 //! [`RetryLadder`] is the one retry policy: a list of tries ([`Rung`]: a fresh start, another
-//! electronic temperature or iteration limit) climbed until one succeeds.
+//! electronic temperature or iteration limit) climbed until one succeeds. [`Composite`] is a
+//! method made of methods: a base plus weighted corrections, each with its ladder.
 //!
 //! **Unstable until 1.0**: the trait and its types may change in any minor release.
 
@@ -27,7 +28,7 @@ mod retry;
 mod settings;
 mod wavefunction;
 
-pub use composite::{CompositeReport, Detail, PartReport};
+pub use composite::{Composite, CompositeReport, Correction, Detail, Guard, Part, PartReport};
 pub use results::{
     Attempt, Electronic, Extras, GfnffReport, GfnffTopology, Hessian, ScfReport, SinglePoint, Term, TermKind,
 };
@@ -42,7 +43,7 @@ use crate::{Error, Result};
 /// After an error of [`singlepoint`](Method::singlepoint) or [`hessian`](Method::hessian) the
 /// method holds no wavefunction: its next SCF starts from the method's own start unless one is
 /// set. (A session that keeps a wavefunction per lineage keeps the last good one itself.)
-pub trait Method: Send {
+pub trait Method: Send + Sync {
     /// What the method is and offers (fixed when it is built).
     fn info(&self) -> &MethodInfo;
 

@@ -300,37 +300,42 @@ impl Vibrations {
     }
 }
 
-/// Electronic temperatures (K) of the composite's g-xTB and GFN2 parts.
-#[derive(Serialize, Clone, Copy, Debug, Default, PartialEq)]
-pub struct CompositeEtemp {
-    pub gxtb: f64,
-    pub gfn2: f64,
+/// Named values of a composite's description (its definition and settings), written as an
+/// object in their order.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Details(pub Vec<(&'static str, axtb::method::Detail)>);
+
+impl Serialize for Details {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        let mut m = s.serialize_map(Some(self.0.len()))?;
+        for (k, v) in &self.0 {
+            m.serialize_entry(k, &DetailRef(v))?;
+        }
+        m.end()
+    }
 }
 
-/// The g-xTB solvation composite's definition and settings.
-#[derive(Serialize, Clone, Debug, Default, PartialEq)]
-pub struct CompositeInfo {
-    pub definition: String,
-    pub method: &'static str,
-    pub solvation_correction: &'static str,
-    pub solvation_model: &'static str,
-    pub solvent: String,
-    pub solvation_state: &'static str,
-    pub conventions: &'static str,
-    pub correction_conventions: &'static str,
-    pub etemp: CompositeEtemp,
-    pub reuse_guess: bool,
-    pub gxtb_reuse_guess: bool,
-    pub retries: bool,
-}
+/// One value of [`Details`] as JSON: text and names as strings, numbers, flags, groups as
+/// objects.
+struct DetailRef<'a>(&'a axtb::method::Detail);
 
-/// Energies (Eh) of the composite's parts.
-#[derive(Serialize, Clone, Copy, Debug, Default, PartialEq)]
-pub struct Components {
-    pub gxtb: f64,
-    pub gfn2_solvated: f64,
-    pub gfn2_gas: f64,
-    pub solvation_correction: f64,
+impl Serialize for DetailRef<'_> {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        use axtb::method::Detail;
+        match self.0 {
+            Detail::Text(t) => s.serialize_str(t),
+            Detail::Name(n) => s.serialize_str(n),
+            Detail::Number(x) => s.serialize_f64(*x),
+            Detail::Flag(b) => s.serialize_bool(*b),
+            Detail::Group(g) => {
+                let mut m = s.serialize_map(Some(g.len()))?;
+                for (k, v) in g {
+                    m.serialize_entry(k, &DetailRef(v))?;
+                }
+                m.end()
+            }
+        }
+    }
 }
 
 /// How one part of the composite converged.
@@ -352,20 +357,34 @@ pub struct Part {
     pub hessian_method: Option<&'static str>,
 }
 
-/// The composite's three parts.
-#[derive(Serialize, Clone, Debug, Default, PartialEq)]
-pub struct Parts {
-    pub gxtb: Part,
-    pub gfn2_solvated: Part,
-    pub gfn2_gas: Part,
+/// A composite's parts by key, written as an object in their order.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Parts(pub Vec<(&'static str, Part)>);
+
+impl Parts {
+    /// The part `key`.
+    pub fn get(&self, key: &str) -> Option<&Part> {
+        self.0.iter().find(|(k, _)| *k == key).map(|(_, p)| p)
+    }
 }
 
-/// What the g-xTB solvation composite adds.
+impl Serialize for Parts {
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        let mut m = s.serialize_map(Some(self.0.len()))?;
+        for (k, v) in &self.0 {
+            m.serialize_entry(k, v)?;
+        }
+        m.end()
+    }
+}
+
+/// What a composite adds (the g-xTB solvation composite: its definition and settings, the
+/// energies of g-xTB, the GFN2 halves and the correction, how each part converged).
 #[derive(Serialize, Clone, Debug, Default, PartialEq)]
 pub struct Composite {
-    pub composite: CompositeInfo,
-    /// The single point's parts.
-    pub components: Components,
+    pub composite: Details,
+    /// The energies of the single point's parts and corrections (Eh).
+    pub components: Named,
     pub parts: Parts,
     /// The parts of the Hessian, with their Hessian methods.
     #[serde(skip_serializing_if = "Option::is_none")]

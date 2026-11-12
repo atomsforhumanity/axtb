@@ -150,9 +150,9 @@ fn the_composite_reports_its_parts() {
     };
     let r = run(&req).unwrap();
     let c = r.composite.as_ref().unwrap();
-    assert!(c.parts.gxtb.hessian_method.is_none());
-    assert_eq!(c.hessian_parts.as_ref().unwrap().gfn2_gas.hessian_method, Some("analytic"));
-    assert_eq!(r.terms.as_ref().unwrap().get("solvation_correction"), Some(c.components.solvation_correction));
+    assert!(c.parts.get("gxtb").unwrap().hessian_method.is_none());
+    assert_eq!(c.hessian_parts.as_ref().unwrap().get("gfn2_gas").unwrap().hessian_method, Some("analytic"));
+    assert_eq!(r.terms.as_ref().unwrap().get("solvation_correction"), c.components.get("solvation_correction"));
     assert!(r.vibrations.is_none());
 }
 
