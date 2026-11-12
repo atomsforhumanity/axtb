@@ -39,7 +39,7 @@ pub trait Intermediate: Send + Sync {
     fn compute(&self, mol: &Molecule, values: &Values) -> Result<Vec<Vec<f64>>>;
 
     /// Add `Σ_k Σ_A w[k][A] dX_k,A/dR`: the position dependence to `chain.g`, the dependence on
-    /// earlier intermediates to their slots in `chain` (this intermediate's own slots are empty
+    /// earlier intermediates to their slots in `chain` (this intermediate's own slots are zero
     /// while it is applied).
     fn chain(&self, geo: &Geometry<'_>, w: &[&[f64]], chain: &mut Chain) -> Result<()>;
 
@@ -204,50 +204,67 @@ impl Jacobians {
 
 /// The derivatives of an energy before the chain rules of its intermediates: the direct
 /// position derivative `g` (Eh/bohr) and dE/dX of every slot of the layout (zero to start,
-/// one value per atom).
+/// one value per atom; the slots in one vector, so that a chunk's accumulator is two
+/// allocations whatever the layout).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Chain {
     pub g: Vec<[f64; 3]>,
-    w: Vec<Vec<f64>>,
+    w: Vec<f64>,
 }
 
 impl Chain {
     /// Zero derivatives of `nat` atoms for the slots of `layout`.
     pub fn new(layout: &ChainLayout, nat: usize) -> Self {
-        Self { g: vec![[0.0; 3]; nat], w: vec![vec![0.0; nat]; layout.slots()] }
+        Self { g: vec![[0.0; 3]; nat], w: vec![0.0; layout.slots() * nat] }
     }
 
     /// Zero derivatives of the same shape (a chunk's accumulator, added back with
     /// [`add`](Self::add)).
     pub fn zeroed_like(&self) -> Self {
+        Self { g: vec![[0.0; 3]; self.g.len()], w: vec![0.0; self.w.len()] }
+    }
+
+    #[inline]
+    fn range(&self, s: Slot) -> std::ops::Range<usize> {
         let nat = self.g.len();
-        Self { g: vec![[0.0; 3]; nat], w: vec![vec![0.0; nat]; self.w.len()] }
+        s.0 * nat..(s.0 + 1) * nat
     }
 
     /// dE/dX of slot `s`, to add to.
     #[inline]
     pub fn slot(&mut self, s: Slot) -> &mut [f64] {
-        &mut self.w[s.0]
+        let r = self.range(s);
+        &mut self.w[r]
     }
 
     /// The direct gradient and dE/dX of slot `s` together, for code that accumulates both in
     /// one pass.
     #[inline]
     pub fn g_and_slot(&mut self, s: Slot) -> (&mut [[f64; 3]], &mut [f64]) {
-        (&mut self.g, &mut self.w[s.0])
+        let r = self.range(s);
+        (&mut self.g, &mut self.w[r])
     }
 
     /// The direct gradient and dE/dX of the distinct slots `s` together.
-    #[inline]
     pub fn g_and_slots<const N: usize>(&mut self, s: [Slot; N]) -> (&mut [[f64; 3]], [&mut [f64]; N]) {
-        let w = self.w.get_disjoint_mut(s.map(|s| s.0)).expect("distinct slots of the layout");
-        (&mut self.g, w.map(|v| v.as_mut_slice()))
+        let nat = self.g.len();
+        let mut rest: &mut [f64] = &mut self.w;
+        let mut parts: Vec<Option<&mut [f64]>> = Vec::with_capacity(rest.len() / nat.max(1));
+        while rest.len() >= nat && nat > 0 {
+            let (a, b) = std::mem::take(&mut rest).split_at_mut(nat);
+            parts.push(Some(a));
+            rest = b;
+        }
+        let w = s.map(|s| {
+            if nat == 0 { Some(&mut [][..]) } else { parts[s.0].take() }.expect("distinct slots of the layout")
+        });
+        (&mut self.g, w)
     }
 
     /// dE/dX of slot `s`.
     #[inline]
     pub fn weights(&self, s: Slot) -> &[f64] {
-        &self.w[s.0]
+        &self.w[self.range(s)]
     }
 
     /// Add the derivatives of `o` (every element, in place).
@@ -257,10 +274,8 @@ impl Chain {
                 a[x] += b[x];
             }
         }
-        for (a, b) in self.w.iter_mut().zip(&o.w) {
-            for (x, y) in a.iter_mut().zip(b) {
-                *x += y;
-            }
+        for (x, y) in self.w.iter_mut().zip(&o.w) {
+            *x += y;
         }
     }
 
@@ -273,17 +288,25 @@ impl Chain {
     }
 
     /// The gradient: every intermediate applied once, in the reverse registration order, each
-    /// pushing its weights into `g` and into the slots of the intermediates it depends on. An
-    /// intermediate whose weights are all exactly zero is skipped (its contribution would be
-    /// zeros, which can only turn a -0 of `g` into +0).
+    /// pushing its weights into `g` and into the slots of the intermediates it depends on (its
+    /// own slots are zeroed while it is applied). An intermediate whose weights are all exactly
+    /// zero is skipped (its contribution would be zeros, which can only turn a -0 of `g` into
+    /// +0).
     pub fn finish(mut self, geo: &Geometry<'_>) -> Result<Vec<[f64; 3]>> {
         let layout = geo.layout;
         for i in (0..layout.list.len()).rev() {
-            let range = layout.range(i);
-            if range.clone().all(|s| self.w[s].iter().all(|&x| x == 0.0)) {
+            let slots: Vec<Slot> = layout.range(i).map(Slot).collect();
+            if slots.iter().all(|&s| self.weights(s).iter().all(|&x| x == 0.0)) {
                 continue;
             }
-            let own: Vec<Vec<f64>> = range.map(|s| std::mem::take(&mut self.w[s])).collect();
+            let own: Vec<Vec<f64>> = slots
+                .iter()
+                .map(|&s| {
+                    let w = self.weights(s).to_vec();
+                    self.slot(s).fill(0.0);
+                    w
+                })
+                .collect();
             let w: Vec<&[f64]> = own.iter().map(|v| v.as_slice()).collect();
             layout.list[i].chain(geo, &w, &mut self)?;
         }
