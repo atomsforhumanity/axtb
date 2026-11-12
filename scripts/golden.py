@@ -46,6 +46,10 @@ W100, W333, C50 = S / "large/water100.xyz", S / "large/water333.xyz", S / "large
 O2, CU, FC = R2 / "reference/dioxygen_triplet/mol.xyz", S / "cu-nh3-4.xyz", S / "ferrocene.xyz"
 BENI, CF3BR, TYR, IL, GH106, MB33, ZNCL4 = (S / f for f in ("beni-acetone.xyz", "cf3br-benzene.xyz", "tyr-xab.xyz",
                                          "s229-cl.xyz", "gh106.xyz", "mb33.xyz", "zncl4.xyz"))
+# hard SCFs (tests/scf_hard_set.py): stretched H2O and F2 (both bonds / the bond at 3 or 3.5 Å, singlets)
+# and a seeded random molecule (a doublet)
+H2O3, F23, F235, MBH112 = (ROOT / "tests/scf_hard" / f for f in ("scan-H2O-3.0.xyz", "scan-F2-3.0.xyz",
+                                                                   "scan-F2-3.5.xyz", "random-mbheavy-112.xyz"))
 
 
 def corpus():
@@ -142,6 +146,74 @@ def corpus():
     add("error-zero-threads", w, threads=0)
     add("error-hessian-step-analytic", w, method="gfn2", hessian=True, hessian_step=0.01)
     add("error-gfnff-molden", w, method="gfnff", molden=True)
+    # Response Hessians, finite-temperature and open-shell Hessians, g-xTB v1.1's program-mode response
+    # gradients (Z-vector GMRES, finite-temperature response)
+    # GFN2-xTB: response Hessians (displacement_response), finite temperature, open shell
+    add("gfn2-caffeine-hessian-response", caf, method="gfn2", hessian=True, hessian_method="response")
+    add("gfn2-caffeine-hessian-response-t4", caf, method="gfn2", hessian=True, hessian_method="response", threads=4)
+    add("gfn2-caffeine-hessian-etemp", caf, method="gfn2", hessian=True, etemp=3000.0)
+    add("gfn2-caffeine-hessian-response-etemp", caf, method="gfn2", hessian=True, hessian_method="response", etemp=3000.0)
+    add("gfn2-o2-hessian", o2, method="gfn2", hessian=True)
+    add("gfn2-o2-hessian-etemp", o2, method="gfn2", hessian=True, etemp=5000.0)
+    add("gfn2-o2-hessian-response-etemp", o2, method="gfn2", hessian=True, hessian_method="response", etemp=5000.0)
+    add("gfn2-cu-hessian-response", cu, method="gfn2", hessian=True, hessian_method="response")
+    add("gfn2-taxol-hessian-response-t1", tax, method="gfn2", hessian=True, hessian_method="response", threads=1)
+    # g-xTB 2.0.1: response Hessians, finite temperature, open shell
+    add("gxtb2-caffeine-hessian-response", caf, method="gxtb-v2.0.1", hessian=True, hessian_method="response")
+    add("gxtb2-caffeine-hessian-etemp", caf, method="gxtb-v2.0.1", hessian=True, etemp=3000.0)
+    add("gxtb2-caffeine-hessian-response-etemp", caf, method="gxtb-v2.0.1", hessian=True, hessian_method="response",
+        etemp=3000.0)
+    add("gxtb2-o2-hessian", o2, method="gxtb-v2.0.1", hessian=True)
+    add("gxtb2-o2-hessian-etemp", o2, method="gxtb-v2.0.1", hessian=True, etemp=5000.0)
+    add("gxtb2-o2-hessian-response-etemp", o2, method="gxtb-v2.0.1", hessian=True, hessian_method="response",
+        etemp=5000.0)
+    add("gxtb2-cu-hessian-response", cu, method="gxtb-v2.0.1", hessian=True, hessian_method="response")
+    # g-xTB v1.1 in the program's conventions: Z-vector (0 K) and finite-temperature response gradients
+    add("gxtb11-caffeine-grad-gxtb-etemp", caf, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=3000.0)
+    add("gxtb11-water-grad-gxtb-etemp", w, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=5000.0)
+    add("gxtb11-o2-grad-gxtb-etemp", o2, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=5000.0)
+    add("gxtb11-o2-grad-gxtb", o2, method="gxtb-v1.1", conventions="gxtb", gradient=True)
+    add("gxtb11-cu-grad-gxtb", cu, method="gxtb-v1.1", conventions="gxtb", gradient=True)
+    add("gxtb11-caffeine-hessian-gxtb", caf, method="gxtb-v1.1", conventions="gxtb", hessian=True, threads=8)
+    # singlet O2 (closed shell): a half-filled degenerate pi* pair, strongly fractional at any etemp
+    s0 = mol(O2, 0.0, 0)
+    for t in (300.0, 5000.0):
+        add(f"gfn2-o2s-hessian-etemp{t:.0f}", s0, method="gfn2", hessian=True, etemp=t)
+        add(f"gfn2-o2s-hessian-response-etemp{t:.0f}", s0, method="gfn2", hessian=True, hessian_method="response", etemp=t)
+        add(f"gxtb2-o2s-hessian-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, etemp=t)
+        add(f"gxtb2-o2s-hessian-response-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, hessian_method="response",
+            etemp=t)
+        add(f"gxtb11-o2s-grad-gxtb-etemp{t:.0f}", s0, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=t)
+    add("gxtb11-o2s-hessian-gxtb-etemp5000", s0, method="gxtb-v1.1", conventions="gxtb", hessian=True, etemp=5000.0)
+    # SCF paths: mixers, convergence rules, failures
+    # GFN2-xTB's mixer ladder (axtb conventions, `auto`): Broyden runs out of iterations (H2O; DIIS restarts
+    # once after a stall), Broyden stops on a lost Fermi level after 28 and 14 iterations (F2 at 3 and 3.5 Å;
+    # at 3.5 Å DIIS restarts 12 times in 200 iterations, 5 times on a diverging residual), an open shell where
+    # DIIS takes 169 iterations (2 stalls)
+    h2o3, f23 = mol(H2O3, 0.0, 0), mol(F23, 0.0, 0)
+    add("gfn2-h2o-3a-fallback", h2o3, method="gfn2", accuracy=1e-4, gradient=True)
+    add("gfn2-f2-3a-fallback", f23, method="gfn2", accuracy=1e-4, gradient=True)
+    add("gfn2-f2-3.5a-fallback", mol(F235, 0.0, 0), method="gfn2", accuracy=1e-4, gradient=True)
+    add("gfn2-mbheavy112-fallback", mol(MBH112, 0.0, 1), method="gfn2", accuracy=1e-4, gradient=True)
+    # xtb 6.7.1's per-atom residual and extra iteration: a hard SCF, an open shell, and the iteration limit
+    # reached after the first converged iteration (converged: caffeine converges in 12 iterations)
+    add("gfn2-h2o-3a-xtb671", h2o3, method="gfn2", conventions="xtb671", accuracy=1e-4, gradient=True)
+    add("gfn2-o2-triplet-xtb671", o2, method="gfn2", conventions="xtb671", gradient=True)
+    add("gfn2-caffeine-xtb671-converged-at-limit", caf, method="gfn2", conventions="xtb671", gradient=True, max_iter=11)
+    # SCFs that fail: Broyden alone runs out (tblite conventions), the last attempt loses the Fermi level,
+    # g-xTB v1.1 and 2.0.1 at their iteration limits, and v1.1 converged in its last iteration (its result is
+    # the unmixed iteration after it: caffeine converges in 11 iterations)
+    add("error-gfn2-h2o-3a-tblite", h2o3, method="gfn2", conventions="tblite", accuracy=1e-4)
+    add("error-gfn2-f2-3a-broyden", f23, method="gfn2", accuracy=1e-4, mixer="broyden")
+    add("error-gxtb11-scf-not-converged", caf, method="gxtb-v1.1", max_iter=5)
+    add("error-gxtb11-caffeine-converged-at-limit", caf, method="gxtb-v1.1", max_iter=10)
+    add("error-gxtb2-scf-not-converged", caf, method="gxtb-v2.0.1", max_iter=5)
+    # g-xTB at finite temperature and open shell, energies and gradients, in both conventions
+    add("gxtb2-o2-triplet-etemp-grad", o2, method="gxtb-v2.0.1", gradient=True, etemp=5000.0)
+    add("gxtb2-cu-doublet-etemp-gxtb", cu, method="gxtb-v2.0.1", conventions="gxtb", etemp=3000.0)
+    add("gxtb2-caffeine-etemp-gxtb", caf, method="gxtb-v2.0.1", conventions="gxtb", etemp=3000.0)
+    add("gxtb11-o2-triplet-etemp-grad", o2, method="gxtb-v1.1", gradient=True, etemp=5000.0)
+    add("gxtb11-cu-doublet-etemp", cu, method="gxtb-v1.1", etemp=3000.0)
     return c
 
 
@@ -235,7 +307,14 @@ def main():
         for name, req, env in cases:
             (d / f"{name}.json").write_text(json.dumps(run(a.axtb, req, env)))
             print("recorded", name, flush=True)
-        (d / "_meta.json").write_text(json.dumps({"axtb": a.axtb, "sha256": sha, "cases": len(cases)}))
+        meta_path = d / "_meta.json"
+        if a.only and meta_path.exists():
+            # a partial record adds to the directory: keep the full record's entry, list these cases
+            meta = json.loads(meta_path.read_text())
+            meta.setdefault("partial", []).append({"axtb": a.axtb, "sha256": sha, "cases": [n for n, _, _ in cases]})
+        else:
+            meta = {"axtb": a.axtb, "sha256": sha, "cases": len(cases)}
+        meta_path.write_text(json.dumps(meta))
         return
     failed = 0
     for name, req, env in cases:
