@@ -258,8 +258,13 @@ pub struct VibAnalysis {
 }
 
 /// Symmetric eigendecomposition (ascending) of an n x n matrix, on this thread (the analysis
-/// runs outside the calculator's pool).
+/// runs outside the calculator's pool). An empty matrix (an atom has no vibrations) has no
+/// eigenpairs: faer 0.22 sizes the eigenvector workspace with `n - 1` and overflows for n = 0
+/// (a panic with overflow checks, the default profile's).
 fn eigh(a: &Mat<f64>) -> Result<(Vec<f64>, Mat<f64>)> {
+    if a.nrows() == 0 {
+        return Ok((Vec::new(), Mat::zeros(0, 0)));
+    }
     sym_eig(a.as_ref(), Par::Seq)
 }
 

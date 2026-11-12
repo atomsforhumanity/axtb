@@ -244,6 +244,19 @@ fn argon_sackur_tetrode() {
     assert!((th.points[0].enthalpy - 2.5 * units::KB_HARTREE * t).abs() < 1e-15);
 }
 
+/// An atom has no vibrations in any conventions (the axtb conventions diagonalize the empty
+/// Hessian of the complement of the rigid-body motions; this runs in every profile, also with
+/// overflow checks).
+#[test]
+fn an_atom_has_no_vibrations() {
+    assert!(eigh(&Mat::zeros(0, 0)).unwrap().0.is_empty());
+    for conventions in [Conventions::Axtb, Conventions::Xtb, Conventions::Xtb671] {
+        let opts = VibOptions { conventions, masses: None, thermo: None };
+        let r = analyze(&[18], &[[0.0; 3]], &[0.0; 9], None, &opts).unwrap();
+        assert!(r.frequencies.is_empty(), "{conventions:?}");
+    }
+}
+
 #[test]
 fn water_thermo_conventions_agree() {
     let (z, pos, bonds) = water();
