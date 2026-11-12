@@ -1,15 +1,17 @@
 //! Electronegativity equilibration (EEQ) charges, EEQ 2019 model of D4
 //! (E. Caldeweyher et al., J. Chem. Phys. 150, 154122 (2019); parameters from the
-//! multicharge library). Used as the SCF starting guess, as the xtb program does.
+//! multicharge library). Used as the SCF starting guess, as the xtb program does. The bordered
+//! system and its solve are [`axtb_base::eeq`]'s; the model's diagonal, pair kernel and
+//! right-hand side are written here in multicharge's evaluation order.
 
-use crate::linalg::Lu;
 use crate::molecule::{norm2_sq, sub3, Molecule};
 use crate::param::covalent_rad_d3;
 use crate::param::eeq_data::{EEQ_CHI, EEQ_ETA, EEQ_KCNCHI, EEQ_RAD};
 use crate::{Error, Result};
+use axtb_base::eeq::{ChargeEquations, Constraints};
+use axtb_base::math::erf;
 use axtb_base::ncoord::{log_cap, CnModel, Cutoff, Erf};
-use axtb_d4::erf;
-use faer::{Mat, Par};
+use faer::Par;
 use std::f64::consts::PI;
 
 /// The coordination number of the EEQ model: error-function counting ([`Erf::D4`], k = 7.5) with
@@ -49,30 +51,24 @@ pub fn eeq_charges_with(mol: &Molecule, cnm: &EeqCn) -> Result<Vec<f64>> {
         }
     }
     let sqrt2pi = (2.0 / PI).sqrt();
-    let mut a = Mat::<f64>::zeros(n + 1, n + 1);
-    let mut b = Mat::<f64>::zeros(n + 1, 1);
-    for i in 0..n {
-        let zi = mol.numbers[i] - 1;
-        a[(i, i)] = EEQ_ETA[zi] + sqrt2pi / EEQ_RAD[zi];
-        for j in 0..i {
-            let zj = mol.numbers[j] - 1;
+    let z = |i: usize| mol.numbers[i] - 1;
+    let eqs = ChargeEquations::new(
+        n,
+        Constraints::Total,
+        |i| EEQ_ETA[z(i)] + sqrt2pi / EEQ_RAD[z(i)],
+        |i, j| {
             let r2 = norm2_sq(sub3(mol.positions[i], mol.positions[j]));
-            let gam = 1.0 / (EEQ_RAD[zi].powi(2) + EEQ_RAD[zj].powi(2));
-            let v = erf((r2 * gam).sqrt()) / r2.sqrt();
-            a[(i, j)] = v;
-            a[(j, i)] = v;
-        }
-        a[(i, n)] = 1.0;
-        a[(n, i)] = 1.0;
-        b[(i, 0)] = -EEQ_CHI[zi] + EEQ_KCNCHI[zi] / (cn[i] + 1e-14).sqrt() * cn[i];
-    }
-    b[(n, 0)] = mol.charge;
+            let gam = 1.0 / (EEQ_RAD[z(i)].powi(2) + EEQ_RAD[z(j)].powi(2));
+            erf((r2 * gam).sqrt()) / r2.sqrt()
+        },
+    );
+    let mut x: Vec<f64> = (0..n).map(|i| -EEQ_CHI[z(i)] + EEQ_KCNCHI[z(i)] / (cn[i] + 1e-14).sqrt() * cn[i]).collect();
+    x.push(mol.charge);
     // Sequential LU on purpose. faer's high-level `a.partial_piv_lu().solve(..)` runs on faer's
     // *global* parallelism (default: rayon's global pool, one thread per visible CPU), so every
     // process started rayon's pool even at threads=1: 126 threads in a 126-CPU cluster pod. A
     // singular matrix gives charges that are not finite, the error below.
-    Lu::new(a, Par::Seq).solve(b.as_mut());
-    let q: Vec<f64> = (0..n).map(|i| b[(i, 0)]).collect();
+    let q = eqs.factorize(Par::Seq).charges(&x);
     if q.iter().any(|v| !v.is_finite()) {
         return Err(Error::Numerical("EEQ charges are not finite".into()));
     }

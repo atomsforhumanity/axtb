@@ -19,7 +19,10 @@
 //! - [`fd`]: finite differences (stencils, columns over coordinates, symmetrization and the
 //!   numerical Hessian of every method);
 //! - `linalg`, with the feature `linalg`: dense linear algebra on faer (the SCF eigensolver
-//!   with its optional run-time LAPACK library, density matrices, linear solves).
+//!   with its optional run-time LAPACK library, density matrices, linear solves);
+//! - `eeq`, with the feature `linalg`: the bordered linear system of the electronegativity
+//!   equilibration charge models (EEQ 2019, GFN-FF's two EEQs, g-xTB's EEQ-BC), its constraint
+//!   rows and solves.
 //!
 //! Without features its only dependency is rayon (the parallel loops of [`fd`], on the
 //! caller's pool), so that `axtb-d4` and `axtb-solvation` can use it as well as the
@@ -31,6 +34,8 @@
 /// digits, so every value is bit-identical to the compiled Fortran parameter. Index `Z - 1`.
 #[rustfmt::skip] // generated tables keep their compact layout
 pub mod elements;
+#[cfg(feature = "linalg")]
+pub mod eeq;
 mod error;
 pub mod fd;
 #[cfg(feature = "linalg")]

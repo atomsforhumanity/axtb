@@ -6,7 +6,8 @@
 //! is that of xtb. Differences in data layout: no N x N arrays (the topological distance
 //! matrix of the charge model is kept sparse, `bpair` is a map, pair lists are generated
 //! with cell lists), and the pi-system charge estimate solves the EEQ once per charged
-//! fragment instead of once per pi system (same numbers).
+//! fragment instead of once per pi system, with the matrix of the topology charges factorized
+//! once (same numbers).
 
 use crate::cells::{dist2, CellList};
 use crate::cn::LogCn;
@@ -20,7 +21,8 @@ use crate::param::{
 use crate::real::erf;
 use crate::setup_util::*;
 use crate::topology::*;
-use axtb_base::linalg::{sym_eig, Lu};
+use axtb_base::eeq::{ChargeEquations, ChargeSolver, Constraints};
+use axtb_base::linalg::sym_eig;
 use axtb_base::occupations::{self, Newton};
 use faer::{Mat, Par};
 use std::collections::HashMap;
@@ -356,7 +358,8 @@ pub(crate) fn setup(numbers: &[usize], positions: &[[f64; 3]], charge: f64, opts
             c.fraglist = fl;
         }
         // topology charges
-        c.qa = goedeckera(&c, &rabd, &chieeq, &gameeq, &alpeeq, &c.qfrag)?;
+        let eq = goedeckera(&c, &rabd, &gameeq, &alpeeq)?;
+        c.qa = topology_charges(&eq, &chieeq, &c.qfrag, c.nfrag);
         // charge of the pi systems
         if picount > 0 && qloop_count > 0 {
             ipis = vec![0; picount];
@@ -375,7 +378,7 @@ pub(crate) fn setup(numbers: &[usize], positions: &[[f64; 3]], charge: f64, opts
                     if let std::collections::hash_map::Entry::Vacant(slot) = cache.entry(ifrag) {
                         let mut qf = c.qfrag.clone();
                         qf[ifrag - 1] = 0.0;
-                        let mut q = goedeckera(&c, &rabd, &chieeq, &gameeq, &alpeeq, &qf)?;
+                        let mut q = topology_charges(&eq, &chieeq, &qf, c.nfrag);
                         qheavy(numbers, &c.nb, &mut q);
                         slot.insert(q);
                     }
@@ -1296,60 +1299,49 @@ fn topo_distances(c: &Ctx) -> Vec<Vec<(u32, f32)>> {
     r
 }
 
-/// Topology EEQ (`goedeckera`): charges from the topological distances, with one charge
-/// constraint per fragment.
-fn goedeckera(
-    c: &Ctx,
-    rabd: &[Vec<(u32, f32)>],
-    chieeq: &[f64],
-    gameeq: &[f64],
-    alpeeq: &[f64],
-    qfrag: &[f64],
-) -> Result<Vec<f64>> {
-    let n = c.n;
-    let nf = c.nfrag;
-    let m = n + nf;
+/// Topology EEQ (`goedeckera`): the bordered EEQ matrix of the topological distances, with one
+/// charge constraint per fragment, factorized ([`ChargeEquations`]); [`topology_charges`] solves
+/// it for the fragment charges.
+fn goedeckera(c: &Ctx, rabd: &[Vec<(u32, f32)>], gameeq: &[f64], alpeeq: &[f64]) -> Result<ChargeSolver> {
     let far = c.gen.rfgoed1 * (RABD_CUTOFF as f64) / param::AUTOAA;
-    let mut a = Mat::<f64>::zeros(m, m);
-    let mut x = vec![0.0; m];
-    for i in 0..n {
-        x[i] = chieeq[i];
-        a[(i, i)] = gameeq[i] + TSQRT2PI / alpeeq[i].sqrt();
-    }
-    for i in 0..n {
-        let row = &rabd[i];
-        let mut p = 0;
-        for j in 0..i {
-            while p < row.len() && (row[p].0 as usize) < j {
-                p += 1;
+    // the sparse row of atom i, walked along j = 0..i: (i, position in rabd[i])
+    let mut walk = (usize::MAX, 0usize);
+    let eqs = ChargeEquations::new(
+        c.n,
+        Constraints::Fragments { fragment: &c.fraglist, count: c.nfrag },
+        |i| gameeq[i] + TSQRT2PI / alpeeq[i].sqrt(),
+        |i, j| {
+            if walk.0 != i {
+                walk = (i, 0);
             }
-            let rij = if p < row.len() && row[p].0 as usize == j {
-                c.gen.rfgoed1 * (row[p].1 as f64) / param::AUTOAA
+            let row = &rabd[i];
+            let p = &mut walk.1;
+            while *p < row.len() && (row[*p].0 as usize) < j {
+                *p += 1;
+            }
+            let rij = if *p < row.len() && row[*p].0 as usize == j {
+                c.gen.rfgoed1 * (row[*p].1 as f64) / param::AUTOAA
             } else {
                 far
             };
             let gammij = 1.0 / (alpeeq[i] + alpeeq[j]).sqrt();
-            let tmp = erf(gammij * rij) / rij;
-            a[(j, i)] = tmp;
-            a[(i, j)] = tmp;
-        }
-    }
-    for f in 0..nf {
-        x[n + f] = qfrag[f];
-        for j in 0..n {
-            if c.fraglist[j] == f + 1 {
-                a[(n + f, j)] = 1.0;
-                a[(j, n + f)] = 1.0;
-            }
-        }
-    }
-    let lu = Lu::try_new(a, c.par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))?;
-    let sol = lu.solve_vec(&x);
-    let mut q: Vec<f64> = sol[..n].to_vec();
+            erf(gammij * rij) / rij
+        },
+    );
+    eqs.try_factorize(c.par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))
+}
+
+/// The topology charges of the factorized topology EEQ `eq` ([`goedeckera`]) for the
+/// electronegativities `chieeq` and the fragment charges `qfrag`.
+fn topology_charges(eq: &ChargeSolver, chieeq: &[f64], qfrag: &[f64], nfrag: usize) -> Vec<f64> {
+    let n = eq.atoms();
+    let mut x = chieeq[..n].to_vec();
+    x.extend_from_slice(&qfrag[..nfrag]);
+    let mut q = eq.charges(&x);
     if n == 1 {
         q[0] = qfrag[0];
     }
-    Ok(q)
+    q
 }
 
 /// Iterative Hueckel calculation of every pi system: pi bond orders.

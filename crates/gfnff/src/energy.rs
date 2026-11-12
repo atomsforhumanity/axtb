@@ -17,9 +17,9 @@ use crate::real::{erf, V3};
 use crate::setup_util::jth_nb;
 use crate::terms::{self, BondPar, HbPar};
 use crate::topology::Topology;
-use axtb_base::linalg::Lu;
+use axtb_base::eeq::{ChargeEquations, ChargeSolver, Constraints};
 use axtb_d4::data::{MAX_REF, NFREQ};
-use faer::{Mat, Par};
+use faer::Par;
 use rayon::prelude::*;
 
 /// Number of interleaved chunks of the parallel pair loops (fixed, so that their sums do not
@@ -422,8 +422,8 @@ pub struct State {
     pub lcn: LogCn,
     pub hbcn: HbCn,
     pub charges: Vec<f64>,
-    /// LU factors of the bordered EEQ matrix
-    pub eeq_lu: Lu,
+    /// The factorized bordered EEQ matrix
+    pub eeq: ChargeSolver,
     /// dE/dCN of every atom (all CN-dependent terms)
     pub w_cn: Vec<f64>,
 }
@@ -519,7 +519,7 @@ pub fn evaluate_full(
     lap("cn", &mut t);
 
     // EEQ charges and electrostatics
-    let (q, es, eeq_lu) = eeq(topo, xyz, cn, par)?;
+    let (q, es, eeq_solver) = eeq(topo, xyz, cn, par)?;
     e.electrostatic = es;
     lap("eeq solve", &mut t);
     if want_grad {
@@ -796,7 +796,7 @@ pub fn evaluate_full(
         nxb: lists.xb.len(),
         timings,
     };
-    let state = if keep_state { Some(State { lists, lcn, hbcn, charges: q, eeq_lu, w_cn }) } else { None };
+    let state = if keep_state { Some(State { lists, lcn, hbcn, charges: q, eeq: eeq_solver, w_cn }) } else { None };
     Ok((ev, state))
 }
 
@@ -922,42 +922,29 @@ pub fn hb2_term(
     Some((ev, atoms, g))
 }
 
-/// Geometry-dependent EEQ (`goed_gfnff`): charges, electrostatic energy and the LU factors
-/// of the bordered EEQ matrix.
-pub fn eeq(topo: &Topology, xyz: &[[f64; 3]], cn: &[f64], par: Par) -> Result<(Vec<f64>, f64, Lu)> {
+/// Geometry-dependent EEQ (`goed_gfnff`): charges, electrostatic energy and the factorized
+/// bordered EEQ matrix (one charge constraint per fragment; kept for the charge response of the
+/// Hessian).
+pub fn eeq(topo: &Topology, xyz: &[[f64; 3]], cn: &[f64], par: Par) -> Result<(Vec<f64>, f64, ChargeSolver)> {
     let n = topo.natoms();
     let at = &topo.numbers;
     let nf = topo.nfrag;
-    let m = n + nf;
-    let mut a = Mat::<f64>::zeros(m, m);
-    let mut x = vec![0.0; m];
-    for i in 0..n {
-        x[i] = topo.chieeq[i] + data::CNF[at[i] - 1] * cn[i].sqrt();
-    }
-    for i in 0..n {
-        a[(i, i)] = TSQRT2PI / topo.alpeeq[i].sqrt() + topo.gameeq[i];
-        for j in 0..i {
+    let eqs = ChargeEquations::new(
+        n,
+        Constraints::Fragments { fragment: &topo.fraglist, count: nf },
+        |i| TSQRT2PI / topo.alpeeq[i].sqrt() + topo.gameeq[i],
+        |i, j| {
             let d = [xyz[i][0] - xyz[j][0], xyz[i][1] - xyz[j][1], xyz[i][2] - xyz[j][2]];
             let r = (d[0].powi(2) + d[1].powi(2) + d[2].powi(2)).sqrt();
             let gammij = 1. / (topo.alpeeq[i] + topo.alpeeq[j]).sqrt();
             let tmp = erf(gammij * r);
-            let v = tmp / r;
-            a[(j, i)] = v;
-            a[(i, j)] = v;
-        }
-    }
-    for f in 0..nf {
-        x[n + f] = topo.qfrag[f];
-        for j in 0..n {
-            if topo.fraglist[j] == f + 1 {
-                a[(n + f, j)] = 1.0;
-                a[(j, n + f)] = 1.0;
-            }
-        }
-    }
-    let lu = Lu::try_new(a, par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))?;
-    let sol = lu.solve_vec(&x);
-    let mut q: Vec<f64> = sol[..n].to_vec();
+            tmp / r
+        },
+    );
+    let solver = eqs.try_factorize(par).ok_or_else(|| Error::Numerical("singular EEQ matrix".into()))?;
+    let mut x: Vec<f64> = (0..n).map(|i| topo.chieeq[i] + data::CNF[at[i] - 1] * cn[i].sqrt()).collect();
+    x.extend_from_slice(&topo.qfrag[..nf]);
+    let mut q = solver.charges(&x);
     if n == 1 {
         q[0] = topo.charge;
     }
@@ -973,7 +960,7 @@ pub fn eeq(topo: &Topology, xyz: &[[f64; 3]], cn: &[f64], par: Par) -> Result<(V
         es = es - q[i] * (topo.chieeq[i] + data::CNF[at[i] - 1] * cn[i].sqrt())
             + q[i] * q[i] * 0.5e0 * (topo.gameeq[i] + TSQRT2PI / topo.alpeeq[i].sqrt());
     }
-    Ok((q, es, lu))
+    Ok((q, es, solver))
 }
 
 impl DispModel {

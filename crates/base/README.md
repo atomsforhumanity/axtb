@@ -12,7 +12,9 @@ instead of keeping copies.
 
 The feature `linalg` (off by default) adds the dense linear algebra of the methods on
 [faer](https://crates.io/crates/faer): the SCF eigensolver with its optional LAPACK library
-loaded at run time (`AXTB_LAPACK`), density matrices and linear solves.
+loaded at run time (`AXTB_LAPACK`), density matrices and linear solves, and the bordered linear
+system of the electronegativity equilibration (EEQ) charge models with its constraint rows and
+solves.
 
 License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`). `NOTICE` credits the upstream
 work.

@@ -1,6 +1,6 @@
 [package]
 name = "axtb-base"
-description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, coordination numbers, orbital occupations, timers, finite differences and (feature linalg) dense linear algebra"
+description = "Shared foundation of the axtb crates: molecules, errors, units, element tables, the error function, coordination numbers, orbital occupations, timers, finite differences and (feature linalg) dense linear algebra and the EEQ charge equations"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -26,7 +26,8 @@ faer = { version = "0.22", default-features = false, features = ["std", "linalg"
 
 [features]
 # `axtb_base::linalg`: the SCF eigensolver, its run-time LAPACK library, density matrices and
-# linear solves, on faer. Off by default, so that axtb-d4 and axtb-solvation stay without faer.
+# linear solves, on faer; and `axtb_base::eeq`, the EEQ charge equations solved with them. Off by
+# default, so that axtb-d4 and axtb-solvation stay without faer.
 linalg = ["dep:faer"]
 
 [package.metadata.docs.rs]

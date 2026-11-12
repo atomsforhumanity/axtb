@@ -631,7 +631,7 @@ pub fn hessian(
         while start < n3 {
             let w = block.min(n3 - start);
             let mut x = r.as_ref().subcols(start, w).to_owned();
-            st.eeq_lu.solve(x.as_mut());
+            st.eeq.solve_in_place(x.as_mut());
             let rt = r.as_ref().subrows(0, n).transpose();
             let xq = x.as_ref().subrows(0, n);
             faer::linalg::matmul::matmul(h.as_mut().subcols_mut(start, w), faer::Accum::Add, rt, xq, -1.0, par);

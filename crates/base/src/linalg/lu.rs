@@ -4,9 +4,10 @@
 //!
 //! - [`Lu`]: faer's LU factorization with partial pivoting (the first row of the largest
 //!   |a_ik|, as LAPACK's; multipliers by the pivot's reciprocal; recursive blocking with
-//!   matrix-product updates), kept for further solves. The EEQ charges (the GFN2-xTB guess,
-//!   GFN-FF's two charge models and the response of their charges), GFN2-xTB's SCC response,
-//!   and g-xTB's EEQ-BC charges and v1.1 Pulay coefficients.
+//!   matrix-product updates), kept for further solves. The EEQ charge equations
+//!   ([`crate::eeq`]: the GFN2-xTB guess, GFN-FF's two charge models and the response of their
+//!   charges, g-xTB's EEQ-BC charges and their adjoint), GFN2-xTB's SCC response, and g-xTB
+//!   v1.1's Pulay coefficients.
 //! - [`gauss_last_max`]: Gaussian elimination with partial pivoting on a matrix stored by rows
 //!   (the last row of the largest |a_ik|, as `Iterator::max_by` picks; multipliers by
 //!   division; the right-hand side eliminated along). The modified Broyden mixer of GFN2-xTB.
