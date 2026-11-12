@@ -42,6 +42,14 @@ def cells():
     add("gxtb2 caffeine Hessian 1t", caf, method="gxtb-v2.0.1", hessian=True, threads=1)
     add("gxtb2 taxol Hessian 8t", tax, method="gxtb-v2.0.1", hessian=True, threads=8)
     add("gfnff caffeine Hessian 1t", caf, method="gfnff", hessian=True, threads=1)
+    # g-xTB v1.1 (step 17): a large system on 1 and 8 threads, the numerical Hessian (named, so that the
+    # cell compares the same method if the default changes), the composite
+    add("gxtb11 taxol E+G 1t", tax, method="gxtb-v1.1", gradient=True, threads=1)
+    add("gxtb11 taxol E+G 8t", tax, method="gxtb-v1.1", gradient=True, threads=8)
+    add("gxtb11 caffeine Hessian(num) 1t", caf, method="gxtb-v1.1", hessian=True, hessian_method="numerical",
+        threads=1)
+    add("gxtb11 caffeine composite E+G 1t", caf, method="gxtb-v1.1", gradient=True, alpb="water",
+        solvation_correction="gfn2", threads=1)
     return c
 
 

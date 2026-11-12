@@ -4,10 +4,19 @@ and feature, a few thread counts and the run-time LAPACK path) and compare outpu
 
     scripts/golden.py record DIR [--axtb BIN]     run the corpus, write DIR/<case>.json
     scripts/golden.py compare DIR [--axtb BIN]    run it again and compare with DIR
+    scripts/golden.py compare DIR --report [--allow gxtb11]
+                                                  the same, and for every case that differs the
+                                                  largest change of each quantity
     scripts/golden.py list                        the cases
 
 Outputs are compared exactly (every float, every field) except the timing fields. Golden files
 are machine-specific (the matrix-product kernels depend on the CPU), so keep them local.
+
+With `--report`, cases whose names contain an `--allow` substring may change in numbers (a
+round-off step of one method): each is summarized per quantity (energy and terms, gradient,
+Hessian, charges, orbital energies, iterations, ...; trajectories over all their steps) against
+the thresholds in `THRESHOLDS`, and the run fails only if one is exceeded, an iteration count
+changes, or a case differs in anything but numbers. Every other case must stay identical.
 
 Trajectory cases (warm starts: each SCF from the previous geometry's wavefunction) run the
 dev-only example of axtb-driver (`cargo build --release -p axtb-driver --example
@@ -125,6 +134,21 @@ def corpus():
     add("gxtb11-water-hessian", w, method="gxtb-v1.1", hessian=True)
     add("gxtb11-water-hessian-gxtb", w, method="gxtb-v1.1", hessian=True, conventions="gxtb")
     add("gxtb11-caffeine-etemp", caf, method="gxtb-v1.1", gradient=True, etemp=3000.0)
+    # Step 17 (v1.1 on the 2.0.1 engine): a large system on one and four threads (the parallel dense
+    # algebra from 200 basis functions on), a transition metal in the program's conventions, a dianion,
+    # orbitals and bond orders, the composite's gradient, and the refusal of the analytic Hessian in the
+    # program's conventions
+    add("gxtb11-taxol-grad-t1", tax, method="gxtb-v1.1", gradient=True, threads=1)
+    add("gxtb11-taxol-grad-t4", tax, method="gxtb-v1.1", gradient=True, threads=4)
+    add("gxtb11-ferrocene-grad-gxtb", mol(FC), method="gxtb-v1.1", conventions="gxtb", gradient=True)
+    add("gxtb11-zncl4-dianion-grad", mol(ZNCL4, -2.0), method="gxtb-v1.1", gradient=True)
+    add("gxtb11-water-molden", w, method="gxtb-v1.1", molden=True)
+    add("gxtb11-caffeine-bond-orders", caf, method="gxtb-v1.1", bond_orders=True)
+    for conv in ("axtb", "gxtb"):
+        add(f"gxtb11-caffeine-composite-grad-{conv}", caf, method="gxtb-v1.1", conventions=conv, gradient=True,
+            alpb="water", solvation_correction="gfn2")
+    add("error-gxtb11-gxtb-hessian-analytic", w, method="gxtb-v1.1", conventions="gxtb", hessian=True,
+        hessian_method="analytic")
     # GFN-FF
     for conv in ("axtb", "xtb", "xtb671"):
         add(f"gfnff-caffeine-grad-{conv}", caf, method="gfnff", conventions=conv, gradient=True)
@@ -357,6 +381,74 @@ def diff(a, b, path=""):
     return []
 
 
+# Acceptance thresholds of a round-off step (--report): the largest absolute change of a quantity
+# (Eh, bohr, e, cm^-1); quantities not listed are reported without a threshold; iteration counts must
+# not change.
+THRESHOLDS = {
+    "energy": 1e-10, "terms": 1e-10, "gradient": 1e-9, "charges": 1e-9, "shell_charges": 1e-9,
+    "atomic_dipoles": 1e-9, "atomic_quadrupoles": 1e-9, "dipole": 1e-9, "quadrupole": 1e-9,
+    "orbital_energies_alpha": 1e-9, "orbital_energies_beta": 1e-9, "homo_lumo_gap": 1e-9,
+    "hessian": 1e-7, "dipole_derivatives": 1e-7, "frequencies": 0.01,
+    "error.energy_change": 1e-10, "error.residual": 1e-9,
+}
+EXACT = ("iterations", "occupations_alpha", "occupations_beta", "n_imaginary", "hessian_method", "method",
+         "conventions", "guess", "linear", "error.iterations", "error.kind")
+
+
+def numeric_leaves(x, path=""):
+    """(path, value) of every leaf of a JSON value, list indices dropped from the path."""
+    if isinstance(x, dict):
+        for k, v in x.items():
+            yield from numeric_leaves(v, f"{path}.{k}" if path else k)
+    elif isinstance(x, list):
+        for v in x:
+            yield from numeric_leaves(v, path)
+    else:
+        yield path, x
+
+
+def quantity(path):
+    """The quantity a leaf belongs to: its first key (the error's field for errors)."""
+    parts = path.split(".")
+    if parts[0] == "error" and len(parts) > 1:
+        return "error." + parts[1]
+    return parts[0]
+
+
+def report(gold, new):
+    """Per quantity: the largest change (numbers), or 'differs' (anything else); and whether the case
+    stays within the thresholds. Trajectories (lists of responses) are taken over all steps."""
+    go, no = gold.get("output"), new.get("output")
+    steps = (list(zip(go, no)) if isinstance(go, list) and isinstance(no, list) and len(go) == len(no)
+             else [(go, no)])
+    rows, ok = {}, gold.get("exit_code") == new.get("exit_code")
+    for a, b in steps:
+        la, lb = list(numeric_leaves(a)), list(numeric_leaves(b))
+        if [p for p, _ in la] != [p for p, _ in lb]:
+            rows["structure"] = "differs"
+            ok = False
+            continue
+        for (p, x), (_, y) in zip(la, lb):
+            q = quantity(p)
+            if x == y or (isinstance(x, float) and isinstance(y, float) and math.isnan(x) and math.isnan(y)):
+                rows.setdefault(q, 0.0)
+                continue
+            num = isinstance(x, (int, float)) and isinstance(y, (int, float)) and not isinstance(x, bool)
+            if q in EXACT or not num:
+                if q == "error.message":
+                    rows[q] = "differs"  # carries the numbers of energy_change and residual
+                    continue
+                rows[q] = f"{x!r} -> {y!r}" if num or q in EXACT else "differs"
+                ok = False
+                continue
+            prev = rows.get(q, 0.0)
+            rows[q] = max(prev if isinstance(prev, float) else 0.0, abs(x - y))
+    for q, v in rows.items():
+        if isinstance(v, float) and q in THRESHOLDS and v > THRESHOLDS[q]:
+            ok = False
+    return {q: v for q, v in rows.items() if v != 0.0}, ok
+
+
 def flatten(x):
     """All numbers of a nested list of numbers, or None."""
     out = []
@@ -379,6 +471,8 @@ def main():
     ap.add_argument("--axtb", default=str(ROOT / "target/release/axtb"))
     ap.add_argument("--trajectory", default="", help="the trajectory runner (default: see above)")
     ap.add_argument("--only", default="", help="comma-separated case-name substrings")
+    ap.add_argument("--report", action="store_true", help="summarize the changes of the --allow cases")
+    ap.add_argument("--allow", default="gxtb11", help="comma-separated substrings of the cases that may change")
     a = ap.parse_args()
     cases = corpus()
     if a.only:
@@ -414,20 +508,46 @@ def main():
             meta = {**entry, "cases": len(cases)}
         meta_path.write_text(json.dumps(meta))
         return
-    failed = 0
+    failed, changed, over = 0, 0, 0
+    allowed = [k for k in a.allow.split(",") if k] if a.report else []
+    summary = []
     for name, req, env in cases:
         gold = json.loads((d / f"{name}.json").read_text())
         new = run(a.axtb, req, env, traj)
         ds = diff(gold, new)
-        if ds:
+        if ds and any(k in name for k in allowed):
+            changed += 1
+            rows, ok = report(gold, new)
+            over += not ok
+            flag = "" if ok else "  OVER THRESHOLD OR STRUCTURE"
+            print(f"CHANGED {name}{flag}")
+            for q, v in sorted(rows.items()):
+                lim = THRESHOLDS.get(q)
+                shown = f"{v:.3e}" if isinstance(v, float) else v
+                print(f"     {q}: {shown}" + (f" (threshold {lim:.0e})" if lim is not None else ""))
+            summary.append((name, rows, ok))
+        elif ds:
             failed += 1
             print(f"DIFF {name}")
             for p, msg in ds[:8]:
                 print(f"     {p}: {msg}")
         else:
             print(f"same {name}", flush=True)
-    print(f"{len(cases) - failed} of {len(cases)} identical (binary {sha})")
-    sys.exit(1 if failed else 0)
+    if a.report:
+        # the largest change of each quantity over all changed cases
+        tot = {}
+        for _, rows, _ in summary:
+            for q, v in rows.items():
+                if isinstance(v, float):
+                    tot[q] = max(tot.get(q, 0.0), v)
+                else:
+                    tot.setdefault(q, v)
+        print(f"summary: {changed} allowed cases changed ({over} over a threshold); largest changes:")
+        for q, v in sorted(tot.items()):
+            print(f"     {q}: {v:.3e}" if isinstance(v, float) else f"     {q}: {v}")
+    print(f"{len(cases) - failed - changed} of {len(cases)} identical, {changed} allowed changes, "
+          f"{failed} other differences (binary {sha})")
+    sys.exit(1 if failed or over else 0)
 
 
 if __name__ == "__main__":
