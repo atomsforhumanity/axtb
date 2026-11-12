@@ -18,11 +18,14 @@ use crate::kernels::{gamma2, gamma_mfx, hubbard_u, tau3};
 use crate::params::{EeqBcParams, GxtbParams, QvszpParams};
 use crate::qvszp::QvszpBasis;
 use crate::strategy::{Gxtb110FockMixer, Gxtb110Rule};
+use crate::timing::Laps;
 use axtb::ao::ShellPairs;
 use axtb::integrals::{multipole, Scratch, MBLK};
-use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
+use axtb::linalg::GenEigSolver;
+use axtb::scf::{run_scf, Accelerator, FockSource, ScfModel, ScfStrategy};
 use axtb::{Error, Molecule, Result};
 use faer::{Mat, MatRef, Par};
+use std::ops::ControlFlow;
 
 /// Everything that depends on the geometry only.
 #[derive(Clone, Debug)]
@@ -734,7 +737,7 @@ impl Setup {
         } else {
             0.0
         };
-        let mut solver = axtb::linalg::GenEigSolver::new(MatRef::from_row_major_slice(&self.s, n, n), self.par)?;
+        let solver = GenEigSolver::new(MatRef::from_row_major_slice(&self.s, n, n), self.par)?;
         let nocc = if ns == 1 { vec![self.nalpha] } else { vec![self.nalpha, self.nbeta] };
         if nocc.iter().any(|&k| k > n) {
             return Err(Error::Input("g-xTB: more occupied orbitals than basis functions".into()));
@@ -747,108 +750,41 @@ impl Setup {
         let occ_value = if ns == 1 { 2.0 } else { 1.0 };
         let aufbau: Vec<Vec<f64>> =
             nocc.iter().map(|&k| (0..n).map(|i| if i < k { occ_value } else { 0.0 }).collect()).collect();
-        let mut occ = aufbau.clone();
-        let mut efermi = [None, None];
-        let npk = (n * (n + 1) / 2) as f64;
         let mut mixer = Gxtb110FockMixer::new(n, opts.damping.unwrap_or(DAMPING), ndamp, ndiis, start.is_some());
         let mut rule = Gxtb110Rule::new(ethr, pthr);
-        let mut p = match start {
+        let p = match start {
             Some(p) => p.to_vec(),
             None => self.guess(),
         };
-        let conv = Some(opts.conventions);
-        let mut ev = self.evaluate(&p, conv)?;
-        let mut e_old = 0.0;
-        // after convergence the program diagonalizes the unmixed Fock matrix once more
-        let mut unmixed = false;
-        let mut c = Mat::<f64>::zeros(n, n);
-        let mut eps = vec![vec![0.0; n]; ns];
-        let mut coef = vec![vec![0.0; n * n]; ns];
+        let mut scf = Scf110 {
+            setup: self,
+            solver,
+            conventions: opts.conventions,
+            program,
+            kt,
+            occ: aufbau,
+            efermi: [None, None],
+            ts: 0.0,
+            c: Mat::zeros(n, n),
+            eps: vec![vec![0.0; n]; ns],
+            coef: vec![vec![0.0; n * n]; ns],
+            pnew: Vec::new(),
+            dp: f64::NAN,
+            ev: None,
+        };
         let max_iter = opts.iteration_limit(Version::V1_1);
-        // energy change and RMS density change of the last iteration (for the error)
-        let (mut de, mut dp) = (f64::NAN, f64::NAN);
-        for iter in 1..=max_iter {
-            let fock = std::mem::take(&mut ev.fock);
-            let unmixed_fock = if unmixed {
-                Some(fock)
-            } else {
-                mixer.mix(iter, fock)?;
-                None
-            };
-            for s in 0..ns {
-                let fs = unmixed_fock.as_ref().map_or_else(|| mixer.mixed(s), |f| &f[s][..]);
-                solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut eps[s], &mut c)?;
-                for i in 0..n {
-                    for k in 0..n {
-                        coef[s][i * n + k] = c[(i, k)];
-                    }
-                }
-            }
-            let mut ts = 0.0;
-            if kt > 0.0 {
-                // closed shell: alpha and beta electrons fill the one set of levels. The program
-                // computes only the lowest min(N_alpha + 10, n) eigenpairs (DSYGVX) and sets the
-                // other eigenvalues to 100 Eh, so those levels stay empty at any temperature.
-                let (na, nb) = (self.nalpha, self.nbeta);
-                let nev = if program { (na + 10).min(n) } else { n };
-                let capped = |e: &[f64]| -> Vec<f64> {
-                    e.iter().enumerate().map(|(k, &x)| if k < nev { x } else { 100.0 }).collect()
-                };
-                let (ea, eb) = (capped(&eps[0]), capped(&eps[if ns == 1 { 0 } else { 1 }]));
-                let (fa, mua, ta) = crate::fermi::fill_channel(na, kt, &ea, program);
-                let (fb, mub, tb) = crate::fermi::fill_channel(nb, kt, &eb, program);
-                efermi = [mua, mub];
-                ts = ta + tb;
-                occ = if ns == 1 { vec![fa.iter().zip(&fb).map(|(a, b)| a + b).collect()] } else { vec![fa, fb] };
-            }
-            let mut pnew = Vec::with_capacity(ns);
-            for s in 0..ns {
-                let mut ps = vec![0.0; n * n];
-                for k in 0..n {
-                    let o = occ[s][k];
-                    if o == 0.0 {
-                        continue;
-                    }
-                    for i in 0..n {
-                        let ci = o * coef[s][i * n + k];
-                        for j in 0..n {
-                            ps[i * n + j] += ci * coef[s][j * n + k];
-                        }
-                    }
-                }
-                pnew.push(ps);
-            }
-            // RMS change of the packed spin densities
-            let mut dp2 = 0.0;
-            for s in 0..ns {
-                for i in 0..n {
-                    for j in 0..=i {
-                        let d = pnew[s][i * n + j] - p[s][i * n + j];
-                        dp2 += d * d;
-                    }
-                }
-            }
-            dp = (dp2 / npk).sqrt();
-            p = pnew;
-            ev = self.evaluate(&p, if unmixed { None } else { conv })?;
-            ev.energies.add_entropy(ts);
-            let e = ev.energies.total;
-            de = e - e_old;
-            let it =
-                Iteration { iteration: iter, energy: e, energy_change: de, residual: f64::NAN, density_change: dp };
-            match rule.update(&it) {
-                Verdict::Done => {
-                    // orbital energies of the last diagonalization (unmixed Fock matrix of the
-                    // previous density), as the program prints them
-                    let eigensolver = solver.backend();
-                    return Ok(self.result(ev, p, eps, coef, occ, (kt, efermi), iter, opts.conventions, eigensolver));
-                }
-                Verdict::OneMore { unmixed: u } => unmixed = u,
-                Verdict::Continue => {}
-            }
-            e_old = e;
+        let strategy = ScfStrategy { accelerator: Accelerator::Fock(&mut mixer), rule: &mut rule, max_iter };
+        let out = run_scf(&mut scf, strategy, p, &mut Laps::new())?;
+        if !out.converged {
+            let (de, dp) = (out.last.energy_change, out.last.density_change);
+            return Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: dp });
         }
-        Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: dp })
+        // orbital energies of the last diagonalization (unmixed Fock matrix of the previous
+        // density), as the program prints them
+        let Scf110 { solver, occ, efermi, eps, coef, ev, .. } = scf;
+        let ev = ev.expect("a converged SCF evaluated its density");
+        let eigensolver = solver.backend();
+        Ok(self.result(ev, out.state, eps, coef, occ, (kt, efermi), out.iterations, opts.conventions, eigensolver))
     }
 
     fn result(
@@ -877,6 +813,130 @@ impl Setup {
             conventions,
             eigensolver,
         }
+    }
+}
+
+/// One v1.1 SCF of [`Setup::scf_from`] as the core's SCF model (the 1.1.0 program's iteration,
+/// see [`ScfOptions`]): every eigenpair of the mixed (in the last iteration the unmixed) Fock
+/// matrices, the Aufbau or Fermi occupations (the program's eigenvalue cap at N_alpha + 10 in
+/// its conventions), the density by the program's element loop, its RMS change, and the
+/// evaluation of the density with the next Fock matrices (none in the last iteration).
+struct Scf110<'a> {
+    setup: &'a Setup,
+    solver: GenEigSolver,
+    conventions: Conventions,
+    program: bool,
+    kt: f64,
+    /// Occupations per channel (at 0 K the Aufbau ones throughout), Fermi levels and the
+    /// entropy term -TS of the last iteration.
+    occ: Vec<Vec<f64>>,
+    efermi: [Option<f64>; 2],
+    ts: f64,
+    c: Mat<f64>,
+    /// Orbital energies and coefficients (row-major) per channel of the last iteration.
+    eps: Vec<Vec<f64>>,
+    coef: Vec<Vec<f64>>,
+    /// The densities of the last iteration, until the state takes them.
+    pnew: Vec<Vec<f64>>,
+    /// RMS change of the packed spin densities in the last iteration.
+    dp: f64,
+    /// The evaluation (energies, charges) of the last iteration.
+    ev: Option<Evaluation>,
+}
+
+impl ScfModel for Scf110<'_> {
+    /// The spin densities (closed shell: the total density).
+    type State = Vec<Vec<f64>>;
+
+    fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<()>> {
+        let n = self.setup.nao;
+        for s in 0..self.eps.len() {
+            let fs = fock.matrix(s).expect("the v1.1 SCF diagonalizes row-major Fock matrices");
+            self.solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut self.eps[s], &mut self.c)?;
+            for i in 0..n {
+                for k in 0..n {
+                    self.coef[s][i * n + k] = self.c[(i, k)];
+                }
+            }
+        }
+        Ok(ControlFlow::Continue(()))
+    }
+
+    fn density(&mut self) {
+        let setup = self.setup;
+        let (n, ns, kt, program) = (setup.nao, self.eps.len(), self.kt, self.program);
+        if kt > 0.0 {
+            // closed shell: alpha and beta electrons fill the one set of levels. The program
+            // computes only the lowest min(N_alpha + 10, n) eigenpairs (DSYGVX) and sets the
+            // other eigenvalues to 100 Eh, so those levels stay empty at any temperature.
+            let (na, nb) = (setup.nalpha, setup.nbeta);
+            let nev = if program { (na + 10).min(n) } else { n };
+            let capped = |e: &[f64]| -> Vec<f64> {
+                e.iter().enumerate().map(|(k, &x)| if k < nev { x } else { 100.0 }).collect()
+            };
+            let eps = &self.eps;
+            let (ea, eb) = (capped(&eps[0]), capped(&eps[if ns == 1 { 0 } else { 1 }]));
+            let (fa, mua, ta) = crate::fermi::fill_channel(na, kt, &ea, program);
+            let (fb, mub, tb) = crate::fermi::fill_channel(nb, kt, &eb, program);
+            self.efermi = [mua, mub];
+            self.ts = ta + tb;
+            self.occ = if ns == 1 { vec![fa.iter().zip(&fb).map(|(a, b)| a + b).collect()] } else { vec![fa, fb] };
+        }
+        let (occ, coef) = (&self.occ, &self.coef);
+        let mut pnew = Vec::with_capacity(ns);
+        for s in 0..ns {
+            let mut ps = vec![0.0; n * n];
+            for k in 0..n {
+                let o = occ[s][k];
+                if o == 0.0 {
+                    continue;
+                }
+                for i in 0..n {
+                    let ci = o * coef[s][i * n + k];
+                    for j in 0..n {
+                        ps[i * n + j] += ci * coef[s][j * n + k];
+                    }
+                }
+            }
+            pnew.push(ps);
+        }
+        self.pnew = pnew;
+    }
+
+    fn update_state(&mut self, p: &mut Vec<Vec<f64>>) {
+        let n = self.setup.nao;
+        let pnew = std::mem::take(&mut self.pnew);
+        // RMS change of the packed spin densities
+        let mut dp2 = 0.0;
+        for s in 0..pnew.len() {
+            for i in 0..n {
+                for j in 0..=i {
+                    let d = pnew[s][i * n + j] - p[s][i * n + j];
+                    dp2 += d * d;
+                }
+            }
+        }
+        self.dp = (dp2 / (n * (n + 1) / 2) as f64).sqrt();
+        *p = pnew;
+    }
+
+    fn evaluate(
+        &mut self,
+        _iter: usize,
+        p: &Vec<Vec<f64>>,
+        fock: bool,
+        _laps: &mut Laps,
+    ) -> Result<(f64, Option<Vec<Vec<f64>>>)> {
+        let mut ev = self.setup.evaluate(p, fock.then_some(self.conventions))?;
+        ev.energies.add_entropy(self.ts);
+        let e = ev.energies.total;
+        let f = fock.then(|| std::mem::take(&mut ev.fock));
+        self.ev = Some(ev);
+        Ok((e, f))
+    }
+
+    fn density_change(&self) -> f64 {
+        self.dp
     }
 }
 
