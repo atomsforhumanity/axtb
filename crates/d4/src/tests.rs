@@ -516,3 +516,38 @@ fn c6_matrix_three_body_gradient() {
     let (d, m) = max_abs_diff(&g.concat(), &g_ref.concat());
     assert!(d < 1e-15 * m.max(1.0), "{d:e}");
 }
+
+/// The nuclear Hessian has the same bits serially and on any number of threads, with the
+/// three-body chunks in parallel (small systems) or streamed through one accumulator in
+/// batches (large systems; forced here with small limits, down to batches of one pair).
+#[test]
+fn hessian_bits_independent_of_threads() {
+    use crate::hessian::{AtmLimits, ATM_LIMITS};
+    let (numbers, pos) = large_molecule();
+    let n = numbers.len();
+    let q = charges(n);
+    let switching = RealspaceCutoff { cn: 30.0, disp2: 30.0, disp3: 12.0, width2: 2.0, width3: 2.0 };
+    for cutoff in [RealspaceCutoff::TBLITE_GFN2, switching] {
+        let model = D4Model::new(&numbers, ChargeModel::Gfn2).unwrap();
+        let disp = D4Dispersion::new(model, RationalDamping::GFN2, cutoff);
+        let cache = disp.update(&pos);
+        let run = |parallel: bool, lim: AtmLimits| {
+            let mut h = vec![0.5; 9 * n * n];
+            disp.hessian_with(&cache, &q, &mut h, parallel, lim);
+            h.iter().map(|x| x.to_bits()).collect::<Vec<u64>>()
+        };
+        let reference = run(false, ATM_LIMITS);
+        let streamed = [
+            AtmLimits { small: 0, ..ATM_LIMITS },
+            AtmLimits { small: 0, batch: 200, par_min: 0 },
+            AtmLimits { small: 0, batch: 1, par_min: 0 },
+        ];
+        assert!(run(false, streamed[1]) == reference, "serial, small batches");
+        for threads in [1, 2, 3, 8] {
+            let pool = rayon::ThreadPoolBuilder::new().num_threads(threads).build().unwrap();
+            for lim in std::iter::once(ATM_LIMITS).chain(streamed) {
+                assert!(pool.install(|| run(true, lim)) == reference, "{threads} threads, {lim:?}");
+            }
+        }
+    }
+}
