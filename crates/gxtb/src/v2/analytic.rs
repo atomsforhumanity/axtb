@@ -40,55 +40,14 @@ use super::h0::{anisotropy, anisotropy_gradient};
 use super::repulsion::Repulsion;
 use super::response::{add_multipole_potential_rows, dot, KernelData};
 use super::scf::{Setup, State};
-use super::tangent::{IntegralBlock, Tangent, Tangents};
+use super::tangent::{IntegralBlock, Tangents};
 use super::Model;
 use crate::fock::add_charge_potential;
 use axtb::molecule::{norm2_sq, sub3};
+use axtb::scf::ScfVariables;
 use axtb::{Molecule, Result};
 use axtb_base::fd;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
-
-/// Index layout of the SCC variables: shell charges, atomic dipoles, atomic quadrupoles
-/// (packed), shell magnetizations (open shell).
-#[derive(Clone, Copy, Debug)]
-pub struct Layout {
-    pub nsh: usize,
-    pub nat: usize,
-    pub open: bool,
-}
-
-impl Layout {
-    pub fn dim(&self) -> usize {
-        self.nsh + 9 * self.nat + if self.open { self.nsh } else { 0 }
-    }
-
-    /// Pack shell values, dipole and quadrupole values and magnetization values.
-    pub fn pack(&self, q: &[f64], d: &[[f64; 3]], qp: &[[f64; 6]], m: Option<&[f64]>) -> Vec<f64> {
-        let mut v = Vec::with_capacity(self.dim());
-        v.extend_from_slice(q);
-        v.extend(d.iter().flatten());
-        v.extend(qp.iter().flatten());
-        if self.open {
-            match m {
-                Some(m) => v.extend_from_slice(m),
-                None => v.extend(std::iter::repeat_n(0.0, self.nsh)),
-            }
-        }
-        v
-    }
-
-    /// Split a packed vector into (shell, dipole, quadrupole, magnetization) parts.
-    #[allow(clippy::type_complexity)]
-    pub fn unpack(&self, v: &[f64]) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>, Option<Vec<f64>>) {
-        let (nsh, nat) = (self.nsh, self.nat);
-        let q = v[..nsh].to_vec();
-        let d = (0..nat).map(|a| [0, 1, 2].map(|c| v[nsh + 3 * a + c])).collect();
-        let o = nsh + 3 * nat;
-        let qp = (0..nat).map(|a| [0, 1, 2, 3, 4, 5].map(|c| v[o + 6 * a + c])).collect();
-        let m = if self.open { Some(v[nsh + 9 * nat..].to_vec()) } else { None };
-        (q, d, qp, m)
-    }
-}
 
 /// The integral-free kernels of one geometry: coordination number, electrostatic, repulsion
 /// and dispersion kernels and the anisotropy vectors (the exchange kernels' geometry derivatives
@@ -135,7 +94,7 @@ impl<'a> Kernels<'a> {
     /// Potentials at fixed SCC variables (packed): shell potential without the exchange,
     /// dipole potential with the anisotropy vectors, quadrupole potential; no spin part (the
     /// spin constants do not depend on the geometry).
-    pub fn potentials(&self, st: &State, lay: &Layout) -> Vec<f64> {
+    pub fn potentials(&self, st: &State, lay: &ScfVariables) -> Vec<f64> {
         let mol = &self.mol;
         let mut v = self.coulomb.isotropic_potential(&st.q, false);
         let (vs, mut vd, vq) = self.coulomb.aes_potentials(mol, &st.qa, &st.dip, &st.qp, false);
@@ -149,7 +108,9 @@ impl<'a> Kernels<'a> {
                 d[c] += a[c];
             }
         }
-        lay.pack(&v, &vd, &vq, None)
+        let mut out = vec![0.0; lay.dim()];
+        lay.pack(&v, &vd, &vq, None, &mut out);
+        out
     }
 
     /// Gradient (flat 3N) of the kernel terms at fixed SCC variables, with the CN chains: first
@@ -237,7 +198,7 @@ pub struct Analytic<'a> {
     /// Dipole potential including the anisotropy vectors.
     pub vd_tot: Vec<[f64; 3]>,
     pub base: ResponseBase,
-    pub lay: Layout,
+    pub lay: ScfVariables,
     /// Exchange weights dE/dG (shell pairs) and dE/dK (atom pairs).
     pub tsh: Vec<f64>,
     pub tat: Vec<f64>,
@@ -287,7 +248,7 @@ fn fock_rows(
 /// block's atom, columns around the atom of the other AO), magnetizations.
 fn block_moments(
     s: &Setup,
-    lay: &Layout,
+    lay: &ScfVariables,
     off: usize,
     na: usize,
     blk: &IntegralBlock,
@@ -295,10 +256,7 @@ fn block_moments(
     spin: Option<(&[f64], &[f64])>,
 ) -> Vec<f64> {
     let n = s.nao;
-    let nsh = lay.nsh;
-    let nat = lay.nat;
     let a = s.ao_atom[off];
-    let (od, oq, om) = (nsh, nsh + 3 * nat, nsh + 9 * nat);
     let mut v = vec![0.0; lay.dim()];
     for ml in 0..na {
         let mu = off + ml;
@@ -312,17 +270,17 @@ fn block_moments(
             v[s.ao_shell[nu]] -= pv;
             if let Some((pa, pb)) = spin {
                 let m = (pa[mu * n + nu] - pb[mu * n + nu]) * blk.s[o];
-                v[om + smu] += m;
-                v[om + s.ao_shell[nu]] += m;
+                v[lay.mag(smu)] += m;
+                v[lay.mag(s.ao_shell[nu])] += m;
             }
             let an = s.ao_atom[nu];
             for k in 0..3 {
-                v[od + 3 * a + k] -= p * blk.d[k][o];
-                v[od + 3 * an + k] -= p * blk.dc[k][b];
+                v[lay.dip(a, k)] -= p * blk.d[k][o];
+                v[lay.dip(an, k)] -= p * blk.dc[k][b];
             }
             for k in 0..6 {
-                v[oq + 6 * a + k] -= p * blk.q[k][o];
-                v[oq + 6 * an + k] -= p * blk.qc[k][b];
+                v[lay.quad(a, k)] -= p * blk.q[k][o];
+                v[lay.quad(an, k)] -= p * blk.qc[k][b];
             }
         }
     }
@@ -348,7 +306,7 @@ impl<'a> Analytic<'a> {
         let vd_tot: Vec<[f64; 3]> =
             pot.vd.iter().zip(&setup.aniso).map(|(v, a)| [v[0] + a[0], v[1] + a[1], v[2] + a[2]]).collect();
         let base = setup.response_base(st, Par::Seq);
-        let lay = Layout { nsh: setup.shells.len(), nat: setup.mol.nat(), open: st.p.len() == 2 };
+        let lay = ScfVariables::new(setup.shells.len(), setup.mol.nat(), true, st.p.len() == 2);
         let (tsh, tat) = exchange_kernel_weights(&setup.exch, &setup.s, &st.p, Par::Seq);
         let n = setup.nao;
         let nat = setup.mol.nat();
@@ -426,48 +384,6 @@ impl<'a> Analytic<'a> {
         }
         let rows = LocalRows { f_disp, f_qeff, acp_cols, acp_first, dgr, dkr };
         Ok(Self { setup, st, tan, pot, vd_tot, base, lay, tsh, tat, bmat, rows })
-    }
-
-    /// SCC-variable changes of the integral derivatives `t` at fixed density.
-    pub fn moments(&self, t: &Tangent) -> State {
-        let s = self.setup;
-        let n = s.nao;
-        let nat = s.mol.nat();
-        let ptot = s.total_density(&self.st.p);
-        let pop = |p: &[f64]| -> Vec<f64> {
-            let mut v = vec![0.0; s.shells.len()];
-            for mu in 0..n {
-                let mut x = 0.0;
-                for nu in 0..n {
-                    x += p[mu * n + nu] * t.s[nu * n + mu];
-                }
-                v[s.ao_shell[mu]] += x;
-            }
-            v
-        };
-        let q: Vec<f64> = pop(&ptot).iter().map(|x| -x).collect();
-        let qa = s.coulomb.atom_charges(&q);
-        let mut dip = vec![[0.0; 3]; nat];
-        let mut qp = vec![[0.0; 6]; nat];
-        for mu in 0..n {
-            let a = s.ao_atom[mu];
-            for nu in 0..n {
-                let pmn = ptot[mu * n + nu];
-                for x in 0..3 {
-                    dip[a][x] -= pmn * t.d[x][mu * n + nu];
-                }
-                for c in 0..6 {
-                    qp[a][c] -= pmn * t.q[c][mu * n + nu];
-                }
-            }
-        }
-        let mag = if self.st.p.len() == 2 {
-            let (pa, pb) = (pop(&self.st.p[0]), pop(&self.st.p[1]));
-            Some(pa.iter().zip(&pb).map(|(a, b)| a - b).collect())
-        } else {
-            None
-        };
-        State { p: vec![vec![0.0; n * n]; self.st.p.len()], q, qa, dip, qp, mag }
     }
 
     /// Kernel potentials and gradient at a displaced geometry (fixed SCC variables).
@@ -618,8 +534,11 @@ impl<'a> Analytic<'a> {
         self.add_exchange_kernels(&ot.tsh, &ot.tat, &mut hsg);
         let hss = self.contract_overlap(&ot.psi);
         // SCC variables at fixed density and the kernel response
-        let b = self.bmat[x * self.lay.dim()..(x + 1) * self.lay.dim()].to_vec();
-        let (q, dip, qp, mag) = self.lay.unpack(&b);
+        let lay = &self.lay;
+        let b = self.bmat[x * lay.dim()..(x + 1) * lay.dim()].to_vec();
+        let (mut q, mut dip, mut qp) = (vec![0.0; lay.nsh], vec![[0.0; 3]; lay.nat], vec![[0.0; 6]; lay.nat]);
+        let mut mag = lay.magnetization.then(|| vec![0.0; lay.nsh]);
+        lay.unpack(&b, &mut q, &mut dip, &mut qp, mag.as_deref_mut());
         let qa = s.coulomb.atom_charges(&q);
         let ds = State { p: Vec::new(), q, qa, dip, qp, mag };
         let mut dmu = [0.0; 3];
@@ -630,9 +549,11 @@ impl<'a> Analytic<'a> {
             }
         }
         let (kv, kd, kq, kw) = s.scc_kernel(self.st, &ds, None);
-        let kb = self.lay.pack(&kv, &kd, &kq, kw.as_deref());
+        let mut kb = vec![0.0; lay.dim()];
+        lay.pack(&kv, &kd, &kq, kw.as_deref(), &mut kb);
         // F^(x): integrals x old potentials + potential changes x integrals + exchange
-        let (cv, cd, cq, _) = self.lay.unpack(&c);
+        let (mut cv, mut cd, mut cq) = (vec![0.0; lay.nsh], vec![[0.0; 3]; lay.nat], vec![[0.0; 6]; lay.nat]);
+        lay.unpack(&c, &mut cv, &mut cd, &mut cq, None);
         let cao: Vec<f64> = s.ao_shell.iter().map(|&i| cv[i]).collect();
         add_charge_potential(n, &s.s, &cao, &mut f0, 1.0);
         add_multipole_potential_rows(n, &s.ao_atom, &s.dpint, &s.qpint, &cd, &cq, &mut f0);
@@ -837,7 +758,8 @@ impl<'a> Analytic<'a> {
         // exchange kernels
         let (tsh, tat) = s.exch.kernel_weight_tangent(&self.st.p, &self.base, dp, &kd.prods);
         self.add_exchange_kernels(&tsh, &tat, &mut h);
-        let sp = self.lay.pack(&kd.ds.q, &kd.ds.dip, &kd.ds.qp, kd.ds.mag.as_deref());
+        let mut sp = vec![0.0; self.lay.dim()];
+        self.lay.pack(&kd.ds.q, &kd.ds.dip, &kd.ds.qp, kd.ds.mag.as_deref(), &mut sp);
         ResponseColumn { h, s: sp, vx: kd.vx.clone() }
     }
 }
