@@ -64,7 +64,9 @@ pub fn eeqbc_charges(model: &Model, mol: &Molecule) -> Result<EeqBcCharges> {
 
 /// Adds sum_A dE/dq_A dq_A/dR to `grad` for a function E of the EEQ-BC charges (adjoint of
 /// the linear charge equations A y = b: dE/dR = w^T (db/dR - dA/dR y), A w = (dE/dq, 0)).
-/// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::gradient_system`].
+/// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::gradient_system`]; at
+/// the geometry of a [`super::scf::Setup`], its gradients use the setup's factorization (the
+/// charges' kernel is the 2.0.1 gradient's, [`EeqBc::charges_and_solution`]).
 pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: &mut [[f64; 3]]) -> Result<()> {
     eeqbc(model, mol)?.gradient_system().add_charge_gradient(dedq, grad);
     Ok(())

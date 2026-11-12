@@ -21,19 +21,20 @@ use super::basis::Basis;
 use super::cn::gxtb_cn;
 use super::coulomb::{shell_list, spin_energy, spin_potential, Coulomb, Shell};
 use super::disp::RevD4;
-use super::eeqbc::eeqbc_charges;
+use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
 use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
 use super::repulsion::Repulsion;
 use super::Model;
 use crate::calculator::Version;
 use crate::data_v2::{INCREMENT, REF_OCC, ZEFF_SHELL};
-use crate::eeqbc::EeqBcCharges;
+use crate::eeqbc::{EeqBcCharges, EeqBcSolution};
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
+use std::sync::Arc;
 
 /// Everything that depends on the geometry only.
 #[derive(Clone, Debug)]
@@ -41,6 +42,10 @@ pub struct Setup {
     pub mol: Molecule,
     pub model: Model,
     pub eeq: EeqBcCharges,
+    /// The factorized EEQ-BC equations the charges `eeq` were solved from: the 2.0.1 gradient
+    /// uses the same kernel, so the gradients at this geometry (the analytic gradient, the
+    /// Jacobian rows of the Hessian) reuse them instead of factorizing again.
+    pub(crate) eeq_solution: Arc<EeqBcSolution>,
     /// g-xTB coordination numbers.
     pub cn: Vec<f64>,
     pub basis: Basis,
@@ -149,7 +154,7 @@ impl Setup {
         crate::check_charge(mol)?;
         super::check_elements(&mol.numbers)?;
         let mut t = Laps::new();
-        let eeq = eeqbc_charges(&model, mol)?;
+        let (eeq, eeq_solution) = eeqbc(&model, mol)?.charges_and_solution()?;
         t.lap("setup: eeq-bc");
         let cn = gxtb_cn(&model, mol);
         let basis = Basis::new(&model, mol, &eeq.charges)?;
@@ -213,6 +218,7 @@ impl Setup {
             mol: mol.clone(),
             model,
             eeq,
+            eeq_solution: Arc::new(eeq_solution),
             cn,
             basis,
             cutoff,

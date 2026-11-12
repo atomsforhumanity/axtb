@@ -745,7 +745,8 @@ impl Setup {
         gxtb_cn_gradient(&self.model, mol, &ch.dcn, &mut g);
         basis_cn_gradient(&self.model, mol, &ch.dcnb, &mut g);
         super::disp::add_cn_gradient(&self.model, mol, &ch.dcnd4, &mut g);
-        super::eeqbc::eeqbc_charge_gradient(&self.model, mol, &dqeeq, &mut g)?;
+        // the setup's factorization of the EEQ-BC equations (this geometry, the same kernel)
+        super::eeqbc::eeqbc(&self.model, mol)?.add_charge_gradient(&self.eeq_solution, &dqeeq, &mut g);
         Ok(g)
     }
 

@@ -275,11 +275,10 @@ impl Setup {
             super::disp::add_cn_gradient(&self.model, mol, w, g);
             Ok(())
         })?;
-        // one factorization of the EEQ-BC equations for all rows
+        // all rows from the setup's factorization of the EEQ-BC equations
         let eeqbc = super::eeqbc::eeqbc(&self.model, mol)?;
-        let eeq_system = eeqbc.gradient_system();
         let eeq = rows(&|w, g| {
-            eeq_system.add_charge_gradient(w, g);
+            eeqbc.add_charge_gradient(&self.eeq_solution, w, g);
             Ok(())
         })?;
         let mut qeff = vec![0.0; nat * n3];
