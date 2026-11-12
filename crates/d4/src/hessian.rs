@@ -382,8 +382,8 @@ impl D4Dispersion {
 
     /// Nuclear Hessian of the two-body energy at fixed charges `q` and of the
     /// three-body energy (q = 0), including the CN dependence of the C6 coefficients,
-    /// added to `hess` (row-major `3 nat x 3 nat`). With `parallel`, the three-body part runs
-    /// on the current rayon pool (the same bits).
+    /// added to `hess` (row-major `3 nat x 3 nat`). With `parallel`, the three-body part and the
+    /// chain rule through the CNs run on the current rayon pool (the same bits).
     pub fn hessian(&self, cache: &D4Cache, q: &[f64], hess: &mut [f64], parallel: bool) {
         self.hessian_with(cache, q, hess, parallel, ATM_LIMITS);
     }
@@ -428,37 +428,7 @@ impl D4Dispersion {
         self.atm_hessian(cache, &mut x, &mut fcc, &mut fc, hess, parallel, lim);
         // chain rule through the D4 coordination numbers
         let jac = m.coordination_number_jacobian(pos, self.cutoff().cn);
-        let mut xj = vec![0.0; n3 * n3];
-        for r in 0..n3 {
-            for c in 0..nat {
-                let v = x[r * nat + c];
-                if v != 0.0 {
-                    for y in 0..n3 {
-                        xj[r * n3 + y] += v * jac[c * n3 + y];
-                    }
-                }
-            }
-        }
-        let mut fj = vec![0.0; nat * n3];
-        for c in 0..nat {
-            for d in 0..nat {
-                let v = fcc[c * nat + d];
-                if v != 0.0 {
-                    for y in 0..n3 {
-                        fj[c * n3 + y] += v * jac[d * n3 + y];
-                    }
-                }
-            }
-        }
-        for a in 0..n3 {
-            for b in 0..n3 {
-                let mut jfj = 0.0;
-                for c in 0..nat {
-                    jfj += jac[c * n3 + a] * fj[c * n3 + b];
-                }
-                hess[a * n3 + b] += xj[a * n3 + b] + xj[b * n3 + a] + jfj;
-            }
-        }
+        add_cn_chain(hess, &x, &fcc, &jac, nat, parallel);
         m.add_coordination_number_hessian(pos, self.cutoff().cn, &fc, hess);
     }
 
@@ -644,6 +614,69 @@ impl D4Dispersion {
                 }
             }
         }
+    }
+}
+
+/// `hess += X J + (X J)ᵀ + Jᵀ F J` for X (3N x N), F (N x N) and the CN Jacobian J (N x 3N),
+/// all row-major: every element summed over the CNs in order (rows of X and F with a zero
+/// entry skipping it), `Jᵀ F J` in tiles of [`TILE`] x [`TILE`] elements so that its reads
+/// stay in cache; rows in parallel on the current rayon pool when `parallel`.
+fn add_cn_chain(hess: &mut [f64], x: &[f64], fcc: &[f64], jac: &[f64], nat: usize, parallel: bool) {
+    use rayon::prelude::*;
+    let n3 = 3 * nat;
+    if nat == 0 {
+        return;
+    }
+    // row r of M J: sum over c of M[r][c] J[c] (M = X, F)
+    let times_jac = |m: &[f64], rows: usize| {
+        let mut out = vec![0.0; rows * n3];
+        let row = |(r, o): (usize, &mut [f64])| {
+            for c in 0..nat {
+                let v = m[r * nat + c];
+                if v != 0.0 {
+                    for (o, j) in o.iter_mut().zip(&jac[c * n3..(c + 1) * n3]) {
+                        *o += v * j;
+                    }
+                }
+            }
+        };
+        if parallel {
+            out.par_chunks_mut(n3).enumerate().for_each(row);
+        } else {
+            out.chunks_mut(n3).enumerate().for_each(row);
+        }
+        out
+    };
+    let xj = times_jac(x, n3);
+    let fj = times_jac(fcc, nat);
+    let tile_rows = |(t, rows): (usize, &mut [f64])| {
+        let a0 = t * TILE;
+        let na = rows.len() / n3;
+        for b0 in (0..n3).step_by(TILE) {
+            let nb = TILE.min(n3 - b0);
+            // (Jᵀ F J)[a][b] = sum over c of J[c][a] (F J)[c][b]
+            let mut jfj = [[0.0; TILE]; TILE];
+            for c in 0..nat {
+                let (ja, fb) = (&jac[c * n3 + a0..c * n3 + a0 + na], &fj[c * n3 + b0..c * n3 + b0 + nb]);
+                for (acc, &s) in jfj.iter_mut().zip(ja) {
+                    for (o, f) in acc.iter_mut().zip(fb) {
+                        *o += s * f;
+                    }
+                }
+            }
+            for (da, row) in rows.chunks_mut(n3).enumerate() {
+                let a = a0 + da;
+                for db in 0..nb {
+                    let b = b0 + db;
+                    row[b] += xj[a * n3 + b] + xj[b * n3 + a] + jfj[da][db];
+                }
+            }
+        }
+    };
+    if parallel {
+        hess[..n3 * n3].par_chunks_mut(TILE * n3).enumerate().for_each(tile_rows);
+    } else {
+        hess[..n3 * n3].chunks_mut(TILE * n3).enumerate().for_each(tile_rows);
     }
 }
 
