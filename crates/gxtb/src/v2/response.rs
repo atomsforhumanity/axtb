@@ -190,10 +190,13 @@ impl Setup {
         ds: &State,
         vx: Option<&[f64]>,
     ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>, Option<Vec<f64>>) {
-        use axtb::terms::{MomentTerm, Potentials};
+        use axtb::terms::MomentTerm;
         let (tg, s, d, terms) = (self.term_geometry(), st.moments(), ds.moments(), &self.terms);
-        let p = || Potentials::new(self.shells.len(), self.mol.nat(), ds.mag.is_some());
-        let (mut piso, mut paes, mut prep, mut pdisp, mut pspin) = (p(), p(), p(), p(), p());
+        use super::terms::buffer;
+        let (nsh, nat) = (self.shells.len(), self.mol.nat());
+        let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
+        let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
+        let mut pspin = buffer(&terms.spin, nsh, nat);
         terms.iso.kernel_apply(&tg, &self.coulomb, &s, &d, &mut piso);
         terms.aes.kernel_apply(&tg, &self.coulomb, &s, &d, &mut paes);
         terms.rep.kernel_apply(&tg, &self.rep, &s, &d, &mut prep);

@@ -47,7 +47,7 @@ use crate::dense::dot;
 use crate::fock::{add_charge_potential, add_potentials_rows};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::scf::ScfVariables;
-use axtb::terms::{Chain, ChainLayout, Geometry, MomentTerm, Potentials as TermPotentials, Values};
+use axtb::terms::{Chain, ChainLayout, Geometry, MomentTerm, Values};
 use axtb::{Molecule, Result};
 use axtb_base::fd;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -112,8 +112,10 @@ impl<'a> Kernels<'a> {
     /// spin constants do not depend on the geometry).
     pub fn potentials(&self, st: &State, lay: &ScfVariables) -> Vec<f64> {
         let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
-        let p = || TermPotentials::new(self.coulomb.shells.len(), self.mol.nat(), false);
-        let (mut piso, mut paes, mut prep, mut pdisp) = (p(), p(), p(), p());
+        use super::terms::buffer;
+        let (nsh, nat) = (self.coulomb.shells.len(), self.mol.nat());
+        let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
+        let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
         terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
         terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);

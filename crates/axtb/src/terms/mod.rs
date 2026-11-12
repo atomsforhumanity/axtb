@@ -42,7 +42,8 @@
 //!
 //! ## Defaults
 //!
-//! Only the energy, the potential and the explicit gradient are required. The kernel
+//! Besides the names, the moments read and the cache, only the energy, the potential and the
+//! explicit gradient are required. The kernel
 //! d²E/ds ds, its product with a vector, and the second derivatives with respect to the nuclear
 //! positions default to central differences of the analytic potential and gradient (the
 //! response and analytic Hessians of GFN2-xTB use them for terms without analytic second

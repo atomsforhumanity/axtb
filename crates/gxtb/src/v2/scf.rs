@@ -30,7 +30,7 @@ use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
 use super::intermediates::Slots;
 use super::repulsion::Repulsion;
 use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
-use super::terms::Terms;
+use super::terms::{buffer, Terms};
 use super::Model;
 use crate::calculator::Version;
 use crate::data_v2::{REF_OCC, ZEFF_SHELL};
@@ -40,9 +40,7 @@ use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
-use axtb::terms::{
-    ChainLayout, Geometry, GeometryTerm, MomentTerm, Potentials as TermPotentials, SccMoments, TermEnergy, Values,
-};
+use axtb::terms::{ChainLayout, Geometry, GeometryTerm, MomentTerm, SccMoments, TermEnergy, Values};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -406,8 +404,8 @@ impl Setup {
         terms.iso.energy(&tg, &self.coulomb, &s, &mut totals(&mut eiso));
         terms.aes.energy(&tg, &self.coulomb, &s, &mut totals(&mut e_aes));
         terms.spin.energy(&tg, &(), &s, &mut totals(&mut e_spin));
-        let p = || TermPotentials::new(self.shells.len(), mol.nat(), st.mag.is_some());
-        let mut pdisp = p();
+        let (nsh, nat) = (self.shells.len(), mol.nat());
+        let mut pdisp = buffer(&terms.disp, nsh, nat);
         terms.disp.energy_and_potential(&tg, &self.disp, &s, &mut totals(&mut e_disp), &mut pdisp);
         terms.rep.energy(&tg, &self.rep, &s, &mut totals(&mut e_rep));
         let ([e1, e2, e3, e4], [e_aes], [e_spin], [e_disp], [e_rep]) = (eiso, e_aes, e_spin, e_disp, e_rep);
@@ -439,7 +437,8 @@ impl Setup {
         t.skip();
         // the shell potential: the isotropic one plus (in this order) exchange, AES, repulsion
         // and dispersion of the shell's atom (the program's sum)
-        let (mut piso, mut paes, mut prep, mut pspin) = (p(), p(), p(), p());
+        let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
+        let (mut prep, mut pspin) = (buffer(&terms.rep, nsh, nat), buffer(&terms.spin, nsh, nat));
         terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
         terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);

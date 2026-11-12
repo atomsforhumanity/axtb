@@ -25,7 +25,7 @@ use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::sub3;
-use axtb::terms::{Chain, MomentTerm, Potentials as TermPotentials, TermEnergy};
+use axtb::terms::{Chain, MomentTerm, TermEnergy};
 use axtb::Result;
 use axtb_base::threads::map_chunks;
 
@@ -113,8 +113,11 @@ impl Setup {
     pub fn potentials_with(&self, st: &State, pr: &[Products]) -> Potentials {
         let (tg, s) = (self.term_geometry(), st.moments());
         let terms = &self.terms;
-        let p = || TermPotentials::new(self.shells.len(), self.mol.nat(), st.mag.is_some());
-        let (mut piso, mut paes, mut prep, mut pdisp, mut pspin) = (p(), p(), p(), p(), p());
+        use super::terms::buffer;
+        let (nsh, nat) = (self.shells.len(), self.mol.nat());
+        let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
+        let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
+        let mut pspin = buffer(&terms.spin, nsh, nat);
         terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
         let vd_scaled = terms.aes.potential_scaled(&tg, &self.coulomb, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);

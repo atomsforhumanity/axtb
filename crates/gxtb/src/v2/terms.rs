@@ -157,6 +157,20 @@ impl MomentTerm for RevD4Term {
     }
 }
 
+/// Zero potentials of the moments `t` reads, the other slots empty: a term's potential is zero
+/// in every other moment, and the setup's per-term buffers (made per call) stay small.
+pub(crate) fn buffer(t: &impl MomentTerm, nsh: usize, nat: usize) -> Potentials {
+    let n = t.needs();
+    let len = |on: bool, len: usize| if on { len } else { 0 };
+    Potentials {
+        shell: vec![0.0; len(n.shell, nsh)],
+        atom: vec![0.0; len(n.atom, nat)],
+        dipole: vec![[0.0; 3]; len(n.dipole, nat)],
+        quadrupole: vec![[0.0; 6]; len(n.quadrupole, nat)],
+        magnetization: vec![0.0; len(n.magnetization, nsh)],
+    }
+}
+
 /// `out += x` element by element. 2.0.1's terms compute their potentials and dE/dCN into fresh
 /// vectors, as before, and add them to buffers the setup zeroed: the same values, except that a
 /// -0 becomes +0. The setup folds each potential buffer into a shell's sum of the exchange,
