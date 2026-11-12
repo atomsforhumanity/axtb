@@ -16,22 +16,22 @@ the same composite in one process
    `--iterations 1000 --etemp 1000`, then `--iterations 1000`, then `--iterations 1000
    --etemp 5000`). Energies from `TOTAL ENERGY` (12 decimals), gradients from `gradient`.
 2. **axtb, program mode** (`conventions="gxtb"`: g-xTB in the 2.0.1 program's conventions,
-   the GFN2 halves in xtb 6.7.1's): the gate is |dE| <= 1e-9 Eh and max |dg| <= 1e-8 Eh/bohr
-   against the sum of the three program results, with positions read from the same XYZ file
-   with mctc-lib's Angstrom-to-bohr factor.
+   the GFN2 halves in xtb 6.7.1's): |dE| and max |dg| against the sum of the three program
+   results, with positions read from the same XYZ file with mctc-lib's Angstrom-to-bohr factor.
 3. **mepd** (optional): the Python implementation in the private mepd workflow, which
    motivated the composite (`SolvatedEngine(GXTBCalculator(...), "water")`, i.e.
    `SolvationCorrection`), run with mepd's Python (`$MEPD_PYTHON`); skipped without it.
 4. **axtb, default conventions** (`"axtb"`): the difference to program mode (information).
 5. **Hessian**: the composite's analytic Hessian against central differences (steps 1e-4 and
    2e-5 bohr) of the composite's analytic gradient with all three SCFs at accuracy 1e-7, in
-   both conventions; max |dH| (gate 1e-6 Eh/bohr^2 at the better step: the ALPB surface term's
-   C2 kinks spoil the larger step for caffeine) and the largest frequency difference (cm-1).
+   both conventions; max |dH| (at the better step: the ALPB surface term's C2 kinks spoil the
+   larger step for caffeine) and the largest frequency difference (cm-1).
 6. **Speed**: one composite gradient in-process (new calculator, and the next geometry on a
    reused calculator) against the three program calls and mepd's code path (wall times,
    one thread, best of `--repeat`).
 
-Writes bench/results/solvation_composite.json.
+Writes bench/results/solvation_composite.json. The script fails (exit status 1) when a quantity
+exceeds its limit in `LIMITS` (tests/gate.py).
 
 Usage: python tests/solvation_composite.py [--cases water,caffeine] [--repeat 3] [--no-hessian]
 Needs the axtb Python package built from this tree and the g-xTB 2.0.1 build of xtb (`$AXTB_GXTB2`).
@@ -57,6 +57,7 @@ import axtb
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs as reference_programs  # noqa: E402  (this script has its own programs())
 
 OUT = ROOT / "bench/results/solvation_composite.json"
@@ -65,9 +66,15 @@ XTB = reference_programs.get(reference_programs.GXTB2)
 MEPD_PYTHON = Path(os.environ["MEPD_PYTHON"]) if os.environ.get("MEPD_PYTHON") else None
 METHOD = "gxtb-v2.0.1"
 SOLVENT = "water"
-GATE_ENERGY = 1e-9
-GATE_GRADIENT = 1e-8
-GATE_HESSIAN = 1e-6  # Eh/bohr^2, analytic vs central differences of the composite gradient
+# docs/validation.md (g-xTB in implicit solvent): program mode against the three programs, energies
+# <= 9.7e-11 Eh, gradients <= 5.3e-10 Eh/bohr; mepd's own code path <= 9.1e-12 Eh; the analytic
+# composite Hessian against central differences of the composite gradient <= 5.6e-8 Eh/bohr^2
+# (at the better step), frequencies <= 2.5e-4 cm-1
+LIMITS = {"max_abs_dE": 9.7e-11, "max_abs_dgrad": 5.3e-10, "max_abs_dE_mepd": 9.1e-12, "max_abs_dH": 5.6e-8,
+          "max_dfreq_cm": 2.5e-4}
+GATE_ENERGY = LIMITS["max_abs_dE"]
+GATE_GRADIENT = LIMITS["max_abs_dgrad"]
+GATE_HESSIAN = LIMITS["max_abs_dH"]  # Eh/bohr^2, analytic vs central differences of the composite gradient
 # the composite's retry ladder for the GFN2 pair (after the first try)
 PAIR_LADDER = [[], ["--iterations", "1000", "--etemp", "1000"], ["--iterations", "1000"],
                ["--iterations", "1000", "--etemp", "5000"]]
@@ -298,7 +305,7 @@ def hessian_check(nums, pos, charge, uhf, conventions, steps=(1e-4, 2e-5)) -> di
     return {"conventions": conventions, "methods": {k: v.get("hessian_method") for k, v in h["parts"].items()},
             "max_abs_dH": per_step[best][0], "max_dfreq_cm": per_step[best][1], "step": best,
             "by_step": {f"{k:g}": {"max_abs_dH": v[0], "max_dfreq_cm": v[1]} for k, v in per_step.items()},
-            "max_abs_H": float(np.abs(ha).max()), "seconds": seconds, "pass": per_step[best][0] <= GATE_HESSIAN}
+            "max_abs_H": float(np.abs(ha).max()), "seconds": seconds, "pass": gate.within(per_step[best][0], GATE_HESSIAN)}
 
 
 def main() -> int:
@@ -319,7 +326,6 @@ def main() -> int:
     mepd = mepd_path(mepd_in, args.repeat)
     print(f"{'case':14s} {'nat':>4s} {'E composite (programs)':>22s} {'dE axtb':>9s} {'dg axtb':>9s} {'dE mepd':>9s} "
           f"{'retry':>12s} {'t prog':>7s} {'t mepd':>7s} {'t gxtb':>7s} {'warm':>7s} {'t axtb':>7s} {'warm':>7s}")
-    ok_all = True
     for cid in ids:
         label, xyz, charge, uhf, do_hess = CASES[cid]
         text = xyz()
@@ -330,8 +336,7 @@ def main() -> int:
         dE = r["energy"] - prog["energy"]
         dg = float(np.abs(np.asarray(r["gradient"]) - prog["gradient"]).max())
         comp = {k: r["components"][k] - prog[k] for k in ("gxtb", "gfn2_solvated", "gfn2_gas", "solvation_correction")}
-        passed = abs(dE) <= GATE_ENERGY and dg <= GATE_GRADIENT
-        ok_all &= passed
+        passed = gate.within(abs(dE), GATE_ENERGY) and gate.within(dg, GATE_GRADIENT)
         # default conventions
         d, dcold, dwarm = timed(nums, pos, charge, uhf, "axtb", args.repeat)
         row = {
@@ -360,7 +365,6 @@ def main() -> int:
                            "fallbacks": m["fallbacks"], "seconds": m["seconds"]}
         if do_hess and not args.no_hessian:
             row["hessian"] = [hessian_check(nums, pos, charge, uhf, c) for c in ("axtb", "gxtb")]
-            ok_all &= all(h["pass"] for h in row["hessian"])
         rows.append(row)
         retry = r["parts"]["gfn2_gas"]["retry"] or "-"
         print(f"{cid:14s} {len(nums):4d} {prog['energy']:22.12f} {dE:9.1e} {dg:9.1e} "
@@ -391,15 +395,20 @@ def main() -> int:
                                "reused one, in program mode (t gxtb, conventions='gxtb') and default conventions (t axtb)",
                      "load_average": os.getloadavg()[0]},
         "cases": rows,
-        "summary": {"gate_pass": ok_all, "max_abs_dE": max(abs(r["axtb_program_mode"]["dE"]) for r in rows),
+        "summary": {"max_abs_dE": max(abs(r["axtb_program_mode"]["dE"]) for r in rows),
                     "max_abs_dH": max((h["max_abs_dH"] for r in rows for h in r.get("hessian", [])), default=None),
                     "max_abs_dgrad": max(r["axtb_program_mode"]["max_abs_dgrad"] for r in rows),
                     "max_abs_dE_mepd": max((abs(r["mepd"]["dE_vs_programs"]) for r in rows if "mepd" in r), default=None)},
     }
+    gated = {k: v for k, v in result["summary"].items() if v is not None}  # mepd and the Hessians when they ran
+    if gated.get("max_abs_dH") is not None:
+        gated["max_dfreq_cm"] = max(h["max_dfreq_cm"] for r in rows for h in r.get("hessian", []))
+    rc = gate.check(gated, LIMITS)
+    result["summary"]["gate_pass"] = rc == 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=1) + "\n")
-    print(f"gate {'PASS' if ok_all else 'FAIL'}; wrote {args.out}")
-    return 0 if ok_all else 1
+    print(f"wrote {args.out}")
+    return rc
 
 
 if __name__ == "__main__":

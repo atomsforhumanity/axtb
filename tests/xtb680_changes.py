@@ -14,6 +14,10 @@ molecules.
 
 Each xtb run: a Turbomole `coord` file in bohr, `--gfn 2 --grad --acc A`, OMP_NUM_THREADS=1,
 energy from `TOTAL ENERGY`, gradient from the `gradient` file.
+
+The script fails (exit status 1) when the 6.8.0 conventions themselves (or the 6.7.1 conventions
+against the 6.7.1 program) exceed a limit in `LIMITS` (tests/gate.py), or a run fails. The
+variants' effects are measurements, not gated.
 """
 
 from __future__ import annotations
@@ -32,7 +36,16 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# The xtb 6.8.0 conventions against xtb 6.8.0: <= 4.8e-13 Eh, <= 3.9e-14 Eh/bohr, the same
+# iterations in all 20 runs (docs/validation.md, "What xtb 6.8.0 changed for GFN2-xTB"). The
+# xtb-6.7.1 conventions against the 6.7.1 program: <= 1e-8 Eh (docs/validation.md, Summary);
+# gradients chosen: measured 1.5e-9 Eh/bohr (compressed CsOH at --acc 1), limit 1e-8; the same
+# iterations (measured in all 20 runs).
+LIMITS = {"xtb680_max_abs_dE": 4.8e-13, "xtb680_max_dG": 3.9e-14, "xtb680_iteration_mismatches": 0,
+          "xtb671_max_abs_dE": 1e-8, "xtb671_max_dG": 1e-8, "xtb671_iteration_mismatches": 0, "failures": 0}
 
 ABLATION = ROOT / "target/release/examples/conventions_ablation"
 SYMBOLS = ("H He Li Be B C N O F Ne Na Mg Al Si P S Cl Ar K Ca Sc Ti V Cr Mn Fe Co Ni Cu Zn "
@@ -148,7 +161,7 @@ def main() -> int:
         programs.skip("pass --xtb or " + programs.reason(programs.XTB680))
     if not a.xtb671:
         programs.note_skip("the xtb 6.7.1 rows", programs.GXTB2)
-    rows = []
+    rows, failures = [], []
     for acc in (1e-4, 1.0):
         for name, (nums, pos, charge), solv in CASES:
             nel = sum(nums) - charge
@@ -156,6 +169,7 @@ def main() -> int:
             ref = run_xtb(a.xtb, nums, pos, charge, uhf, acc, solv)
             if ref is None:
                 print(f"{name} acc {acc}: xtb 6.8.0 failed")
+                failures.append(f"{name} acc {acc:g}: xtb 6.8.0")
                 continue
             ab = ablation(nums, pos, charge, uhf, acc, solv)
             row = {"case": name, "accuracy": acc, "solvation": solv, "natoms": len(nums), "E_xtb680": ref["energy"],
@@ -166,9 +180,13 @@ def main() -> int:
                 row["xtb671_minus_xtb680"] = diff(old, ref)
                 row["axtb_xtb671_vs_xtb671"] = diff(cli(nums, pos, charge, uhf, acc, solv, "xtb-6.7.1"), old)
             rows.append(row)
+            failures += [f"{name} acc {acc:g}: {k}" for k, v in row["variants"].items() if v is None]
+            if a.xtb671 and row["axtb_xtb671_vs_xtb671"] is None:
+                failures.append(f"{name} acc {acc:g}: xtb 6.7.1")
             base = row["variants"]["xtb-6.8.0"]
-            print(f"{name:42s} acc {acc:g}: xtb-6.8.0 dE {base['dE']:.1e} dG {base['dG']:.1e} it {base['iterations']}",
-                  flush=True)
+            if base:
+                print(f"{name:42s} acc {acc:g}: xtb-6.8.0 dE {base['dE']:.1e} dG {base['dG']:.1e} it {base['iterations']}",
+                      flush=True)
     # largest effect of each variant over the cases
     summary = {}
     for acc in (1e-4, 1.0):
@@ -189,7 +207,18 @@ def main() -> int:
     a.out.write_text(json.dumps(out, indent=1, default=lambda x: None if isinstance(x, float) and math.isnan(x) else x) + "\n")
     print(json.dumps(summary, indent=1))
     print("wrote", a.out)
-    return 0
+    base = [r["variants"]["xtb-6.8.0"] for r in rows if r["variants"]["xtb-6.8.0"]]
+    old = [(r["case"], r["accuracy"], r["axtb_xtb671_vs_xtb671"]) for r in rows if r.get("axtb_xtb671_vs_xtb671")]
+    gated = {"xtb680_max_abs_dE": max((abs(b["dE"]) for b in base), default=None),
+             "xtb680_max_dG": max((b["dG"] for b in base), default=None),
+             "xtb680_iteration_mismatches": [f'{r["case"]} acc {r["accuracy"]:g}' for r in rows if r["variants"]["xtb-6.8.0"]
+                                             and len(set(r["variants"]["xtb-6.8.0"]["iterations"])) > 1]}
+    if a.xtb671:
+        gated.update(xtb671_max_abs_dE=max((abs(d["dE"]) for _, _, d in old), default=None),
+                     xtb671_max_dG=max((d["dG"] for _, _, d in old), default=None),
+                     xtb671_iteration_mismatches=[f"{c} acc {acc:g}" for c, acc, d in old if len(set(d["iterations"])) > 1])
+    gated["failures"] = failures
+    return gate.check(gated, LIMITS)
 
 
 if __name__ == "__main__":

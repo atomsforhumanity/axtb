@@ -138,7 +138,7 @@ impl Calculator {
         }
         let threads = req.threads.unwrap_or(1);
         let uhf = req.uhf.map(|u| u as usize);
-        let fresh_guess = req.guess.as_deref().map(names::guess).transpose()?;
+        let guess = req.guess.as_deref().map(names::guess).transpose()?;
         let (engine, conventions, analysis, fresh) = match method {
             Method::Gfn2 => {
                 let conventions =
@@ -154,6 +154,15 @@ impl Calculator {
                     opts.scf.max_iter = m;
                 }
                 opts.scf.mixer = req.mixer.as_deref().map(names::mixer).transpose()?;
+                match guess {
+                    Some(names::Guess::Sad) => opts.scf.guess = axtb::InitialGuess::Sad,
+                    Some(names::Guess::EeqBc) => {
+                        return Err(input(
+                            "GFN2-xTB starts from EEQ charges or neutral atoms: guess \"eeq\" or \"sad\"",
+                        ))
+                    }
+                    _ => {}
+                }
                 opts.scf.threads = threads;
                 opts.scf.trace = req.scf_trace;
                 opts.dispersion = req.dispersion.unwrap_or(true);
@@ -161,7 +170,8 @@ impl Calculator {
                 opts.solvation = solvation(req)?;
                 let calc =
                     axtb::Calculator::new(axtb::Method::Gfn2, &req.numbers, &req.positions, req.charge, uhf, opts)?;
-                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into(), fresh_guess == Some(false))
+                let fresh = matches!(guess, Some(names::Guess::Fresh | names::Guess::Eeq | names::Guess::Sad));
+                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into(), fresh)
             }
             Method::Gfnff => {
                 let mut bad = Vec::new();
@@ -201,7 +211,7 @@ impl Calculator {
             Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
                 #[cfg(feature = "gxtb")]
                 {
-                    let (engine, conventions) = gxtb_engine(req, method, threads, uhf, fresh_guess)?;
+                    let (engine, conventions) = gxtb_engine(req, method, threads, uhf, guess)?;
                     // the g-xTB 2.0.1 program is a 6.7.1-based xtb build
                     let analysis = match conventions {
                         axtb_gxtb::Conventions::Gxtb => VibConventions::Xtb671,
@@ -211,7 +221,7 @@ impl Calculator {
                 }
                 #[cfg(not(feature = "gxtb"))]
                 {
-                    let _ = (uhf, fresh_guess);
+                    let _ = (uhf, guess);
                     return Err(input(format!("{method}: this axtb was built without g-xTB (feature `gxtb`)")));
                 }
             }
@@ -529,7 +539,7 @@ fn gxtb_engine(
     method: Method,
     threads: usize,
     uhf: Option<usize>,
-    guess: Option<bool>,
+    guess: Option<names::Guess>,
 ) -> Result<(Engine, axtb_gxtb::Conventions)> {
     let version = method.gxtb_version().expect("a g-xTB method");
     let conventions = req.conventions.as_deref().map(names::gxtb_conventions).transpose()?.unwrap_or_default();
@@ -552,7 +562,15 @@ fn gxtb_engine(
             max_iter: req.max_iter,
             threads,
             conventions,
-            reuse_guess: guess,
+            reuse_guess: match guess {
+                None => None,
+                Some(names::Guess::Previous) => Some(true),
+                Some(names::Guess::Fresh) => Some(false),
+                Some(_) => return Err(input(
+                    "the g-xTB solvation composite starts each part from its method's own start: guess \"previous\" \
+                         or \"fresh\"",
+                )),
+            },
             ..Default::default()
         };
         o.correction_conventions = req.correction_conventions.as_deref().map(names::gfn2_conventions).transpose()?;
@@ -580,7 +598,14 @@ fn gxtb_engine(
     if let Some(m) = req.max_iter {
         o.max_iter = m;
     }
-    o.guess = guess.map(|p| if p { axtb_gxtb::Guess::Previous } else { axtb_gxtb::Guess::EeqBc });
+    o.guess = match guess {
+        None => None,
+        Some(names::Guess::Previous) => Some(axtb_gxtb::Guess::Previous),
+        Some(names::Guess::Fresh | names::Guess::EeqBc) => Some(axtb_gxtb::Guess::EeqBc),
+        Some(names::Guess::Eeq | names::Guess::Sad) => {
+            return Err(input(format!("{method} starts from the program's EEQ-BC charges: guess \"eeq-bc\"")))
+        }
+    };
     let calc = axtb_gxtb::Calculator::new(version, &req.numbers, &req.positions, req.charge, uhf, o)?;
     Ok((Engine::Gxtb(Box::new(calc)), conventions))
 }

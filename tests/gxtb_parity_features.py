@@ -40,6 +40,9 @@ Sections:
   which adds orbital levels, gap, quadrupole and `guess` to every result, and with `--wbo`.
 
 Timings record the 1-minute load average (the machine is shared).
+
+The properties and restart sections fail (exit status 1) when a quantity exceeds its limit in
+`LIMITS` (tests/gate.py) or a program run fails; the other sections are measurements.
 """
 
 from __future__ import annotations
@@ -66,7 +69,34 @@ HARD = ROOT / "tests/scf_hard"
 REF = ROOT / "crates/gxtb/tests"
 AATOAU = 1.0 / 0.529177210903
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# Properties per program, axtb in the conventions that reproduce it: bond orders (`wbo` file; the
+# 1.1.0 program's printout, 3 decimals), gap (eV), quadrupole (printout). docs/validation.md, "Bond
+# orders, orbital levels, gap and quadrupole", except: the quadrupole limits are the printed
+# precision (half the last of 4 or 3 decimals), which that table's "<= 4.9e-5 (4 decimals)" and
+# "<= 4.9e-4" mean (xtb 6.8.0 --tblite measured 4.99e-5 on the rotated water); xtb 6.7.1 prints
+# the moments it mixed once more after the last iteration, so at --acc 1 its quadrupole is
+# 6.2e-4 off for caffeine and 1.3e-3 for taxol (3.0e-4 at --acc 1e-4); the g-xTB 2.0.1 build's
+# `xtb --tblite` (tblite671, not in the docs) is chosen from the measured 1.3e-5, 1.2e-4 eV and
+# 3.0e-4 (ions; its SCF starts differently from tblite 0.8.0's), about 2x. Every pair a program
+# leaves out of its list is below its threshold in axtb too. Restarts (docs/validation.md,
+# Summary): g-xTB 2.0.1 and 1.1.0 restarted runs <= 4.3e-11 Eh, the same iterations.
+LIMITS = {
+    "properties": {
+        "gxtb201 bond orders": 9.4e-12, "gxtb201 gap": 3.7e-11, "gxtb201 quadrupole": 5e-5,
+        "gxtb11 bond orders": 4.2e-4, "gxtb11 gap": 2.2e-7,
+        "xtb680 bond orders": 7.1e-14, "xtb680 gap": 4.7e-13, "xtb680 quadrupole": 5e-4,
+        "xtb671 bond orders": 1.8e-9, "xtb671 gap": 1.0e-8, "xtb671 quadrupole": 5e-4,
+        "xtb671 quadrupole caffeine": 6.2e-4, "xtb671 quadrupole taxol": 1.3e-3,
+        "tblite680 bond orders neutral": 1e-14, "tblite680 bond orders ions": 1.3e-5, "tblite680 gap neutral": 3e-11,
+        "tblite680 gap ions": 1.2e-4, "tblite680 quadrupole neutral": 5e-5, "tblite680 quadrupole ions": 3e-4,
+        "tblite671 bond orders": 3e-5, "tblite671 gap": 3e-4, "tblite671 quadrupole": 6e-4,
+        "unlisted pairs above the program's threshold": 0, "failures": 0,
+    },
+    "restart": {"max_abs_dE": 4.3e-11, "iteration_mismatches": 0},
+}
 
 XTB671 = programs.get(programs.XTB671)
 XTB680 = programs.get(programs.XTB680)
@@ -788,7 +818,40 @@ def main() -> int:
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(clean(data), indent=1) + "\n")
     print("wrote", a.out)
-    return 0
+    return check(data, sections)
+
+
+def check(data: dict, sections: list[str]) -> int:
+    """The gate of the properties and restart sections that ran (tests/gate.py)."""
+    rc = 0
+    rows = data["properties"]["rows"] if "properties" in sections else []
+    if rows:
+        lim = LIMITS["properties"]
+        summary = {"failures": [f"{r['program']} {r['molecule']}" for r in rows if "error" in r],
+                   "unlisted pairs above the program's threshold": []}
+        for r in rows:
+            res = r.get(AXTB_FOR[r["program"]][1], {})
+            if res.get("unlisted_max_bond_order", 0.0) >= res.get("listing_threshold", float("inf")):
+                summary["unlisted pairs above the program's threshold"].append(f"{r['program']} {r['molecule']}")
+            for prop, key in (("bond orders", "bond_order_max_abs_diff"), ("gap", "gap_abs_diff_eV"),
+                              ("quadrupole", "quadrupole_max_abs_diff")):
+                name = f"{r['program']} {prop}"
+                if key not in res:
+                    continue
+                if f"{name} neutral" in lim:
+                    name += " ions" if r["charge"] else " neutral"
+                elif f"{name} {r['molecule']}" in lim:
+                    name += f" {r['molecule']}"
+                summary[name] = max(summary.get(name, 0.0), res[key])
+        print("properties:")
+        rc |= gate.check(summary, lim)
+    restart = data["restart"] if "restart" in sections else []
+    if restart:
+        print("restart:")
+        rc |= gate.check({"max_abs_dE": max(abs(r["dE"]) for r in restart),
+                          "iteration_mismatches": [f"{r['program']} {r['molecule']}: {r['step']}" for r in restart
+                                                   if r["iterations_axtb"] != r["iterations_program"]]}, LIMITS["restart"])
+    return rc
 
 
 if __name__ == "__main__":

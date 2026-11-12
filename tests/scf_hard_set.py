@@ -35,6 +35,10 @@ Results go to `--out` as JSON: `{"settings": ..., "cases": [...], "runs": [{"cas
 "method", "converged", "iterations", "energy", ...}], "summary": [...]}`, with `method` one of
 `axtb-<mixer>` (`broyden`, `diis`, `auto`), `xtb-6.7.1`, `tblite-0.8.0`. `--merge` keeps the runs of
 other methods already in the file.
+
+The script fails (exit status 1) when axtb fails on more cases than `LIMITS` allows
+(tests/gate.py), or `auto` fails on another case than the known ones or differs from Broyden
+where Broyden converges.
 """
 
 from __future__ import annotations
@@ -61,9 +65,25 @@ sys.path.insert(0, str(HERE / "reference_matrix"))
 sys.path.insert(0, str(HERE))
 
 import structures as S  # noqa: E402
+import gate  # noqa: E402
 import programs  # noqa: E402
 
 XTB = programs.get(programs.GXTB2)  # xtb 6.7.1, the g-xTB 2.0.1 build
+# docs/validation.md (SCF convergence): Broyden fails on 20 cases, DIIS and `auto` on 10, and
+# `auto` gives Broyden's results on the cases Broyden converges (same energies and iterations)
+LIMITS = {"axtb-broyden failed": 20, "axtb-diis failed": 10, "axtb-auto failed (unexpected)": 0,
+          "auto vs broyden max |dE|": 0.0, "auto vs broyden iteration mismatches": 0}
+# the ten failures of `auto` (docs/validation.md, SCF convergence): 0 K cases whose solution has
+# degenerate, fractionally occupied frontier orbitals at any temperature above 0 K, so that no
+# aufbau fixed point exists and no mixer converges them without changing the occupations
+KNOWN_DIFFERENCES = {
+    "cluster-Fe4-T0": "Fe4 at 0 K: no aufbau fixed point", "cluster-Fe4-quintet-T0": "Fe4 at 0 K: no aufbau fixed point",
+    "gap-Cr2-T0": "Cr2 at 0 K: no aufbau fixed point", "gap-Cr2-stretched-T0": "Cr2 at 0 K: no aufbau fixed point",
+    "gap-cyclobutadiene-square-T0": "square cyclobutadiene at 0 K: no aufbau fixed point",
+    "gap-ethylene-twisted-T0": "twisted ethylene at 0 K: no aufbau fixed point",
+    "scan-N2-2.5-T0": "N2 at 2.5 Å, 0 K: no aufbau fixed point", "scan-N2-3.0-T0": "N2 at 3.0 Å, 0 K: no aufbau fixed point",
+    "scan-N2-3.5-T0": "N2 at 3.5 Å, 0 K: no aufbau fixed point", "scan-N2-4.0-T0": "N2 at 4.0 Å, 0 K: no aufbau fixed point",
+}
 
 ACCURACY = 1e-4
 MAX_ITER = 250
@@ -465,7 +485,25 @@ def main() -> int:
     data["summary"] = summarize(data)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(dump_json(data))
-    return 0
+    return check(data)
+
+
+def check(data: dict) -> int:
+    """The gate over the axtb methods that ran."""
+    by = {(r["case"], r["method"]): r for r in data["runs"]}
+    methods = {m for _, m in by}
+    failed = {m: [c for (c, mm), r in by.items() if mm == m and not r["converged"]] for m in methods}
+    summary = {f"{m} failed": len(failed[m]) for m in ("axtb-broyden", "axtb-diis") if m in methods}
+    known = {}
+    if "axtb-auto" in methods:
+        summary["axtb-auto failed (unexpected)"] = [c for c in failed["axtb-auto"] if c not in KNOWN_DIFFERENCES]
+        known = {c: KNOWN_DIFFERENCES[c] for c in failed["axtb-auto"] if c in KNOWN_DIFFERENCES}
+        pairs = [(c, by[(c, "axtb-auto")], b) for (c, m), b in by.items()
+                 if m == "axtb-broyden" and b["converged"] and (c, "axtb-auto") in by]
+        summary["auto vs broyden max |dE|"] = max((abs(a["energy"] - b["energy"]) if a["converged"] else math.inf
+                                                   for _, a, b in pairs), default=0.0)
+        summary["auto vs broyden iteration mismatches"] = [c for c, a, b in pairs if a["iterations"] != b["iterations"]]
+    return gate.check(summary, LIMITS, known)
 
 
 def dump_json(data: dict) -> str:

@@ -53,6 +53,44 @@ fn settings_that_do_not_apply_are_errors() {
 }
 
 #[test]
+fn named_starts_are_checked_per_method() {
+    let start = |req: Request| run(&req).map(|r| r.scf.expect("an SCF method").guess);
+    assert_eq!(start(Request { guess: Some("sad".into()), ..with("gfn2") }).unwrap(), "sad");
+    assert_eq!(start(Request { guess: Some("eeq".into()), ..with("gfn2") }).unwrap(), "eeq");
+    assert_eq!(start(Request { guess: Some("fresh".into()), ..with("gxtb-v2.0.1") }).unwrap(), "eeq-bc");
+    for req in [
+        Request { guess: Some("eeq-bc".into()), ..with("gfn2") },
+        Request { guess: Some("sad".into()), ..with("gxtb-v2.0.1") },
+        Request { guess: Some("eeq".into()), ..with("gxtb-v1.1") },
+        Request {
+            guess: Some("eeq-bc".into()),
+            alpb: Some("water".into()),
+            solvation_correction: Some("gfn2".into()),
+            ..with("gxtb-v2.0.1")
+        },
+    ] {
+        assert!(matches!(run(&req), Err(Error::Input(_))), "{:?}", req.guess);
+    }
+}
+
+#[test]
+fn both_gxtb_versions_report_the_entropy_term() {
+    for method in ["gxtb-v1.1", "gxtb-v2.0.1"] {
+        let r = run(&Request { etemp: Some(20000.0), ..with(method) }).unwrap();
+        let terms = r.terms.expect("terms").0;
+        let ts = terms.iter().find(|(n, _)| *n == "entropy").map(|t| t.1);
+        assert!(ts.is_some_and(|ts| ts < 0.0), "{method}: {ts:?}");
+    }
+}
+
+#[test]
+fn unpaired_electrons_warn_for_gfnff() {
+    assert!(axtb_driver::uhf_warning(Method::Gfnff, Some(1)).is_some());
+    assert!(axtb_driver::uhf_warning(Method::Gfnff, Some(0)).is_none());
+    assert!(axtb_driver::uhf_warning(Method::Gfn2, Some(1)).is_none());
+}
+
+#[test]
 fn error_kinds() {
     let e = run(&Request { max_iter: Some(2), ..water() }).unwrap_err();
     assert!(matches!(e, Error::ScfNotConverged { .. }) && e.kind() == "scf_not_converged");

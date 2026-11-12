@@ -136,6 +136,7 @@ impl Energies {
             ("exchange_mulliken", self.mfx),
             ("exchange_onsite", self.ofx),
             ("spin_polarization", self.spin),
+            ("entropy", self.entropy),
             ("electronic", self.electronic),
             ("increments", self.increments),
             ("dispersion", self.disp2),
@@ -544,10 +545,18 @@ impl Calculator {
         };
         // the response needs every orbital
         let sopts = ScfOptions { accuracy, keep_orbitals: true, ..self.options.clone() };
+        // the setup of this geometry, when the calculator holds one (move_to dropped it otherwise)
+        let cached = match self.setup.take() {
+            Some(AnySetup::V2(s)) => Some(*s),
+            _ => None,
+        };
         let mol = &self.mol;
         let run = || -> Result<(axtb::Hessian, v2::scf::Setup, GuessState)> {
             let t0 = Instant::now();
-            let mut setup = v2::scf::Setup::with_threads(mol, sopts.conventions, sopts.threads)?;
+            let mut setup = match cached {
+                Some(s) => s,
+                None => v2::scf::Setup::with_threads(mol, sopts.conventions, sopts.threads)?,
+            };
             let r = match setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()) {
                 Err(Error::ScfNotConverged { .. }) if start.is_some() => setup.scf(&sopts)?,
                 other => other?,
@@ -745,6 +754,7 @@ fn results(
         electronic: e.electronic + e.increments,
         isotropic_es: e.es1 + e.es23,
         anisotropic: e.aes,
+        entropy: e.entropy,
         ..Default::default()
     };
     let singlepoint = SinglePoint {

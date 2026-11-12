@@ -51,7 +51,7 @@ pub struct Request {
     pub accuracy: Option<f64>,
     /// Electronic temperature (K; SCF methods; default GFN2-xTB 300, g-xTB 0).
     pub etemp: Option<f64>,
-    /// SCF iteration limit (SCF methods; default 250).
+    /// SCF iteration limit (SCF methods; default: GFN2-xTB and g-xTB 2.0.1 250, g-xTB v1.1 1000).
     pub max_iter: Option<usize>,
     /// Threads (default 1; at least 1).
     pub threads: Option<usize>,
@@ -72,8 +72,9 @@ pub struct Request {
     /// Conventions of the composite's GFN2 halves (default: `axtb` for g-xTB's `axtb`,
     /// `xtb-6.7.1` for `gxtb`).
     pub correction_conventions: Option<String>,
-    /// Where the SCFs of a calculator start: `previous` or the method's own start (`fresh`,
-    /// `eeq-bc`, `eeq`); default: the conventions' choice.
+    /// Where the SCFs of a calculator start: `previous` (the previous geometry's state), `fresh`
+    /// (the method's own start at every geometry), or a named start at every geometry: `eeq` or
+    /// `sad` (GFN2-xTB), `eeq-bc` (g-xTB); default: the conventions' choice.
     pub guess: Option<String>,
     /// GFN-FF: charges of the molecular fragments, in the order of their first atoms (one per
     /// fragment, summing to the total charge).

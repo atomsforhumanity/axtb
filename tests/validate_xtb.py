@@ -7,7 +7,10 @@ Usage: python tests/validate_xtb.py [--acc 1e-4] [--xtb PATH] [--alpb water] [st
 
 xtb gets the geometry as a Turbomole `coord` file in bohr (so its Å→bohr constant does
 not matter), runs `--gfn 2 --grad` in its own scratch directory with OMP_NUM_THREADS=1,
-and its energy and gradient are read from the `energy`/`gradient` files.
+and its energy and gradient are read from the printout and the `gradient` file.
+
+The script fails (exit status 1) when a quantity exceeds its limit in `LIMITS` (tests/gate.py)
+or a structure fails, except the known differences.
 """
 
 from __future__ import annotations
@@ -26,7 +29,25 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from validate_tblite import AXTB, ROOT, SYMBOLS, read_xyz  # noqa: E402
+import gate  # noqa: E402
 import programs  # noqa: E402
+
+# per axtb conventions (that of the xtb version). xtb 6.8.0: docs/validation.md, "xtb's SCC loop"
+# (the 13 structures at --acc 1 and 1e-4, gas phase and ALPB water): energies <= 5.0e-13 Eh (xtb
+# prints 12 decimals), gradients <= 3.6e-14 Eh/bohr, the same SCC iterations; charges chosen: the
+# `charges` file's 8 decimals (5e-9) twice. xtb 6.7.1 (the g-xTB 2.0.1 build): energies <= 1e-8 Eh
+# (docs/validation.md, Summary); chosen from the measured values at --acc 1e-4: gradients 6.8e-10
+# Eh/bohr -> 1e-8, charges 1.0e-8 e -> 1e-7, the same iterations.
+LIMITS = {
+    "xtb": {"max_abs_dE": 5.0e-13, "max_dG": 3.6e-14, "max_dq": 1e-8, "iteration_mismatches": 0, "failures": 0},
+    "xtb-6.7.1": {"max_abs_dE": 1e-8, "max_dG": 1e-8, "max_dq": 1e-7, "iteration_mismatches": 0, "failures": 0},
+}
+KNOWN_DIFFERENCES = {
+    "gh106": "a pathological SCF with several solutions (docs/validation.md, xtb's SCC loop and SCF convergence): "
+             "xtb 6.8.0 takes 193 iterations at --acc 1e-4 (axtb 194) and 161 at --acc 1 (axtb 166, 6.6e-10 Eh), in "
+             "ALPB water xtb stops with an error; against 6.7.1 the programs reach different solutions "
+             "(tests/reference_matrix/summary-xtb-6.7.1.md)",
+}
 
 
 def write_coord(path: Path, nums, pos):
@@ -95,6 +116,7 @@ def main() -> int:
     extra = (f"--{solv[0]}", solv[1]) if solv else ()
     files = args.files or sorted((ROOT / "tests/structures").glob("*.xyz"))
     print(f"{'structure':18s} {'nat':>4s} {'E(xtb)':>18s} {'dE':>10s} {'max|dG|':>10s} {'max|dq|':>10s}  iterations")
+    rows, failures = [], []
     for f in files:
         nums, pos, charge = read_xyz(f)
         nel = int(nums.sum() - charge)
@@ -104,13 +126,22 @@ def main() -> int:
             new = run_axtb(nums, pos, charge, uhf, args.acc, solv, conventions=conv)
         except Exception as e:  # noqa: BLE001
             print(f"{f.stem:18s} failed: {str(e)[:300]}")
+            failures.append(f.stem)
             continue
         de = new["energy"] - ref["energy"]
         dg = np.abs(new["gradient"] - ref["gradient"]).max()
         dq = np.abs(new["charges"] - ref["charges"]).max()
+        rows.append((f.stem, abs(de), dg, dq, new.get("iterations") != ref.get("iterations")))
         print(f"{f.stem:18s} {len(nums):4d} {ref['energy']:18.10f} {de:10.2e} {dg:10.2e} {dq:10.2e}  "
               f"{new.get('iterations')}/{ref.get('iterations')}")
-    return 0
+    gated = [r for r in rows if r[0] not in KNOWN_DIFFERENCES]
+    summary = {"max_abs_dE": max((r[1] for r in gated), default=None),
+               "max_dG": max((float(r[2]) for r in gated), default=None),
+               "max_dq": max((float(r[3]) for r in gated), default=None),
+               "iteration_mismatches": [r[0] for r in gated if r[4]],
+               "failures": [s for s in failures if s not in KNOWN_DIFFERENCES]}
+    run = {r[0] for r in rows} | set(failures)
+    return gate.check(summary, LIMITS[conv], {k: v for k, v in KNOWN_DIFFERENCES.items() if k in run})
 
 
 if __name__ == "__main__":

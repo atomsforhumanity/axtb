@@ -9,6 +9,9 @@ binary is `--xtb`, default xtb 6.8.0 (`$AXTB_XTB680`, see tests/programs.py); th
 `bench/results/program_diffs.json` for xtb 6.7.1 (the record of what 6.7.1 did) and to
 `bench/results/program_diffs_<version>.json` otherwise. Needs the tblite Python package; uses
 the runners of the reference matrix.
+
+The differences between the programs are measurements; the script fails (exit status 1) when
+axtb's quantities exceed their limits in `LIMITS` (tests/gate.py) or a program fails.
 """
 
 from __future__ import annotations
@@ -28,8 +31,15 @@ if __name__ == "__main__" and "--xtb" in sys.argv:
 import runners as P  # noqa: E402
 import structures as S  # noqa: E402
 
+sys.path.insert(0, str(HERE))
+import gate  # noqa: E402
+
 AATOAU = 1.0 / 0.529177210544  # CODATA 2022 bohr in Å (qcref)
 TIGHT = 1e-6
+# axtb's default conventions against tblite (solvation states, O2 at 0.1 and 1 K): chosen, the
+# measured 3.9e-11 Eh about 10x; axtb's atom-order dependence (compressed CsOH): round-off
+# (measured 2.7e-15 Eh; docs/validation.md: 2.9e-3 Eh in xtb 6.7.1 and tblite -> 0), chosen 1e-12
+LIMITS = {"axtb_minus_tblite_max_abs": 4e-10, "axtb_atom_order_abs": 1e-12, "failures": 0}
 
 
 def spec(mol, charge=0, uhf=None, **opts):
@@ -105,7 +115,13 @@ def main() -> int:
            "note": "E in Eh; xtb, tblite and axtb (default conventions) on the same bohr geometries", "rows": rows}
     args.out.write_text(json.dumps(out, indent=1) + "\n")
     print("wrote", args.out)
-    return 0
+    axtb = [abs(r["axtb_minus_tblite"]) for r in rows if r.get("axtb_minus_tblite") is not None]
+    order = [abs(r["axtb"]) for r in rows if r["topic"] == "atom-order dependence" and r["axtb"] is not None]
+    # a program that fails leaves its energy (and every difference with it) None
+    failures = [f"{r['case']}: {k}" for r in rows for k in ("E_xtb", "E_tblite", "E_axtb", "xtb", "tblite", "axtb")
+                if k in r and r[k] is None]
+    return gate.check({"axtb_minus_tblite_max_abs": max(axtb, default=None),
+                       "axtb_atom_order_abs": max(order, default=None), "failures": failures}, LIMITS)
 
 
 if __name__ == "__main__":

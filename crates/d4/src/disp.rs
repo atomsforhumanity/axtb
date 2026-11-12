@@ -591,8 +591,11 @@ impl D4Dispersion {
                 nb.dswr.push(dsw / r);
                 nb.t.push((r0 / r).powf(alp3));
                 nb.c6.push(c6);
-                nb.qa.push(dca / c6);
-                nb.qb.push(dcb / c6);
+                // dlnC6/dCN; a pair without C6 adds nothing to any triple (C9 = 0), so its
+                // ratio is 0 rather than 0/0
+                let (qa, qb) = if c6 != 0.0 { (dca / c6, dcb / c6) } else { (0.0, 0.0) };
+                nb.qa.push(qa);
+                nb.qb.push(qb);
             }
             offs.push(nb.j.len());
         }

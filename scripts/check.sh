@@ -9,7 +9,7 @@
 #                                         programs (all, or the named ones); a gate whose programs
 #                                         are not set is reported as skipped
 #   scripts/check.sh all                  both
-#   scripts/check.sh list                 the gates of the programs tier and what each needs
+#   scripts/check.sh list                 the gates of the programs tier: needs and limits
 #
 # The programs come from AXTB_XTB680, AXTB_GXTB2, AXTB_XTB671 and AXTB_GXTB11_DIR
 # (tests/programs.py); xtb's atomic masses for the Hessian comparisons from the xtb source in
@@ -184,12 +184,14 @@ GATES=(
   "ts-example|-|bench/ts_example.py"
 )
 
-# the GFN-FF report without its scaling part (timings up to 9900 atoms)
+# the GFN-FF report without its scaling part (timings up to 9900 atoms); every part runs, and
+# the gate fails if any part fails
 gfnff() {
-  local part
+  local part rc=0
   for part in accuracy hessian topology; do
-    "$PY" tests/gfnff_reproduction.py --part "$part" --jobs "$JOBS" --out "$OUT/gfnff_reproduction.json" "$@" || return $?
+    "$PY" tests/gfnff_reproduction.py --part "$part" --jobs "$JOBS" --out "$OUT/gfnff_reproduction.json" "$@" || rc=$?
   done
+  return $rc
 }
 
 have() {  # "A,B" all of them, "A/B" one of them, "-" nothing
@@ -202,12 +204,19 @@ have() {  # "A,B" all of them, "A/B" one of them, "-" nothing
   for v in ${need//,/ }; do "$PY" tests/programs.py --have "$v" || return 1; done
 }
 
-list_gates() {
+list_gates() {  # with the limits of each gate's script (LIMITS and KNOWN_DIFFERENCES, tests/gate.py)
   printf '%-26s %-52s %s\n' gate programs command
-  local g name need cmd
+  local g name need cmd script
   for g in "${GATES[@]}"; do
     IFS='|' read -r name need cmd <<< "$g"
     printf '%-26s %-52s %s\n' "$name" "$need" "$cmd"
+    script=${cmd%% *}
+    [[ $cmd == gfnff* ]] && script=tests/gfnff_reproduction.py
+    if [[ $script == *.py ]]; then
+      python3 tests/gate.py "$script"
+    else
+      echo "    limits: the pytest assertions"
+    fi
   done
 }
 

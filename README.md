@@ -219,7 +219,7 @@ stderr, exit code 2. Warnings go to stderr: more than 8 threads for one SCF sing
 | `method` | `--method M` | `gfn2` (default), `gfnff`, `gxtb-v1.1`, `gxtb-v2.0.1` |
 | `conventions` | `--conventions C` | GFN2-xTB `axtb` (default), `xtb` (6.8.0), `xtb-6.7.1`, `tblite`; g-xTB `axtb`, `gxtb`; GFN-FF `axtb`, `xtb`, `xtb-6.7.1` |
 | `threads` | `--threads N` | default 1 |
-| `accuracy`, `etemp`, `max_iter` | `--acc X`, `--etemp K`, `--max-iter N` | SCF methods: accuracy multiplier (1), electronic temperature (GFN2-xTB 300 K, g-xTB 0 K), iteration limit (250) |
+| `accuracy`, `etemp`, `max_iter` | `--acc X`, `--etemp K`, `--max-iter N` | SCF methods: accuracy multiplier (1), electronic temperature (GFN2-xTB 300 K, g-xTB 0 K), iteration limit (GFN2-xTB and g-xTB 2.0.1 250, g-xTB v1.1 1000) |
 | `mixer`, `dispersion`, `scf_trace` | `--mixer M`, `--nodisp`, `--scf-trace` | GFN2-xTB: SCF mixer (`auto`, `broyden`, `diis`), dispersion off (validation), every SCF iteration on stderr |
 | `alpb`, `gbsa`, `solvation_state` | `--alpb S`, `--gbsa S`, `--solvation-state R` | implicit solvent and its reference state (`gsolv`, `bar1M`, `reference`) |
 | `solvation_correction`, `correction_conventions` | `--solvation-correction gfn2`, `--correction-conventions C` | g-xTB in solvent, see [g-xTB in implicit solvent](#g-xtb-in-implicit-solvent) |
@@ -492,8 +492,10 @@ converge runs once more from the program's EEQ-BC start. Results say which start
   previous run's restart file): energies ≤ 4.3e-11 Eh, identical SCF iterations (2.0.1: 2 at the
   same geometry, as the program; 1.1.0: 3). The 1.1.0 program restarts without the transition
   step of its Fock mixing (v1.1 spec §4.17).
-- `guess="eeq-bc"` (also `"fresh"`) starts every SCF fresh in any conventions; GFN2-xTB takes
-  `guess="eeq"`.
+- `guess="fresh"` starts every SCF from the method's own start in any conventions: g-xTB's
+  EEQ-BC charges (also `guess="eeq-bc"`), GFN2-xTB's EEQ charges (also `guess="eeq"`).
+  `guess="sad"` starts every GFN2-xTB SCF from neutral atoms. A named start of another method
+  is refused, and the solvation composite takes only `previous` or `fresh`.
 - In the default conventions a restarted g-xTB 2.0.1 SCF converges to 0.1 × the thresholds
   (`axtb_gxtb::calculator::RESTART_ACCURACY`). A fresh 2.0.1 SCF ends with a DIIS step that
   overshoots tblite's thresholds; a restart meets them after a few iterations and would stop
@@ -872,8 +874,8 @@ home paths, private addresses and host names, and a check that the crates' copie
 files match the top level. `scripts/check.sh programs` runs the validation
 gates against the reference programs; a gate whose programs are not set is reported as skipped,
 and every gate writes its results under `target/check/programs/`, never into the repository
-(`scripts/check.sh list` prints the gates). `tests/programs.py` finds the programs from one
-variable each and nothing else:
+(`scripts/check.sh list` prints the gates and their limits). `tests/programs.py` finds the
+programs from one variable each and nothing else:
 
 | program | variable | source |
 |---|---|---|
@@ -884,30 +886,36 @@ variable each and nothing else:
 | tblite 0.8.0, dftd4 4.3.1 | — | PyPI (`scripts/check.sh` installs them in its venv) |
 | xtb's source (atomic masses) | `AXTB_REFERENCE` | `reference/xtb-gxtb`, see `reference/README.md` |
 
-What each check needs. "exit status" gates fail on their own thresholds; the others are reports
-that run to completion and print (and write) the numbers that docs/validation.md quotes.
+What each check needs and when it fails. Every gate of the programs tier exits with status 1
+when a measured quantity exceeds its limit or a calculation fails, except the known differences
+that the docs explain (rounding-sensitive SCFs, the programs' own errors). The limits are the
+numbers that docs/validation.md and the specs quote, compared at the two significant digits they
+give (values the docs do not quote: about 10x the measured round-off, less for finite-difference
+errors that do not move with round-off); each script keeps them in `LIMITS` and
+`KNOWN_DIFFERENCES` with their sources (`tests/gate.py`), prints every quantity next to its
+limit, and `scripts/check.sh list` prints them all.
 
-| check | needs | what | kind |
+| check | needs | what | fails when |
 |---|---|---|---|
-| fast: `cargo test --workspace --release` | nothing | every crate against committed program outputs, finite differences, invariances | exit status |
-| fast: `pytest crates/axtb-py/tests tests/reference_matrix` | the tblite wheel (qccompute for the codec tests) | Python API, CLI and codec; the matrix's fast subset without the xtb cases | exit status |
-| `validate-tblite` | tblite | GFN2-xTB `tblite` conventions vs tblite 0.8.0 on the test structures | exit status (1e-7 Eh) |
-| `validate-xtb`, `validate-xtb-alpb` | xtb 6.8.0 | `xtb` conventions vs xtb on the test structures, gas phase and ALPB water | report |
-| `validate-hessian` | the g-xTB build, xtb's source | numerical Hessians vs `xtb --hess` | report |
-| `matrix-xtb-6.8.0`, `matrix-xtb-6.7.1` | xtb 6.8.0 and the g-xTB build (one compared, the other a start of the diagnoses of different SCF solutions); tblite | the reference matrix (991 cases) against xtb 6.8.0 or 6.7.1 | exit status (failing checks) |
-| `pytest-programs` | xtb 6.8.0, the g-xTB build | the pytest cases that need xtb | exit status |
-| `xtb680-changes` | xtb 6.8.0 (the g-xTB build for its 6.7.1 rows) | each 6.7.1 behaviour put back into the 6.8.0 conventions | report |
-| `xtb-hess-acc` | xtb 6.8.0 | what `--acc` and `$hess sccacc` do to `xtb --hess` | report |
-| `program-differences` | xtb 6.8.0, tblite | xtb vs tblite: solvation states, atom order, 0.1 K | report |
-| `scf-hard` | the g-xTB build, tblite | SCF convergence on hard cases | report |
-| `vibrational-xtb-6.8.0`, `vibrational-xtb-6.7.1` | xtb 6.8.0 or the g-xTB build | frequencies, IR intensities, thermochemistry vs `xtb --hess` | exit status |
-| `gfnff-xtb-6.8.0`, `gfnff-xtb-6.7.1` | xtb 6.8.0 or the g-xTB build | GFN-FF topology, energies, gradients, Hessians (not the scaling timings) | report |
-| `gxtb-reproduction`, `gxtb2-reproduction`, `gxtb-etemp`, `gxtb-energy-differences` | nothing (committed program outputs) | g-xTB v1.1 and 2.0.1 in both conventions | report |
-| `gxtb-elements` | the g-xTB build and/or the g-xTB 1.1.0 program | every element with parameters | report |
-| `gxtb-parity` | any of the four programs (each its own cases) | bond orders, gap, quadrupole, restarts | report |
-| `solvation-composite` | the g-xTB build | g-xTB in implicit solvent vs the three programs | exit status |
-| `molden` | the g-xTB build and/or the g-xTB 1.1.0 program | Molden files vs the programs' | report |
-| `ts-example` | xtb's source (the g-xTB build for its `xtb --hess` row) | an SN2 saddle point with analytic Hessians | report |
+| fast: `cargo test --workspace --release` | nothing | every crate against committed program outputs, finite differences, invariances | a test fails |
+| fast: `pytest crates/axtb-py/tests tests/reference_matrix` | the tblite wheel (qccompute for the codec tests) | Python API, CLI and codec; the matrix's fast subset without the xtb cases | a test fails |
+| `validate-tblite` | tblite | GFN2-xTB `tblite` conventions vs tblite 0.8.0 on the test structures | an energy differs by more than 1e-7 Eh (tblite's SCF failing on `gh106` known) |
+| `validate-xtb`, `validate-xtb-alpb` | xtb 6.8.0 | `xtb` conventions vs xtb on the test structures, gas phase and ALPB water | energies > 5.0e-13 Eh, gradients > 3.6e-14 Eh/bohr, charges > 1e-8 e, other SCC iterations (`gh106` known) |
+| `validate-hessian` | the g-xTB build, xtb's source | numerical Hessians vs `xtb --hess` | Hessians > 6e-4 Eh/bohr² (xtb's noise), frequencies > 1 cm⁻¹ |
+| `matrix-xtb-6.8.0`, `matrix-xtb-6.7.1` | xtb 6.8.0 and the g-xTB build (one compared, the other a start of the diagnoses of different SCF solutions); tblite | the reference matrix (991 cases) against xtb 6.8.0 or 6.7.1 | a check of the matrix fails |
+| `pytest-programs` | xtb 6.8.0, the g-xTB build | the pytest cases that need xtb | a test fails |
+| `xtb680-changes` | xtb 6.8.0 (the g-xTB build for its 6.7.1 rows) | each 6.7.1 behaviour put back into the 6.8.0 conventions | the 6.8.0 conventions > 4.8e-13 Eh, 3.9e-14 Eh/bohr or other iterations; the 6.7.1 conventions vs the 6.7.1 program > 1e-8 Eh |
+| `xtb-hess-acc` | xtb 6.8.0 | what `--acc` and `$hess sccacc` do to `xtb --hess` | an xtb Hessian is further from axtb's analytic one than docs/validation.md quotes for its setting (3.7e-5 to 1.3e-3 Eh/bohr²) |
+| `program-differences` | xtb 6.8.0, tblite | xtb vs tblite: solvation states, atom order, 0.1 K | axtb's default conventions vs tblite > 4e-10 Eh, its atom-order dependence > 1e-12 Eh, a program fails |
+| `scf-hard` | the g-xTB build, tblite | SCF convergence on hard cases | Broyden fails on more than 20 cases, DIIS on more than 10, `auto` on another than the ten known 0 K cases or differs from Broyden where Broyden converges |
+| `vibrational-xtb-6.8.0`, `vibrational-xtb-6.7.1` | xtb 6.8.0 or the g-xTB build | frequencies, IR intensities, thermochemistry vs `xtb --hess` | on the program's Hessian: frequencies > 5.0e-5 cm⁻¹, thermochemistry > 1.4e-10 Eh (6.7.1: 7.7e-11; g-xTB 2.7e-11), other symmetry numbers; axtb's Hessians beyond docs/validation.md |
+| `gfnff-xtb-6.8.0`, `gfnff-xtb-6.7.1` | xtb 6.8.0 or the g-xTB build | GFN-FF topology, energies, gradients, Hessians (not the scaling timings) | a structure not reproduced (D5h ferrocenium known), energies > 7.0e-13 Eh (6.7.1: 8.4e-13), gradients > 4.3e-12 Eh/bohr (9.3e-12), the Hessian and topology rows of docs/validation.md |
+| `gxtb-reproduction`, `gxtb2-reproduction`, `gxtb-etemp`, `gxtb-energy-differences` | nothing (committed program outputs) | g-xTB v1.1 and 2.0.1 in both conventions | v1.1 energies > 1e-11 Eh; 2.0.1 energies > 2.1e-12 Eh ((H2O)100 9.1e-12), terms, gradients and default conventions beyond the spec's tables, other iterations; at 300-5000 K as the spec (rounding-sensitive runs known); energy differences moved by the default conventions > 1.1e-5 Eh (v1.1), 4e-11 Eh (2.0.1) |
+| `gxtb-elements` | the g-xTB build and/or the g-xTB 1.1.0 program | every element with parameters | a molecule is not `ok` and not one of the known ones (spec §5.1 and §12), energies of the `ok` ones > 2.8e-12 Eh (v1.1) / 4.9e-11 Eh (2.0.1), gradients > 2.3e-10 Eh/bohr (2.0.1) |
+| `gxtb-parity` | any of the four programs (each its own cases) | bond orders, gap, quadrupole, restarts | bond orders and gaps beyond docs/validation.md's table, quadrupoles beyond the printed digits, restarted energies > 4.3e-11 Eh or other iterations |
+| `solvation-composite` | the g-xTB build | g-xTB in implicit solvent vs the three programs | energies > 9.7e-11 Eh, gradients > 5.3e-10 Eh/bohr, the Hessian > 5.6e-8 Eh/bohr² from finite differences |
+| `molden` | the g-xTB build and/or the g-xTB 1.1.0 program | Molden files vs the programs' | orbitals, occupied space and orbital energies beyond docs/validation.md's table, axtb's files orthonormal to worse than 6e-11 |
+| `ts-example` | xtb's source (the g-xTB build for its `xtb --hess` row) | an SN2 saddle point with analytic Hessians | no saddle point, not one imaginary mode, frequencies of the other Hessians off the analytic one's (`xtb --hess` by more than 1 cm⁻¹) |
 
 The benchmarks (`bench/`, timings) are not checks; `bench/README.md` describes them.
 

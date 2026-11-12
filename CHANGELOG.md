@@ -13,6 +13,31 @@ Rust crates, the CLI and the Python package share one version.
   (1 and 8 threads) and (H2O)100 (8 threads) on the laptop (`tests/gxtb2_hessian_symmetric.py`).
   Memory: + 2 · 3N · n_occ · n_virt · 4 bytes (taxol +53 MB, (H2O)100 +0.67 GB). The reported
   `hessian_max_asymmetry` of these Hessians is now ~1e-7, removed by the symmetrization.
+- Fixes found by the engineering review (no validated energy, gradient or Hessian changes):
+  - g-xTB v1.1 results report the electronic entropy term `entropy` (−TS) among their terms and
+    in `EnergyTerms`, as 2.0.1 does; it was missing and read 0 at a finite temperature. The
+    totals were right.
+  - `guess="sad"` starts GFN2-xTB SCFs from neutral atoms; it used to start them from EEQ
+    charges without saying so. A named start of another method (`"eeq-bc"` for GFN2-xTB,
+    `"eeq"` or `"sad"` for g-xTB, any named start for the solvation composite) is refused.
+  - Unpaired electrons (`uhf` > 0) for GFN-FF, which has no electronic structure, give a
+    warning instead of being ignored silently.
+  - The documented default of `max_iter` is 1000 for g-xTB v1.1 (250 for GFN2-xTB and
+    g-xTB 2.0.1); the docs said 250 for all.
+  - The g-xTB 2.0.1 response and analytic Hessians reuse the calculator's setup of the
+    geometry instead of building it again (results unchanged).
+  - The D4 three-body term no longer gives NaN for a pair whose C6 is exactly zero (no element
+    of the shipped tables has one).
+- The Python package's `qc` extra requires `qcdata<0.24`: qcdata 0.24 removes the
+  `SinglePointData` fields the qccodec codec fills for Hessians (`freqs_wavenumber`,
+  `normal_modes_cartesian`, `gibbs_free_energy`). axtb 0.2 fills `vibrational_analysis` and
+  `thermochemistry` instead.
+- Every validation gate of `scripts/check.sh programs` now fails when a result exceeds its
+  documented limit (the numbers of docs/validation.md and the specs; `tests/gate.py`), or a
+  calculation fails, except the known differences the docs explain. 17 of the 24 gates used to
+  print their numbers and always pass, and `vibrational-*` and `solvation-composite` checked
+  limits 10 to 7000 times looser than their documented results. `scripts/check.sh list` prints
+  each gate's limits.
 
 ## 0.1.1 (2026-11-10)
 

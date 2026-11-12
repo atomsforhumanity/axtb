@@ -8,6 +8,10 @@ At the converged structure the axtb Hessian methods and `xtb --hess --acc 0.001`
 compared: number of imaginary modes and the imaginary frequency.
 
 Usage: python bench/ts_example.py   (AXTB_BIN, AXTB_REFERENCE and AXTB_GXTB2 as for hessian_benchmark.py)
+
+It fails (exit status 1) when the search does not converge, a Hessian has more or fewer than one
+imaginary mode, or the frequencies differ from the analytic Hessian's by more than `LIMITS`
+(tests/gate.py).
 """
 from __future__ import annotations
 
@@ -21,7 +25,18 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hessian_benchmark import AXTB, XTB, frequencies, programs, run_xtb, tr_projector, xtb_masses  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests"))
+import gate  # noqa: E402
+
 AATOAU = 1.0 / 0.529177210903
+# max |dfreq| (cm-1, modes above 10 cm-1 in magnitude) against the analytic Hessian. Chosen from
+# the measured values: the analytic Hessian in xtb conventions 1.5e-7 (limit 2e-6), the response
+# Hessian 6.2e-4 and the numerical one 0.062 (their finite-difference errors, which do not move
+# with round-off: limits 2e-3 and 0.2); `xtb --hess` within 1 cm-1, its finite-difference noise
+# (docs/validation.md, Summary)
+LIMITS = {"search not converged": 0, "Hessians without exactly one imaginary mode": 0,
+          "axtb response": 2e-3, "axtb numerical": 0.2, "axtb analytic (xtb conventions)": 2e-6,
+          "xtb --hess --acc 0.001": 1.0}
 SYMBOLS = {6: "C", 1: "H", 17: "Cl"}
 # asymmetric guess (Angstrom): C-Cl 2.25 / 2.45, slightly pyramidal methyl
 GUESS = [
@@ -49,6 +64,7 @@ def main() -> int:
     pos = np.array([p for _, p in GUESS]) * AATOAU
     masses = xtb_masses()
     print("eigenvector following with analytic Hessians")
+    converged = False
     for it in range(50):
         e, g, h, t = axtb(nums, pos)
         p = tr_projector(pos)
@@ -60,6 +76,7 @@ def main() -> int:
         nneg = int((w < 0).sum())
         print(f"  {it:2d}  E {e:.10f}  max|g| {gmax:.2e}  negative eigenvalues {nneg}  lowest {w[0]:+.4f}  ({t * 1e3:.1f} ms)")
         if gmax < 1e-6:
+            converged = True
             break
         step = np.zeros_like(f)
         step[0] = f[0] / abs(w[0])          # uphill along the lowest mode
@@ -81,11 +98,18 @@ def main() -> int:
     if XTB or programs.note_skip("the xtb --hess row", programs.GXTB2):
         hx, tx = run_xtb(np.array(nums), pos, CHARGE, 0, None, 1, acc=0.001)
         rows.append(("xtb --hess --acc 0.001", frequencies(hx, nums, pos, masses), tx))
+    summary = {"search not converged": 0 if converged else 1, "Hessians without exactly one imaginary mode": []}
+    ref = rows[0][1]
     for name, fr, t in rows:
         nimag = int((fr < -10.0).sum())
         real = fr[np.abs(fr) > 10.0]
         print(f"  {name:32s} imaginary modes {nimag}: {fr[0]:9.2f}   lowest real {real[real > 0][:3].round(2)}   ({t:.3f} s)")
-    return 0
+        if nimag != 1:
+            summary["Hessians without exactly one imaginary mode"].append(name)
+        if name != rows[0][0]:
+            modes = np.abs(ref) > 10.0
+            summary[name] = float(np.abs(fr - ref)[modes].max())
+    return gate.check(summary, LIMITS)
 
 
 if __name__ == "__main__":

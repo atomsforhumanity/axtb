@@ -56,7 +56,7 @@ strip = true
 compatibility = "manylinux_2_28"
 
 [project.optional-dependencies]
-qc = ["qccodec>=0.21", "qcdata"]
+qc = ["qccodec>=0.21", "qcdata<0.24"]
 
 [project.entry-points."qccodec.codecs"]
 axtb = "axtb.qccodec:codec"

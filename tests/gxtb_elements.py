@@ -47,6 +47,10 @@ moves as much under the rotation.
 Programs (tests/programs.py): the g-xTB 2.0.1 build of xtb (`$AXTB_GXTB2`) for version 2.0.1,
 the g-xTB 1.1.0 program (`$AXTB_GXTB11_DIR`) for 1.1; a version whose program is not there is
 skipped. All runs with OMP_NUM_THREADS=1. Known classifications that need a manual diagnosis are in `KNOWN`.
+
+The script fails (exit status 1) when a molecule is not `ok` (or `unparametrized`) and not one of
+the known differences, or a quantity of the `ok` molecules exceeds its limit in `LIMITS`
+(tests/gate.py).
 """
 
 from __future__ import annotations
@@ -71,6 +75,7 @@ import cases as M  # noqa: E402  (the reference matrix's element molecules)
 import structures as S  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "tests"))
+import gate  # noqa: E402
 import programs  # noqa: E402
 
 AXTB = os.environ.get("AXTB_BIN", str(ROOT / "target/release/axtb"))
@@ -357,6 +362,61 @@ KNOWN: dict[tuple[str, str], tuple[str, str]] = {
 # tight-threshold classifications decided by more than the shifted copy
 KNOWN_TIGHT: dict[tuple[str, str], tuple[str, str]] = {}
 
+# The gate (tests/gate.py), per version, over the `ok` molecules unless named: docs/gxtb-v1.1-spec.md
+# §5.1 and docs/gxtb-v2.0.1-spec.md §12 (also docs/validation.md, Summary). v1.1: total energies
+# <= 2.8e-12 Eh, printed terms within their 8 decimals (<= 5.0e-9 Eh); the four far-pair cases
+# differ in the printed "Ex (Mulliken)" by <= 1.7e-8 Eh with totals <= 9e-12 Eh; axtb's gradients
+# (both conventions) against five-point differences of its energies <= 8.8e-8 Eh/bohr. 2.0.1:
+# total energies <= 4.9e-11 Eh, printed terms <= 1.1e-12 Eh, gradients <= 2.3e-10 Eh/bohr (NdCl3
+# 2.5e-9) and <= 2.1e-10 (tight), the default conventions <= 9.0e-10 Eh from the program.
+LIMITS = {
+    "1.1": {"unexpected status": 0, "max_abs_dE": 2.8e-12, "max_dterm": 5.0e-9, "far-pair max_abs_dE": 9e-12,
+            "far-pair max_dterm": 1.7e-8, "max_dG_fd_gxtb": 8.8e-8, "max_dG_fd_axtb": 8.8e-8,
+            "FD failures or energy steps (unexpected)": 0},
+    "2.0.1": {"unexpected status": 0, "max_abs_dE": 4.9e-11, "max_dterm": 1.1e-12, "max_dG": 2.3e-10,
+              "max_dG NdCl3": 2.5e-9, "max_dG_tight": 2.1e-10, "max_abs_dE_default": 9.0e-10},
+}
+FAR_PAIR = {"020-Ca-2", "045-Rh-2", "056-Ba-2", "057-La-2"}
+# "<version> <id>": the molecules that are not `ok`, or whose tight runs or finite differences
+# are not, with the docs' reasons (the specs' sections above; rounding-sensitive: the SCF path
+# depends on round-off, and axtb's own result moves as much under a shifted copy)
+KNOWN_DIFFERENCES = {
+    "1.1 002-He": "HeH+: rounding-sensitive, printed terms 7e-9 apart",
+    "1.1 006-C-3": "CH3 radical: rounding-sensitive, printed terms 9e-7 apart, totals 1.3e-9 Eh",
+    "1.1 020-Ca-2": "[Ca(H2O)6]2+: far-pair Fock elements (v1.1 spec §4.16), printed Ex (Mulliken) 1.7e-8 Eh apart",
+    "1.1 045-Rh-2": "[Rh(NH3)6]3+: far-pair Fock elements (v1.1 spec §4.16), printed Ex (Mulliken) 6.5e-9 Eh apart",
+    "1.1 056-Ba-2": "[Ba(H2O)6]2+: far-pair Fock elements (v1.1 spec §4.16), printed Ex (Mulliken) 8.3e-9 Eh apart",
+    "1.1 057-La-2": "[La(H2O)6]3+: far-pair Fock elements (v1.1 spec §4.16), printed Ex (Mulliken) 6.9e-9 Eh apart",
+    "1.1 023-V": "VCl4 (d1): rounding-sensitive (an exactly degenerate, partly filled set); its tight SCF for the "
+                 "finite differences does not converge",
+    "1.1 029-Cu-2": "[Cu(H2O)6]2+: the tight SCF for the finite differences does not converge at the displaced geometries",
+    "1.1 070-Yb-2": "YbCl2: rounding-sensitive (an exactly degenerate, partly filled set); its tight SCF for the finite "
+                    "differences does not converge",
+    "1.1 076-Os-2": "[Os(NH3)6]2+: an energy step of 1.3e-9 Eh in the finite differences (a primitive pair crossing the "
+                    "integral screening)",
+    "1.1 092-U": "UF6: rounding-sensitive (v1.1 spec §4.17: which subspace of an exactly degenerate set each "
+                 "eigensolver returns in iteration 2)",
+    "1.1 092-U-2": "UCl4 (f2): rounding-sensitive (an exactly degenerate, partly filled set); its tight SCF for the "
+                   "finite differences does not converge",
+    "2.0.1 002-He": "HeH+: rounding-sensitive, 9 vs 12 iterations at the default thresholds (11 vs 10 on the shifted copy)",
+    "2.0.1 010-Ne": "NeH+: tight iteration counts move with the round-off in both programs",
+    "2.0.1 023-V": "VCl4 (d1): rounding-sensitive (a partly filled degenerate set)",
+    "2.0.1 029-Cu-2": "[Cu(H2O)6]2+: tight iteration counts move with the round-off in both programs",
+    "2.0.1 058-Ce": "CeCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+    "2.0.1 064-Gd": "GdCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+    "2.0.1 064-Gd-2": "[Gd(H2O)6]3+: the program's gradient error for bonds along an axis (2.0.1 spec §4.18)",
+    "2.0.1 065-Tb": "TbCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+    "2.0.1 068-Er": "ErCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+    "2.0.1 069-Tm": "TmCl3: rounding-sensitive (an open f shell at a symmetric geometry); the program's tight SCF "
+                    "converges in 98 iterations and fails like axtb's on the perturbed copies",
+    "2.0.1 071-Lu-2": "[Lu(H2O)6]3+: the program's gradient error for bonds along an axis (2.0.1 spec §4.18)",
+    "2.0.1 092-U-2": "UCl4 (f2): rounding-sensitive (a partly filled degenerate set)",
+    "2.0.1 094-Pu": "PuF6 (f2): rounding-sensitive (a partly filled degenerate set)",
+    "2.0.1 097-Bk": "BkCl3: rounding-sensitive, 45 vs 59 iterations, 8.1e-9 Eh",
+    "2.0.1 098-Cf": "CfCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+    "2.0.1 100-Fm": "FmCl3: rounding-sensitive (an open f shell at a symmetric geometry)",
+}
+
 
 def transformed(m, tr):
     x = np.array(m["positions"]) @ tr["rot"].T + tr["shift"]
@@ -561,6 +621,43 @@ def worker(version, m, scratch, pool, fd):
     return {**head, "version": version, **row}
 
 
+def check(rows) -> int:
+    """The gate of each version that ran (tests/gate.py)."""
+    rc = 0
+    for v in sorted({r["version"] for r in rows}):
+        rs = [r for r in rows if r["version"] == v]
+        known = {f"{v} {r['id']}": KNOWN_DIFFERENCES[f"{v} {r['id']}"] for r in rs if f"{v} {r['id']}" in KNOWN_DIFFERENCES}
+        ok = [r for r in rs if r["status"] == "ok"]
+
+        def worst(values):
+            return max((abs(x) for x in values), default=None)
+
+        summary = {
+            "unexpected status": [r["id"] for r in rs if (r["status"] not in ("ok", "unparametrized") or "tight_status" in r)
+                                  and f"{v} {r['id']}" not in known],
+            "max_abs_dE": worst(r["dE"] for r in ok),
+            "max_dterm": worst(x for r in ok for x in r["dterms"].values()),
+        }
+        if v == "1.1":
+            far = [r for r in rs if r["id"] in FAR_PAIR and "dE" in r]
+            summary |= {"far-pair max_abs_dE": worst(r["dE"] for r in far),
+                        "far-pair max_dterm": worst(x for r in far for x in r["dterms"].values())}
+            for conv in ("gxtb", "axtb"):
+                summary[f"max_dG_fd_{conv}"] = worst(r[f"fd_{conv}"]["max_dgrad"] for r in rs
+                                                     if "max_dgrad" in r.get(f"fd_{conv}", {}) and "step_Eh" not in r[f"fd_{conv}"])
+            summary["FD failures or energy steps (unexpected)"] = sorted({
+                r["id"] for r in rs for conv in ("gxtb", "axtb")
+                if ("error" in r.get(f"fd_{conv}", {}) or "step_Eh" in r.get(f"fd_{conv}", {})) and f"{v} {r['id']}" not in known})
+        else:
+            summary |= {"max_dG": worst(r["dG"] for r in ok if r["id"] != "060-Nd"),
+                        "max_dG NdCl3": worst(r["dG"] for r in ok if r["id"] == "060-Nd"),
+                        "max_dG_tight": worst(r["dG_tight"] for r in ok if "dG_tight" in r and "tight_status" not in r),
+                        "max_abs_dE_default": worst(r["dE_default"] for r in ok if "dE_default" in r)}
+        print(f"g-xTB {v}:")
+        rc |= gate.check(summary, LIMITS[v], known)
+    return rc
+
+
 def report_table(rows):
     """One compact row per molecule and version for the report."""
     out = []
@@ -719,7 +816,7 @@ def main() -> int:
         "summary": summary, "table": report_table(merged), "rows": merged}, indent=1))
     print(json.dumps(summary, indent=1))
     print("wrote", a.out)
-    return 0
+    return check(merged)
 
 
 if __name__ == "__main__":
