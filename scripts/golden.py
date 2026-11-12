@@ -8,6 +8,11 @@ and feature, a few thread counts and the run-time LAPACK path) and compare outpu
 
 Outputs are compared exactly (every float, every field) except the timing fields. Golden files
 are machine-specific (the matrix-product kernels depend on the CPU), so keep them local.
+
+Trajectory cases (warm starts: each SCF from the previous geometry's wavefunction) run the
+dev-only example of axtb-driver (`cargo build --release -p axtb-driver --example
+golden_trajectory`) on one calculator: `--trajectory BIN`, by default `BIN-trajectory` next to
+the axtb binary if it exists, else `examples/golden_trajectory` in its directory.
 """
 import argparse
 import hashlib
@@ -214,18 +219,57 @@ def corpus():
     add("gxtb2-caffeine-etemp-gxtb", caf, method="gxtb-v2.0.1", conventions="gxtb", etemp=3000.0)
     add("gxtb11-o2-triplet-etemp-grad", o2, method="gxtb-v1.1", gradient=True, etemp=5000.0)
     add("gxtb11-cu-doublet-etemp", cu, method="gxtb-v1.1", etemp=3000.0)
+    # Warm starts: a structure and two small displacements on one calculator, each SCF from the previous
+    # geometry's converged wavefunction (guess "previous": GFN2's moments, g-xTB 2.0.1's state, v1.1's
+    # densities); the axtb conventions of 2.0.1 restart at RESTART_ACCURACY, the program's at its own thresholds
+    traj = lambda base: {**base, "trajectory": trajectory(base["positions"]), "guess": "previous"}
+    for conv in ("axtb", "xtb"):
+        add(f"traj-gfn2-caffeine-grad-{conv}", traj(caf), method="gfn2", conventions=conv, gradient=True)
+    for conv in ("axtb", "gxtb"):
+        add(f"traj-gxtb2-caffeine-grad-{conv}", traj(caf), method="gxtb-v2.0.1", conventions=conv, gradient=True)
+        add(f"traj-gxtb11-caffeine-grad-{conv}", traj(caf), method="gxtb-v1.1", conventions=conv, gradient=True)
+    # an open shell (2.0.1: both spin densities and the magnetizations carried) and a finite temperature (v1.1
+    # in the program's conventions: the eigenvalue cap at N_alpha + 10)
+    add("traj-gxtb2-cu-doublet-grad", traj(cu), method="gxtb-v2.0.1", gradient=True)
+    add("traj-gxtb11-caffeine-etemp-gxtb", traj(caf), method="gxtb-v1.1", conventions="gxtb", gradient=True,
+        etemp=3000.0)
     return c
 
 
-def run(axtb: str, req: dict, env_extra: dict):
+def trajectory(positions):
+    """The structure and two small displacements of it (every coordinate by -0.02 to 0.02 bohr per step)."""
+    step = lambda k: [[x + 0.01 * k * ((7 * i + 3 * c) % 5 - 2) for c, x in enumerate(r)]
+                      for i, r in enumerate(positions)]
+    return [step(0), step(1), step(2)]
+
+
+def run(axtb: str, req: dict, env_extra: dict, trajectory_bin: str = ""):
     env = {k: v for k, v in os.environ.items() if not k.startswith(("AXTB_LAPACK", "OMP_", "MKL_", "RAYON"))}
     env.update(env_extra)
+    if "trajectory" in req:
+        # one response per geometry, one per line
+        req = dict(req)
+        text = json.dumps({"trajectory": req.pop("trajectory"), "request": req})
+        p = subprocess.run([trajectory_bin], input=text, capture_output=True, text=True, env=env)
+        try:
+            out = [json.loads(line) for line in p.stdout.splitlines()]
+        except json.JSONDecodeError:
+            out = {"unparsed_stdout": p.stdout[-2000:]}
+        return {"exit_code": p.returncode, "output": strip_timings(out)}
     p = subprocess.run([axtb, "--json"], input=json.dumps(req), capture_output=True, text=True, env=env)
     try:
         out = json.loads(p.stdout)
     except json.JSONDecodeError:
         out = {"unparsed_stdout": p.stdout[-2000:]}
     return {"exit_code": p.returncode, "output": strip_timings(out)}
+
+
+def trajectory_runner(axtb: str, given: str) -> str:
+    """The trajectory runner for the axtb binary `axtb` (see the module documentation)."""
+    if given:
+        return given
+    beside = Path(axtb + "-trajectory")
+    return str(beside if beside.exists() else Path(axtb).parent / "examples/golden_trajectory")
 
 
 def strip_timings(x):
@@ -290,6 +334,7 @@ def main():
     ap.add_argument("mode", choices=["record", "compare", "list"])
     ap.add_argument("dir", nargs="?")
     ap.add_argument("--axtb", default=str(ROOT / "target/release/axtb"))
+    ap.add_argument("--trajectory", default="", help="the trajectory runner (default: see above)")
     ap.add_argument("--only", default="", help="comma-separated case-name substrings")
     a = ap.parse_args()
     cases = corpus()
@@ -298,28 +343,38 @@ def main():
         cases = [c for c in cases if any(k in c[0] for k in keys)]
     if a.mode == "list":
         for name, req, env in cases:
-            print(name, json.dumps({k: v for k, v in req.items() if k not in ("numbers", "positions")}), env or "")
+            shown = {k: v for k, v in req.items() if k not in ("numbers", "positions", "trajectory")}
+            if "trajectory" in req:
+                shown["trajectory"] = f"{len(req['trajectory'])} geometries"
+            print(name, json.dumps(shown), env or "")
         return
     d = Path(a.dir)
     sha = hashlib.sha256(Path(a.axtb).read_bytes()).hexdigest()[:16]
+    traj = trajectory_runner(a.axtb, a.trajectory)
+    if any("trajectory" in req for _, req, _ in cases) and not Path(traj).exists():
+        sys.exit(f"the trajectory cases need the runner {traj} (cargo build --release -p axtb-driver --example "
+                 "golden_trajectory, or --trajectory BIN)")
     if a.mode == "record":
         d.mkdir(parents=True, exist_ok=True)
         for name, req, env in cases:
-            (d / f"{name}.json").write_text(json.dumps(run(a.axtb, req, env)))
+            (d / f"{name}.json").write_text(json.dumps(run(a.axtb, req, env, traj)))
             print("recorded", name, flush=True)
         meta_path = d / "_meta.json"
+        entry = {"axtb": a.axtb, "sha256": sha}
+        if any("trajectory" in req for _, req, _ in cases):
+            entry.update(trajectory=traj, trajectory_sha256=hashlib.sha256(Path(traj).read_bytes()).hexdigest()[:16])
         if a.only and meta_path.exists():
             # a partial record adds to the directory: keep the full record's entry, list these cases
             meta = json.loads(meta_path.read_text())
-            meta.setdefault("partial", []).append({"axtb": a.axtb, "sha256": sha, "cases": [n for n, _, _ in cases]})
+            meta.setdefault("partial", []).append({**entry, "cases": [n for n, _, _ in cases]})
         else:
-            meta = {"axtb": a.axtb, "sha256": sha, "cases": len(cases)}
+            meta = {**entry, "cases": len(cases)}
         meta_path.write_text(json.dumps(meta))
         return
     failed = 0
     for name, req, env in cases:
         gold = json.loads((d / f"{name}.json").read_text())
-        new = run(a.axtb, req, env)
+        new = run(a.axtb, req, env, traj)
         ds = diff(gold, new)
         if ds:
             failed += 1
