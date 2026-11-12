@@ -16,7 +16,7 @@ use crate::scf::mixing::{MixerKind, MixerPlan, ScfAttempt};
 use crate::scf::{
     dot, fock, mulliken, run_scf, Accelerator, FockSource, Iteration, ScfModel, ScfStrategy, ScfVariables, Stop,
 };
-use crate::terms::{self, Chain, ChainLayout, Slot, Values};
+use crate::terms::{self, Chain, ChainLayout, GeometryTerm, Slot, TermEnergy, Values};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
@@ -505,8 +505,10 @@ impl XtbModel {
         let bas = &self.basis;
         let mut chain = Chain::new(&self.layout, nat);
         let mut e = vec![0.0; nat];
-        self.repulsion.compute(mol, &mut e, Some(&mut chain.g));
         let geo = self.geometry(mol, extra);
+        let mut erep = [0.0];
+        let te = &mut TermEnergy { pieces: &mut erep, atoms: Some(&mut e) };
+        self.repulsion.energy(&self.term_geometry(mol, &geo, parallel), &(), te, Some(&mut chain));
         for (t, c) in extra.iter().zip(&geo.caches) {
             t.fixed_energy(mol, c.as_ref(), &mut e, Some(&mut chain.g), parallel);
         }
@@ -569,9 +571,11 @@ impl XtbModel {
         // non-self-consistent contributions
         let mut energies = vec![0.0; nat];
         let mut erep = vec![0.0; nat];
-        self.repulsion.compute(mol, &mut erep, chain.as_mut().map(|c| &mut c.g[..]));
         // geometry-dependent setup
         let geo = self.geometry(mol, extra);
+        let mut e_repulsion = [0.0];
+        let te = &mut TermEnergy { pieces: &mut e_repulsion, atoms: Some(&mut erep) };
+        self.repulsion.energy(&self.term_geometry(mol, &geo, parallel), &(), te, chain.as_mut());
         // fixed (charge-independent) energy of every extra term
         let mut efixed = vec![0.0; extra.len()];
         for (k, (t, c)) in extra.iter().zip(&geo.caches).enumerate() {
@@ -762,7 +766,7 @@ impl XtbModel {
             mut terms,
             ..
         } = scf;
-        terms.repulsion = erep.iter().sum();
+        terms.repulsion = e_repulsion[0];
         let mp_cache = &geo.mp_cache;
         for i in 0..nat {
             energies[i] += eelec[i];

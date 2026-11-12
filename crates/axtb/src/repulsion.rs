@@ -2,6 +2,8 @@
 //! `E = sum_{A<B} Z_A Z_B exp(-sqrt(α_A α_B) R^k) / R^r`.
 
 use crate::molecule::{norm2_sq, sub3, Molecule};
+use crate::terms::{Chain, Chain2, Geometry, GeometryTerm, TermEnergy};
+use crate::Result;
 
 #[derive(Clone, Debug)]
 pub struct Repulsion {
@@ -70,7 +72,7 @@ impl Repulsion {
     }
 
     /// Second derivatives, added to `hess` (row-major `3 nat x 3 nat`).
-    pub fn add_hessian(&self, mol: &Molecule, hess: &mut [f64]) {
+    fn hessian(&self, mol: &Molecule, hess: &mut [f64]) {
         let n3 = 3 * mol.nat();
         let cutoff2 = self.cutoff * self.cutoff;
         for i in 0..mol.nat() {
@@ -91,5 +93,42 @@ impl Repulsion {
                 axtb_base::math::add_radial_hessian(hess, n3, i, j, rij, r1, e * t, e * (t * t + dt));
             }
         }
+    }
+}
+
+/// The repulsion as a term: energy per atom (each pair split evenly), gradient and analytic
+/// Hessian.
+impl GeometryTerm for Repulsion {
+    type Cache = ();
+
+    fn names(&self) -> &[&'static str] {
+        &["repulsion"]
+    }
+
+    fn partitions_energy(&self) -> bool {
+        true
+    }
+
+    fn update(&self, _geo: &Geometry<'_>) -> Result<()> {
+        Ok(())
+    }
+
+    fn energy(&self, geo: &Geometry<'_>, _c: &(), e: &mut TermEnergy<'_>, chain: Option<&mut Chain>) {
+        let grad = chain.map(|c| &mut c.g[..]);
+        let mut own = Vec::new();
+        let atoms = match e.atoms.as_deref_mut() {
+            Some(row) => row,
+            None => {
+                own.resize(geo.mol.nat(), 0.0);
+                &mut own[..]
+            }
+        };
+        self.compute(geo.mol, atoms, grad);
+        e.pieces[0] = atoms.iter().sum();
+    }
+
+    fn add_hessian(&self, geo: &Geometry<'_>, _c: &(), h: &mut Chain2<'_>) -> Result<()> {
+        self.hessian(geo.mol, h.h);
+        Ok(())
     }
 }

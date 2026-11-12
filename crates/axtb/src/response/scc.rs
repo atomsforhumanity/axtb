@@ -31,6 +31,7 @@ use crate::hamiltonian::AtomBlocks;
 use crate::linalg::Lu;
 use crate::molecule::Molecule;
 use crate::scf::{mulliken, ScfVariables};
+use crate::terms::Jacobians;
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::{Error, Result};
 use axtb_base::occupations::fermi;
@@ -74,8 +75,8 @@ pub(crate) struct Response<'a> {
     pub blocks: Vec<AtomBlocks>,
     /// First AO of each atom.
     pub ao_off: Vec<usize>,
-    /// CN Jacobian (row-major nat x 3 nat).
-    pub jac: Vec<f64>,
+    /// Jacobians of the intermediates (the CN: [`Response::jac`]).
+    pub jacobians: Jacobians,
     /// `S C` and `X_kᵀ C` for the dipole (k < 3) and quadrupole integrals.
     sc: Mat<f64>,
     gx: Vec<Mat<f64>>,
@@ -112,7 +113,8 @@ impl<'a> Response<'a> {
             parallel,
         );
         let ao_off: Vec<usize> = (0..nat).map(|a| bas.iao_sh[bas.ish_at[a]]).collect();
-        let jac = model.ncoord.jacobian(mol);
+        let tg = model.term_geometry(mol, &st.geo, parallel);
+        let jacobians = model.layout.jacobians(&tg).expect("the GFN2-xTB CN's Jacobian cannot fail");
         let par = threads::par(threads);
         let c = st.coeff.as_ref();
         let mut sc = Mat::<f64>::zeros(nao, nao);
@@ -125,7 +127,12 @@ impl<'a> Response<'a> {
                 gx.push(g);
             }
         }
-        Self { model, extra, mol, st, lay, occ, n_f, blocks, ao_off, jac, sc, gx, threads }
+        Self { model, extra, mol, st, lay, occ, n_f, blocks, ao_off, jacobians, sc, gx, threads }
+    }
+
+    /// The CN Jacobian dCN/dR (row-major nat x 3 nat).
+    pub fn jac(&self) -> &[f64] {
+        self.jacobians.get(self.model.cn)
     }
 
     fn bas(&self) -> &Basis {
@@ -357,7 +364,7 @@ impl<'a> Response<'a> {
                 for a in 0..nat {
                     let w = dvcn[r * nat + a];
                     if w != 0.0 {
-                        let jrow = &self.jac[a * n3..(a + 1) * n3];
+                        let jrow = &self.jac()[a * n3..(a + 1) * n3];
                         let out = &mut dv[r * n3..(r + 1) * n3];
                         for x in 0..n3 {
                             out[x] += w * jrow[x];
@@ -492,7 +499,7 @@ impl<'a> Response<'a> {
             }
         }
         for cc in 0..nat {
-            let jrow = &self.jac[cc * n3..(cc + 1) * n3];
+            let jrow = &self.jac()[cc * n3..(cc + 1) * n3];
             let col = local.col_as_slice(n3 + cc);
             for x in 0..n3 {
                 let w = jrow[x];

@@ -20,6 +20,7 @@
 
 use crate::molecule::Molecule;
 use crate::response::Response;
+use crate::terms::{Chain2, GeometryTerm};
 use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
 use crate::Result;
 use faer::{Accum, Mat};
@@ -48,7 +49,7 @@ pub(crate) fn analytic_hessian(
     }
     for c in 0..nat {
         for x in 0..n3 {
-            t[(n3 + c, x)] = resp.jac[c * n3 + x];
+            t[(n3 + c, x)] = resp.jac()[c * n3 + x];
         }
     }
     let hs = r.hskel.as_ref().expect("skeleton Hessian");
@@ -104,7 +105,7 @@ pub(crate) fn explicit(
         &st.pot.vdp,
         &st.pot.vqp,
         &model.ncoord,
-        &resp.jac,
+        resp.jac(),
         &mut h,
         parallel,
     );
@@ -112,9 +113,11 @@ pub(crate) fn explicit(
     let t0 = std::time::Instant::now();
     model.es2.add_hessian(mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut h);
     if let (Some(aes), Some(cache)) = (&model.aes2, &geo.mp_cache) {
-        aes.add_hessian(mol, cache, geo.values.get(model.cn), &resp.jac, &st.qat, &st.dpat, &st.qpat, &mut h);
+        aes.add_hessian(mol, cache, geo.values.get(model.cn), resp.jac(), &st.qat, &st.dpat, &st.qpat, &mut h);
     }
-    model.repulsion.add_hessian(mol, &mut h);
+    let tg = model.term_geometry(mol, geo, parallel);
+    let h2 = &mut Chain2 { h: &mut h, jacobians: &resp.jacobians };
+    model.repulsion.add_hessian(&tg, &(), h2).expect("the repulsion's Hessian cannot fail");
     timings.push(("explicit: electrostatics+repulsion", t0.elapsed().as_secs_f64()));
     h
 }

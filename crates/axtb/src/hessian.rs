@@ -84,7 +84,7 @@ pub(crate) fn displacement_response(resp: &Response, dv: &Mat<f64>, y: usize, pa
     add_local(&mut df, &resp.blocks[a].fock[k], resp.ao_off[a], 1.0);
     add_local(&mut ds, &resp.blocks[a].overlap[k], resp.ao_off[a], 1.0);
     for c in 0..nat {
-        let w = resp.jac[c * n3 + y];
+        let w = resp.jac()[c * n3 + y];
         if w != 0.0 {
             add_local(&mut df, &resp.blocks[c].cn, resp.ao_off[c], w);
         }

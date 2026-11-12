@@ -112,7 +112,8 @@ impl Potentials {
 /// The energy of one term in one evaluation: one total per piece of the term's names (set by
 /// the term), and, when the model sums its energy per atom and the term partitions its energy
 /// ([`partitions_energy`](super::MomentTerm::partitions_energy)), the energy of all its pieces
-/// partitioned over the atoms (added to; one value per atom).
+/// partitioned over the atoms: the term's own row, zero on entry, added to (one value per
+/// atom).
 pub struct TermEnergy<'a> {
     pub pieces: &'a mut [f64],
     pub atoms: Option<&'a mut [f64]>,

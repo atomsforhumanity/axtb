@@ -290,7 +290,13 @@ pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
     }
     // repulsion
     let mut h = vec![0.0; n3 * n3];
-    model.repulsion.add_hessian(mol, &mut h);
+    {
+        use crate::terms::{Chain2, Geometry, GeometryTerm, Jacobians};
+        let values = model.layout.compute(mol).unwrap();
+        let geo = Geometry { mol, layout: &model.layout, values: &values, parallel: false };
+        let jac = Jacobians::new(&model.layout);
+        model.repulsion.add_hessian(&geo, &(), &mut Chain2 { h: &mut h, jacobians: &jac }).unwrap();
+    }
     worst = worst.max(fd_check("repulsion", mol, &h, |m| {
         let mut g = vec![[0.0; 3]; m.nat()];
         let mut e = vec![0.0; m.nat()];
