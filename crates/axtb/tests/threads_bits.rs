@@ -4,7 +4,7 @@
 //! calculation gives the same bits on 1 and 3 threads; above it, the same bits on repeats with
 //! the same thread count, and round-off between thread counts.
 
-use axtb::{Calculator, Conventions, Method, Options, SinglePoint};
+use axtb::{Calculator, Conventions, Hamiltonian, Options, SinglePoint};
 
 /// A zigzag n-alkane CnH(2n+2) (bohr), idealized geometry.
 fn alkane(n: usize) -> (Vec<usize>, Vec<[f64; 3]>) {
@@ -30,7 +30,7 @@ fn alkane(n: usize) -> (Vec<usize>, Vec<[f64; 3]>) {
 fn run(mol: &(Vec<usize>, Vec<[f64; 3]>), conventions: Conventions, threads: usize) -> SinglePoint {
     let mut o = Options { conventions, ..Default::default() };
     o.scf.threads = threads;
-    let mut calc = Calculator::new(Method::Gfn2, &mol.0, &mol.1, 0.0, None, o).unwrap();
+    let mut calc = Calculator::new(Hamiltonian::Gfn2, &mol.0, &mol.1, 0.0, None, o).unwrap();
     calc.singlepoint(&mol.1, true).unwrap()
 }
 

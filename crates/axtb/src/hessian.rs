@@ -18,45 +18,7 @@ use crate::Result;
 use axtb_base::fd;
 use faer::{Accum, Mat, Par};
 
-/// How [`crate::Calculator::hessian`] computes second derivatives.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum HessianMethod {
-    /// Central differences of analytic gradients, one SCF per displacement.
-    Numerical,
-    /// Central differences of the gradient functional with the wavefunction extrapolated
-    /// by the coupled-perturbed SCC response (no SCF per displacement).
-    Response,
-    /// Analytic second derivatives with the coupled-perturbed SCC response.
-    #[default]
-    Analytic,
-}
-
-impl std::str::FromStr for HessianMethod {
-    type Err = crate::Error;
-    fn from_str(s: &str) -> Result<Self> {
-        match s.to_ascii_lowercase().as_str() {
-            "numerical" | "numeric" | "fd" => Ok(HessianMethod::Numerical),
-            "response" => Ok(HessianMethod::Response),
-            "analytic" | "analytical" => Ok(HessianMethod::Analytic),
-            other => {
-                Err(crate::Error::Input(format!("unknown Hessian method {other:?} (numerical, response, analytic)")))
-            }
-        }
-    }
-}
-
-/// Settings of a Hessian calculation.
-#[derive(Clone, Debug, Default)]
-pub struct HessianOptions {
-    pub method: HessianMethod,
-    /// Finite-difference step in bohr (Numerical: default 0.005; Response: default 5e-4;
-    /// unused by Analytic).
-    pub step: Option<f64>,
-    /// SCF accuracy: of every displacement for Numerical (default 0.01), of the reference
-    /// wavefunction for Response and Analytic (default 1e-3). Never looser than the
-    /// calculator's own accuracy.
-    pub accuracy: Option<f64>,
-}
+pub use axtb_base::method::{HessianMethod, HessianOptions};
 
 /// `M += L Eᵀ + E Lᵀ` (scaled by `w`) for a column block `l` of the AOs starting at `off`.
 pub(crate) fn add_local(m: &mut Mat<f64>, l: &Mat<f64>, off: usize, w: f64) {

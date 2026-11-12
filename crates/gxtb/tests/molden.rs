@@ -137,12 +137,18 @@ fn gfn2_orbitals() {
     for (rel, charge, uhf) in cases {
         let mol = molecule(rel, charge, uhf);
         let mut opts = axtb::Options::default();
-        let mut calc =
-            axtb::Calculator::new(axtb::Method::Gfn2, &mol.numbers, &mol.positions, charge, Some(uhf), opts.clone())
-                .unwrap();
+        let mut calc = axtb::Calculator::new(
+            axtb::Hamiltonian::Gfn2,
+            &mol.numbers,
+            &mol.positions,
+            charge,
+            Some(uhf),
+            opts.clone(),
+        )
+        .unwrap();
         assert!(calc.singlepoint(&mol.positions, false).unwrap().orbitals.is_none());
         opts.scf.keep_orbitals = true;
-        let sp = axtb::singlepoint(axtb::Method::Gfn2, &mol, &opts, false).unwrap();
+        let sp = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, false).unwrap();
         check(&format!("{rel} gfn2"), sp.orbitals.as_ref().unwrap(), &sp, uhf);
     }
 }

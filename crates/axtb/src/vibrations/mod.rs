@@ -91,79 +91,32 @@ pub(crate) mod xtbc {
 }
 
 /// Constants, masses and projection of the analysis (see the module documentation).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum Conventions {
-    /// CODATA 2022 constants, standard atomic masses, mass-weighted projection.
-    #[default]
-    Axtb,
-    /// The xtb 6.8.0 program.
-    Xtb,
-    /// The xtb 6.7.1 program (also what the g-xTB 2.0.1 program, a 6.7.1-based xtb build,
-    /// does).
-    Xtb671,
-}
+pub use axtb_base::method::AnalysisConventions as Conventions;
 
-impl Conventions {
-    /// `axtb`, `xtb` or `xtb-6.7.1`, as parsed.
-    pub fn label(self) -> &'static str {
-        match self {
-            Conventions::Axtb => "axtb",
-            Conventions::Xtb => "xtb",
-            Conventions::Xtb671 => "xtb-6.7.1",
-        }
-    }
-
-    /// Whether these are one of the xtb programs' conventions.
-    pub fn is_xtb(self) -> bool {
-        self != Conventions::Axtb
-    }
-
-    /// The settings of these conventions.
-    pub fn params(self) -> AnalysisParams {
-        match self {
-            Conventions::Axtb => AnalysisParams {
-                masses: &masses::STANDARD,
-                projection: Projection::Complement,
-                linear: LinearTest::PrincipalMoments,
-                thermo_bohr: None,
-                ir_factor: units::AU_TO_KM_PER_MOL,
-            },
-            Conventions::Xtb => AnalysisParams {
-                masses: &masses::XTB,
-                projection: Projection::MassWeighted,
-                linear: LinearTest::UnitMassMoments,
-                thermo_bohr: Some(xtbc::AUTOAA_680),
-                ir_factor: xtbc::AUTOKMMOL,
-            },
-            Conventions::Xtb671 => AnalysisParams {
-                masses: &masses::XTB,
-                projection: Projection::Cartesian,
-                linear: LinearTest::Axis,
-                thermo_bohr: Some(xtbc::AUTOAA),
-                ir_factor: xtbc::AUTOKMMOL,
-            },
-        }
-    }
-}
-
-impl std::fmt::Display for Conventions {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(self.label())
-    }
-}
-
-impl std::str::FromStr for Conventions {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        match s.to_ascii_lowercase().as_str() {
-            "axtb" | "default" => Ok(Conventions::Axtb),
-            "xtb" | "xtb-6.8.0" => Ok(Conventions::Xtb),
-            // the g-xTB 2.0.1 program is a 6.7.1-based xtb build
-            "xtb-6.7.1" | "gxtb" => Ok(Conventions::Xtb671),
-            other => Err(Error::Input(format!(
-                "unknown vibrational-analysis conventions {other:?} (axtb, xtb or xtb-6.7.1)"
-            ))),
-        }
+/// The settings of the analysis conventions `conventions`.
+pub fn params(conventions: Conventions) -> AnalysisParams {
+    match conventions {
+        Conventions::Axtb => AnalysisParams {
+            masses: &masses::STANDARD,
+            projection: Projection::Complement,
+            linear: LinearTest::PrincipalMoments,
+            thermo_bohr: None,
+            ir_factor: units::AU_TO_KM_PER_MOL,
+        },
+        Conventions::Xtb => AnalysisParams {
+            masses: &masses::XTB,
+            projection: Projection::MassWeighted,
+            linear: LinearTest::UnitMassMoments,
+            thermo_bohr: Some(xtbc::AUTOAA_680),
+            ir_factor: xtbc::AUTOKMMOL,
+        },
+        Conventions::Xtb671 => AnalysisParams {
+            masses: &masses::XTB,
+            projection: Projection::Cartesian,
+            linear: LinearTest::Axis,
+            thermo_bohr: Some(xtbc::AUTOAA),
+            ir_factor: xtbc::AUTOKMMOL,
+        },
     }
 }
 
@@ -631,7 +584,7 @@ pub fn analyze(
             return Err(Error::Input(format!("{} dipole derivatives, expected {n3} (one per coordinate)", d.len())));
         }
     }
-    let params = opts.conventions.params();
+    let params = params(opts.conventions);
     let masses = match &opts.masses {
         Some(m) => {
             if m.len() != nat || m.iter().any(|x| !(x.is_finite() && *x > 0.0)) {
@@ -714,7 +667,7 @@ pub fn project_xtb(
     }
     let masses = masses::masses(numbers, &masses::XTB)?;
     let mut hs = symmetrized(hessian, n3);
-    match conventions.params().projection {
+    match params(conventions).projection {
         Projection::Cartesian => {
             if nat > 1 && !linear_xtb(&masses, positions) {
                 hs = trproj(positions, &hs);

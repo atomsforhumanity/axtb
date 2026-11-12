@@ -403,7 +403,7 @@ impl Calculator {
     /// thread count.
     pub fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<axtb::Hessian> {
         let t0 = Instant::now();
-        let mut out = match (opts.method, self.version) {
+        let mut out = match (opts.method.unwrap_or_else(|| self.default_hessian_method()), self.version) {
             (HessianMethod::Numerical, _) => self.numerical(positions, opts.step.unwrap_or(0.005), opts.accuracy),
             (m @ (HessianMethod::Response | HessianMethod::Analytic), Version::V2_0_1) => {
                 self.response_hessian(positions, opts, m)
@@ -424,7 +424,7 @@ impl Calculator {
         step: f64,
         accuracy: Option<f64>,
     ) -> Result<axtb::Hessian> {
-        self.hessian(positions, &HessianOptions { method: HessianMethod::Numerical, step: Some(step), accuracy })
+        self.hessian(positions, &HessianOptions { method: Some(HessianMethod::Numerical), step: Some(step), accuracy })
     }
 
     /// The SCF accuracy of a Hessian: `accuracy` (default `default`), never looser than the
@@ -493,6 +493,7 @@ impl Calculator {
             dipole_derivatives: Some(nh.dipole_derivatives),
             method: HessianMethod::Numerical,
             timings: Vec::new(),
+            parts: Vec::new(),
         })
     }
 
@@ -549,6 +550,7 @@ impl Calculator {
                 dipole_derivatives: Some(dipd),
                 method,
                 timings,
+                parts: Vec::new(),
             };
             Ok((hess, setup, state))
         };

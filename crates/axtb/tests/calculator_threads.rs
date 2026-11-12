@@ -7,7 +7,7 @@
 //! Own test binary, one test: whether rayon's global pool was ever used is observable only
 //! once per process (`build_global` fails after its first use).
 
-use axtb::{Calculator, HessianMethod, HessianOptions, Method, Options, ScfGuess};
+use axtb::{Calculator, Hamiltonian, HessianMethod, HessianOptions, Options, ScfGuess};
 
 #[test]
 fn calculations_stay_in_the_calculator_pool() {
@@ -17,7 +17,7 @@ fn calculations_stay_in_the_calculator_pool() {
     opts.scf.threads = 2;
     // water converges in 8 iterations from scratch and needs 11 from the bad guess below
     opts.scf.max_iter = 9;
-    let fresh = Calculator::new(Method::Gfn2, &numbers, &positions, 0.0, None, opts.clone())
+    let fresh = Calculator::new(Hamiltonian::Gfn2, &numbers, &positions, 0.0, None, opts.clone())
         .unwrap()
         .singlepoint(&positions, true)
         .unwrap();
@@ -30,7 +30,7 @@ fn calculations_stay_in_the_calculator_pool() {
         dpat: vec![[3.0, -3.0, 3.0]; 3],
         qpat: vec![[5.0, 0.0, -5.0, 0.0, 0.0, 0.0]; 3],
     };
-    let mut calc = Calculator::new(Method::Gfn2, &numbers, &positions, 0.0, None, opts.clone()).unwrap();
+    let mut calc = Calculator::new(Hamiltonian::Gfn2, &numbers, &positions, 0.0, None, opts.clone()).unwrap();
     calc.set_guess(bad).unwrap();
     let retried = calc.singlepoint(&positions, true).unwrap();
     // same start (scratch), same iterations, same result as the fresh calculation
@@ -40,8 +40,8 @@ fn calculations_stay_in_the_calculator_pool() {
     // the three Hessian methods, each from a new calculator (no previous wavefunction)
     opts.scf.max_iter = 250;
     for method in [HessianMethod::Analytic, HessianMethod::Response, HessianMethod::Numerical] {
-        let mut calc = Calculator::new(Method::Gfn2, &numbers, &positions, 0.0, None, opts.clone()).unwrap();
-        let h = calc.hessian(&positions, &HessianOptions { method, ..Default::default() }).unwrap();
+        let mut calc = Calculator::new(Hamiltonian::Gfn2, &numbers, &positions, 0.0, None, opts.clone()).unwrap();
+        let h = calc.hessian(&positions, &HessianOptions { method: Some(method), ..Default::default() }).unwrap();
         assert!(h.hessian.iter().all(|x| x.is_finite()), "{method:?}");
     }
 

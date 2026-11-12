@@ -66,9 +66,9 @@ fn threads_one_spawns_nothing() {
         let e = calc.singlepoint(&pos, false).unwrap().singlepoint.energy;
         let g = calc.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
         let h = calc.numerical_hessian(&pos, 0.005, None).unwrap().hessian;
-        let hopts = axtb::HessianOptions { method: axtb::HessianMethod::Response, step: None, accuracy: None };
+        let hopts = axtb::HessianOptions { method: Some(axtb::HessianMethod::Response), step: None, accuracy: None };
         let hr = calc.hessian(&pos, &hopts).unwrap().hessian;
-        let hopts = axtb::HessianOptions { method: axtb::HessianMethod::Analytic, step: None, accuracy: None };
+        let hopts = axtb::HessianOptions { method: Some(axtb::HessianMethod::Analytic), step: None, accuracy: None };
         let ha = calc.hessian(&pos, &hopts).unwrap().hessian;
         (e, g, h, hr, ha)
     };

@@ -50,9 +50,10 @@ pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
 pub use xtb::{EnergyTerms, InitialGuess, ScfGuess, ScfOptions, SinglePoint};
 
 pub use axtb_base::linalg;
+pub use axtb_base::method;
 pub use axtb_base::threads::Threads;
 pub use axtb_base::units;
-pub use axtb_base::{Error, Molecule, Result, MIN_ATOM_DISTANCE};
+pub use axtb_base::{Error, Method, Molecule, Result, MIN_ATOM_DISTANCE};
 
 /// The molecule and the 3-vector helpers (from `axtb-base`).
 pub mod molecule {
@@ -60,17 +61,17 @@ pub mod molecule {
     pub use axtb_base::{Molecule, MIN_ATOM_DISTANCE};
 }
 
-/// Available methods.
+/// The tight-binding Hamiltonians of this crate.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Method {
+pub enum Hamiltonian {
     Gfn2,
 }
 
-impl std::str::FromStr for Method {
+impl std::str::FromStr for Hamiltonian {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self> {
         match s.to_ascii_lowercase().replace(['-', '_'], "").as_str() {
-            "gfn2" | "gfn2xtb" => Ok(Method::Gfn2),
+            "gfn2" | "gfn2xtb" => Ok(Hamiltonian::Gfn2),
             other => Err(Error::Input(format!("unknown method {other:?}"))),
         }
     }
@@ -105,15 +106,14 @@ impl Default for Options {
     }
 }
 
-/// Build the Hamiltonian of `method` for `mol` and its charge-dependent extra terms
-/// (dispersion, solvation).
+/// Build `hamiltonian` for `mol` and its charge-dependent extra terms (dispersion, solvation).
 pub(crate) fn build_method(
-    method: Method,
+    hamiltonian: Hamiltonian,
     mol: &Molecule,
     opts: &Options,
 ) -> Result<(xtb::XtbModel, Vec<std::sync::Arc<dyn terms::AnyMomentTerm>>)> {
-    match method {
-        Method::Gfn2 => {
+    match hamiltonian {
+        Hamiltonian::Gfn2 => {
             let params = opts.params.unwrap_or_else(|| opts.conventions.params());
             let model = gfn2::build(mol, opts.scf.accuracy, &params)?;
             let mut extra: Vec<std::sync::Arc<dyn terms::AnyMomentTerm>> = Vec::new();
@@ -128,9 +128,9 @@ pub(crate) fn build_method(
     }
 }
 
-/// Energy (and optionally gradient) of `mol` with `method`, without keeping state.
-pub fn singlepoint(method: Method, mol: &Molecule, opts: &Options, gradient: bool) -> Result<SinglePoint> {
-    let mut calc = Calculator::new(method, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts.clone())?;
+/// Energy (and optionally gradient) of `mol` with `hamiltonian`, without keeping state.
+pub fn singlepoint(hamiltonian: Hamiltonian, mol: &Molecule, opts: &Options, gradient: bool) -> Result<SinglePoint> {
+    let mut calc = Calculator::new(hamiltonian, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts.clone())?;
     calc.singlepoint(&mol.positions, gradient)
 }
 

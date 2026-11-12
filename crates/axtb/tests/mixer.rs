@@ -4,7 +4,7 @@
 //! which mixer produced it. The xtb and tblite conventions keep Broyden alone.
 
 use axtb::units::AATOAU;
-use axtb::{io::read_xyz, Calculator, Conventions, Method, MixerKind, Molecule, Options, ScfAttempt};
+use axtb::{io::read_xyz, Calculator, Conventions, Hamiltonian, MixerKind, Molecule, Options, ScfAttempt};
 
 const WATER_3A: &str = include_str!("../../../tests/scf_hard/scan-H2O-3.0.xyz");
 const CAFFEINE: &str = include_str!("../../../tests/structures/caffeine.xyz");
@@ -19,7 +19,7 @@ fn options(conv: Conventions, mixer: Option<MixerKind>, acc: f64) -> Options {
 fn singlepoint(xyz: &str, conv: Conventions, mixer: Option<MixerKind>, acc: f64) -> axtb::Result<axtb::SinglePoint> {
     let (num, pos) = read_xyz(xyz, AATOAU).unwrap();
     let mol = Molecule::new(&num, &pos, 0.0, Some(0)).unwrap();
-    axtb::singlepoint(Method::Gfn2, &mol, &options(conv, mixer, acc), true)
+    axtb::singlepoint(Hamiltonian::Gfn2, &mol, &options(conv, mixer, acc), true)
 }
 
 fn same_bits(a: &axtb::SinglePoint, b: &axtb::SinglePoint) -> bool {
@@ -84,7 +84,7 @@ fn auto_falls_back_to_diis_on_stretched_water() {
     let mut o = options(Conventions::Axtb, None, 1e-4);
     o.scf.max_iter = 5;
     assert!(matches!(
-        axtb::singlepoint(Method::Gfn2, &mol, &o, false),
+        axtb::singlepoint(Hamiltonian::Gfn2, &mol, &o, false),
         Err(axtb::Error::ScfNotConverged { iterations: 10, .. })
     ));
 }
@@ -94,11 +94,11 @@ fn auto_falls_back_to_diis_on_stretched_water() {
 fn calculator_reports_the_mixer_per_point() {
     let (num, pos) = read_xyz(CAFFEINE, AATOAU).unwrap();
     let mut calc =
-        Calculator::new(Method::Gfn2, &num, &pos, 0.0, None, options(Conventions::Axtb, None, 1e-4)).unwrap();
+        Calculator::new(Hamiltonian::Gfn2, &num, &pos, 0.0, None, options(Conventions::Axtb, None, 1e-4)).unwrap();
     assert_eq!(calc.singlepoint(&pos, false).unwrap().mixer_used, Some("broyden"));
     let (num, pos) = read_xyz(WATER_3A, AATOAU).unwrap();
     let mut calc =
-        Calculator::new(Method::Gfn2, &num, &pos, 0.0, Some(0), options(Conventions::Axtb, None, 1e-4)).unwrap();
+        Calculator::new(Hamiltonian::Gfn2, &num, &pos, 0.0, Some(0), options(Conventions::Axtb, None, 1e-4)).unwrap();
     let r = calc.singlepoint(&pos, false).unwrap();
     assert_eq!(r.mixer_used, Some("diis-fallback"));
     assert_eq!(r.scf_attempts.len(), 2);

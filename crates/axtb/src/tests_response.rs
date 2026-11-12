@@ -3,7 +3,7 @@
 
 use crate::molecule::Molecule;
 use crate::response::Response;
-use crate::{Conventions, Method, Options};
+use crate::{Conventions, Hamiltonian, Options};
 
 pub fn mol_from(xyz: &str, charge: f64, uhf: Option<usize>) -> Molecule {
     let (num, pos) = crate::io::read_xyz(xyz, crate::units::AATOAU).unwrap();
@@ -26,7 +26,7 @@ pub fn tight(conv: Conventions, alpb: bool) -> Options {
 /// δs/δR against central differences of converged SCF moments for coordinates `xs`;
 /// returns the largest error relative to the largest component of each column.
 pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
-    let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
+    let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
     let (sp, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
@@ -81,7 +81,7 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
 
 /// Explicit potential derivatives `∂V/∂R|_s` against central differences of the potentials.
 pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
-    let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
+    let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
     let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
@@ -143,8 +143,9 @@ pub fn hessian(
     acc: Option<f64>,
 ) -> crate::Hessian {
     let mut calc =
-        crate::Calculator::new(Method::Gfn2, &mol.numbers, &mol.positions, mol.charge, mol.uhf, o.clone()).unwrap();
-    let h = calc.hessian(&mol.positions, &crate::HessianOptions { method, step, accuracy: acc }).unwrap();
+        crate::Calculator::new(Hamiltonian::Gfn2, &mol.numbers, &mol.positions, mol.charge, mol.uhf, o.clone())
+            .unwrap();
+    let h = calc.hessian(&mol.positions, &crate::HessianOptions { method: Some(method), step, accuracy: acc }).unwrap();
     eprintln!("{:?}: asym {:.2e} timings {:?}", method, h.max_asymmetry, h.timings);
     h
 }
@@ -222,7 +223,7 @@ fn diagnose_alpb_smoothness() {
     for t in -8..=8 {
         let mut m = mol.clone();
         m.positions[y / 3][y % 3] += t as f64 * 2.5e-4;
-        let g = crate::singlepoint(Method::Gfn2, &m, &o, true).unwrap().gradient.unwrap();
+        let g = crate::singlepoint(Hamiltonian::Gfn2, &m, &o, true).unwrap().gradient.unwrap();
         eprintln!("{:+.5} {:.12}", t as f64 * 2.5e-4, g[x / 3][x % 3]);
     }
 }
@@ -250,7 +251,7 @@ fn fd_check(name: &str, mol: &Molecule, hess: &[f64], grad: impl Fn(&Molecule) -
 
 /// Explicit second derivatives of the electrostatic and repulsion terms at fixed moments.
 pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
-    let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
+    let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
     let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
@@ -393,10 +394,11 @@ fn analytic_hessian_single_atom_and_threads() {
     assert!(h.hessian.iter().all(|x| x.abs() < 1e-12), "single atom: {:?}", h.hessian);
     // the analytic Hessian does not depend on the thread count beyond round-off
     let mol = caffeine();
-    let mut calc1 = crate::Calculator::new(Method::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o.clone()).unwrap();
+    let mut calc1 =
+        crate::Calculator::new(Hamiltonian::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o.clone()).unwrap();
     let mut o8 = o.clone();
     o8.scf.threads = 4;
-    let mut calc8 = crate::Calculator::new(Method::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o8).unwrap();
+    let mut calc8 = crate::Calculator::new(Hamiltonian::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o8).unwrap();
     let ho = crate::HessianOptions::default();
     let h1 = calc1.hessian(&mol.positions, &ho).unwrap();
     let h8 = calc8.hessian(&mol.positions, &ho).unwrap();

@@ -45,11 +45,13 @@ fn parts(nums: &[usize], pos: &[[f64; 3]], charge: f64, conventions: Conventions
     };
     let mut o = axtb::Options { conventions: fconv, ..Default::default() };
     o.scf.etemp = GFN2_ETEMP;
-    let gas = axtb::singlepoint(axtb::Method::Gfn2, &axtb::Molecule::new(nums, pos, charge, None).unwrap(), &o, true)
-        .unwrap();
+    let gas =
+        axtb::singlepoint(axtb::Hamiltonian::Gfn2, &axtb::Molecule::new(nums, pos, charge, None).unwrap(), &o, true)
+            .unwrap();
     o.solvation = Some(water_alpb());
-    let solv = axtb::singlepoint(axtb::Method::Gfn2, &axtb::Molecule::new(nums, pos, charge, None).unwrap(), &o, true)
-        .unwrap();
+    let solv =
+        axtb::singlepoint(axtb::Hamiltonian::Gfn2, &axtb::Molecule::new(nums, pos, charge, None).unwrap(), &o, true)
+            .unwrap();
     let grad: Vec<[f64; 3]> = (0..nums.len())
         .map(|i| {
             std::array::from_fn(|k| {
@@ -170,9 +172,9 @@ fn ladder(z: [usize; 2], r: f64, etemp: f64) -> (Vec<usize>, Vec<[f64; 3]>, axtb
     o.scf.etemp = etemp;
     o.scf.max_iter = 1000;
     let mol = axtb::Molecule::new(&nums, &pos, 0.0, None).unwrap();
-    let gas = axtb::singlepoint(axtb::Method::Gfn2, &mol, &o, false).unwrap().energy;
+    let gas = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &o, false).unwrap().energy;
     o.solvation = Some(water_alpb());
-    let solv = axtb::singlepoint(axtb::Method::Gfn2, &mol, &o, false).unwrap().energy;
+    let solv = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &o, false).unwrap().energy;
     (nums, pos, res, solv - gas)
 }
 

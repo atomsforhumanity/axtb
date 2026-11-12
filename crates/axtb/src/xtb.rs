@@ -166,7 +166,7 @@ pub struct SinglePoint {
     /// Wall time per phase in seconds.
     pub timings: Vec<(&'static str, f64)>,
     /// The converged orbitals with their basis, when asked for
-    /// ([`ScfOptions::keep_orbitals`]); [`Orbitals::to_molden`] writes a Molden file.
+    /// ([`ScfOptions::keep_orbitals`]); [`ToMolden::to_molden`](crate::ToMolden::to_molden) writes a Molden file.
     pub orbitals: Option<Orbitals>,
     /// Orbital energies and occupations per spin channel: one for a closed shell (occupations
     /// up to 2), alpha and beta for an open shell (GFN2-xTB: the same orbitals with the alpha

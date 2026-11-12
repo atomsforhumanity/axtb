@@ -247,7 +247,7 @@ pub fn thermochemistry(
     } else {
         point_group(numbers, positions, opts.symmetry_threshold).name
     };
-    let params = conventions.params();
+    let params = super::params(conventions);
     match params.thermo_bohr {
         Some(autoaa) => {
             let (abc, avmom, wt) = axis2_xtb(masses, positions, autoaa);

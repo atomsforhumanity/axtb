@@ -12,33 +12,15 @@ use crate::molecule::Molecule;
 use crate::terms::{AnyMomentTerm, ChainLayout, MomentTerm};
 use crate::xtb::{check_scf_options, ScfGuess, ScfOptions, SinglePoint, XtbModel};
 use crate::{Error, Result};
-use crate::{Method, Options};
+use crate::{Hamiltonian, Options};
 use axtb_base::fd;
 use axtb_base::threads::Threads;
 
-/// A nuclear Hessian.
-#[derive(Clone, Debug)]
-pub struct Hessian {
-    /// Energy and gradient at the reference geometry.
-    pub energy: f64,
-    pub gradient: Vec<[f64; 3]>,
-    /// Row-major `3N x 3N` matrix of second derivatives (Eh/bohr²), symmetrized.
-    pub hessian: Vec<f64>,
-    /// Largest asymmetry |H_ij - H_ji| before symmetrization.
-    pub max_asymmetry: f64,
-    /// Dipole derivatives ∂μ/∂R_x (e; one row per Cartesian coordinate x = 3·atom + k), for
-    /// IR intensities: from the SCC response (analytic and response Hessians) or central
-    /// differences of the displaced dipoles (numerical); `None` when not available.
-    pub dipole_derivatives: Option<Vec<[f64; 3]>>,
-    /// How it was computed.
-    pub method: HessianMethod,
-    /// Wall time per phase in seconds.
-    pub timings: Vec<(&'static str, f64)>,
-}
+pub use axtb_base::method::Hessian;
 
-/// Method and settings bound to one molecule (atomic numbers, charge, spin).
+/// GFN2-xTB and its settings bound to one molecule (atomic numbers, charge, spin).
 pub struct Calculator {
-    method: Method,
+    hamiltonian: Hamiltonian,
     mol: Molecule,
     model: XtbModel,
     /// The terms added to the model, in order: dispersion, solvation, the user's
@@ -53,9 +35,9 @@ pub struct Calculator {
 }
 
 impl Calculator {
-    /// Set up `method` for a molecule; `positions` (bohr) give the initial geometry.
+    /// Set up `hamiltonian` for a molecule; `positions` (bohr) give the initial geometry.
     pub fn new(
-        method: Method,
+        hamiltonian: Hamiltonian,
         numbers: &[usize],
         positions: &[[f64; 3]],
         charge: f64,
@@ -64,14 +46,14 @@ impl Calculator {
     ) -> Result<Self> {
         check_scf_options(&options.scf)?;
         let threads = Threads::new(options.scf.threads)?;
-        Self::with_threads(method, numbers, positions, charge, uhf, options, threads)
+        Self::with_threads(hamiltonian, numbers, positions, charge, uhf, options, threads)
     }
 
     /// As [`Calculator::new`], but running on `threads` (a pool shared with other
     /// calculators, e.g. the parts of a composite method, so that they use one pool) instead
     /// of a pool of its own. It must have `options.scf.threads` threads.
     pub fn with_threads(
-        method: Method,
+        hamiltonian: Hamiltonian,
         numbers: &[usize],
         positions: &[[f64; 3]],
         charge: f64,
@@ -85,13 +67,13 @@ impl Calculator {
             return Err(Error::Input(format!("a pool of {n} threads for a calculation on {}", options.scf.threads)));
         }
         let mol = Molecule::new(numbers, positions, charge, uhf)?;
-        let (model, extra) = crate::build_method(method, &mol, &options)?;
-        Ok(Self { method, mol, model, extra, options, guess: None, threads })
+        let (model, extra) = crate::build_method(hamiltonian, &mol, &options)?;
+        Ok(Self { hamiltonian, mol, model, extra, options, guess: None, threads })
     }
 
-    /// The method of this calculator.
-    pub fn method(&self) -> Method {
-        self.method
+    /// The Hamiltonian of this calculator.
+    pub fn hamiltonian(&self) -> Hamiltonian {
+        self.hamiltonian
     }
 
     /// The molecule (positions of the last evaluation).
@@ -210,15 +192,15 @@ impl Calculator {
         }
         self.mol.set_positions(positions)?;
         let t0 = std::time::Instant::now();
-        let mut out = match opts.method {
+        let mut out = match opts.method.unwrap_or(HessianMethod::Analytic) {
             HessianMethod::Numerical => self.numerical_hessian(opts.step.unwrap_or(0.005), opts.accuracy),
-            HessianMethod::Response | HessianMethod::Analytic => self.response_hessian(opts),
+            m @ (HessianMethod::Response | HessianMethod::Analytic) => self.response_hessian(m, opts),
         }?;
         out.timings.push(("total", t0.elapsed().as_secs_f64()));
         Ok(out)
     }
 
-    fn response_hessian(&mut self, opts: &HessianOptions) -> Result<Hessian> {
+    fn response_hessian(&mut self, method: HessianMethod, opts: &HessianOptions) -> Result<Hessian> {
         let mut scf = self.scf_options();
         scf.accuracy = opts.accuracy.unwrap_or(1e-3).min(scf.accuracy);
         let threads = scf.threads;
@@ -235,7 +217,7 @@ impl Calculator {
                 };
             let st = st.expect("state");
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
-            let (mut h, dipd, t) = match opts.method {
+            let (mut h, dipd, t) = match method {
                 HessianMethod::Response => {
                     let step = opts.step.unwrap_or(5e-4);
                     crate::hessian::response_hessian(&self.model, extra, &self.mol, &st, threads, step)?
@@ -245,7 +227,7 @@ impl Calculator {
             timings.extend(t);
             let max_asymmetry = fd::symmetrize(&mut h, 3 * self.mol.nat());
             let guess = reference.guess();
-            Ok((finish(reference, h, max_asymmetry, dipd, opts.method, timings), guess))
+            Ok((finish(reference, h, max_asymmetry, dipd, method, timings), guess))
         };
         let (res, guess) = self.threads.install(run)?;
         self.guess = Some(guess);
@@ -301,5 +283,6 @@ fn finish(
         dipole_derivatives,
         method,
         timings,
+        parts: Vec::new(),
     }
 }

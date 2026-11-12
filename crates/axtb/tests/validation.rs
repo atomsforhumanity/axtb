@@ -3,7 +3,7 @@
 //! compute garbage or panic-free nonsense for most of these; see tests/reference_matrix,
 //! category `failures`).
 
-use axtb::{Calculator, Conventions, Error, HessianMethod, HessianOptions, Method, Molecule, Options, ScfGuess};
+use axtb::{Calculator, Conventions, Error, Hamiltonian, HessianMethod, HessianOptions, Molecule, Options, ScfGuess};
 
 const MODES: [Conventions; 4] = [Conventions::Axtb, Conventions::Xtb, Conventions::Xtb671, Conventions::Tblite];
 
@@ -25,7 +25,7 @@ fn run(
     let m = Molecule::new(&mol.0, &mol.1, charge, uhf)?;
     let mut o = Options { conventions: conv, ..Default::default() };
     f(&mut o);
-    axtb::singlepoint(Method::Gfn2, &m, &o, true)
+    axtb::singlepoint(Hamiltonian::Gfn2, &m, &o, true)
 }
 
 fn is_input_error(r: axtb::Result<axtb::SinglePoint>) -> bool {
@@ -101,7 +101,7 @@ fn broken_structures_are_input_errors() {
         assert!(is_input_error(run((z.clone(), p.clone()), 0.0, None, conv, |_| {})), "{conv:?}");
     }
 
-    let mut calc = Calculator::new(Method::Gfn2, &z, &r, 0.0, None, Options::default()).unwrap();
+    let mut calc = Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, Options::default()).unwrap();
     let mut far = r.clone();
     far[1][0] += 0.1;
     let mut inf = r.clone();
@@ -127,19 +127,19 @@ fn invalid_mixer_and_thread_settings_are_input_errors() {
     let (z, r) = water();
     let mut o = Options::default();
     o.scf.threads = 0;
-    assert!(matches!(Calculator::new(Method::Gfn2, &z, &r, 0.0, None, o.clone()), Err(Error::Input(_))));
+    assert!(matches!(Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, o.clone()), Err(Error::Input(_))));
     let one = axtb::Threads::sequential();
-    assert!(matches!(Calculator::with_threads(Method::Gfn2, &z, &r, 0.0, None, o, one), Err(Error::Input(_))));
+    assert!(matches!(Calculator::with_threads(Hamiltonian::Gfn2, &z, &r, 0.0, None, o, one), Err(Error::Input(_))));
 }
 
 #[test]
 fn invalid_hessian_settings_are_input_errors() {
     let (z, r) = water();
-    let mut calc = Calculator::new(Method::Gfn2, &z, &r, 0.0, None, Options::default()).unwrap();
+    let mut calc = Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, Options::default()).unwrap();
     for method in [HessianMethod::Numerical, HessianMethod::Response, HessianMethod::Analytic] {
         for bad in [0.0, -0.005, f64::NAN, f64::INFINITY] {
-            let step = HessianOptions { method, step: Some(bad), accuracy: None };
-            let acc = HessianOptions { method, step: None, accuracy: Some(bad) };
+            let step = HessianOptions { method: Some(method), step: Some(bad), accuracy: None };
+            let acc = HessianOptions { method: Some(method), step: None, accuracy: Some(bad) };
             assert!(matches!(calc.hessian(&r, &step), Err(Error::Input(_))), "{method:?} step {bad}");
             assert!(matches!(calc.hessian(&r, &acc), Err(Error::Input(_))), "{method:?} accuracy {bad}");
         }
@@ -154,7 +154,7 @@ fn bad_guesses_are_errors_not_panics() {
     let (z, r) = water();
     for conv in MODES {
         let o = Options { conventions: conv, ..Default::default() };
-        let mut calc = Calculator::new(Method::Gfn2, &z, &r, 0.0, None, o).unwrap();
+        let mut calc = Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, o).unwrap();
         let g = calc.singlepoint(&r, false).unwrap().guess();
         let mut nan = g.clone();
         nan.qpat[1][3] = f64::NAN;

@@ -4,7 +4,7 @@
 //! finite-difference defaults, so the analytic and response Hessians exercise them.
 
 use axtb::terms::{Chain, Geometry, MomentTerm, Needs, Potentials, SccMoments, TermEnergy};
-use axtb::{Calculator, HessianMethod, HessianOptions, Method, Options};
+use axtb::{Calculator, Hamiltonian, HessianMethod, HessianOptions, Options};
 
 /// A uniform electric field (atomic units).
 struct Field([f64; 3]);
@@ -72,7 +72,7 @@ fn calculator(field: Option<[f64; 3]>) -> Calculator {
     let (num, pos) = molecule();
     let mut o = Options::default();
     o.scf.accuracy = 1e-6;
-    let mut calc = Calculator::new(Method::Gfn2, &num, &pos, 0.0, None, o).unwrap();
+    let mut calc = Calculator::new(Hamiltonian::Gfn2, &num, &pos, 0.0, None, o).unwrap();
     if let Some(f) = field {
         calc.push_term(Field(f)).unwrap();
     }
@@ -120,7 +120,7 @@ fn field_hessians_through_the_trait_defaults() {
     let (_, pos) = molecule();
     let n3 = 3 * pos.len();
     let hessian = |method| {
-        let opts = HessianOptions { method, accuracy: Some(1e-8), ..HessianOptions::default() };
+        let opts = HessianOptions { method: Some(method), accuracy: Some(1e-8), ..HessianOptions::default() };
         calculator(Some(FIELD)).hessian(&pos, &opts).unwrap().hessian
     };
     let analytic = hessian(HessianMethod::Analytic);

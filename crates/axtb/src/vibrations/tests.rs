@@ -278,7 +278,7 @@ fn water_thermo_conventions_agree() {
 /// differences of converged dipoles (step 1e-4 bohr, tight SCF).
 #[test]
 fn gfn2_dipole_derivatives() {
-    use crate::{Calculator, HessianMethod, HessianOptions, Method, Options};
+    use crate::{Calculator, Hamiltonian, HessianMethod, HessianOptions, Options};
     let cases = [
         (include_str!("../../../../tests/structures/water.xyz"), 0.0, None),
         // hydroxide (charged: ∂μ/∂R includes the charge times the displacement)
@@ -290,7 +290,7 @@ fn gfn2_dipole_derivatives() {
         let (num, pos) = crate::io::read_xyz(xyz, crate::units::AATOAU).unwrap();
         let mut o = Options::default();
         o.scf.accuracy = 1e-6;
-        let mut calc = Calculator::new(Method::Gfn2, &num, &pos, charge, uhf, o).unwrap();
+        let mut calc = Calculator::new(Hamiltonian::Gfn2, &num, &pos, charge, uhf, o).unwrap();
         let n3 = 3 * num.len();
         let h = 1e-4;
         let mut fd = vec![[0.0; 3]; n3];
@@ -306,7 +306,7 @@ fn gfn2_dipole_derivatives() {
         }
         for method in [HessianMethod::Analytic, HessianMethod::Response, HessianMethod::Numerical] {
             let step = if method == HessianMethod::Numerical { Some(1e-3) } else { None };
-            let hs = calc.hessian(&pos, &HessianOptions { method, step, accuracy: Some(1e-8) }).unwrap();
+            let hs = calc.hessian(&pos, &HessianOptions { method: Some(method), step, accuracy: Some(1e-8) }).unwrap();
             let dd = hs.dipole_derivatives.unwrap();
             let err =
                 dd.iter().zip(&fd).flat_map(|(a, b)| (0..3).map(move |k| (a[k] - b[k]).abs())).fold(0.0f64, f64::max);

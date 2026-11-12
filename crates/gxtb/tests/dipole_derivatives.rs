@@ -47,7 +47,9 @@ fn dipole_derivatives() {
             };
             for &method in methods {
                 let step = if method == axtb::HessianMethod::Numerical { Some(1e-3) } else { None };
-                let h = calc.hessian(&pos, &axtb::HessianOptions { method, step, accuracy: Some(acc) }).unwrap();
+                let h = calc
+                    .hessian(&pos, &axtb::HessianOptions { method: Some(method), step, accuracy: Some(acc) })
+                    .unwrap();
                 let e = max_err(h.dipole_derivatives.as_ref().unwrap(), &fd);
                 eprintln!("{version:?} {method:?} charge {charge} uhf {uhf:?}: max error {e:.2e}");
                 assert!(e < 2e-6, "{version:?} {method:?} charge {charge} uhf {uhf:?}: max error {e:.2e}");

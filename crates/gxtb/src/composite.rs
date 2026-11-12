@@ -339,7 +339,7 @@ impl CompositeCalculator {
         }
         let gfn2_base = (o.scf.etemp, o.scf.max_iter);
         let gas = axtb::Calculator::with_threads(
-            axtb::Method::Gfn2,
+            axtb::Hamiltonian::Gfn2,
             numbers,
             positions,
             charge,
@@ -349,7 +349,7 @@ impl CompositeCalculator {
         )?;
         let so = axtb::Options { solvation: Some(options.solvation.clone()), ..o };
         let solvated =
-            axtb::Calculator::with_threads(axtb::Method::Gfn2, numbers, positions, charge, uhf, so, threads)?;
+            axtb::Calculator::with_threads(axtb::Hamiltonian::Gfn2, numbers, positions, charge, uhf, so, threads)?;
         let reuse_guess = options.reuse_guess.unwrap_or(gfn2_conv == axtb::Conventions::Axtb);
         Ok(Self {
             options,
@@ -644,9 +644,9 @@ impl CompositeCalculator {
     ) -> Result<CompositeHessian> {
         let t0 = Instant::now();
         let gm = method.unwrap_or_else(|| self.gxtb.default_hessian_method());
-        let gopts = HessianOptions { method: gm, step, accuracy };
+        let gopts = HessianOptions { method: Some(gm), step, accuracy };
         let (hg, grung) = self.run_gxtb(|c| c.hessian(positions, &gopts))?;
-        let fopts = HessianOptions { method: method.unwrap_or(HessianMethod::Analytic), step, accuracy };
+        let fopts = HessianOptions { method: Some(method.unwrap_or(HessianMethod::Analytic)), step, accuracy };
         let (hgas, hsolv, prung, secs) = self.run_pair(|c| c.hessian(positions, &fopts))?;
         let dg = hsolv.energy - hgas.energy;
         self.check(dg)?;
@@ -670,6 +670,7 @@ impl CompositeCalculator {
                 ("gfn2 solvated", secs[1]),
                 ("total", t0.elapsed().as_secs_f64()),
             ],
+            parts: Vec::new(),
         };
         let mut parts = [
             self.part(0, hg.energy, None, &grung, grung.seconds),

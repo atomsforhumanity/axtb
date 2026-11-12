@@ -43,6 +43,7 @@ pub mod fd;
 #[cfg(feature = "linalg")]
 pub mod linalg;
 pub mod math;
+pub mod method;
 mod molecule;
 pub mod ncoord;
 pub mod occupations;
@@ -52,4 +53,5 @@ pub mod timing;
 pub mod units;
 
 pub use error::{Error, Result};
+pub use method::Method;
 pub use molecule::{check_positions, Molecule, MIN_ATOM_DISTANCE};

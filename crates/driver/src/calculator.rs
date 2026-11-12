@@ -169,8 +169,14 @@ impl Calculator {
                 opts.dispersion = req.dispersion.unwrap_or(true);
                 opts.conventions = conventions;
                 opts.solvation = solvation(req)?;
-                let calc =
-                    axtb::Calculator::new(axtb::Method::Gfn2, &req.numbers, &req.positions, req.charge, uhf, opts)?;
+                let calc = axtb::Calculator::new(
+                    axtb::Hamiltonian::Gfn2,
+                    &req.numbers,
+                    &req.positions,
+                    req.charge,
+                    uhf,
+                    opts,
+                )?;
                 let fresh = matches!(guess, Some(names::Guess::Fresh | names::Guess::Eeq | names::Guess::Sad));
                 (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into(), fresh)
             }
@@ -280,7 +286,7 @@ impl Calculator {
                         calc.options.scf.keep_orbitals = false;
                         calc.options.scf.bond_orders = false;
                         let o = axtb::HessianOptions {
-                            method: h.method.unwrap_or_default(),
+                            method: Some(h.method.unwrap_or_default()),
                             step: h.step,
                             accuracy: h.accuracy,
                         };
@@ -305,7 +311,7 @@ impl Calculator {
                     ("entropy", t.entropy),
                     ("solvation", t.solvation),
                 ];
-                let form = axtb::QuadrupoleForm::for_gfn2(calc.options.conventions);
+                let form = axtb::QuadrupoleForm::from(calc.options.conventions);
                 out.hessian = hess.map(hessian_part);
                 scf_into(&mut out, sp, terms, positions, form)
             }
@@ -316,7 +322,7 @@ impl Calculator {
                         calc.options.keep_orbitals = false;
                         calc.options.bond_orders = false;
                         let method = h.method.unwrap_or_else(|| calc.default_hessian_method());
-                        let o = axtb::HessianOptions { method, step: h.step, accuracy: h.accuracy };
+                        let o = axtb::HessianOptions { method: Some(method), step: h.step, accuracy: h.accuracy };
                         let r = calc.hessian(positions, &o)?;
                         // the single point below starts from g-xTB's own guess, as without the
                         // Hessian

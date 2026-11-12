@@ -13,7 +13,7 @@ use axtb::conventions::{ConventionParams, SccGradient, SccResidual};
 use axtb::param::xtb_data::{
     XTB671_ATOMIC_RAD, XTB671_COVALENT_RAD_D3, XTB671_D4_EN, XTB671_D4_RCOV, XTB671_PAULING_EN,
 };
-use axtb::{Conventions, Method, Molecule, Options, ReferenceState, SolvationModel, SolvationSpec};
+use axtb::{Conventions, Hamiltonian, Molecule, Options, ReferenceState, SolvationModel, SolvationSpec};
 use std::io::Read;
 
 type Variant = (&'static str, fn(&mut ConventionParams));
@@ -87,7 +87,7 @@ fn main() {
         };
         opts.scf.accuracy = accuracy;
         opts.scf.etemp = etemp;
-        match axtb::singlepoint(Method::Gfn2, &mol, &opts, true) {
+        match axtb::singlepoint(Hamiltonian::Gfn2, &mol, &opts, true) {
             Ok(sp) => {
                 let g: Vec<String> = sp.gradient.unwrap().iter().flatten().map(|x| format!("{x:.17e}")).collect();
                 println!("{name}\t{:.17e}\t{}\t{}", sp.energy, sp.iterations, g.join(" "));

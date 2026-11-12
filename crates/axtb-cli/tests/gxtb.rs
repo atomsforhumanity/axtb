@@ -210,7 +210,7 @@ fn cli_v2_equals_rust_api_and_program() {
         assert_eq!(r["hessian_method"], name);
         let mut calc = Calculator::new(Version::V2_0_1, &[8, 1, 1], &water, 0.0, None, ScfOptions::default()).unwrap();
         let hm = if name == "response" { axtb::HessianMethod::Response } else { axtb::HessianMethod::Analytic };
-        let h = calc.hessian(&water, &axtb::HessianOptions { method: hm, step: None, accuracy: None }).unwrap();
+        let h = calc.hessian(&water, &axtb::HessianOptions { method: Some(hm), step: None, accuracy: None }).unwrap();
         let cli_h: Vec<f64> = r["hessian"]
             .as_array()
             .unwrap()
@@ -244,7 +244,7 @@ fn cli_molden_equals_rust_api() {
                 let mut opts = axtb::Options::default();
                 opts.scf.keep_orbitals = true;
                 let mol = axtb::Molecule::new(&numbers, &cu, -2.0, Some(1)).unwrap();
-                axtb::singlepoint(axtb::Method::Gfn2, &mol, &opts, false).unwrap().orbitals.unwrap()
+                axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, false).unwrap().orbitals.unwrap()
             } else {
                 let version = axtb_gxtb::Version::from_method(method).unwrap();
                 let opts = axtb_gxtb::ScfOptions { keep_orbitals: true, ..Default::default() };
