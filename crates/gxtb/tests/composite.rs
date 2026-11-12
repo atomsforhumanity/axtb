@@ -46,6 +46,11 @@ fn water_alpb() -> SolvationSpec {
     SolvationSpec { model: SolvationModel::Alpb, solvent: "water".into(), state: Default::default() }
 }
 
+/// The SCF settings with electronic temperature `etemp` and accuracy `accuracy`.
+fn scf(etemp: Option<f64>, accuracy: f64) -> ScfSettings {
+    ScfSettings { etemp, accuracy, ..Default::default() }
+}
+
 fn opts(conventions: Conventions) -> CompositeOptions {
     CompositeOptions { solvation: water_alpb(), conventions, ..Default::default() }
 }
@@ -112,7 +117,7 @@ fn composite_is_the_sum_of_its_parts() {
 #[test]
 fn gradient_is_the_derivative_of_the_energy() {
     let (nums, pos) = acetate();
-    let o = CompositeOptions { accuracy: 1e-6, ..opts(Conventions::Axtb) };
+    let o = CompositeOptions { scf: scf(None, 1e-6), ..opts(Conventions::Axtb) };
     let mut c = CompositeCalculator::new(&nums, &pos, -1.0, None, o).unwrap();
     let g = c.singlepoint(&pos, &Want::GRADIENT).unwrap().gradient.unwrap();
     let h = 1e-4;
@@ -135,7 +140,7 @@ fn hessian_is_the_derivative_of_the_gradient() {
     let h = c.hessian(&pos, &HessianOptions::default()).unwrap();
     assert_eq!(h.method, HessianMethod::Analytic);
     assert!(h.parts.iter().all(|p| p.hessian_method == Some(HessianMethod::Analytic)));
-    let o = CompositeOptions { accuracy: 1e-6, ..opts(Conventions::Axtb) };
+    let o = CompositeOptions { scf: scf(None, 1e-6), ..opts(Conventions::Axtb) };
     let mut f = CompositeCalculator::new(&nums, &pos, 0.0, None, o).unwrap();
     let n3 = 9;
     let step = 1e-4;
@@ -257,7 +262,7 @@ fn settings_resolve_as_documented() {
         &pos,
         0.0,
         None,
-        CompositeOptions { etemp: Some(0.0), ..opts(Conventions::Axtb) },
+        CompositeOptions { scf: scf(Some(0.0), 1.0), ..opts(Conventions::Axtb) },
     )
     .unwrap();
     assert_eq!(c.etemps(), (0.0, 0.0));
@@ -266,7 +271,7 @@ fn settings_resolve_as_documented() {
         &pos,
         0.0,
         None,
-        CompositeOptions { etemp: Some(3000.0), ..opts(Conventions::Axtb) },
+        CompositeOptions { scf: scf(Some(3000.0), 1.0), ..opts(Conventions::Axtb) },
     )
     .unwrap();
     assert_eq!(hot.etemps(), (3000.0, 3000.0));
@@ -282,10 +287,10 @@ fn settings_resolve_as_documented() {
     )
     .unwrap();
     assert_eq!(component(&r, "gxtb"), g.singlepoint(&pos, &Want::ENERGY).unwrap().energy);
-    let v1 = CompositeOptions { version: Version::V1_1, etemp: Some(300.0), ..opts(Conventions::Axtb) };
+    let v1 = CompositeOptions { version: Version::V1_1, scf: scf(Some(300.0), 1.0), ..opts(Conventions::Axtb) };
     assert_eq!(CompositeCalculator::new(&nums, &pos, 0.0, None, v1).unwrap().etemps(), (300.0, 300.0));
     for t in [-1.0, f64::NAN, f64::INFINITY] {
-        let bad = CompositeOptions { etemp: Some(t), ..opts(Conventions::Axtb) };
+        let bad = CompositeOptions { scf: scf(Some(t), 1.0), ..opts(Conventions::Axtb) };
         assert!(CompositeCalculator::new(&nums, &pos, 0.0, None, bad).is_err(), "etemp {t}");
     }
     // correction conventions can be chosen separately

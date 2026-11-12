@@ -22,7 +22,7 @@
 //!   state `gsolv` (1 M in the gas phase to 1 M in solution). Both halves always run with the
 //!   same settings; only the solvent model differs.
 //! - **Electronic temperatures.** By default g-xTB runs at its program's default of 0 K and
-//!   the GFN2 halves at xtb's default of 300 K ([`CompositeOptions::etemp`] `None`); an explicit
+//!   the GFN2 halves at xtb's default of 300 K (`etemp` `None` in [`CompositeOptions::scf`]); an explicit
 //!   temperature applies to all three parts.
 //! - **The SCF retry ladders** ([`PAIR_RETRIES`], [`GXTB_RETRIES`], axtb-base's `RetryLadder`). A GFN2 pair whose SCF fails
 //!   (no convergence, or a numerical breakdown) is run again, both halves at the same settings,
@@ -89,15 +89,14 @@ pub struct CompositeOptions {
     pub correction: Correction,
     /// Solvent model, solvent and reference state of the solvated GFN2 half.
     pub solvation: SolvationSpec,
-    /// SCF accuracy of all three parts (xtb's `--acc`: multiplier of the convergence
-    /// thresholds; default 1).
-    pub accuracy: f64,
-    /// Electronic temperature (K) of all three parts; `None`: each method's default, g-xTB 0 K
-    /// and GFN2-xTB 300 K, the programs' defaults.
-    pub etemp: Option<f64>,
-    /// SCF iteration limit of all three parts; `None`: each method's default (250 for g-xTB
-    /// 2.0.1 and GFN2-xTB).
-    pub max_iter: Option<usize>,
+    /// The SCF settings of all three parts: accuracy (xtb's `--acc`: multiplier of the
+    /// convergence thresholds; default 1); electronic temperature (K; `None`: each method's
+    /// default, g-xTB 0 K and GFN2-xTB 300 K, the programs' defaults); iteration limit (`None`:
+    /// each method's default, 250 for g-xTB 2.0.1 and GFN2-xTB); restart policy (`None`: each
+    /// part as its conventions say, the GFN2 halves and the g-xTB part from the previous
+    /// geometry's state in their axtb conventions; the programs start every call from their own
+    /// guess).
+    pub scf: ScfSettings,
     /// Threads of the composite's one pool; the parts run one after the other inside it.
     pub threads: usize,
     /// Conventions of the g-xTB part (`Axtb` or `Gxtb`, the program's).
@@ -109,10 +108,6 @@ pub struct CompositeOptions {
     pub mixer: Option<MixerKind>,
     /// Retry failed SCFs with the ladders [`PAIR_RETRIES`] and [`GXTB_RETRIES`] (default true).
     pub retries: bool,
-    /// Start each SCF from the previous geometry's converged state; `None`: each part as its
-    /// conventions say, the GFN2 halves in their axtb conventions and the g-xTB part in its axtb
-    /// conventions (the programs start every call from their own guess).
-    pub reuse_guess: Option<bool>,
 }
 
 impl Default for CompositeOptions {
@@ -125,15 +120,12 @@ impl Default for CompositeOptions {
                 solvent: "water".into(),
                 state: Default::default(),
             },
-            accuracy: 1.0,
-            etemp: None,
-            max_iter: None,
+            scf: ScfSettings::default(),
             threads: 1,
             conventions: Conventions::Axtb,
             correction_conventions: None,
             mixer: None,
             retries: true,
-            reuse_guess: None,
         }
     }
 }
@@ -233,10 +225,11 @@ impl CompositeCalculator {
         options: CompositeOptions,
     ) -> Result<Self> {
         threads::check(options.threads)?;
-        if !(options.accuracy > 0.0 && options.accuracy.is_finite()) {
-            return Err(Error::Input(format!("accuracy must be positive and finite, got {}", options.accuracy)));
+        let scf = options.scf.clone();
+        if !(scf.accuracy > 0.0 && scf.accuracy.is_finite()) {
+            return Err(Error::Input(format!("accuracy must be positive and finite, got {}", scf.accuracy)));
         }
-        if let Some(t) = options.etemp {
+        if let Some(t) = scf.etemp {
             if !(t >= 0.0 && t.is_finite()) {
                 return Err(Error::Input(format!("electronic temperature must be >= 0 K and finite, got {t}")));
             }
@@ -244,13 +237,13 @@ impl CompositeCalculator {
         let threads = Threads::new(options.threads)?;
 
         // g-xTB part
-        let gxtb_etemp = options.etemp.unwrap_or(GXTB_ETEMP);
+        let gxtb_etemp = scf.etemp.unwrap_or(GXTB_ETEMP);
         let gopts = Options {
             scf: ScfSettings {
-                accuracy: options.accuracy,
-                max_iter: options.max_iter,
+                accuracy: scf.accuracy,
+                max_iter: scf.max_iter,
                 etemp: Some(gxtb_etemp),
-                restart: options.reuse_guess.map(|r| if r { Restart::Previous } else { Restart::Fresh }),
+                restart: scf.restart,
             },
             threads: options.threads,
             conventions: options.conventions,
@@ -263,11 +256,11 @@ impl CompositeCalculator {
         // the GFN2 halves: one set of options, the solvated half adds the solvent model
         let gfn2_conv = options.gfn2_conventions();
         let mut o = axtb::Options { conventions: gfn2_conv, ..Default::default() };
-        o.scf.accuracy = options.accuracy;
+        o.scf.accuracy = scf.accuracy;
         o.threads = options.threads;
         o.mixing.mixer = options.mixer;
-        o.scf.etemp = Some(options.etemp.unwrap_or(GFN2_ETEMP));
-        o.scf.max_iter = options.max_iter;
+        o.scf.etemp = Some(scf.etemp.unwrap_or(GFN2_ETEMP));
+        o.scf.max_iter = scf.max_iter;
         let gfn2_base = (o.scf.etemp.unwrap_or(GFN2_ETEMP), o.scf.max_iter.unwrap_or(axtb::MAX_ITER));
         let gas = axtb::Calculator::with_threads(
             axtb::Hamiltonian::Gfn2,
@@ -281,12 +274,13 @@ impl CompositeCalculator {
         let so = axtb::Options { solvation: Some(options.solvation.clone()), ..o };
         let solvated =
             axtb::Calculator::with_threads(axtb::Hamiltonian::Gfn2, numbers, positions, charge, uhf, so, threads)?;
-        let reuse_guess = options.reuse_guess.unwrap_or(gfn2_conv == axtb::Conventions::Axtb);
+        let default = if gfn2_conv == axtb::Conventions::Axtb { Restart::Previous } else { Restart::Fresh };
+        let reuse_guess = scf.reuses(default);
 
         // the ladders: g-xTB's only without an explicit temperature; the pair's every rung from
         // the method's own start when the halves do not reuse wavefunctions
         let gxtb_base = (gxtb_etemp, gxtb_max_iter);
-        let gxtb_retries: Vec<(Option<f64>, usize)> = if options.retries && options.etemp.is_none() {
+        let gxtb_retries: Vec<(Option<f64>, usize)> = if options.retries && scf.etemp.is_none() {
             GXTB_RETRIES.map(|(t, m)| (Some(t), m)).to_vec()
         } else {
             vec![]

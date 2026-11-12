@@ -10,7 +10,8 @@ use crate::response::{
 };
 use crate::task::Task;
 use axtb::method::{
-    Fingerprint, HessianOptions, Method as MethodTrait, Restart, ScfData, SinglePoint, Want, WavefunctionData,
+    Fingerprint, HessianOptions, Method as MethodTrait, Restart, ScfData, ScfSettings, SinglePoint, Want,
+    WavefunctionData,
 };
 use axtb::ToMolden;
 use std::time::Instant;
@@ -345,20 +346,24 @@ fn gxtb_method(
             version,
             correction,
             solvation,
-            accuracy: req.accuracy.unwrap_or(1.0),
-            etemp: req.etemp,
-            max_iter: req.max_iter,
+            scf: ScfSettings {
+                accuracy: req.accuracy.unwrap_or(1.0),
+                etemp: req.etemp,
+                max_iter: req.max_iter,
+                restart: match guess {
+                    None => None,
+                    Some(names::Guess::Previous) => Some(Restart::Previous),
+                    Some(names::Guess::Fresh) => Some(Restart::Fresh),
+                    Some(_) => {
+                        return Err(input(
+                            "the g-xTB solvation composite starts each part from its method's own start: guess \
+                         \"previous\" or \"fresh\"",
+                        ))
+                    }
+                },
+            },
             threads,
             conventions,
-            reuse_guess: match guess {
-                None => None,
-                Some(names::Guess::Previous) => Some(true),
-                Some(names::Guess::Fresh) => Some(false),
-                Some(_) => return Err(input(
-                    "the g-xTB solvation composite starts each part from its method's own start: guess \"previous\" \
-                         or \"fresh\"",
-                )),
-            },
             ..Default::default()
         };
         o.correction_conventions = req.correction_conventions.as_deref().map(names::gfn2_conventions).transpose()?;
