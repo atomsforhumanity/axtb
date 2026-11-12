@@ -12,10 +12,12 @@
 //!   damping 0.2 in iterations 2 and 3, then DIIS with the residuals r_j = F_j - F~_{j-1} of
 //!   iterations 3..k (at most 7), coefficients from the bordered B matrix; DIIS starts one
 //!   iteration early after an energy change |E_k - E_{k-1}| below 1e-12 Eh (tblite's mixer
-//!   stages; e.g. H2, whose density is fixed from iteration 1);
+//!   stages; e.g. H2, whose density is fixed from iteration 1;
+//!   [`super::strategy::Gxtb201FockDiis`]);
 //! - convergence after iteration k once |E_j - E_{j-1}| < 1e-6 acc Eh in some iteration j <= k
 //!   and the RMS of r_j over the full vector < 2e-5 acc in some iteration 1 < j <= k (tblite's
-//!   `check_convergence` sets each flag and never clears it); no extra iteration.
+//!   `check_convergence` sets each flag and never clears it); no extra iteration
+//!   ([`super::strategy::Gxtb201Rule`]).
 
 use super::basis::Basis;
 use super::cn::gxtb_cn;
@@ -25,6 +27,7 @@ use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
 use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
 use super::repulsion::Repulsion;
+use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
 use super::Model;
 use crate::calculator::Version;
 use crate::data_v2::{INCREMENT, REF_OCC, ZEFF_SHELL};
@@ -32,6 +35,7 @@ use crate::eeqbc::{EeqBcCharges, EeqBcSolution};
 use crate::fock::shell_list;
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
+use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -495,10 +499,6 @@ pub fn weighted_density(n: usize, channels: &[(&[f64], &[f64])], par: Par) -> Ve
     out
 }
 
-/// Energy change (Eh) after which the program's SCF switches from damping to DIIS before
-/// iteration 4 (the threshold of tblite's DIIS mixer stage; independent of the accuracy).
-const DIIS_SWITCH_ENERGY: f64 = 1e-12;
-
 /// The 2.0.1 program's SCF iteration limit.
 pub const MAX_ITER: usize = 250;
 /// The 2.0.1 program's damping factor (iterations 2 and 3) and number of stored DIIS vectors.
@@ -540,78 +540,6 @@ pub struct ScfResult {
     pub timings: Timings,
     /// The eigensolver of the SCF (`axtb::linalg::GenEigSolver::backend`).
     pub eigensolver: String,
-}
-
-/// Solve the bordered DIIS equations with an unblocked LU with partial pivoting (LAPACK
-/// `getf2` order) and return the coefficients.
-fn diis_coefficients(b: &[Vec<f64>]) -> Option<Vec<f64>> {
-    let m = b.len();
-    let n = m + 1;
-    let mut a = vec![0.0; n * n];
-    for i in 0..m {
-        for j in 0..m {
-            a[i * n + j] = b[i][j];
-        }
-        a[i * n + m] = 1.0;
-        a[m * n + i] = 1.0;
-    }
-    let mut rhs = vec![0.0; n];
-    rhs[m] = 1.0;
-    let mut piv = vec![0usize; n];
-    for k in 0..n {
-        let mut p = k;
-        let mut amax = a[k * n + k].abs();
-        for i in k + 1..n {
-            if a[i * n + k].abs() > amax {
-                amax = a[i * n + k].abs();
-                p = i;
-            }
-        }
-        piv[k] = p;
-        if a[p * n + k] == 0.0 {
-            return None;
-        }
-        if p != k {
-            for j in 0..n {
-                a.swap(k * n + j, p * n + j);
-            }
-        }
-        let inv = 1.0 / a[k * n + k];
-        for i in k + 1..n {
-            a[i * n + k] *= inv;
-        }
-        for i in k + 1..n {
-            let l = a[i * n + k];
-            if l != 0.0 {
-                for j in k + 1..n {
-                    a[i * n + j] -= l * a[k * n + j];
-                }
-            }
-        }
-    }
-    for k in 0..n {
-        if piv[k] != k {
-            rhs.swap(k, piv[k]);
-        }
-    }
-    for i in 0..n {
-        let mut s = rhs[i];
-        for j in 0..i {
-            s -= a[i * n + j] * rhs[j];
-        }
-        rhs[i] = s;
-    }
-    for i in (0..n).rev() {
-        let mut s = rhs[i];
-        for j in i + 1..n {
-            s -= a[i * n + j] * rhs[j];
-        }
-        rhs[i] = s / a[i * n + i];
-    }
-    if rhs.iter().any(|x| !x.is_finite()) {
-        return None;
-    }
-    Some(rhs[..m].to_vec())
 }
 
 impl Setup {
@@ -671,18 +599,13 @@ impl Setup {
         let mut efermi = [None, None];
         let ethr = opts.energy_tol.unwrap_or(1e-6 * opts.accuracy);
         let pthr = opts.residual_tol.unwrap_or(2e-5 * opts.accuracy);
-        let len = ns * n * n;
         let mut st = match start {
             Some(s) => self.restart_state(s)?,
             None => self.guess_state(),
         };
         let (_, mut fock) = self.evaluate_timed(&st, true, &mut t);
-        let mut fmix: Vec<f64> = Vec::new();
-        let mut hist: Vec<(Vec<f64>, Vec<f64>)> = Vec::new();
-        // the DIIS matrix B_ij = r_i . r_j of the stored residuals
-        let mut bmat: Vec<Vec<f64>> = Vec::new();
-        let par = self.parallel;
-        let dot = |a: &[f64], b: &[f64]| crate::parallel::sum(a.len(), par, |k| a[k] * b[k]);
+        let mut mixer = Gxtb201FockDiis::new(n, damping, diis_size, self.parallel);
+        let mut rule = Gxtb201Rule::new(ethr, pthr);
         let mut e_old = 0.0;
         let mut c = Mat::<f64>::zeros(n, n);
         let mut eps = vec![vec![0.0; n]; ns];
@@ -690,60 +613,9 @@ impl Setup {
         // whether the last diagonalization of each spin used the full solver
         let mut full = vec![false; ns];
         let mut history = Vec::new();
-        // the program's convergence flags are sticky: each criterion counts once met in any
-        // iteration (tblite `check_convergence` only ever sets them)
-        let (mut econverged, mut pconverged) = (false, false);
-        // DIIS replaces the damping after iteration 3, or after an iteration whose energy
-        // changed by less than 1e-12 Eh (tblite_scf_iterator `update` switches mixer stages at
-        // the stage's start iteration or energy threshold: 4 and 1e-12, for every accuracy and
-        // electronic temperature)
-        let mut diis = false;
         for iter in 1..=max_iter {
             t.skip();
-            let fvec: Vec<f64> = if ns == 1 { std::mem::take(&mut fock[0]) } else { fock.concat() };
-            let mut err = 0.0;
-            if iter == 1 {
-                fmix = fvec;
-            } else {
-                let mut r = vec![0.0; len];
-                crate::parallel::for_each_mut(&mut r, par, |k, x| *x = fvec[k] - fmix[k]);
-                err = (dot(&r, &r) / len as f64).sqrt();
-                if !diis {
-                    let d = damping;
-                    crate::parallel::for_each_mut(&mut fmix, par, |k, x| *x += d * r[k]);
-                }
-                let mut fvec = Some(fvec);
-                if iter >= 3 {
-                    let row: Vec<f64> =
-                        hist.iter().map(|(_, rj)| dot(&r, rj)).chain(std::iter::once(dot(&r, &r))).collect();
-                    for (bj, &v) in bmat.iter_mut().zip(&row) {
-                        bj.push(v);
-                    }
-                    bmat.push(row);
-                    hist.push((fvec.take().unwrap(), r));
-                    if hist.len() > diis_size {
-                        hist.remove(0);
-                        bmat.remove(0);
-                        bmat.iter_mut().for_each(|b| {
-                            b.remove(0);
-                        });
-                    }
-                }
-                if diis {
-                    match diis_coefficients(&bmat) {
-                        Some(cf) => {
-                            let mut v = vec![0.0; len];
-                            crate::parallel::for_each_mut(&mut v, par, |k, x| {
-                                for (ci, (fi, _)) in cf.iter().zip(&hist) {
-                                    *x += ci * fi[k];
-                                }
-                            });
-                            fmix = v;
-                        }
-                        None => fmix = fvec.unwrap_or_else(|| hist.last().unwrap().0.clone()),
-                    }
-                }
-            }
+            let err = mixer.mix(iter, std::mem::take(&mut fock))?;
             t.lap("scf: mixing");
             // the eigenvectors of the orbitals with nonzero occupation (their occupations at a
             // finite temperature follow from the eigenvalues)
@@ -764,7 +636,7 @@ impl Setup {
                     o.iter().rposition(|&x| x != 0.0).map_or(0, |i| i + 1)
                 };
                 let k = solver.solve_lowest(
-                    MatRef::from_row_major_slice(&fmix[s * n * n..(s + 1) * n * n], n, n),
+                    MatRef::from_row_major_slice(mixer.mixed(s), n, n),
                     &mut eps[s],
                     &mut c,
                     need,
@@ -787,15 +659,21 @@ impl Setup {
             energies.add_entropy(ts);
             let e = energies.total;
             history.push((e, err));
-            econverged |= (e - e_old).abs() < ethr;
-            pconverged |= iter > 1 && err < pthr;
-            diis |= iter >= 3 || (e - e_old).abs() < DIIS_SWITCH_ENERGY;
-            if econverged && pconverged {
+            let it = Iteration {
+                iteration: iter,
+                energy: e,
+                energy_change: e - e_old,
+                residual: err,
+                density_change: f64::NAN,
+            };
+            let verdict = rule.update(&it);
+            mixer.observe(&it);
+            if verdict == Verdict::Done {
                 if opts.keep_orbitals {
                     // every orbital, the occupied ones as in the iteration (same bits)
                     for s in 0..ns {
                         solver.solve_all_with(
-                            MatRef::from_row_major_slice(&fmix[s * n * n..(s + 1) * n * n], n, n),
+                            MatRef::from_row_major_slice(mixer.mixed(s), n, n),
                             &mut eps[s],
                             &mut c,
                             full[s],
