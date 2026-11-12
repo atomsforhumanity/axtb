@@ -10,7 +10,8 @@
 //! energy is not stationary in the density. `gradient_tight` is the same run with the SCF
 //! thresholds tightened to 1e-12 Eh / 1e-10 (gdb, `scripts/make_reference.py`).
 
-use axtb_gxtb::{read_xyz, Calculator, Conventions, ScfOptions, Setup};
+use axtb::method::{Method, Want};
+use axtb_gxtb::{read_xyz, Calculator, Conventions, Options, ScfOptions, Setup};
 use serde_json::Value;
 use std::path::Path;
 
@@ -175,11 +176,11 @@ fn gradient_is_translation_invariant_and_default_convergence_suffices() {
     for (c, tol) in [(Conventions::Axtb, 5e-6), (Conventions::Gxtb, 5e-6)] {
         for name in ALL {
             let mol = molecule(name);
-            let opts = ScfOptions { conventions: c, ..Default::default() };
+            let opts = Options { conventions: c, ..Default::default() };
             let mut calc =
                 Calculator::new(axtb_gxtb::Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts)
                     .unwrap();
-            let g = calc.singlepoint(&mol.positions, true).unwrap().singlepoint.gradient.unwrap();
+            let g = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap().gradient.unwrap();
             for k in 0..3 {
                 let s: f64 = g.iter().map(|v| v[k]).sum();
                 assert!(s.abs() < 1e-9, "{c:?} {name}: sum {k} = {s}");

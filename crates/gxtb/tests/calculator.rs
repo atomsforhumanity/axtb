@@ -1,7 +1,9 @@
 //! The calculator interface used by the axtb front ends (CLI, Python, qccodec): same results
 //! as the SCF driver, explicit threads; gradients and Hessians.
 
-use axtb_gxtb::{read_xyz, Calculator, Conventions, ScfOptions, Setup, Version};
+use axtb::method::{Method, Want};
+use axtb::method::{ScfSettings, TermKind};
+use axtb_gxtb::{read_xyz, Calculator, Conventions, ConvergerSettings, Options, ScfOptions, Setup, Version};
 use serde_json::Value;
 use std::path::Path;
 
@@ -22,55 +24,70 @@ fn program() -> ScfOptions {
     ScfOptions { conventions: Conventions::Gxtb, ..Default::default() }
 }
 
+/// The calculator's options in the program's conventions.
+fn program_options() -> Options {
+    Options { conventions: Conventions::Gxtb, ..Default::default() }
+}
+
+/// Options with the SCF settings `scf`.
+fn with_scf(scf: ScfSettings) -> Options {
+    Options { scf, ..Default::default() }
+}
+
+/// Options with the converger settings `converger`.
+fn with_converger(converger: ConvergerSettings) -> Options {
+    Options { converger, ..Default::default() }
+}
+
 #[test]
 fn calculator_matches_scf_and_program() {
     for name in ["water", "dioxygen_triplet", "tetrachlorocuprate", "nickel_tetracarbonyl"] {
         let (mol, eref) = reference(name);
         let direct = Setup::new(&mol).unwrap().scf(&program()).unwrap();
         for threads in [1, 2] {
-            let opts = ScfOptions { threads, ..program() };
+            let opts = Options { threads, ..program_options() };
             let mut calc =
                 Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts).unwrap();
-            let r = calc.singlepoint(&mol.positions, false).unwrap();
-            let sp = &r.singlepoint;
+            let r = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap();
+            let sp = &r;
             // the direct SCF runs sequentially: identical on 1 thread, to round-off on more
             // (the eigensolver's parallel tridiagonalization)
             if threads == 1 {
                 assert_eq!(sp.energy, direct.energies.total, "{name}");
-                assert_eq!(sp.qat, direct.atom_charges);
+                assert_eq!(sp.charges, direct.atom_charges);
             } else {
                 assert!((sp.energy - direct.energies.total).abs() < 1e-11, "{name}, {threads} threads");
-                assert!(sp.qat.iter().zip(&direct.atom_charges).all(|(a, b)| (a - b).abs() < 1e-10));
+                assert!(sp.charges.iter().zip(&direct.atom_charges).all(|(a, b)| (a - b).abs() < 1e-10));
             }
             assert!((sp.energy - eref).abs() < 1e-11, "{name}: {} vs program {eref}", sp.energy);
-            assert_eq!(sp.iterations, direct.iterations);
-            let t = &sp.terms;
-            assert!((t.repulsion + t.dispersion + t.electronic - sp.energy).abs() < 1e-10);
+            assert_eq!(sp.scf().unwrap().iterations, direct.iterations);
+            // the pieces partition the energy; `electronic` is their SCF part
+            assert!((sp.pieces() - sp.energy).abs() < 1e-10, "{name}: {} vs {}", sp.pieces(), sp.energy);
+            assert_eq!(sp.terms.iter().filter(|t| t.kind == TermKind::Subtotal).count(), 1);
             let named: f64 = r
-                .energies
-                .named()
+                .terms
                 .iter()
-                .filter(|(k, _)| {
-                    ["electronic", "increments", "dispersion", "dispersion_three_body", "repulsion"].contains(k)
+                .filter(|t| {
+                    ["electronic", "increments", "dispersion", "dispersion_three_body", "repulsion"].contains(&t.name)
                 })
-                .map(|(_, v)| v)
+                .map(|t| t.value)
                 .sum();
             assert!((named - sp.energy).abs() < 1e-10);
             // the cached setup is reused for the same geometry, rebuilt for a new one
-            assert_eq!(calc.singlepoint(&mol.positions, false).unwrap().singlepoint.energy, sp.energy);
+            assert_eq!(calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap().energy, sp.energy);
             let mut moved = mol.positions.clone();
             moved[0][2] += 0.01;
-            let e2 = calc.singlepoint(&moved, false).unwrap().singlepoint.energy;
+            let e2 = calc.singlepoint(&moved, &Want::gradient(false)).unwrap().energy;
             let mut fresh =
-                Calculator::new(Version::V1_1, &mol.numbers, &moved, mol.charge, mol.uhf, program()).unwrap();
-            assert_eq!(fresh.singlepoint(&moved, false).unwrap().singlepoint.energy, e2);
+                Calculator::new(Version::V1_1, &mol.numbers, &moved, mol.charge, mol.uhf, program_options()).unwrap();
+            assert_eq!(fresh.singlepoint(&moved, &Want::gradient(false)).unwrap().energy, e2);
         }
         // the default diagonalizes the exact derivative: same energy expression, stationary
         // SCF, slightly lower energy than the program's fixed point
         let mut calc =
-            Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, ScfOptions::default())
+            Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, Options::default())
                 .unwrap();
-        let e = calc.singlepoint(&mol.positions, false).unwrap().singlepoint.energy;
+        let e = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap().energy;
         let exact = Setup::new(&mol)
             .unwrap()
             .scf(&ScfOptions { conventions: Conventions::Axtb, ..Default::default() })
@@ -85,8 +102,8 @@ fn scf_dipole_matches_program_printout() {
     // the program prints the SCF dipole (au, 6 decimals) after the SCF
     let (mol, _) = reference("water");
     let mut calc =
-        Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, program()).unwrap();
-    let d = calc.singlepoint(&mol.positions, false).unwrap().singlepoint.dipole;
+        Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, program_options()).unwrap();
+    let d = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap().dipole;
     for (x, p) in d.iter().zip([0.0, 0.0, -0.933216]) {
         assert!((x - p).abs() <= 5.0001e-7, "dipole {d:?}");
     }
@@ -100,9 +117,9 @@ fn gradient_and_hessian() {
         [(Conventions::Axtb, 1), (Conventions::Axtb, 2), (Conventions::Gxtb, 1), (Conventions::Gxtb, 2)]
     {
         let direct = st.gradient(&st.scf(&ScfOptions { conventions, ..Default::default() }).unwrap()).unwrap();
-        let opts = ScfOptions { threads, conventions, ..Default::default() };
+        let opts = Options { threads, conventions, ..Default::default() };
         let mut calc = Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts).unwrap();
-        let sp = calc.singlepoint(&mol.positions, true).unwrap().singlepoint;
+        let sp = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();
         let g = sp.gradient.as_ref().unwrap();
         if threads == 1 {
             assert_eq!(g, &direct, "{conventions:?}");
@@ -112,7 +129,7 @@ fn gradient_and_hessian() {
         }
         assert!(sp.timings.iter().any(|(k, _)| *k == "gradient"));
         // semi-numerical Hessian: symmetric, translation-invariant rows, gradient at accuracy 0.01
-        let h = calc.numerical_hessian(&mol.positions, 0.005, None).unwrap();
+        let h = calc.hessian(&mol.positions, &numerical(0.005, None)).unwrap();
         let n3 = 3 * mol.nat();
         assert!(h.max_asymmetry < 2e-5, "{}", h.max_asymmetry);
         for i in 0..n3 {
@@ -130,11 +147,10 @@ fn gradient_and_hessian() {
         assert!((h.hessian[8 * n3 + 8] - 0.188710).abs() < 2e-5, "{}", h.hessian[8 * n3 + 8]);
     }
     let mut calc =
-        Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, ScfOptions::default())
-            .unwrap();
-    assert!(calc.numerical_hessian(&mol.positions, 0.0, None).is_err());
-    assert!(calc.numerical_hessian(&mol.positions, f64::NAN, None).is_err());
-    assert!(calc.numerical_hessian(&mol.positions, 0.005, Some(f64::NAN)).is_err());
+        Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, Options::default()).unwrap();
+    assert!(calc.hessian(&mol.positions, &numerical(0.0, None)).is_err());
+    assert!(calc.hessian(&mol.positions, &numerical(f64::NAN, None)).is_err());
+    assert!(calc.hessian(&mol.positions, &numerical(0.005, Some(f64::NAN))).is_err());
 }
 
 #[test]
@@ -142,20 +158,24 @@ fn input_errors() {
     use axtb::Error;
     let (mol, _) = reference("water");
     let (z, x) = (&mol.numbers, &mol.positions);
-    let new = |v: Version, charge: f64, o: ScfOptions| Calculator::new(v, z, x, charge, None, o);
-    let refused = |v: Version, o: ScfOptions| matches!(new(v, 0.0, o), Err(Error::Input(_)));
-    let d = ScfOptions::default;
+    let new = |v: Version, charge: f64, o: Options| Calculator::new(v, z, x, charge, None, o);
+    let refused = |v: Version, o: Options| matches!(new(v, 0.0, o), Err(Error::Input(_)));
+    let d = Options::default;
+    let scf = ScfSettings::default;
+    let conv = ConvergerSettings::default;
     for v in [Version::V2_0_1, Version::V1_1] {
-        assert!(refused(v, ScfOptions { threads: 0, ..d() }));
-        assert!(refused(v, ScfOptions { accuracy: f64::NAN, ..d() }));
-        assert!(refused(v, ScfOptions { etemp: f64::INFINITY, ..d() }));
-        assert!(refused(v, ScfOptions { etemp: -1.0, ..d() }));
-        assert!(refused(v, ScfOptions { energy_tol: Some(f64::NAN), ..d() }));
-        assert!(refused(v, ScfOptions { diis_size: Some(0), ..d() }));
+        assert!(refused(v, Options { threads: 0, ..d() }));
+        assert!(refused(v, with_scf(ScfSettings { accuracy: f64::NAN, ..scf() })));
+        assert!(refused(v, with_scf(ScfSettings { etemp: Some(f64::INFINITY), ..scf() })));
+        assert!(refused(v, with_scf(ScfSettings { etemp: Some(-1.0), ..scf() })));
+        assert!(refused(v, with_converger(ConvergerSettings { energy_tol: Some(f64::NAN), ..conv() })));
+        assert!(refused(v, with_converger(ConvergerSettings { diis_size: Some(0), ..conv() })));
         for damping in [0.0, -0.1, 1.5, f64::NAN] {
-            assert!(refused(v, ScfOptions { damping: Some(damping), ..d() }), "{v:?} damping {damping}");
+            let o = with_converger(ConvergerSettings { damping: Some(damping), ..conv() });
+            assert!(refused(v, o), "{v:?} damping {damping}");
         }
-        assert!(new(v, 0.0, ScfOptions { damping: Some(1.0), diis_size: Some(1), ..d() }).is_ok());
+        let o = with_converger(ConvergerSettings { damping: Some(1.0), diis_size: Some(1), ..conv() });
+        assert!(new(v, 0.0, o).is_ok());
         // a fractional or non-finite charge
         for charge in [0.5, f64::NAN, f64::INFINITY] {
             assert!(matches!(new(v, charge, d()), Err(Error::Input(_))), "{v:?} charge {charge}");
@@ -164,28 +184,28 @@ fn input_errors() {
         let mut calc = new(v, 0.0, d()).unwrap();
         let mut bad = x.clone();
         bad[1][0] = f64::NAN;
-        assert!(calc.singlepoint(&bad, true).is_err());
+        assert!(calc.singlepoint(&bad, &Want::gradient(true)).is_err());
         let mut bad = x.clone();
         bad[1] = bad[0];
-        assert!(calc.singlepoint(&bad, true).is_err());
-        assert!(calc.singlepoint(x, true).is_ok());
+        assert!(calc.singlepoint(&bad, &Want::gradient(true)).is_err());
+        assert!(calc.singlepoint(x, &Want::gradient(true)).is_ok());
         // the thread count is the pool's
         calc.options.threads = 2;
-        assert!(calc.singlepoint(x, false).is_err());
+        assert!(calc.singlepoint(x, &Want::gradient(false)).is_err());
     }
     // settings of the other version
-    assert!(refused(Version::V2_0_1, ScfOptions { density_tol: Some(1e-6), ..d() }));
-    assert!(refused(Version::V2_0_1, ScfOptions { transition_iteration: Some(3), ..d() }));
-    assert!(refused(Version::V1_1, ScfOptions { residual_tol: Some(1e-6), ..d() }));
-    assert!(new(Version::V2_0_1, 0.0, ScfOptions { residual_tol: Some(1e-6), ..d() }).is_ok());
-    let v1 = ScfOptions { density_tol: Some(1e-6), transition_iteration: Some(2), ..d() };
+    assert!(refused(Version::V2_0_1, with_converger(ConvergerSettings { density_tol: Some(1e-6), ..conv() })));
+    assert!(refused(Version::V2_0_1, with_converger(ConvergerSettings { transition_iteration: Some(3), ..conv() })));
+    assert!(refused(Version::V1_1, with_converger(ConvergerSettings { residual_tol: Some(1e-6), ..conv() })));
+    assert!(new(Version::V2_0_1, 0.0, with_converger(ConvergerSettings { residual_tol: Some(1e-6), ..conv() })).is_ok());
+    let v1 = with_converger(ConvergerSettings { density_tol: Some(1e-6), transition_iteration: Some(2), ..conv() });
     assert!(new(Version::V1_1, 0.0, v1).is_ok());
     // element without v1.1 parameters (Z = 60 is absent from the parameter file)
     assert!(Calculator::new(Version::V1_1, &[60, 1], &[[0.0; 3], [0.0, 0.0, 3.0]], 0.0, None, d()).is_err());
     // a 2.0.1 setup refuses SCF options of other conventions; its Hessians need every orbital
     let mut setup = axtb_gxtb::v2::scf::Setup::new(&mol, Conventions::Axtb).unwrap();
-    assert!(setup.scf(&ScfOptions { conventions: Conventions::Gxtb, ..d() }).is_err());
-    let r = setup.scf(&d()).unwrap();
+    assert!(setup.scf(&ScfOptions { conventions: Conventions::Gxtb, ..Default::default() }).is_err());
+    let r = setup.scf(&ScfOptions::default()).unwrap();
     assert!(!r.all_orbitals);
     assert!(setup.analytic_hessian(&r, &Default::default()).is_err());
 }
@@ -197,15 +217,16 @@ fn mixer_settings_and_failures() {
     let (mol, _) = reference("water");
     let (z, x) = (&mol.numbers, &mol.positions);
     for v in [Version::V2_0_1, Version::V1_1] {
-        let energy = |o: ScfOptions| {
+        let energy = |o: Options| {
             let mut c = Calculator::new(v, z, x, 0.0, None, o).unwrap();
-            c.singlepoint(x, false).map(|r| (r.singlepoint.energy, r.singlepoint.iterations))
+            c.singlepoint(x, &Want::gradient(false)).map(|r| (r.energy, r.scf().unwrap().iterations))
         };
-        let (e0, it0) = energy(ScfOptions::default()).unwrap();
-        let (e1, it1) = energy(ScfOptions { damping: Some(0.5), diis_size: Some(3), ..Default::default() }).unwrap();
+        let (e0, it0) = energy(Options::default()).unwrap();
+        let o = with_converger(ConvergerSettings { damping: Some(0.5), diis_size: Some(3), ..Default::default() });
+        let (e1, it1) = energy(o).unwrap();
         // the same solution, along another path
         assert!((e0 - e1).abs() < 1e-7 && (e0 != e1 || it0 != it1), "{v:?}: {e0} ({it0}) vs {e1} ({it1})");
-        match energy(ScfOptions { max_iter: 2, ..Default::default() }) {
+        match energy(with_scf(ScfSettings { max_iter: Some(2), ..Default::default() })) {
             Err(axtb::Error::ScfNotConverged { iterations: 2, energy_change, residual }) => {
                 assert!(energy_change.is_finite() && residual.is_finite(), "{v:?}")
             }
@@ -242,27 +263,32 @@ fn v2_calculator_and_hessian() {
     use axtb_gxtb::v2::scf::Setup as V2Setup;
     let (mol, _) = reference("water");
     for conv in [Conventions::Axtb, Conventions::Gxtb] {
-        let opts = ScfOptions { conventions: conv, ..Default::default() };
+        let opts = Options { conventions: conv, ..Default::default() };
         let mut calc = Calculator::new(Version::V2_0_1, &mol.numbers, &mol.positions, 0.0, None, opts).unwrap();
-        let r = calc.singlepoint(&mol.positions, true).unwrap();
+        let r = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();
         let setup = V2Setup::new(&mol, conv).unwrap();
         let direct = setup.scf(&ScfOptions { conventions: conv, ..Default::default() }).unwrap();
-        assert_eq!(r.singlepoint.energy, direct.energies.total);
-        assert_eq!(r.singlepoint.gradient.as_ref().unwrap(), &setup.gradient(&direct).unwrap());
-        assert_eq!(r.energies.total(), r.singlepoint.energy);
+        assert_eq!(r.energy, direct.energies.total);
+        assert_eq!(r.gradient.as_ref().unwrap(), &setup.gradient(&direct).unwrap());
+        assert!((r.pieces() - r.energy).abs() < 1e-10, "{conv:?}: the pieces {} vs {}", r.pieces(), r.energy);
         let named: f64 = r
-            .energies
-            .named()
+            .terms
             .iter()
-            .filter(|(k, _)| ["electronic", "increments", "dispersion_three_body"].contains(k))
-            .map(|(_, v)| v)
+            .filter(|t| ["electronic", "increments", "dispersion_three_body"].contains(&t.name))
+            .map(|t| t.value)
             .sum();
-        assert!((named - r.singlepoint.energy).abs() < 1e-10);
-        let h = calc.numerical_hessian(&mol.positions, 0.005, None).unwrap();
+        assert!((named - r.energy).abs() < 1e-10);
+        let h = calc.hessian(&mol.positions, &numerical(0.005, None)).unwrap();
         assert!(h.max_asymmetry < 2e-5, "{}", h.max_asymmetry);
         for i in 0..9 {
             let row: f64 = (0..3).map(|a| h.hessian[i * 9 + 3 * a + 2]).sum();
             assert!(row.abs() < 1e-5, "translation invariance {row}");
         }
     }
+}
+
+/// The numerical Hessian with step `step` (bohr) and the SCF accuracy `accuracy` of every
+/// displacement.
+fn numerical(step: f64, accuracy: Option<f64>) -> axtb::HessianOptions {
+    axtb::HessianOptions { method: Some(axtb::HessianMethod::Numerical), step: Some(step), accuracy }
 }

@@ -28,7 +28,7 @@
 //! terms that [partition](MomentTerm::partitions_energy) their energy); g-xTB sums totals.
 //! Terms added to a model ([`Calculator::push_term`](crate::Calculator::push_term) for GFN2-xTB)
 //! come after the model's own terms in every sum; their pieces are reported by name
-//! ([`EnergyTerms::other`](crate::EnergyTerms::other)). The integration test `tests/terms.rs`
+//! (in the single point's terms, after the model's own). The integration test `tests/terms.rs`
 //! of this crate writes a term (a uniform electric field) with this module alone.
 //!
 //! ## Intermediates and the chain rule

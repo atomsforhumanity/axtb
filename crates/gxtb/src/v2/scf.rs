@@ -578,7 +578,7 @@ pub struct ScfResult {
     /// `all_orbitals`, otherwise only those of the orbitals with nonzero occupation (the other
     /// columns zero).
     pub coefficients: Vec<Vec<f64>>,
-    /// Whether `coefficients` hold every orbital ([`crate::ScfOptions::keep_orbitals`]; the
+    /// Whether `coefficients` hold every orbital ([`crate::ScfOptions::all_orbitals`]; the
     /// Hessians need them).
     pub all_orbitals: bool,
     /// Converged spin densities (closed shell: total density).
@@ -683,7 +683,7 @@ impl Setup {
             return Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: res });
         }
         let Scf201 { mut solver, occ, efermi, mut c, mut eps, mut coef, full, input, energies, history, .. } = scf;
-        if opts.keep_orbitals {
+        if opts.all_orbitals {
             // every orbital, the occupied ones as in the iteration (same bits)
             for s in 0..ns {
                 solver.solve_all_with(
@@ -705,7 +705,7 @@ impl Setup {
             kt,
             efermi,
             coefficients: coef,
-            all_orbitals: opts.keep_orbitals,
+            all_orbitals: opts.all_orbitals,
             density: st.p.clone(),
             state: st,
             input_state: input.expect("a converged SCF ran an iteration"),

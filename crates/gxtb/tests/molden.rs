@@ -10,7 +10,7 @@ use axtb::integrals::{overlap, MBLK};
 use axtb::method::{Method, Want};
 use axtb::molden::{MoldenFunctions, Spin, ToMolden};
 use axtb::{Molecule, OrbitalLevels, Orbitals};
-use axtb_gxtb::{Calculator, ScfOptions, Version};
+use axtb_gxtb::{Calculator, Options, Version};
 use std::path::Path;
 
 fn molecule(rel: &str, charge: f64, uhf: usize) -> Molecule {
@@ -118,14 +118,13 @@ fn gxtb_orbitals() {
             let mol = molecule(rel, charge, uhf);
             let name = format!("{rel} {}", version.method());
             let mut calc =
-                Calculator::new(version, &mol.numbers, &mol.positions, charge, Some(uhf), ScfOptions::default())
-                    .unwrap();
-            let r = calc.singlepoint(&mol.positions, false).unwrap();
-            assert!(r.singlepoint.orbitals.is_none(), "orbitals only when asked");
-            calc.options.keep_orbitals = true;
-            let r = calc.singlepoint(&mol.positions, true).unwrap();
-            let orb = r.singlepoint.orbitals.as_ref().expect("orbitals");
-            check(&name, orb, &r.singlepoint.levels, uhf, false);
+                Calculator::new(version, &mol.numbers, &mol.positions, charge, Some(uhf), Options::default()).unwrap();
+            let r = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap();
+            assert!(r.electronic.unwrap().orbitals.is_none(), "orbitals only when asked");
+            let want = Want { orbitals: true, ..Want::GRADIENT };
+            let e = calc.singlepoint(&mol.positions, &want).unwrap().electronic.unwrap();
+            let orb = e.orbitals.as_ref().expect("orbitals");
+            check(&name, orb, &e.levels, uhf, false);
         }
     }
 }
@@ -159,10 +158,9 @@ fn gxtb_shells_per_atom() {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference/ethanol/mol.xyz");
     let mol = axtb_gxtb::read_xyz(&std::fs::read_to_string(path).unwrap(), 0.0, None).unwrap();
     for version in [Version::V1_1, Version::V2_0_1] {
-        let opts = ScfOptions { keep_orbitals: true, ..Default::default() };
-        let mut calc = Calculator::new(version, &mol.numbers, &mol.positions, 0.0, None, opts).unwrap();
-        let r = calc.singlepoint(&mol.positions, false).unwrap();
-        let orb = r.singlepoint.orbitals.unwrap();
+        let mut calc = Calculator::new(version, &mol.numbers, &mol.positions, 0.0, None, Options::default()).unwrap();
+        let want = Want { orbitals: true, ..Want::ENERGY };
+        let orb = calc.singlepoint(&mol.positions, &want).unwrap().electronic.unwrap().orbitals.unwrap();
         let h: Vec<usize> = (0..mol.nat()).filter(|&i| mol.numbers[i] == 1).collect();
         let distinct: std::collections::BTreeSet<String> =
             h.iter().map(|&i| format!("{:?}", orb.shells[i][0].coeff)).collect();

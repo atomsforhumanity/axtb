@@ -6,8 +6,9 @@
 //!
 //! Own test binary: the 4-thread pools would disturb the thread counts of `threads.rs`.
 
+use axtb::method::{Method, Want};
 use axtb_base::threads::DENSE_MIN_AO;
-use axtb_gxtb::{Calculator, Conventions, ScfOptions, Version};
+use axtb_gxtb::{Calculator, Conventions, Options, Version};
 
 #[test]
 fn threads_agree_on_a_large_molecule() {
@@ -17,10 +18,10 @@ fn threads_agree_on_a_large_molecule() {
         let nao = axtb_gxtb::v2::scf::Setup::new(&mol, conventions).unwrap().nao;
         assert!(nao >= DENSE_MIN_AO.max(314), "{nao} basis functions");
         let run = |threads: usize| {
-            let o = ScfOptions { threads, conventions, ..Default::default() };
+            let o = Options { threads, conventions, ..Default::default() };
             let mut c = Calculator::new(Version::V2_0_1, &mol.numbers, &mol.positions, 0.0, None, o).unwrap();
-            let sp = c.singlepoint(&mol.positions, true).unwrap().singlepoint;
-            (sp.energy, sp.iterations, sp.gradient.unwrap())
+            let sp = c.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();
+            (sp.energy, sp.scf().unwrap().iterations, sp.gradient.unwrap())
         };
         let (e1, it1, g1) = run(1);
         let (e4, it4, g4) = run(4);

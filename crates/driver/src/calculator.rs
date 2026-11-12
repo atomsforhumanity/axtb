@@ -32,13 +32,14 @@ pub struct ScfState {
 }
 
 #[derive(Clone)]
+#[allow(clippy::large_enum_variant)] // (until the driver holds the trait object)
 enum StateInner {
     Gfn2(Wavefunction),
     #[cfg(feature = "gxtb")]
-    Gxtb(axtb_gxtb::GuessState),
+    Gxtb(Wavefunction),
     /// g-xTB part, GFN2 gas phase, GFN2 solvated
     #[cfg(feature = "gxtb")]
-    Composite(Option<axtb_gxtb::GuessState>, Option<Wavefunction>, Option<Wavefunction>),
+    Composite(Option<Wavefunction>, Option<Wavefunction>, Option<Wavefunction>),
 }
 
 impl ScfState {
@@ -303,54 +304,33 @@ impl Calculator {
             Engine::Gxtb(calc) => {
                 let hess = match &task.hessian {
                     Some(h) => {
-                        calc.options.keep_orbitals = false;
-                        calc.options.bond_orders = false;
-                        let method = h.method.unwrap_or_else(|| calc.default_hessian_method());
-                        let o = axtb::HessianOptions { method: Some(method), step: h.step, accuracy: h.accuracy };
-                        let r = calc.hessian(positions, &o)?;
-                        // the single point below starts from g-xTB's own guess, as without the
-                        // Hessian
-                        calc.reset_guess();
-                        Some(r)
+                        // afterwards g-xTB holds no wavefunction: the single point below starts
+                        // from its own guess, as without the Hessian
+                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
+                        Some(calc.hessian(positions, &o)?)
                     }
                     None => None,
                 };
-                calc.options.keep_orbitals = molden;
-                calc.options.bond_orders = task.bond_orders;
-                let r = calc.singlepoint(positions, task.gradient || hess.is_some());
-                calc.options.keep_orbitals = false;
-                calc.options.bond_orders = false;
-                let r = r?;
-                let form = calc.quadrupole_form();
+                let want =
+                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
+                let sp = calc.singlepoint(positions, &want)?;
                 out.hessian = hess.map(hessian_part);
-                scf_into(&mut out, r.singlepoint, r.energies.named(), positions, form)
+                report_into(&mut out, sp)
             }
             #[cfg(feature = "gxtb")]
             Engine::Composite(calc) => {
                 let hess = match &task.hessian {
-                    Some(h) => {
-                        calc.set_keep_orbitals(false);
-                        calc.gxtb_mut().options.bond_orders = false;
-                        let r = calc.hessian(positions, h.method, h.step, h.accuracy)?;
-                        // the g-xTB single point below starts from its own guess, as without
-                        // the Hessian
-                        calc.gxtb_mut().reset_guess();
-                        Some(r)
-                    }
+                    // afterwards the g-xTB part holds no wavefunction: its single point below
+                    // starts from its own guess, as without the Hessian
+                    Some(h) => Some(calc.hessian(positions, h.method, h.step, h.accuracy)?),
                     None => None,
                 };
-                calc.set_keep_orbitals(molden);
-                calc.gxtb_mut().options.bond_orders = task.bond_orders;
-                let r = calc.singlepoint(positions, task.gradient || hess.is_some());
-                calc.set_keep_orbitals(false);
-                calc.gxtb_mut().options.bond_orders = false;
-                let r = r?;
-                let mut terms = r.gxtb.energies.named();
-                terms.push(("solvation_correction", r.solvation_energy));
-                let form = calc.gxtb().quadrupole_form();
+                let want =
+                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
+                let r = calc.singlepoint(positions, &want)?;
                 out.composite = Some(composite::response(calc, &r, hess.as_ref().map(|h| &h.parts)));
                 out.hessian = hess.map(|h| hessian_part(h.total));
-                scf_into(&mut out, r.singlepoint, terms, positions, form)
+                report_into(&mut out, r.singlepoint)
             }
             Engine::Gfnff(calc) => {
                 let hess = match &task.hessian {
@@ -423,11 +403,11 @@ impl Calculator {
         let inner = match &self.engine {
             Engine::Gfn2(c) => c.wavefunction().map(StateInner::Gfn2),
             #[cfg(feature = "gxtb")]
-            Engine::Gxtb(c) => c.guess().cloned().map(StateInner::Gxtb),
+            Engine::Gxtb(c) => c.wavefunction().map(StateInner::Gxtb),
             #[cfg(feature = "gxtb")]
             Engine::Composite(c) => {
                 let (gas, solv) = c.gfn2_guesses();
-                let g = c.gxtb().guess().cloned();
+                let g = c.gxtb().wavefunction();
                 (g.is_some() || gas.is_some() || solv.is_some()).then_some(StateInner::Composite(g, gas, solv))
             }
             Engine::Gfnff(_) => None,
@@ -450,11 +430,11 @@ impl Calculator {
         match (&mut self.engine, &state.inner) {
             (Engine::Gfn2(c), StateInner::Gfn2(g)) => c.set_wavefunction(g)?,
             #[cfg(feature = "gxtb")]
-            (Engine::Gxtb(c), StateInner::Gxtb(g)) => c.set_guess(g.clone())?,
+            (Engine::Gxtb(c), StateInner::Gxtb(g)) => c.set_wavefunction(g)?,
             #[cfg(feature = "gxtb")]
             (Engine::Composite(c), StateInner::Composite(g, gas, solv)) => {
                 if let Some(g) = g {
-                    c.gxtb_mut().set_guess(g.clone())?;
+                    c.gxtb_mut().set_wavefunction(g)?;
                 }
                 let (cg, cs) = c.gfn2_mut();
                 if let Some(x) = gas {
@@ -504,9 +484,9 @@ impl Calculator {
         match (&mut self.engine, gxtb_only) {
             (Engine::Gfn2(c), false) => c.reset_wavefunction(),
             #[cfg(feature = "gxtb")]
-            (Engine::Gxtb(c), _) => c.reset_guess(),
+            (Engine::Gxtb(c), _) => c.reset_wavefunction(),
             #[cfg(feature = "gxtb")]
-            (Engine::Composite(c), true) => c.gxtb_mut().reset_guess(),
+            (Engine::Composite(c), true) => c.gxtb_mut().reset_wavefunction(),
             #[cfg(feature = "gxtb")]
             (Engine::Composite(c), false) => c.reset_guess(),
             _ => {}
@@ -571,20 +551,16 @@ fn gxtb_engine(
     if req.mixer.is_some() {
         return Err(input(format!("{method} does not support choosing the SCF mixer")));
     }
-    let mut o = axtb_gxtb::ScfOptions { threads, conventions, ..Default::default() };
+    let mut o = axtb_gxtb::Options { threads, conventions, ..Default::default() };
     if let Some(a) = req.accuracy {
-        o.accuracy = a;
+        o.scf.accuracy = a;
     }
-    if let Some(t) = req.etemp {
-        o.etemp = t;
-    }
-    if let Some(m) = req.max_iter {
-        o.max_iter = m;
-    }
-    o.guess = match guess {
+    o.scf.etemp = req.etemp;
+    o.scf.max_iter = req.max_iter;
+    o.scf.restart = match guess {
         None => None,
-        Some(names::Guess::Previous) => Some(axtb_gxtb::Guess::Previous),
-        Some(names::Guess::Fresh | names::Guess::EeqBc) => Some(axtb_gxtb::Guess::EeqBc),
+        Some(names::Guess::Previous) => Some(Restart::Previous),
+        Some(names::Guess::Fresh | names::Guess::EeqBc) => Some(Restart::Fresh),
         Some(names::Guess::Eeq | names::Guess::Sad) => {
             return Err(input(format!("{method} starts from the program's EEQ-BC charges: guess \"eeq-bc\"")))
         }
@@ -639,47 +615,6 @@ fn report_into(out: &mut Response, sp: axtb::method::SinglePoint) -> Option<axtb
     });
     out.charges = Some(sp.charges);
     e.orbitals
-}
-
-/// Fill the single point of an SCF method into `out`; returns its orbitals (when kept).
-fn scf_into(
-    out: &mut Response,
-    sp: axtb::SinglePoint,
-    terms: Vec<(&'static str, f64)>,
-    positions: &[[f64; 3]],
-    form: axtb::QuadrupoleForm,
-) -> Option<axtb::Orbitals> {
-    let [a, b] = axtb::properties::alpha_beta(&sp.levels);
-    let nat = positions.len();
-    out.eigensolver = Some(sp.eigensolver);
-    out.energy = Some(sp.energy);
-    out.gradient = sp.gradient;
-    out.dipole = Some(sp.dipole);
-    out.terms = Some(Named::new(terms));
-    out.timings = Some(Named::new(sp.timings));
-    out.scf = Some(Scf {
-        iterations: sp.iterations,
-        guess: sp.guess,
-        mixer_used: sp.mixer_used,
-        scf_attempts: (!sp.scf_attempts.is_empty()).then(|| {
-            sp.scf_attempts
-                .iter()
-                .map(|a| Attempt { mixer: a.mixer.label(), iterations: a.iterations, converged: a.converged })
-                .collect()
-        }),
-        homo_lumo_gap: sp.homo_lumo_gap,
-        quadrupole: axtb::properties::molecular_quadrupole(positions, &sp.qat, &sp.dpat, &sp.qpat, form),
-        shell_charges: sp.qsh,
-        atomic_dipoles: sp.dpat,
-        atomic_quadrupoles: sp.qpat,
-        orbital_energies_alpha: a.energies,
-        orbital_energies_beta: b.energies,
-        occupations_alpha: a.occupations,
-        occupations_beta: b.occupations,
-        bond_orders: sp.bond_orders.map(|bo| Matrix { rows: nat, cols: nat, data: bo }),
-    });
-    out.charges = Some(sp.qat);
-    sp.orbitals
 }
 
 /// Refuse a non-finite energy, gradient or Hessian (JSON cannot hold them; they would be
@@ -753,7 +688,7 @@ mod composite {
                 retries: o.retries,
             },
             components: Components {
-                gxtb: r.gxtb.singlepoint.energy,
+                gxtb: r.gxtb.energy,
                 gfn2_solvated: r.gfn2_solvated.energy,
                 gfn2_gas: r.gfn2_gas.energy,
                 solvation_correction: r.solvation_energy,

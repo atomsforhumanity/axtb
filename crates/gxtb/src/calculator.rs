@@ -1,30 +1,35 @@
-//! Calculator API of g-xTB (2.0.1 and v1.1), shaped like `axtb::Calculator` and returning
-//! `axtb::SinglePoint`, so that the axtb command-line driver, Python package and qccodec codec
-//! select it by method name (`"gxtb-v2.0.1"`, `"gxtb-v1.1"`).
+//! Calculator of g-xTB (2.0.1 and v1.1): axtb-base's [`Method`], so that the axtb command-line
+//! driver, Python package and qccodec codec select it by method name (`"gxtb-v2.0.1"`,
+//! `"gxtb-v1.1"`).
 //!
-//! g-xTB lives in this GPL-3.0 crate, which builds on axtb (LGPL-3.0); `axtb::Calculator`
-//! cannot construct it without making the core depend on GPL code, hence the separate type.
+//! g-xTB lives in this GPL-3.0 crate, which builds on axtb (LGPL-3.0); the method trait is
+//! axtb-base's, so the front ends hold it like every other method.
 //!
 //! Energies, analytic gradients (2.0.1: [`crate::v2::gradient`]; v1.1: [`crate::response`])
-//! and Hessians ([`Calculator::hessian`]: for 2.0.1 analytic (the default) or response,
+//! and Hessians ([`Method::hessian`]: for 2.0.1 analytic (the default) or response,
 //! [`crate::v2::hessian`]; for both versions numerical, central differences of analytic
-//! gradients as `axtb::Calculator::hessian`), with the settings of [`ScfOptions`] (refused when
-//! out of range or meant for the other version, [`ScfOptions::check`]). Where an SCF starts is
-//! [`ScfOptions::guess`]: in the default conventions from the previous geometry's converged
-//! state ([`GuessState`]; the programs' restart files `xtbrestart` and `gxtbrestart` carry the
-//! same), in the program conventions from the program's EEQ-BC start, so that every result is
-//! that of a fresh program run.
+//! gradients as GFN2-xTB's), with the settings of [`Options`] (refused when out of range or
+//! meant for the other version, [`ScfOptions::check`]). Where an SCF starts is the restart
+//! policy [`ScfSettings::restart`]: in the default conventions from the previous geometry's
+//! converged state (the programs' restart files `xtbrestart` and `gxtbrestart` carry the same),
+//! in the program conventions from the program's EEQ-BC start, so that every result is that of
+//! a fresh program run.
 //!
 //! Threading (as in axtb): with `threads > 1` the calculator owns one rayon pool of exactly
 //! that size (`axtb_base::threads::Threads`) and runs everything inside it; with `threads = 1`
 //! no thread is spawned and faer's global parallelism is never touched.
 
-use crate::scf::{Conventions, Energies, Guess, ScfOptions, ScfResult, Setup};
+use crate::scf::{Conventions, ScfOptions, ScfResult, Setup};
 use crate::timing::Timings;
 use crate::v2;
+use axtb::method::{
+    AnalysisConventions, AnalysisDefaults, Electronic, Electrons, Extras, Fingerprint, HessianDefault, HessianDefaults,
+    Method, MethodInfo, QuadrupoleForm, Restart, RetryLadder, ScfData, ScfReport, ScfSettings, SinglePoint, Term, Want,
+    Wavefunction, WavefunctionData,
+};
 use axtb::molden::{MoSet, Orbitals, Spin};
-use axtb::properties::{homo_lumo_gap, mayer_bond_orders, GapRule, OrbitalLevels};
-use axtb::{EnergyTerms, Error, HessianMethod, HessianOptions, Molecule, Result, SinglePoint};
+use axtb::properties::{homo_lumo_gap, mayer_bond_orders, molecular_quadrupole, GapRule, OrbitalLevels};
+use axtb::{Error, HessianMethod, HessianOptions, Molecule, Result};
 use axtb_base::fd;
 use axtb_base::threads::Threads;
 use faer::Par;
@@ -62,89 +67,140 @@ impl Version {
 }
 
 impl v2::scf::Energies {
-    /// The terms with their names as the axtb front ends report them for g-xTB 2.0.1.
-    pub fn named(&self) -> Vec<(&'static str, f64)> {
+    /// The terms with their names as the axtb front ends report them for g-xTB 2.0.1: every
+    /// term a piece of the energy but `electronic`, the SCF energy (a subtotal).
+    pub fn terms(&self) -> Vec<Term> {
         vec![
-            ("one_electron", self.one_electron),
-            ("first_order", self.first_order),
-            ("second_order", self.second_order),
-            ("third_order", self.third_order),
-            ("fourth_order", self.fourth_order),
-            ("es_multipole", self.aes),
-            ("exchange", self.exchange),
-            ("spin_polarization", self.spin),
-            ("dispersion", self.dispersion),
-            ("repulsion", self.repulsion),
-            ("entropy", self.entropy),
-            ("electronic", self.electronic),
-            ("increments", self.increments),
-            ("dispersion_three_body", self.dispersion_three_body),
+            Term::piece("one_electron", self.one_electron),
+            Term::piece("first_order", self.first_order),
+            Term::piece("second_order", self.second_order),
+            Term::piece("third_order", self.third_order),
+            Term::piece("fourth_order", self.fourth_order),
+            Term::piece("es_multipole", self.aes),
+            Term::piece("exchange", self.exchange),
+            Term::piece("spin_polarization", self.spin),
+            Term::piece("dispersion", self.dispersion),
+            Term::piece("repulsion", self.repulsion),
+            Term::piece("entropy", self.entropy),
+            Term::subtotal("electronic", self.electronic),
+            Term::piece("increments", self.increments),
+            Term::piece("dispersion_three_body", self.dispersion_three_body),
         ]
     }
 }
 
-/// The energy terms of either version. Each version reports its program's own decomposition
-/// ([`Terms::named`]), so the names differ: 2.0.1 has `first_order` to `fourth_order` and one
-/// `exchange` (Mulliken, bond-order and onsite exchange), as tblite's containers; v1.1 has
-/// `es1` (first order) and `es2_3` (second to fourth order) and splits the exchange into
-/// `exchange_mulliken` and `exchange_onsite`, as the 1.1.0 program prints them.
-#[derive(Clone, Debug)]
-pub enum Terms {
-    V2_0_1(v2::scf::Energies),
-    V1_1(Energies),
-}
-
-impl Terms {
-    /// The terms with the names the axtb front ends report.
-    pub fn named(&self) -> Vec<(&'static str, f64)> {
-        match self {
-            Self::V2_0_1(e) => e.named(),
-            Self::V1_1(e) => e.named(),
-        }
-    }
-
-    /// Total energy.
-    pub fn total(&self) -> f64 {
-        match self {
-            Self::V2_0_1(e) => e.total,
-            Self::V1_1(e) => e.total,
-        }
-    }
-}
-
-/// Results of a g-xTB single point: the method-independent part as `axtb::SinglePoint` and
-/// all g-xTB energy terms.
-#[derive(Clone, Debug)]
-pub struct Results {
-    /// `terms` maps the g-xTB terms onto axtb's GFN2-shaped fields: `repulsion`, `dispersion`
-    /// (revD4 two- plus three-body), `electronic` (everything else, incl. the atomic
-    /// increments, so that energy = repulsion + dispersion + electronic), `isotropic_es`
-    /// (first to fourth order), `anisotropic` (AES). Open shells: orbital energies and
-    /// occupations of the alpha orbitals followed by the beta orbitals.
-    pub singlepoint: SinglePoint,
-    pub energies: Terms,
-}
-
-impl Energies {
-    /// The terms with their names as the axtb front ends report them for g-xTB v1.1.
-    pub fn named(&self) -> Vec<(&'static str, f64)> {
+impl crate::scf::Energies {
+    /// The terms with their names as the axtb front ends report them for g-xTB v1.1: every term
+    /// a piece of the energy but `electronic`, the SCF energy (a subtotal). v1.1 has `es1`
+    /// (first order) and `es2_3` (second to fourth order) and splits the exchange into
+    /// `exchange_mulliken` and `exchange_onsite`, as the 1.1.0 program prints them.
+    pub fn terms(&self) -> Vec<Term> {
         vec![
-            ("one_electron", self.one_electron),
-            ("es1", self.es1),
-            ("es2_3", self.es23),
-            ("es_multipole", self.aes),
-            ("exchange_mulliken", self.mfx),
-            ("exchange_onsite", self.ofx),
-            ("spin_polarization", self.spin),
-            ("entropy", self.entropy),
-            ("electronic", self.electronic),
-            ("increments", self.increments),
-            ("dispersion", self.disp2),
-            ("dispersion_three_body", self.disp3),
-            ("repulsion", self.repulsion),
+            Term::piece("one_electron", self.one_electron),
+            Term::piece("es1", self.es1),
+            Term::piece("es2_3", self.es23),
+            Term::piece("es_multipole", self.aes),
+            Term::piece("exchange_mulliken", self.mfx),
+            Term::piece("exchange_onsite", self.ofx),
+            Term::piece("spin_polarization", self.spin),
+            Term::piece("entropy", self.entropy),
+            Term::subtotal("electronic", self.electronic),
+            Term::piece("increments", self.increments),
+            Term::piece("dispersion", self.disp2),
+            Term::piece("dispersion_three_body", self.disp3),
+            Term::piece("repulsion", self.repulsion),
         ]
     }
 }
+
+/// The converger settings of the programs' SCFs; `None`: the program's (see [`ScfOptions`]).
+/// Some belong to one version: `density_tol` and `transition_iteration` to v1.1, `residual_tol`
+/// to 2.0.1; the other version refuses them.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct ConvergerSettings {
+    /// Explicit threshold of the energy change (Eh).
+    pub energy_tol: Option<f64>,
+    /// v1.1 only: explicit threshold of the RMS change of the packed spin densities.
+    pub density_tol: Option<f64>,
+    /// 2.0.1 only: explicit threshold of the RMS Fock residual.
+    pub residual_tol: Option<f64>,
+    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`crate::scf::DAMPING`],
+    /// 2.0.1 0.2.
+    pub damping: Option<f64>,
+    /// v1.1 only: iteration of the transition step; `None`: 3 (open shell: 4).
+    pub transition_iteration: Option<usize>,
+    /// Largest number of stored Fock matrices of the Pulay (DIIS) mixing, at least 1; `None`:
+    /// v1.1 7 (open shell: 8), 2.0.1 7.
+    pub diis_size: Option<usize>,
+}
+
+/// Settings of a g-xTB calculator.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Options {
+    /// The SCF settings every SCF method has: accuracy, iteration limit (`None`: the program's,
+    /// [`crate::scf::MAX_ITER`] for v1.1, [`crate::v2::scf::MAX_ITER`] for 2.0.1), electronic
+    /// temperature (`None`: 0 K, the programs' default: Aufbau occupations), restart policy
+    /// (`None`: previous in the axtb conventions, the program's start in the program's).
+    pub scf: ScfSettings,
+    /// The programs' converger settings.
+    pub converger: ConvergerSettings,
+    /// v1.1: the Fock matrix of the SCF, the exact derivative of the energy or the program's;
+    /// 2.0.1: units, electron count and cutoffs (the program's or the default ones).
+    pub conventions: Conventions,
+    /// Threads of the calculator's pool (1: no thread is spawned), fixed when it is built.
+    pub threads: usize,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            scf: ScfSettings::default(),
+            converger: ConvergerSettings::default(),
+            conventions: Conventions::default(),
+            threads: 1,
+        }
+    }
+}
+
+impl Options {
+    /// The settings of one SCF; `all_orbitals`: every orbital (2.0.1).
+    pub fn run(&self, all_orbitals: bool) -> ScfOptions {
+        let c = &self.converger;
+        ScfOptions {
+            max_iter: self.scf.max_iter.unwrap_or(0),
+            accuracy: self.scf.accuracy,
+            energy_tol: c.energy_tol,
+            density_tol: c.density_tol,
+            residual_tol: c.residual_tol,
+            damping: c.damping,
+            transition_iteration: c.transition_iteration,
+            diis_size: c.diis_size,
+            threads: self.threads,
+            etemp: self.scf.etemp.unwrap_or(ETEMP),
+            conventions: self.conventions,
+            all_orbitals,
+        }
+    }
+
+    /// Whether the SCFs start from the previous geometry's converged state.
+    pub fn reuses(&self) -> bool {
+        let default = if self.conventions == Conventions::Axtb { Restart::Previous } else { Restart::Fresh };
+        self.scf.reuses(default)
+    }
+
+    /// The SCF iteration limit for `version`.
+    pub fn iteration_limit(&self, version: Version) -> usize {
+        self.run(false).iteration_limit(version)
+    }
+
+    /// Refuse settings that are out of range or belong to the other version.
+    pub fn check(&self, version: Version) -> Result<()> {
+        self.run(false).check(version)
+    }
+}
+
+/// g-xTB's default electronic temperature (K), the programs' (Aufbau occupations).
+pub const ETEMP: f64 = 0.0;
 
 /// The geometry-dependent setup of either version.
 #[derive(Clone, Debug)]
@@ -153,10 +209,10 @@ enum AnySetup {
     V1(Box<Setup>),
 }
 
-/// The converged SCF state a later SCF of the same molecule can start from
-/// ([`ScfOptions::guess`]), as the programs' restart files carry it.
+/// The converged SCF state a later SCF of the same molecule can start from, as the programs'
+/// restart files carry it.
 #[derive(Clone, Debug)]
-pub enum GuessState {
+enum Start {
     /// 2.0.1: shell charges, atomic dipoles and quadrupoles, shell magnetizations and spin
     /// densities, as `xtbrestart`.
     V2_0_1(Box<v2::scf::State>),
@@ -164,30 +220,22 @@ pub enum GuessState {
     V1_1(Vec<Vec<f64>>),
 }
 
-impl GuessState {
-    /// The version whose SCF the state belongs to.
-    pub fn version(&self) -> Version {
-        match self {
-            GuessState::V2_0_1(_) => Version::V2_0_1,
-            GuessState::V1_1(_) => Version::V1_1,
-        }
-    }
-}
-
 /// g-xTB bound to one molecule (atomic numbers, charge, unpaired electrons).
 pub struct Calculator {
     mol: Molecule,
-    /// Settings; checked by every calculation ([`ScfOptions::check`]). `threads` must stay the
+    /// Settings; checked by every calculation ([`Options::check`]). `threads` must stay the
     /// number the calculator was built with.
-    pub options: ScfOptions,
+    pub options: Options,
     version: Version,
     threads: Threads,
     /// Setup of the current geometry (built in `new`, reused while the positions are equal).
     setup: Option<AnySetup>,
-    /// The last converged state (or one given with [`Calculator::set_guess`]).
-    state: Option<GuessState>,
+    /// The last converged state (or one given with [`Method::set_wavefunction`]).
+    state: Option<Start>,
     /// Start the next SCF from `state` even if the options do not reuse it (it was given).
     given: bool,
+    info: MethodInfo,
+    fingerprint: Fingerprint,
 }
 
 /// The setup of `mol` for `version` in the conventions of `opts`, on `opts.threads` threads
@@ -223,6 +271,61 @@ fn v2_options(opts: &ScfOptions, restart: bool) -> ScfOptions {
     o
 }
 
+/// Default step (bohr) of the numerical Hessian.
+pub const NUMERICAL_STEP: f64 = 0.005;
+/// Default SCF accuracy of every displacement of the numerical Hessian.
+pub const NUMERICAL_ACCURACY: f64 = 0.01;
+/// Default step (bohr) of the 2.0.1 response Hessian.
+pub const RESPONSE_STEP: f64 = 2e-4;
+/// Default SCF accuracy of the reference of the 2.0.1 analytic and response Hessians (1e-11 Eh,
+/// residual 2e-10: the error of both 2.0.1 methods is first order in the reference residual, and
+/// 1e-3 leaves ~2e-7 Eh/bohr^2 on caffeine for no measurable saving).
+pub const ANALYTIC_ACCURACY: f64 = 1e-5;
+
+/// What g-xTB `version` is and offers in `conventions`.
+fn info(version: Version, conventions: Conventions) -> MethodInfo {
+    let numerical = HessianDefault {
+        method: HessianMethod::Numerical,
+        step: Some(NUMERICAL_STEP),
+        accuracy: Some(NUMERICAL_ACCURACY),
+    };
+    let hessian = match version {
+        Version::V2_0_1 => HessianDefaults {
+            default: HessianMethod::Analytic,
+            offered: vec![
+                HessianDefault { method: HessianMethod::Analytic, step: None, accuracy: Some(ANALYTIC_ACCURACY) },
+                HessianDefault {
+                    method: HessianMethod::Response,
+                    step: Some(RESPONSE_STEP),
+                    accuracy: Some(ANALYTIC_ACCURACY),
+                },
+                numerical,
+            ],
+        },
+        Version::V1_1 => HessianDefaults { default: HessianMethod::Numerical, offered: vec![numerical] },
+    };
+    MethodInfo {
+        name: version.method(),
+        conventions: conventions.label(),
+        electrons: Electrons::PerSpin,
+        hessian,
+        // the g-xTB 2.0.1 program is a 6.7.1-based xtb build
+        analysis: AnalysisDefaults {
+            conventions: match conventions {
+                Conventions::Gxtb => AnalysisConventions::Xtb671,
+                Conventions::Axtb => AnalysisConventions::Axtb,
+            },
+            xtb_frequency_scale: None,
+        },
+        // the 2.0.1 program's quadrupole (`xtb --gxtb --quadrupole`, tblite's form) in its
+        // conventions, the traceless tensor otherwise (the 1.1.0 program prints none)
+        quadrupole: Some(match (version, conventions) {
+            (Version::V2_0_1, Conventions::Gxtb) => QuadrupoleForm::Tblite,
+            _ => QuadrupoleForm::Traceless,
+        }),
+    }
+}
+
 impl Calculator {
     /// Set up g-xTB `version` for a molecule: atomic numbers, initial positions (bohr), integer
     /// total charge and `uhf` unpaired electrons (`None`: 0 or 1 by electron count). Fails on
@@ -233,7 +336,7 @@ impl Calculator {
         positions: &[[f64; 3]],
         charge: f64,
         uhf: Option<usize>,
-        options: ScfOptions,
+        options: Options,
     ) -> Result<Self> {
         let threads = Threads::new(options.threads)?;
         Self::with_threads(version, numbers, positions, charge, uhf, options, threads)
@@ -248,7 +351,7 @@ impl Calculator {
         positions: &[[f64; 3]],
         charge: f64,
         uhf: Option<usize>,
-        options: ScfOptions,
+        options: Options,
         threads: Threads,
     ) -> Result<Self> {
         options.check(version)?;
@@ -259,8 +362,10 @@ impl Calculator {
         let mol = Molecule::new(numbers, positions, charge, uhf)?;
         // fails early on elements without parameters and impossible charge/spin (built in the
         // pool: its loops use the calculator's threads)
-        let setup = threads.install(|| new_setup(version, &mol, &options))?;
-        Ok(Self { mol, options, version, threads, setup: Some(setup), state: None, given: false })
+        let setup = threads.install(|| new_setup(version, &mol, &options.run(false)))?;
+        let info = info(version, options.conventions);
+        let fingerprint = Fingerprint::of(version.method(), &mol);
+        Ok(Self { mol, options, version, threads, setup: Some(setup), state: None, given: false, info, fingerprint })
     }
 
     /// The g-xTB version.
@@ -273,50 +378,13 @@ impl Calculator {
         &self.mol
     }
 
-    /// Whether the SCFs start from the previous converged state ([`ScfOptions::guess`]).
+    /// Whether the SCFs start from the previous converged state ([`ScfSettings::restart`]).
     pub fn reuses_guess(&self) -> bool {
-        self.options.reuses_guess()
+        self.options.reuses()
     }
 
-    /// How the molecular quadrupole is printed in these conventions: the 2.0.1 program's
-    /// (`xtb --gxtb --quadrupole`, tblite's form) in its conventions, the traceless tensor
-    /// otherwise (the 1.1.0 program prints none).
-    pub fn quadrupole_form(&self) -> axtb::QuadrupoleForm {
-        match (self.version, self.options.conventions) {
-            (Version::V2_0_1, Conventions::Gxtb) => axtb::QuadrupoleForm::Tblite,
-            _ => axtb::QuadrupoleForm::Traceless,
-        }
-    }
-
-    /// Forget the previous converged state: the next SCF starts from the program's start.
-    pub fn reset_guess(&mut self) {
-        self.state = None;
-        self.given = false;
-    }
-
-    /// The last converged state (the start of the next SCF when the calculator reuses it).
-    pub fn guess(&self) -> Option<&GuessState> {
-        self.state.as_ref()
-    }
-
-    /// Start the next SCF from `state` (e.g. the [`Calculator::guess`] of another calculator for
-    /// the same molecule), whatever [`ScfOptions::guess`] says. It must belong to this version
-    /// and molecule (checked when the SCF starts).
-    pub fn set_guess(&mut self, state: GuessState) -> Result<()> {
-        if state.version() != self.version {
-            return Err(Error::Input(format!(
-                "a {} wavefunction cannot start a {} SCF",
-                state.version().method(),
-                self.version.method()
-            )));
-        }
-        self.state = Some(state);
-        self.given = true;
-        Ok(())
-    }
-
-    /// Check the options of the next calculation.
-    fn check_options(&self) -> Result<()> {
+    /// Check the options of the next calculation (and follow a change of conventions).
+    fn check_options(&mut self) -> Result<()> {
         self.options.check(self.version)?;
         let threads = self.threads.count();
         if self.options.threads != threads {
@@ -325,13 +393,16 @@ impl Calculator {
                 self.options.threads
             )));
         }
+        if self.info.conventions != self.options.conventions.label() {
+            self.info = info(self.version, self.options.conventions);
+        }
         Ok(())
     }
 
     /// The state the next SCF starts from (`None`: the program's start), taken: a calculation
     /// that fails leaves no state behind.
-    fn take_start(&mut self) -> Option<GuessState> {
-        let start = if self.given || self.options.reuses_guess() { self.state.take() } else { None };
+    fn take_start(&mut self) -> Option<Start> {
+        let start = if self.given || self.options.reuses() { self.state.take() } else { None };
         self.given = false;
         start
     }
@@ -348,83 +419,41 @@ impl Calculator {
         Ok(())
     }
 
-    /// Energy (and with `gradient` the analytic gradient, Eh/bohr) at `positions` (bohr).
-    ///
-    /// The SCF starts from the previous converged state when the calculator reuses it
-    /// ([`ScfOptions::guess`]); if that SCF does not converge, it runs once more from the
-    /// program's start. `SinglePoint::guess` says which start gave the result.
-    pub fn singlepoint(&mut self, positions: &[[f64; 3]], gradient: bool) -> Result<Results> {
+    fn singlepoint_inner(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<SinglePoint> {
         self.check_options()?;
         self.move_to(positions)?;
         let start = self.take_start();
         let mut setup = self.setup.take();
-        let (mol, opts, version) = (&self.mol, &self.options, self.version);
-        let go = |setup: Option<AnySetup>, start: Option<&GuessState>| {
-            self.threads.install(|| run(version, mol, opts, setup, start, gradient))
-        };
-        let (mut res, s) = go(setup.take(), start.as_ref());
-        setup = s;
-        if start.is_some() && matches!(res, Err(Error::ScfNotConverged { .. })) {
-            // a state from a distant geometry can hurt; once more from the program's start
-            let (r, s) = go(setup.take(), None);
-            res = r;
-            setup = s;
-        }
+        let opts = self.options.run(want.orbitals);
+        let (mol, version, threads, form) = (&self.mol, self.version, &self.threads, self.info.quadrupole);
+        // a state from a distant geometry can hurt; once more from the program's start
+        let ladder = RetryLadder::warm_then_fresh(start.is_some());
+        let res = ladder.climb(|rung| {
+            let s = if rung.fresh { None } else { start.as_ref() };
+            let (r, back) = threads.install(|| run(version, mol, &opts, setup.take(), s, want, form));
+            setup = back;
+            r
+        });
         self.setup = setup;
-        let (r, state) = res?;
+        let ((r, state), _) = res?;
         self.state = Some(state);
         Ok(r)
     }
 
-    /// The default Hessian method of this version: analytic for 2.0.1, numerical for v1.1.
-    pub fn default_hessian_method(&self) -> HessianMethod {
-        match self.version {
-            Version::V2_0_1 => HessianMethod::Analytic,
-            Version::V1_1 => HessianMethod::Numerical,
-        }
-    }
-
-    /// Hessian at `positions` (bohr) with the method and settings of `opts`:
-    ///
-    /// - `Analytic` (2.0.1, its default): analytic second derivatives with the coupled-perturbed
-    ///   response ([`v2::analytic`]), SCF accuracy of the reference default 1e-5 (1e-11 Eh,
-    ///   residual 2e-10: the error of both 2.0.1 methods is first order in the reference
-    ///   residual, and 1e-3 leaves ~2e-7 Eh/bohr^2 on caffeine for no measurable saving);
-    /// - `Response` (2.0.1): central differences of the analytic gradient functional with the
-    ///   density and energy-weighted density extrapolated by the coupled-perturbed response
-    ///   ([`v2::hessian`]; no SCF per displacement), step default 2e-4 bohr, SCF accuracy of
-    ///   the reference default 1e-5;
-    /// - `Numerical` (both versions; v1.1's default): central differences of analytic gradients
-    ///   as `axtb::Calculator::hessian`, step default 0.005 bohr, the SCF of every displacement
-    ///   from the program's start with the thresholds scaled by the accuracy (default 0.01).
-    ///
-    /// The accuracy is never looser than the calculator's own. Displacements run in parallel
-    /// on the calculator's threads, each sequentially, so the result is the same for every
-    /// thread count.
-    pub fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<axtb::Hessian> {
+    fn hessian_inner(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<axtb::Hessian> {
         let t0 = Instant::now();
-        let mut out = match (opts.method.unwrap_or_else(|| self.default_hessian_method()), self.version) {
-            (HessianMethod::Numerical, _) => self.numerical(positions, opts.step.unwrap_or(0.005), opts.accuracy),
+        let method = opts.method.unwrap_or(self.info.hessian.default);
+        let mut out = match (method, self.version) {
+            (HessianMethod::Numerical, _) => {
+                self.numerical(positions, opts.step.unwrap_or(NUMERICAL_STEP), opts.accuracy)
+            }
             (m @ (HessianMethod::Response | HessianMethod::Analytic), Version::V2_0_1) => {
                 self.response_hessian(positions, opts, m)
             }
-            (m, v) => {
-                Err(Error::Input(format!("{} Hessians: the {m:?} method is not available (use numerical)", v.method())))
-            }
+            (m, v) => Err(unavailable(m, v)),
         }?;
         out.timings.push(("total", t0.elapsed().as_secs_f64()));
         Ok(out)
-    }
-
-    /// Numerical Hessian with step `step` (bohr) and SCF accuracy `accuracy` of every
-    /// displacement (default 0.01): [`Calculator::hessian`] with [`HessianMethod::Numerical`].
-    pub fn numerical_hessian(
-        &mut self,
-        positions: &[[f64; 3]],
-        step: f64,
-        accuracy: Option<f64>,
-    ) -> Result<axtb::Hessian> {
-        self.hessian(positions, &HessianOptions { method: Some(HessianMethod::Numerical), step: Some(step), accuracy })
     }
 
     /// The SCF accuracy of a Hessian: `accuracy` (default `default`), never looser than the
@@ -434,18 +463,17 @@ impl Calculator {
         if !(accuracy > 0.0 && accuracy.is_finite()) {
             return Err(Error::Input(format!("accuracy must be positive and finite, got {accuracy}")));
         }
-        Ok(accuracy.min(self.options.accuracy))
+        Ok(accuracy.min(self.options.scf.accuracy))
     }
 
     fn numerical(&mut self, positions: &[[f64; 3]], step: f64, accuracy: Option<f64>) -> Result<axtb::Hessian> {
         if !(step > 0.0 && step.is_finite()) {
             return Err(Error::Input(format!("Hessian step must be positive and finite, got {step}")));
         }
-        let accuracy = self.hessian_accuracy(accuracy, 0.01)?;
+        let accuracy = self.hessian_accuracy(accuracy, NUMERICAL_ACCURACY)?;
         self.check_options()?;
         self.move_to(positions)?;
-        let opts =
-            ScfOptions { accuracy, threads: 1, keep_orbitals: false, bond_orders: false, ..self.options.clone() };
+        let opts = ScfOptions { accuracy, threads: 1, ..self.options.run(false) };
         let mol = &self.mol;
         let version = self.version;
         // energy, gradient and dipole of one geometry
@@ -474,7 +502,7 @@ impl Calculator {
             Ok((energy, g, mu))
         };
         let (energy, gradient, _) = point(mol)?;
-        // every atom moved forward by the step and back by twice the step, as axtb::Calculator does
+        // every atom moved forward by the step and back by twice the step, as GFN2-xTB does
         let displaced = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
             let mut m = mol.clone();
             m.positions.copy_from_slice(x);
@@ -503,34 +531,34 @@ impl Calculator {
         opts: &HessianOptions,
         method: HessianMethod,
     ) -> Result<axtb::Hessian> {
-        let step = opts.step.unwrap_or(2e-4);
-        let accuracy = self.hessian_accuracy(opts.accuracy, 1e-5)?;
+        let step = opts.step.unwrap_or(RESPONSE_STEP);
+        let accuracy = self.hessian_accuracy(opts.accuracy, ANALYTIC_ACCURACY)?;
         self.check_options()?;
         self.move_to(positions)?;
         // the reference SCF starts where a single point would
         let start = match self.take_start() {
-            Some(GuessState::V2_0_1(s)) => Some(*s),
+            Some(Start::V2_0_1(s)) => Some(*s),
             _ => None,
         };
         // the response needs every orbital
-        let sopts = ScfOptions { accuracy, keep_orbitals: true, ..self.options.clone() };
+        let sopts = ScfOptions { accuracy, ..self.options.run(true) };
         // the setup of this geometry, when the calculator holds one (move_to dropped it otherwise)
         let cached = match self.setup.take() {
             Some(AnySetup::V2(s)) => Some(*s),
             _ => None,
         };
         let mol = &self.mol;
-        let run = || -> Result<(axtb::Hessian, v2::scf::Setup, GuessState)> {
+        let run = || -> Result<(axtb::Hessian, v2::scf::Setup)> {
             let t0 = Instant::now();
             let mut setup = match cached {
                 Some(s) => s,
                 None => v2::scf::Setup::with_threads(mol, sopts.conventions, sopts.threads)?,
             };
-            let r = match setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()) {
-                Err(Error::ScfNotConverged { .. }) if start.is_some() => setup.scf(&sopts)?,
-                other => other?,
-            };
-            let state = GuessState::V2_0_1(Box::new(r.state.clone()));
+            let ladder = RetryLadder::warm_then_fresh(start.is_some());
+            let (r, _) = ladder.climb(|rung| match rung.fresh {
+                false => setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()),
+                true => setup.scf(&sopts),
+            })?;
             let gradient = setup.gradient(&r)?;
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
             // the analytic Hessian's defaults: the symmetric response terms at tolerance 1e-6
@@ -552,12 +580,128 @@ impl Calculator {
                 timings,
                 parts: Vec::new(),
             };
-            Ok((hess, setup, state))
+            Ok((hess, setup))
         };
-        let (hess, setup, state) = self.threads.install(run)?;
+        let (hess, setup) = self.threads.install(run)?;
         self.setup = Some(AnySetup::V2(Box::new(setup)));
-        self.state = Some(state);
         Ok(hess)
+    }
+}
+
+/// The refusal of a Hessian method `version` does not have.
+fn unavailable(m: HessianMethod, v: Version) -> Error {
+    Error::Input(format!("{} Hessians: the {m:?} method is not available (use numerical)", v.method()))
+}
+
+impl Method for Calculator {
+    fn info(&self) -> &MethodInfo {
+        &self.info
+    }
+
+    /// v1.1 has numerical Hessians only.
+    fn check(&self, _want: &Want, hessian: Option<&HessianOptions>) -> Result<()> {
+        if let Some(h) = hessian {
+            let m = h.method.unwrap_or(self.info.hessian.default);
+            if self.info.hessian.get(m).is_none() {
+                return Err(unavailable(m, self.version));
+            }
+        }
+        Ok(())
+    }
+
+    /// Energy and what `want` asks for at `positions` (bohr). The SCF starts from the previous
+    /// converged state when the restart policy reuses it (or from a given one); if that SCF
+    /// does not converge, it runs once more from the program's start. The SCF report's `start`
+    /// says which start gave the result.
+    fn singlepoint(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<SinglePoint> {
+        let r = self.singlepoint_inner(positions, want);
+        if r.is_err() {
+            self.reset_wavefunction();
+        }
+        r
+    }
+
+    /// Hessian at `positions` (bohr) with the method and settings of `opts`:
+    ///
+    /// - `Analytic` (2.0.1, its default): analytic second derivatives with the coupled-perturbed
+    ///   response ([`v2::analytic`]), SCF accuracy of the reference default [`ANALYTIC_ACCURACY`];
+    /// - `Response` (2.0.1): central differences of the analytic gradient functional with the
+    ///   density and energy-weighted density extrapolated by the coupled-perturbed response
+    ///   ([`v2::hessian`]; no SCF per displacement), step default [`RESPONSE_STEP`], SCF accuracy
+    ///   of the reference default [`ANALYTIC_ACCURACY`];
+    /// - `Numerical` (both versions; v1.1's default): central differences of analytic gradients,
+    ///   step default [`NUMERICAL_STEP`], the SCF of every displacement from the program's start
+    ///   with the thresholds scaled by the accuracy (default [`NUMERICAL_ACCURACY`]).
+    ///
+    /// The accuracy is never looser than the calculator's own. Displacements run in parallel
+    /// on the calculator's threads, each sequentially, so the result is the same for every
+    /// thread count. Afterwards the calculator holds no wavefunction: the single point at these
+    /// positions starts from the program's start, as without the Hessian.
+    fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<axtb::Hessian> {
+        let r = self.hessian_inner(positions, opts);
+        self.reset_wavefunction();
+        r
+    }
+
+    fn wavefunction(&self) -> Option<Wavefunction> {
+        let data = match self.state.as_ref()? {
+            Start::V2_0_1(s) => ScfData {
+                shell_charges: s.q.clone(),
+                atomic_dipoles: s.dip.clone(),
+                atomic_quadrupoles: s.qp.clone(),
+                shell_magnetizations: s.mag.clone(),
+                densities: s.p.clone(),
+            },
+            Start::V1_1(p) => ScfData { densities: p.clone(), ..ScfData::default() },
+        };
+        Some(Wavefunction::new(self.fingerprint.clone(), WavefunctionData::Scf(data)))
+    }
+
+    /// Start the next SCF from `wf` (another calculator's of this version and molecule): its
+    /// densities (v1.1), with its moments and magnetizations (2.0.1), checked against the setup
+    /// when the SCF starts.
+    fn set_wavefunction(&mut self, wf: &Wavefunction) -> Result<()> {
+        wf.check(&self.fingerprint)?;
+        let WavefunctionData::Scf(d) = wf.data() else {
+            return Err(Error::Input("the wavefunction belongs to another kind of calculation".into()));
+        };
+        if d.densities.is_empty() {
+            return Err(Error::Input(
+                "starting moments are GFN2-only; g-xTB starts from a whole wavefunction (the guess of another \
+                 calculator)"
+                    .into(),
+            ));
+        }
+        self.state = Some(match self.version {
+            Version::V2_0_1 => Start::V2_0_1(Box::new(v2::scf::State {
+                p: d.densities.clone(),
+                q: d.shell_charges.clone(),
+                // recomputed from the shell charges when the SCF starts (`restart_state`)
+                qa: Vec::new(),
+                dip: d.atomic_dipoles.clone(),
+                qp: d.atomic_quadrupoles.clone(),
+                mag: d.shell_magnetizations.clone(),
+            })),
+            Version::V1_1 => Start::V1_1(d.densities.clone()),
+        });
+        self.given = true;
+        Ok(())
+    }
+
+    fn reset_wavefunction(&mut self) {
+        self.state = None;
+        self.given = false;
+    }
+
+    fn scf_settings(&self) -> Option<&ScfSettings> {
+        Some(&self.options.scf)
+    }
+
+    fn set_scf_settings(&mut self, settings: ScfSettings) -> Result<()> {
+        let o = Options { scf: settings, ..self.options.clone() };
+        o.check(self.version)?;
+        self.options = o;
+        Ok(())
     }
 }
 
@@ -569,9 +713,10 @@ fn run(
     mol: &Molecule,
     opts: &ScfOptions,
     setup: Option<AnySetup>,
-    start: Option<&GuessState>,
-    gradient: bool,
-) -> (Result<(Results, GuessState)>, Option<AnySetup>) {
+    start: Option<&Start>,
+    want: &Want,
+    form: Option<QuadrupoleForm>,
+) -> (Result<(SinglePoint, Start)>, Option<AnySetup>) {
     let t0 = Instant::now();
     let mut setup = match setup {
         Some(s) => s,
@@ -582,18 +727,19 @@ fn run(
     };
     let t_setup = t0.elapsed().as_secs_f64();
     let t1 = Instant::now();
-    let label = if start.is_some() { Guess::Previous.name() } else { Guess::EeqBc.name() };
+    let label = if start.is_some() { "previous" } else { "eeq-bc" };
+    let form = form.unwrap_or_default();
     let res = match &mut setup {
         AnySetup::V1(setup) => {
             let p0 = match start {
-                Some(GuessState::V1_1(p)) => Ok(Some(p.as_slice())),
+                Some(Start::V1_1(p)) => Ok(Some(p.as_slice())),
                 Some(_) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
                 None => Ok(None),
             };
             p0.and_then(|p0| setup.scf_from(opts, p0)).and_then(|mut r| {
                 let mut timings = vec![("setup", t_setup), ("scf", t1.elapsed().as_secs_f64())];
                 timings.append(&mut r.timings);
-                let g = if gradient {
+                let g = if want.gradient {
                     let t2 = Instant::now();
                     let g = setup.gradient(&r)?;
                     timings.push(("gradient", t2.elapsed().as_secs_f64()));
@@ -601,12 +747,12 @@ fn run(
                 } else {
                     None
                 };
-                Ok(results(setup, r, g, timings, opts, label))
+                Ok(results(setup, r, g, timings, opts, want, label, form))
             })
         }
         AnySetup::V2(setup) => {
             let s0 = match start {
-                Some(GuessState::V2_0_1(s)) => Ok(Some(s.as_ref())),
+                Some(Start::V2_0_1(s)) => Ok(Some(s.as_ref())),
                 Some(_) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
                 None => Ok(None),
             };
@@ -620,7 +766,7 @@ fn run(
                 timings.extend(setup_laps);
                 timings.push(("scf", t1.elapsed().as_secs_f64()));
                 timings.append(&mut r.timings);
-                let g = if gradient {
+                let g = if want.gradient {
                     let t2 = Instant::now();
                     let (g, laps) = setup.gradient_timed(&r)?;
                     timings.push(("gradient", t2.elapsed().as_secs_f64()));
@@ -629,7 +775,7 @@ fn run(
                 } else {
                     None
                 };
-                Ok(results_v2(setup, r, g, timings, opts, label))
+                Ok(results_v2(setup, r, g, timings, opts, want, label, form))
             })
         }
     };
@@ -682,119 +828,112 @@ fn collect_orbitals(
     Orbitals { numbers: mol.numbers.clone(), positions: mol.positions.clone(), shells: shells.to_vec(), sets }
 }
 
+/// The dipole moment about the origin of atomic charges `q` and dipoles `d` at `positions`.
+fn dipole(positions: &[[f64; 3]], q: &[f64], d: &[[f64; 3]]) -> [f64; 3] {
+    let mut dipole = [0.0; 3];
+    for (a, (q, d)) in q.iter().zip(d).enumerate() {
+        for x in 0..3 {
+            dipole[x] += q * positions[a][x] + d[x];
+        }
+    }
+    dipole
+}
+
+#[allow(clippy::too_many_arguments)]
 fn results(
     setup: &Setup,
     mut r: ScfResult,
     gradient: Option<Vec<[f64; 3]>>,
     timings: Timings,
     opts: &ScfOptions,
-    guess: &'static str,
-) -> (Results, GuessState) {
-    let e = &r.energies;
-    let orbitals = opts.keep_orbitals.then(|| {
+    want: &Want,
+    start: &'static str,
+    form: QuadrupoleForm,
+) -> (SinglePoint, Start) {
+    let orbitals = want.orbitals.then(|| {
         collect_orbitals(&setup.mol, &setup.basis.scf.cgto, &r.orbital_energies, &r.occupations, &r.coefficients)
     });
     let levels = levels(&r.orbital_energies, &r.occupations);
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha as f64, setup.nbeta as f64, gap_rule(opts.conventions));
     let ao_atom = &setup.basis.scf.ao2at;
-    let bond_orders = opts.bond_orders.then(|| bond_orders(setup.mol.nat(), ao_atom, &setup.s, &r.density, setup.par));
+    let bond_orders = want.bond_orders.then(|| bond_orders(setup.mol.nat(), ao_atom, &setup.s, &r.density, setup.par));
     let ptot = crate::fock::total_density(&r.density);
     let (dpat, qpat) = setup.atomic_moments(&ptot);
-    let mut dipole = [0.0; 3];
-    for (a, (q, d)) in r.atom_charges.iter().zip(&dpat).enumerate() {
-        for x in 0..3 {
-            dipole[x] += q * setup.mol.positions[a][x] + d[x];
-        }
-    }
-    let terms = EnergyTerms {
-        repulsion: e.repulsion,
-        dispersion: e.disp2 + e.disp3,
-        electronic: e.electronic + e.increments,
-        isotropic_es: e.es1 + e.es23,
-        anisotropic: e.aes,
-        entropy: e.entropy,
-        ..Default::default()
-    };
-    let singlepoint = SinglePoint {
-        energy: e.total,
-        terms,
+    let positions = &setup.mol.positions;
+    let sp = SinglePoint {
+        energy: r.energies.total,
+        terms: r.energies.terms(),
         gradient,
-        qat: r.atom_charges.clone(),
-        qsh: r.shell_charges.clone(),
-        dpat,
-        qpat,
-        dipole,
-        orbital_energies: r.orbital_energies.concat(),
-        occupations: r.occupations.concat(),
-        iterations: r.iterations,
-        mixer_used: None,
-        scf_attempts: Vec::new(),
+        dipole: dipole(positions, &r.atom_charges, &dpat),
+        electronic: Some(Electronic {
+            shell_charges: std::mem::take(&mut r.shell_charges),
+            quadrupole: molecular_quadrupole(positions, &r.atom_charges, &dpat, &qpat, form),
+            atomic_dipoles: dpat,
+            atomic_quadrupoles: qpat,
+            levels,
+            homo_lumo_gap,
+            orbitals,
+            bond_orders,
+            scf: ScfReport {
+                iterations: r.iterations,
+                start,
+                mixer_used: None,
+                attempts: Vec::new(),
+                eigensolver: r.eigensolver.clone(),
+            },
+        }),
+        charges: std::mem::take(&mut r.atom_charges),
+        extras: Extras::default(),
         timings,
-        orbitals,
-        levels,
-        homo_lumo_gap,
-        bond_orders,
-        guess,
-        eigensolver: r.eigensolver.clone(),
     };
-    let state = GuessState::V1_1(std::mem::take(&mut r.density));
-    (Results { singlepoint, energies: Terms::V1_1(r.energies) }, state)
+    (sp, Start::V1_1(std::mem::take(&mut r.density)))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn results_v2(
     setup: &v2::scf::Setup,
-    r: v2::scf::ScfResult,
+    mut r: v2::scf::ScfResult,
     gradient: Option<Vec<[f64; 3]>>,
     timings: Timings,
     opts: &ScfOptions,
-    guess: &'static str,
-) -> (Results, GuessState) {
-    let e = &r.energies;
-    let orbitals = opts.keep_orbitals.then(|| {
+    want: &Want,
+    start: &'static str,
+    form: QuadrupoleForm,
+) -> (SinglePoint, Start) {
+    let orbitals = want.orbitals.then(|| {
         collect_orbitals(&setup.mol, &setup.basis.scf.cgto, &r.orbital_energies, &r.occupations, &r.coefficients)
     });
     let levels = levels(&r.orbital_energies, &r.occupations);
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha, setup.nbeta, gap_rule(opts.conventions));
     let bond_orders =
-        opts.bond_orders.then(|| bond_orders(setup.mol.nat(), &setup.basis.scf.ao2at, &setup.s, &r.state.p, setup.par));
+        want.bond_orders.then(|| bond_orders(setup.mol.nat(), &setup.basis.scf.ao2at, &setup.s, &r.state.p, setup.par));
     let (dpat, qpat) = (r.state.dip.clone(), r.state.qp.clone());
-    let mut dipole = [0.0; 3];
-    for (a, (q, d)) in r.atom_charges.iter().zip(&dpat).enumerate() {
-        for x in 0..3 {
-            dipole[x] += q * setup.mol.positions[a][x] + d[x];
-        }
-    }
-    let terms = EnergyTerms {
-        repulsion: e.repulsion,
-        dispersion: e.dispersion + e.dispersion_three_body,
-        electronic: e.total - e.repulsion - e.dispersion - e.dispersion_three_body,
-        isotropic_es: e.first_order + e.second_order + e.third_order + e.fourth_order,
-        anisotropic: e.aes,
-        entropy: e.entropy,
-        ..Default::default()
-    };
-    // closed shell: one channel with doubled occupations
-    let singlepoint = SinglePoint {
-        energy: e.total,
-        terms,
+    let positions = &setup.mol.positions;
+    let sp = SinglePoint {
+        energy: r.energies.total,
+        terms: r.energies.terms(),
         gradient,
-        qat: r.atom_charges.clone(),
-        qsh: r.shell_charges.clone(),
-        dpat,
-        qpat,
-        dipole,
-        orbital_energies: r.orbital_energies.concat(),
-        occupations: r.occupations.concat(),
-        iterations: r.iterations,
-        mixer_used: None,
-        scf_attempts: Vec::new(),
+        dipole: dipole(positions, &r.atom_charges, &dpat),
+        electronic: Some(Electronic {
+            shell_charges: std::mem::take(&mut r.shell_charges),
+            quadrupole: molecular_quadrupole(positions, &r.atom_charges, &dpat, &qpat, form),
+            atomic_dipoles: dpat,
+            atomic_quadrupoles: qpat,
+            levels,
+            homo_lumo_gap,
+            orbitals,
+            bond_orders,
+            scf: ScfReport {
+                iterations: r.iterations,
+                start,
+                mixer_used: None,
+                attempts: Vec::new(),
+                eigensolver: r.eigensolver.clone(),
+            },
+        }),
+        charges: std::mem::take(&mut r.atom_charges),
+        extras: Extras::default(),
         timings,
-        orbitals,
-        levels,
-        homo_lumo_gap,
-        bond_orders,
-        guess,
-        eigensolver: r.eigensolver.clone(),
     };
-    (Results { singlepoint, energies: Terms::V2_0_1(r.energies) }, GuessState::V2_0_1(Box::new(r.state)))
+    (sp, Start::V2_0_1(Box::new(r.state)))
 }

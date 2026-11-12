@@ -7,7 +7,9 @@
 //! Own test binary with a single test: thread counts and the use of rayon's global pool are
 //! process-wide.
 
-use axtb_gxtb::{Calculator, Conventions, ScfOptions, Version};
+use axtb::method::ScfSettings;
+use axtb::method::{Method, Want};
+use axtb_gxtb::{Calculator, Conventions, Options, Version};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 
@@ -43,29 +45,34 @@ fn threads_one_spawns_nothing() {
     std::thread::sleep(std::time::Duration::from_millis(20));
     let baseline = os_threads();
     let mut calc =
-        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), ScfOptions::default()).unwrap();
-    let e1 = calc.singlepoint(&pos, false).unwrap().singlepoint.energy;
+        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), Options::default()).unwrap();
+    let e1 = calc.singlepoint(&pos, &Want::gradient(false)).unwrap().energy;
     // gradient (Z-vector response) and a few Hessian columns' worth of displacements
-    let g1 = calc.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
-    let h1 = calc.numerical_hessian(&pos, 0.005, None).unwrap();
+    let g1 = calc.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
+    let h1 = calc.hessian(&pos, &numerical(0.005, None)).unwrap();
     drop(calc);
     // program conventions: Z-vector response
-    let program = ScfOptions { conventions: Conventions::Gxtb, ..Default::default() };
+    let program = Options { conventions: Conventions::Gxtb, ..Default::default() };
     let mut calc = Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), program.clone()).unwrap();
-    let gp1 = calc.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
+    let gp1 = calc.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
     drop(calc);
     // ... and at 3000 K (Fermi smearing; Z-vector with fractional occupations)
-    let hot = ScfOptions { etemp: 3000.0, ..program.clone() };
+    let hot = Options { scf: ScfSettings { etemp: Some(3000.0), ..Default::default() }, ..program.clone() };
     let mut calc = Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), hot.clone()).unwrap();
-    let gt1 = calc.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
+    let gt1 = calc.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
     drop(calc);
     // g-xTB 2.0.1 in both conventions: energy, gradient, numerical, response and analytic Hessians
     let v2 = |threads: usize, conventions: Conventions, etemp: f64| {
-        let o = ScfOptions { threads, conventions, etemp, ..Default::default() };
+        let o = Options {
+            threads,
+            conventions,
+            scf: ScfSettings { etemp: Some(etemp), ..Default::default() },
+            ..Default::default()
+        };
         let mut calc = Calculator::new(Version::V2_0_1, &numbers, &pos, -2.0, Some(1), o).unwrap();
-        let e = calc.singlepoint(&pos, false).unwrap().singlepoint.energy;
-        let g = calc.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
-        let h = calc.numerical_hessian(&pos, 0.005, None).unwrap().hessian;
+        let e = calc.singlepoint(&pos, &Want::gradient(false)).unwrap().energy;
+        let g = calc.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
+        let h = calc.hessian(&pos, &numerical(0.005, None)).unwrap().hessian;
         let hopts = axtb::HessianOptions { method: Some(axtb::HessianMethod::Response), step: None, accuracy: None };
         let hr = calc.hessian(&pos, &hopts).unwrap().hessian;
         let hopts = axtb::HessianOptions { method: Some(axtb::HessianMethod::Analytic), step: None, accuracy: None };
@@ -97,28 +104,28 @@ fn threads_one_spawns_nothing() {
     assert!(gone, "monitor gone, nothing else left: {} threads, baseline {baseline}", os_threads());
 
     // two threads, inside the calculator's pool: the same results to round-off
-    let g = |c: &mut Calculator| c.singlepoint(&pos, true).unwrap().singlepoint.gradient.unwrap();
+    let g = |c: &mut Calculator| c.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
     let mut calc = Calculator::new(
         axtb_gxtb::Version::V1_1,
         &numbers,
         &pos,
         -2.0,
         Some(1),
-        ScfOptions { threads: 2, ..Default::default() },
+        Options { threads: 2, ..Default::default() },
     )
     .unwrap();
-    let e2 = calc.singlepoint(&pos, false).unwrap().singlepoint.energy;
+    let e2 = calc.singlepoint(&pos, &Want::gradient(false)).unwrap().energy;
     assert!((e1 - e2).abs() < 1e-11);
     assert!(maxdiff(g(&mut calc).as_flattened(), g1.as_flattened()) < 1e-10);
-    assert!(maxdiff(&calc.numerical_hessian(&pos, 0.005, None).unwrap().hessian, &h1.hessian) < 1e-8);
+    assert!(maxdiff(&calc.hessian(&pos, &numerical(0.005, None)).unwrap().hessian, &h1.hessian) < 1e-8);
     drop(calc);
     let mut calc =
-        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), ScfOptions { threads: 2, ..program })
+        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), Options { threads: 2, ..program })
             .unwrap();
     assert!(maxdiff(g(&mut calc).as_flattened(), gp1.as_flattened()) < 1e-10);
     drop(calc);
     let mut calc =
-        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), ScfOptions { threads: 2, ..hot })
+        Calculator::new(axtb_gxtb::Version::V1_1, &numbers, &pos, -2.0, Some(1), Options { threads: 2, ..hot })
             .unwrap();
     assert!(maxdiff(g(&mut calc).as_flattened(), gt1.as_flattened()) < 1e-10);
     drop(calc);
@@ -138,4 +145,10 @@ fn threads_one_spawns_nothing() {
     assert_eq!(v2(2, Conventions::Axtb, 0.0), v2(2, Conventions::Axtb, 0.0));
     assert!(v2_1[2].0 != v2_1[0].0, "smearing changes the energy");
     assert!(rayon::ThreadPoolBuilder::new().num_threads(1).build_global().is_ok(), "rayon's global pool was used");
+}
+
+/// The numerical Hessian with step `step` (bohr) and the SCF accuracy `accuracy` of every
+/// displacement.
+fn numerical(step: f64, accuracy: Option<f64>) -> axtb::HessianOptions {
+    axtb::HessianOptions { method: Some(axtb::HessianMethod::Numerical), step: Some(step), accuracy }
 }

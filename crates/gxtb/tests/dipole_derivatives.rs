@@ -1,7 +1,9 @@
 //! Dipole derivatives of the g-xTB Hessians (for IR intensities) against central differences
 //! of converged dipoles: 2.0.1 analytic, response and numerical; v1.1 numerical.
 
-use axtb_gxtb::{Calculator, Guess, ScfOptions, Version};
+use axtb::method::{Method, Want};
+use axtb::method::{Restart, ScfSettings};
+use axtb_gxtb::{Calculator, Options, Version};
 
 fn fd_dipole(calc: &mut Calculator, pos: &[[f64; 3]], h: f64) -> Vec<[f64; 3]> {
     let n3 = 3 * pos.len();
@@ -11,7 +13,7 @@ fn fd_dipole(calc: &mut Calculator, pos: &[[f64; 3]], h: f64) -> Vec<[f64; 3]> {
             for (i, s) in [1.0, -1.0].into_iter().enumerate() {
                 let mut p = pos.to_vec();
                 p[x / 3][x % 3] += s * h;
-                d[i] = calc.singlepoint(&p, false).unwrap().singlepoint.dipole;
+                d[i] = calc.singlepoint(&p, &Want::gradient(false)).unwrap().dipole;
             }
             [0, 1, 2].map(|k| (d[0][k] - d[1][k]) / (2.0 * h))
         })
@@ -36,7 +38,8 @@ fn dipole_derivatives() {
             let acc = if version == Version::V1_1 { 1e-7 } else { 1e-4 };
             // every displaced SCF from the program's start, so that its convergence error is the
             // same on both sides of the central differences
-            let opts = ScfOptions { accuracy: acc, guess: Some(Guess::EeqBc), ..Default::default() };
+            let scf = ScfSettings { accuracy: acc, restart: Some(Restart::Fresh), ..Default::default() };
+            let opts = Options { scf, ..Default::default() };
             let mut calc = Calculator::new(version, &num, &pos, charge, uhf, opts).unwrap();
             let fd = fd_dipole(&mut calc, &pos, 1e-4);
             let methods: &[axtb::HessianMethod] = match version {

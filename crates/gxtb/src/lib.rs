@@ -8,13 +8,13 @@
 //!   (grimme-lab/g-xtb release v1.1.0), method `"gxtb-v1.1"`: the other modules
 //!   ([`scf`] and the terms it uses).
 //!
-//! **Use.** [`Calculator`] (the interface of `axtb::Calculator`; the axtb CLI, Python package
-//! and qccodec codec select it by method name): `Calculator::new(Version::V2_0_1, numbers,
-//! positions, charge, uhf, ScfOptions::default())`, then [`Calculator::singlepoint`] (energy,
-//! analytic gradient) and [`Calculator::hessian`] (2.0.1: analytic by default, response or
-//! numerical; v1.1: numerical). [`ScfOptions`] holds the settings of both versions and refuses
-//! those of the other one. Lower down, [`v2::scf::Setup`] + [`v2::scf::Setup::scf`] (2.0.1) and
-//! [`scf::Setup`] + [`scf::Setup::scf`] (v1.1).
+//! **Use.** [`Calculator`] implements axtb-base's [`Method`] (the axtb CLI, Python package and
+//! qccodec codec select it by method name): `Calculator::new(Version::V2_0_1, numbers,
+//! positions, charge, uhf, Options::default())`, then [`Method::singlepoint`] (energy, analytic
+//! gradient) and [`Method::hessian`] (2.0.1: analytic by default, response or numerical; v1.1:
+//! numerical). [`Options`] holds the settings of both versions and refuses those of the other
+//! one. Lower down, [`v2::scf::Setup`] + [`v2::scf::Setup::scf`] (2.0.1) and [`scf::Setup`] +
+//! [`scf::Setup::scf`] (v1.1), with the settings of one SCF ([`ScfOptions`]).
 //!
 //! **Conventions** ([`Conventions`]). [`Conventions::Gxtb`] reproduces the programs:
 //! - 2.0.1: total energies to ≤ 1.8e-12 Eh (9.1e-12 Eh for (H2O)100), the same SCF iterations,
@@ -29,10 +29,11 @@
 //! differences within ~1e-5 Eh).
 //!
 //! **Restarts.** [`Calculator`] starts each SCF from the previous geometry's converged state
-//! ([`ScfOptions::guess`], [`GuessState`]; what the programs' `xtbrestart` and `gxtbrestart`
-//! hold), by default in the axtb conventions.
+//! (its [`Wavefunction`](axtb::method::Wavefunction): what the programs' `xtbrestart` and
+//! `gxtbrestart` hold), by default in the axtb conventions (the restart policy
+//! `Options::scf.restart`).
 //!
-//! **Finite electronic temperature** (`ScfOptions::etemp`; the programs' `--etemp` and `-tel`):
+//! **Finite electronic temperature** (`Options::scf.etemp`; the programs' `--etemp` and `-tel`):
 //! Fermi smearing with the entropy term in both versions ([`v2::fermi`], [`fermi`], on the
 //! shared rules of [`occupations`]).
 //!
@@ -110,9 +111,10 @@ pub(crate) mod strategy;
 pub mod timing;
 pub mod v2;
 
-pub use calculator::{Calculator, GuessState, Results, Terms, Version};
+pub use axtb::{method, Method};
+pub use calculator::{Calculator, ConvergerSettings, Options, Version, RESTART_ACCURACY};
 pub use composite::{CompositeCalculator, CompositeHessian, CompositeOptions, CompositeResults, Correction, PartInfo};
-pub use scf::{singlepoint, Conventions, Energies, Guess, ScfOptions, ScfResult, Setup};
+pub use scf::{singlepoint, Conventions, Energies, ScfOptions, ScfResult, Setup};
 
 use axtb::{Error, Molecule, Result};
 

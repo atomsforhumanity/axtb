@@ -441,7 +441,9 @@ pub const MAX_ITER: usize = 1000;
 /// The g-xTB 1.1.0 program's damping factor (single precision).
 pub const DAMPING: f64 = 0.1_f32 as f64;
 
-/// SCF and calculator settings of both versions. The defaults (`None`, 0) are the programs':
+/// The settings of one SCF of either version ([`Setup::scf`], [`crate::v2::scf::Setup::scf`]; a
+/// [`crate::Calculator`] assembles them from its [`crate::Options`]). The defaults (`None`, 0)
+/// are the programs':
 ///
 /// - **v1.1** (the 1.1.0 program's `scf_`, `diisfock_`; [`Setup::scf`]): Fock damping with
 ///   [`DAMPING`] in iterations 1-2 (open shell: 1-3), a transition step in iteration 3 (4), Pulay
@@ -488,19 +490,10 @@ pub struct ScfOptions {
     /// v1.1: the Fock matrix of the SCF, the exact derivative of the energy or the program's;
     /// 2.0.1: units, electron count and cutoffs (the program's or the default ones).
     pub conventions: Conventions,
-    /// Keep the converged orbitals: in the `orbitals` of the [`crate::Calculator`]'s results
-    /// (e.g. for a Molden file), and for 2.0.1 every orbital's coefficients in the
-    /// [`crate::v2::scf::ScfResult`] (its Hessians need them; without, only the occupied
-    /// orbitals are computed).
-    pub keep_orbitals: bool,
-    /// Compute the Mayer–Wiberg bond orders (`SinglePoint::bond_orders` of the
-    /// [`crate::Calculator`]'s results).
-    pub bond_orders: bool,
-    /// Where the SCFs of a [`crate::Calculator`] start: [`Guess::Previous`], the converged state
-    /// of the previous geometry (the programs' restart), or [`Guess::EeqBc`], the program's
-    /// start; `None`: the conventions' choice (axtb: previous; gxtb: the program's start, so
-    /// that every result is that of a fresh program run).
-    pub guess: Option<Guess>,
+    /// 2.0.1: every orbital's coefficients in the [`crate::v2::scf::ScfResult`] (its Hessians and
+    /// the orbitals of a Molden file need them; without, only the occupied orbitals are
+    /// computed). v1.1 computes every orbital anyway.
+    pub all_orbitals: bool,
 }
 
 impl Default for ScfOptions {
@@ -517,22 +510,12 @@ impl Default for ScfOptions {
             threads: 1,
             etemp: 0.0,
             conventions: Conventions::default(),
-            keep_orbitals: false,
-            bond_orders: false,
-            guess: None,
+            all_orbitals: false,
         }
     }
 }
 
 impl ScfOptions {
-    /// Whether a calculator's SCFs start from the previous geometry's converged state.
-    pub fn reuses_guess(&self) -> bool {
-        match self.guess {
-            Some(g) => g == Guess::Previous,
-            None => self.conventions == Conventions::Axtb,
-        }
-    }
-
     /// The SCF iteration limit for `version` (`max_iter`, 0: the program's).
     pub fn iteration_limit(&self, version: Version) -> usize {
         match (self.max_iter, version) {
@@ -590,44 +573,6 @@ impl ScfOptions {
     }
 }
 
-/// Start of an SCF ([`ScfOptions::guess`]).
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Guess {
-    /// The converged state of the previous geometry: v1.1 its density matrices (the 1.1.0
-    /// program's `gxtbrestart`), 2.0.1 its shell charges, atomic dipoles and quadrupoles, shell
-    /// magnetizations and density matrices (the 2.0.1 program's `xtbrestart`). The first SCF
-    /// of a calculator, and an SCF from the previous state that does not converge, start from
-    /// the program's start. In the axtb conventions a restarted 2.0.1 SCF converges to
-    /// [`crate::calculator::RESTART_ACCURACY`] times the thresholds; in the gxtb conventions
-    /// restarts are the programs' (same thresholds, same iterations).
-    Previous,
-    /// The program's start from the EEQ-BC charges (v1.1: its diagonal start density; 2.0.1:
-    /// EEQ-BC shell charges without density or multipoles).
-    EeqBc,
-}
-
-impl Guess {
-    /// Name as the front ends accept and report it.
-    pub fn name(self) -> &'static str {
-        match self {
-            Guess::Previous => "previous",
-            Guess::EeqBc => "eeq-bc",
-        }
-    }
-}
-
-impl std::str::FromStr for Guess {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        let key: String = s.to_ascii_lowercase().chars().filter(|c| c.is_ascii_alphanumeric()).collect();
-        match key.as_str() {
-            "previous" | "restart" => Ok(Guess::Previous),
-            "eeqbc" | "fresh" => Ok(Guess::EeqBc),
-            _ => Err(Error::Input(format!("unknown g-xTB guess {s:?}; use \"previous\" or \"eeq-bc\""))),
-        }
-    }
-}
-
 /// Which Fock matrix the SCF diagonalizes (the energy expression is the same).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Conventions {
@@ -641,6 +586,16 @@ pub enum Conventions {
     /// of the onsite exchange at twice its derivative off the diagonal (§4.16 of the spec):
     /// reproduces the program's energies; its gradients need a response term.
     Gxtb,
+}
+
+impl Conventions {
+    /// `axtb` or `gxtb`, the names the front ends report.
+    pub fn label(self) -> &'static str {
+        match self {
+            Conventions::Axtb => "axtb",
+            Conventions::Gxtb => "gxtb",
+        }
+    }
 }
 
 impl std::str::FromStr for Conventions {

@@ -39,10 +39,11 @@
 //! `axtb` (corrected solvation) and `xtb-6.7.1` for `gxtb`. `conventions = Gxtb` therefore
 //! reproduces the three programs `xtb --gxtb`, `xtb --alpb water` and `xtb` of the g-xTB 2.0.1
 //! build of xtb 6.7.1: every SCF starts from the program's guess, as each program call does.
-use crate::calculator::{Calculator, Results, Version};
-use crate::scf::{Conventions, Guess, ScfOptions};
-use axtb::method::{Attempt, Method as _, Want, Wavefunction};
-use axtb::{Error, HessianMethod, HessianOptions, MixerKind, Result, SinglePoint, SolvationModel, SolvationSpec};
+use crate::calculator::{Calculator, Options, Version};
+use crate::scf::Conventions;
+use axtb::method::SinglePoint;
+use axtb::method::{Attempt, Method as _, Restart, ScfSettings, Term, Want, Wavefunction};
+use axtb::{Error, HessianMethod, HessianOptions, MixerKind, Result, SolvationModel, SolvationSpec};
 use axtb_base::threads::{self, Threads};
 use std::time::Instant;
 
@@ -106,8 +107,6 @@ pub struct CompositeOptions {
     pub mixer: Option<MixerKind>,
     /// Retry failed SCFs with the ladders [`PAIR_RETRIES`] and [`GXTB_RETRIES`] (default true).
     pub retries: bool,
-    /// Keep the g-xTB part's converged orbitals in the results (e.g. for a Molden file).
-    pub keep_orbitals: bool,
     /// Start each SCF from the previous geometry's converged state; `None`: each part as its
     /// conventions say, the GFN2 halves in their axtb conventions and the g-xTB part in its axtb
     /// conventions (the programs start every call from their own guess).
@@ -132,7 +131,6 @@ impl Default for CompositeOptions {
             correction_conventions: None,
             mixer: None,
             retries: true,
-            keep_orbitals: false,
             reuse_guess: None,
         }
     }
@@ -190,14 +188,15 @@ pub struct PartInfo {
 /// Results of a composite single point.
 #[derive(Clone, Debug)]
 pub struct CompositeResults {
-    /// The composite: `energy` and `gradient` are E_gxtb + ΔG_solv and its gradient,
-    /// `terms.solvation` is ΔG_solv; charges, moments, orbitals and iterations are g-xTB's.
+    /// The composite: `energy` and `gradient` are E_gxtb + ΔG_solv and its gradient, the terms
+    /// g-xTB's and `solvation_correction` (ΔG_solv); charges, moments, orbitals and iterations
+    /// are g-xTB's.
     pub singlepoint: SinglePoint,
-    /// The g-xTB part (with its energy terms).
-    pub gxtb: Results,
+    /// The g-xTB part.
+    pub gxtb: SinglePoint,
     /// The GFN2 halves with and without the solvent model.
-    pub gfn2_solvated: axtb::method::SinglePoint,
-    pub gfn2_gas: axtb::method::SinglePoint,
+    pub gfn2_solvated: SinglePoint,
+    pub gfn2_gas: SinglePoint,
     /// ΔG_solv = E_GFN2+solv - E_GFN2 (Eh) and its gradient.
     pub solvation_energy: f64,
     pub solvation_gradient: Option<Vec<[f64; 3]>>,
@@ -274,17 +273,8 @@ fn not_converged(e: &Error) -> bool {
 }
 
 /// The SCF report of a part's single point: iterations, mixer, attempts.
-fn old_scf(sp: &SinglePoint) -> (usize, Option<&'static str>, Vec<Attempt>) {
-    let attempts = sp.scf_attempts.iter().map(|a| Attempt {
-        mixer: a.mixer.label(),
-        iterations: a.iterations,
-        converged: a.converged,
-    });
-    (sp.iterations, sp.mixer_used, attempts.collect())
-}
-
-fn new_scf(sp: &axtb::method::SinglePoint) -> (usize, Option<&'static str>, Vec<Attempt>) {
-    let s = sp.scf().expect("GFN2-xTB has an SCF");
+fn new_scf(sp: &SinglePoint) -> (usize, Option<&'static str>, Vec<Attempt>) {
+    let s = sp.scf().expect("every part has an SCF");
     (s.iterations, s.mixer_used, s.attempts.clone())
 }
 
@@ -324,14 +314,15 @@ impl CompositeCalculator {
 
         // g-xTB part
         let gxtb_etemp = options.etemp.unwrap_or(GXTB_ETEMP);
-        let gopts = ScfOptions {
-            accuracy: options.accuracy,
-            max_iter: options.max_iter.unwrap_or(0),
-            etemp: gxtb_etemp,
+        let gopts = Options {
+            scf: ScfSettings {
+                accuracy: options.accuracy,
+                max_iter: options.max_iter,
+                etemp: Some(gxtb_etemp),
+                restart: options.reuse_guess.map(|r| if r { Restart::Previous } else { Restart::Fresh }),
+            },
             threads: options.threads,
             conventions: options.conventions,
-            keep_orbitals: options.keep_orbitals,
-            guess: options.reuse_guess.map(|r| if r { Guess::Previous } else { Guess::EeqBc }),
             ..Default::default()
         };
         let gxtb_max_iter = gopts.iteration_limit(options.version);
@@ -381,12 +372,6 @@ impl CompositeCalculator {
         self.gxtb.molecule()
     }
 
-    /// Keep (or not) the g-xTB part's converged orbitals in the next results.
-    pub fn set_keep_orbitals(&mut self, keep: bool) {
-        self.options.keep_orbitals = keep;
-        self.gxtb.options.keep_orbitals = keep;
-    }
-
     /// The composite's definition, e.g.
     /// `E = E[gxtb-v2.0.1] + (E[gfn2 + alpb(water, gsolv)] - E[gfn2])`.
     pub fn definition(&self) -> String {
@@ -429,22 +414,22 @@ impl CompositeCalculator {
 
     /// The default Hessian method of the g-xTB part (analytic for 2.0.1, numerical for v1.1).
     pub fn default_hessian_method(&self) -> HessianMethod {
-        self.gxtb.default_hessian_method()
+        self.gxtb.info().hessian.default
     }
 
     /// Forget the previous converged states of all parts.
     pub fn reset_guess(&mut self) {
-        self.gxtb.reset_guess();
+        self.gxtb.reset_wavefunction();
         self.solvated.reset_wavefunction();
         self.gas.reset_wavefunction();
     }
 
-    /// The g-xTB part's calculator (e.g. for its [`Calculator::guess`]).
+    /// The g-xTB part's calculator (e.g. for its wavefunction).
     pub fn gxtb(&self) -> &Calculator {
         &self.gxtb
     }
 
-    /// The g-xTB part's calculator, mutable (e.g. to [`Calculator::set_guess`]).
+    /// The g-xTB part's calculator, mutable (e.g. to set its wavefunction).
     pub fn gxtb_mut(&mut self) -> &mut Calculator {
         &mut self.gxtb
     }
@@ -473,9 +458,9 @@ impl CompositeCalculator {
         let mut out = Err(err.clone());
         for (t, m) in GXTB_RETRIES {
             let mut o = base.clone();
-            o.max_iter = m.max(max_iter);
-            o.etemp = t;
-            let m = o.max_iter;
+            let m = m.max(max_iter);
+            o.scf.max_iter = Some(m);
+            o.scf.etemp = Some(t);
             self.gxtb.options = o;
             match f(&mut self.gxtb) {
                 Ok(v) => {
@@ -604,11 +589,12 @@ impl CompositeCalculator {
         }
     }
 
-    /// Energy (and with `gradient` the gradient, Eh/bohr) of the composite at `positions`
-    /// (bohr).
-    pub fn singlepoint(&mut self, positions: &[[f64; 3]], gradient: bool) -> Result<CompositeResults> {
+    /// Energy and what `want` asks for (the gradient of all parts; orbitals and bond orders of
+    /// the g-xTB part) of the composite at `positions` (bohr).
+    pub fn singlepoint(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<CompositeResults> {
         let t0 = Instant::now();
-        let (gx, grung) = self.run_gxtb(|c| c.singlepoint(positions, gradient))?;
+        let gradient = want.gradient;
+        let (gx, grung) = self.run_gxtb(|c| c.singlepoint(positions, want))?;
         let (gas, solv, prung, secs) = self.run_pair(|c| c.singlepoint(positions, &Want::gradient(gradient)))?;
         let dg = solv.energy - gas.energy;
         self.check(dg)?;
@@ -616,10 +602,10 @@ impl CompositeCalculator {
             (Some(s), Some(g)) => Some(add(s, g, -1.0)),
             _ => None,
         };
-        let mut sp = gx.singlepoint.clone();
-        sp.energy = gx.singlepoint.energy + dg;
-        sp.terms.solvation = dg;
-        sp.gradient = match (&gx.singlepoint.gradient, &dgrad) {
+        let mut sp = gx.clone();
+        sp.energy = gx.energy + dg;
+        sp.terms.push(Term::piece("solvation_correction", dg));
+        sp.gradient = match (&gx.gradient, &dgrad) {
             (Some(g), Some(d)) => Some(add(g, d, 1.0)),
             _ => None,
         };
@@ -630,7 +616,7 @@ impl CompositeCalculator {
             ("total", t0.elapsed().as_secs_f64()),
         ];
         let parts = [
-            self.part(0, gx.singlepoint.energy, Some(old_scf(&gx.singlepoint)), &grung, grung.seconds),
+            self.part(0, gx.energy, Some(new_scf(&gx)), &grung, grung.seconds),
             self.part(1, solv.energy, Some(new_scf(&solv)), &prung, secs[1]),
             self.part(2, gas.energy, Some(new_scf(&gas)), &prung, secs[0]),
         ];
@@ -658,7 +644,7 @@ impl CompositeCalculator {
         accuracy: Option<f64>,
     ) -> Result<CompositeHessian> {
         let t0 = Instant::now();
-        let gm = method.unwrap_or_else(|| self.gxtb.default_hessian_method());
+        let gm = method.unwrap_or(self.gxtb.info().hessian.default);
         let gopts = HessianOptions { method: Some(gm), step, accuracy };
         let (hg, grung) = self.run_gxtb(|c| c.hessian(positions, &gopts))?;
         let fopts = HessianOptions { method: Some(method.unwrap_or(HessianMethod::Analytic)), step, accuracy };

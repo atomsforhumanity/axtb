@@ -31,7 +31,7 @@ fn tight(c: Conventions, etemp: f64) -> ScfOptions {
         energy_tol: Some(1e-12),
         residual_tol: Some(5e-13),
         max_iter: 1000,
-        keep_orbitals: true,
+        all_orbitals: true,
         ..Default::default()
     }
 }

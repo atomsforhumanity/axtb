@@ -40,6 +40,7 @@ pub mod threads;
 pub mod vibrations;
 mod xtb;
 
+pub use axtb_base::method::SinglePoint;
 pub use calculator::{Calculator, Hessian, ANALYTIC_ACCURACY, NUMERICAL_ACCURACY, NUMERICAL_STEP, RESPONSE_STEP};
 pub use conventions::{ConventionParams, Conventions};
 pub use hessian::{HessianMethod, HessianOptions};
@@ -47,7 +48,7 @@ pub use molden::{MoldenFunctions, Orbitals, ToMolden};
 pub use properties::{GapRule, OrbitalLevels, QuadrupoleForm};
 pub use scf::mixing::{MixerKind, ScfAttempt};
 pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
-pub use xtb::{EnergyTerms, InitialGuess, SinglePoint, DAMPING, ETEMP, MAX_ITER};
+pub use xtb::{InitialGuess, DAMPING, ETEMP, MAX_ITER};
 
 pub use axtb_base::linalg;
 pub use axtb_base::method;

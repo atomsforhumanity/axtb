@@ -45,7 +45,7 @@ fn symmetric_response_terms_match_a_tight_solve() {
             energy_tol: Some(1e-12),
             residual_tol: Some(1e-11),
             max_iter: 500,
-            keep_orbitals: true,
+            all_orbitals: true,
             ..Default::default()
         };
         let r = setup.scf(&opts).unwrap();

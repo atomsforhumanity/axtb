@@ -82,10 +82,10 @@ pub(crate) struct ScfOptions {
     pub threads: usize,
     /// Starting point when no previous wavefunction is given.
     pub guess: InitialGuess,
-    /// Keep the converged orbitals and their basis in [`SinglePoint::orbitals`] (e.g. for a
+    /// Keep the converged orbitals and their basis in [`Gfn2Result::orbitals`] (e.g. for a
     /// Molden file); every eigenvector is computed.
     pub keep_orbitals: bool,
-    /// Compute the Mayer–Wiberg bond orders ([`SinglePoint::bond_orders`]).
+    /// Compute the Mayer–Wiberg bond orders ([`Gfn2Result::bond_orders`]).
     pub bond_orders: bool,
     /// Print every SCF iteration (energy, energy change, residual) to stderr, for debugging
     /// SCFs that do not converge.
@@ -101,7 +101,7 @@ pub const DAMPING: f64 = 0.4;
 
 /// Energy contributions (Hartree).
 #[derive(Clone, Debug, Default)]
-pub struct EnergyTerms {
+pub(crate) struct EnergyTerms {
     pub repulsion: f64,
     pub dispersion: f64,
     pub solvation: f64,
@@ -131,9 +131,9 @@ impl EnergyTerms {
     }
 }
 
-/// Results of a single point.
+/// GFN2-xTB's result of a single point (the trait's single point is assembled from it).
 #[derive(Clone, Debug)]
-pub struct SinglePoint {
+pub(crate) struct Gfn2Result {
     pub energy: f64,
     pub terms: EnergyTerms,
     pub gradient: Option<Vec<[f64; 3]>>,
@@ -144,8 +144,6 @@ pub struct SinglePoint {
     pub qpat: Vec<[f64; 6]>,
     /// Molecular dipole moment (e·bohr) relative to the origin.
     pub dipole: [f64; 3],
-    pub orbital_energies: Vec<f64>,
-    pub occupations: Vec<f64>,
     /// SCF iterations of the attempt that converged (see `scf_attempts` for all).
     pub iterations: usize,
     /// Mixer that produced the result: `"broyden"`, `"diis"`, or `"diis-fallback"` (mixer
@@ -189,7 +187,7 @@ pub(crate) struct ScfGuess {
     pub qpat: Vec<[f64; 6]>,
 }
 
-impl SinglePoint {
+impl Gfn2Result {
     /// The converged moments as a guess for a nearby geometry.
     pub(crate) fn guess(&self) -> ScfGuess {
         ScfGuess { qsh: self.qsh.clone(), dpat: self.dpat.clone(), qpat: self.qpat.clone() }
@@ -405,7 +403,7 @@ impl XtbModel {
         opts: &ScfOptions,
         guess: Option<&ScfGuess>,
         want_gradient: bool,
-    ) -> Result<SinglePoint> {
+    ) -> Result<Gfn2Result> {
         self.singlepoint_state(mol, extra, opts, guess, want_gradient, false).map(|(sp, _)| sp)
     }
 
@@ -419,7 +417,7 @@ impl XtbModel {
         guess: Option<&ScfGuess>,
         want_gradient: bool,
         keep_state: bool,
-    ) -> Result<(SinglePoint, Option<ScfState>)> {
+    ) -> Result<(Gfn2Result, Option<ScfState>)> {
         let mut timer = Laps::new();
         check_scf_options(opts)?;
         let nat = mol.nat();
@@ -493,7 +491,7 @@ impl XtbModel {
         let kind = opts.mixer.unwrap_or(self.params.mixer);
         let mut start =
             Moments { qsh: vec![0.0; nsh], qat: vec![0.0; nat], dpat: vec![[0.0; 3]; nat], qpat: vec![[0.0; 6]; nat] };
-        // where the SCF starts (`SinglePoint::guess`): a given guess of this molecule's size,
+        // where the SCF starts (`Gfn2Result::guess`): a given guess of this molecule's size,
         // else EEQ charges when the options and conventions ask for them and the EEQ system
         // can be solved, else neutral atoms
         let start_label = match guess {
@@ -788,7 +786,7 @@ impl XtbModel {
         };
 
         Ok((
-            SinglePoint {
+            Gfn2Result {
                 energy,
                 terms,
                 gradient: grad,
@@ -797,8 +795,6 @@ impl XtbModel {
                 dpat,
                 qpat,
                 dipole,
-                orbital_energies: emo,
-                occupations: focc,
                 iterations: iscf,
                 mixer_used: Some(mixer_used),
                 scf_attempts: plan.into_attempts(),

@@ -15,7 +15,7 @@ use crate::method::{
 };
 use crate::molecule::Molecule;
 use crate::terms::{AnyMomentTerm, ChainLayout, MomentTerm};
-use crate::xtb::{check_scf_options, ScfGuess, ScfOptions, SinglePoint, XtbModel};
+use crate::xtb::{check_scf_options, Gfn2Result, ScfGuess, ScfOptions, XtbModel};
 use crate::{Error, Result};
 use crate::{Hamiltonian, Options};
 use axtb_base::fd;
@@ -156,7 +156,7 @@ impl Calculator {
         &self.model.layout
     }
 
-    fn run(&self, mol: &Molecule, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<SinglePoint> {
+    fn run(&self, mol: &Molecule, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<Gfn2Result> {
         let mut sp = self.model.singlepoint(mol, &self.extra, scf, guess, gradient)?;
         // xtb (6.7.1 and 6.8.0, `get_wiberg`) leaves out pairs more than 10 bohr apart
         if matches!(self.options.conventions, crate::Conventions::Xtb | crate::Conventions::Xtb671) {
@@ -169,7 +169,7 @@ impl Calculator {
 
     /// `run` at the calculator's geometry inside its thread pool (outside it, parallel kernels
     /// would run on rayon's global pool, i.e. on every core instead of the threads asked for).
-    fn run_pooled(&self, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<SinglePoint> {
+    fn run_pooled(&self, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<Gfn2Result> {
         self.threads.install(|| self.run(&self.mol, scf, guess, gradient))
     }
 
@@ -187,7 +187,7 @@ impl Calculator {
         start.filter(|_| reuse)
     }
 
-    fn singlepoint_inner(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<SinglePoint> {
+    fn singlepoint_inner(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<Gfn2Result> {
         let start = self.take_start();
         self.mol.set_positions(positions)?;
         let scf = self.scf_options(want);
@@ -293,7 +293,7 @@ impl Calculator {
 
     /// The single point as the trait reports it: GFN2-xTB's terms (the eight xtb prints, then
     /// those of added terms), the molecular quadrupole in the conventions' form.
-    fn report(&self, sp: SinglePoint) -> crate::method::SinglePoint {
+    fn report(&self, sp: Gfn2Result) -> crate::method::SinglePoint {
         let t = &sp.terms;
         let mut terms = vec![
             Term::piece("repulsion", t.repulsion),
@@ -444,7 +444,7 @@ impl Method for Calculator {
 
 /// Package a symmetrized Hessian `h` ([`fd::symmetrize`]; `max_asymmetry` from before).
 fn finish(
-    reference: SinglePoint,
+    reference: Gfn2Result,
     h: Vec<f64>,
     max_asymmetry: f64,
     dipole_derivatives: Option<Vec<[f64; 3]>>,
