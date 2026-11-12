@@ -36,6 +36,11 @@
 //! Fermi smearing with the entropy term in both versions ([`v2::fermi`], [`fermi`], on the
 //! shared rules of [`occupations`]).
 //!
+//! **Broken-symmetry singlets** (an axtb extension; neither program has them):
+//! [`ScfOptions::broken_symmetry`] runs a closed-shell molecule unrestricted from its HOMO-LUMO
+//! mixed restricted orbitals and keeps that solution where it lies lower ([`broken_symmetry`]),
+//! so that homolyses on the singlet surface reach the radical pair.
+//!
 //! **Implicit solvent:** [`composite`], E_gxtb + [E_GFN2+ALPB/GBSA - E_GFN2] for energies,
 //! gradients and Hessians in one process ([`CompositeCalculator`]).
 //!

@@ -36,8 +36,9 @@ pub use error::{Error, Result};
 pub use names::{canonical_method, Method};
 pub use request::{Request, Temperatures};
 pub use response::{
-    Attempt, BrokenSymmetry, Components, Composite, CompositeEtemp, CompositeInfo, Contribution, Gfnff, HessianPart,
-    Matrix, Named, Part, Parts, Response, Scf, Thermo, ThermoPoint, Topology, Vibrations, PROGRAM, VERSION,
+    Attempt, BrokenSymmetry, BrokenSymmetryScf, Components, Composite, CompositeEtemp, CompositeInfo, Contribution,
+    Gfnff, HessianPart, Matrix, Named, Part, Parts, Response, Scf, Thermo, ThermoPoint, Topology, Vibrations, PROGRAM,
+    VERSION,
 };
 pub use task::{HessianTask, MoldenTask, Task, ThermoSettings, VibSettings};
 

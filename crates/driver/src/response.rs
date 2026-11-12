@@ -384,18 +384,40 @@ pub struct BrokenSymmetry {
     pub outcome: &'static str,
     /// ⟨S²⟩ of the result (0 for the restricted solution).
     pub s2: f64,
-    /// Start of the unrestricted SCF: `homo-lumo` (the mixed restricted orbitals) or
-    /// `previous` (the previous geometry's broken-symmetry state); `null`: none ran.
+    /// Start of the reported unrestricted solution: `homo-lumo` (the mixed restricted
+    /// orbitals) or `previous` (the previous geometry's broken-symmetry state); `null`: no
+    /// unrestricted SCF converged.
     pub start: Option<&'static str>,
     /// Frontier orbital pairs rotated in the HOMO-LUMO start.
     pub frontier_pairs: usize,
-    /// Energies (Eh), ⟨S²⟩ and SCF iterations of the solutions computed at this geometry
-    /// (`null`: not computed).
+    /// The restricted solution's energy (Eh), when computed; the lowest unrestricted solution's
+    /// energy and ⟨S²⟩; the SCF iterations of all restricted and all unrestricted SCFs of this
+    /// geometry (`null`: none).
     pub restricted_energy: Option<f64>,
     pub unrestricted_energy: Option<f64>,
     pub unrestricted_s2: Option<f64>,
     pub restricted_iterations: Option<usize>,
     pub unrestricted_iterations: Option<usize>,
+    /// Electronic temperature (K) of the restricted SCF whose orbitals made the HOMO-LUMO
+    /// start when the restricted SCF did not converge at the calculation's own.
+    pub start_etemp: Option<f64>,
+    /// Every SCF of this geometry, in order.
+    pub scfs: Vec<BrokenSymmetryScf>,
+}
+
+/// One SCF of a broken-symmetry calculation.
+#[derive(Serialize, Clone, Debug, Default, PartialEq)]
+pub struct BrokenSymmetryScf {
+    /// 1 (restricted) or 2 (unrestricted).
+    pub channels: usize,
+    /// `previous`, `eeq-bc`, `homo-lumo` or `total-density` (of this geometry's unrestricted
+    /// solution).
+    pub start: &'static str,
+    pub etemp: f64,
+    pub iterations: usize,
+    pub converged: bool,
+    pub energy: Option<f64>,
+    pub s2: Option<f64>,
 }
 
 /// The response to a [`crate::Request`], the same for every front end.

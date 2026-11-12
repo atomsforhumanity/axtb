@@ -3,7 +3,7 @@
 //! the refusals.
 
 use axtb::{Error, HessianMethod, HessianOptions};
-use axtb_gxtb::broken_symmetry::{s2_v1, Outcome};
+use axtb_gxtb::broken_symmetry::{s2_v1, Outcome, S2_CHECK};
 use axtb_gxtb::{read_xyz, Calculator, CompositeCalculator, CompositeOptions, Conventions, ScfOptions, Setup, Version};
 use serde_json::Value;
 use std::path::Path;
@@ -179,6 +179,61 @@ fn restarts_follow_the_unrestricted_state() {
         }
         assert_ne!(last, Outcome::Broken, "{version:?}: H2 at 0.9 Å stays restricted");
     }
+}
+
+/// Formic acid (its 2.0.1 minimum) with the HCO fragment moved along the HCO–OH bond by `d` Å.
+fn formic_acid(d: f64) -> (Vec<usize>, Vec<[f64; 3]>) {
+    let mut x = vec![
+        [0.0, -0.0176145200, 0.0121358018],
+        [0.0, 0.0072796517, 2.2762919944],
+        [0.0, 2.0620372021, -1.4297291147],
+        [0.0, 3.5374286289, -0.3426936486],
+        [0.0, -1.7194318543, -1.1870570076],
+    ];
+    let u: Vec<f64> = (0..3).map(|k| x[0][k] - x[2][k]).collect();
+    let norm = u.iter().map(|v| v * v).sum::<f64>().sqrt();
+    for a in [0, 1, 4] {
+        for k in 0..3 {
+            x[a][k] += d * AA * u[k] / norm;
+        }
+    }
+    (vec![6, 8, 8, 1, 1], x)
+}
+
+/// The two fallbacks (2.0.1, formic acid's HCO–OH bond): the restart from the weakly broken
+/// state at + 1 Å collapses at + 1.25 Å, and the new HOMO-LUMO start finds the broken solution
+/// 3.5 kcal/mol below the restricted one, as a fresh start does; at + 3 Å the restricted SCF of
+/// a fresh start does not converge, and the orbitals of the 1000 K restricted SCF start the
+/// unrestricted one, which lands where the restarts along the bond do.
+#[test]
+fn collapse_and_fallback_paths() {
+    let (z, x) = formic_acid(1.0);
+    let mut c = calc(Version::V2_0_1, &z, &x, None, bs(1.0));
+    let b = c.singlepoint(&x, false).unwrap().broken_symmetry.unwrap();
+    assert!(b.broken() && b.s2 < S2_CHECK, "{b:?}");
+    let (_, y) = formic_acid(1.25);
+    let r = c.singlepoint(&y, false).unwrap();
+    let b = r.broken_symmetry.unwrap();
+    let starts: Vec<(usize, &str)> = b.scfs.iter().map(|s| (s.channels, s.start)).collect();
+    assert_eq!(starts, vec![(2, "previous"), (1, "total-density"), (2, "homo-lumo")], "{b:?}");
+    assert!(b.broken() && b.start == Some("homo-lumo") && b.s2 > 0.4, "{b:?}");
+    assert!(b.restricted_energy.unwrap() - r.singlepoint.energy > 0.005);
+    let fresh = calc(Version::V2_0_1, &z, &y, None, bs(1.0)).singlepoint(&y, false).unwrap();
+    assert!((fresh.singlepoint.energy - r.singlepoint.energy).abs() < 1e-7);
+
+    let (_, y) = formic_acid(3.0);
+    let r = calc(Version::V2_0_1, &z, &y, None, bs(1.0)).singlepoint(&y, false).unwrap();
+    let b = r.broken_symmetry.unwrap();
+    assert!(!b.scfs[0].converged && b.scfs[0].channels == 1, "{b:?}");
+    assert_eq!((b.outcome, b.start_etemp, b.restricted_energy), (Outcome::Broken, Some(1000.0), None));
+    assert!(b.s2 > 1.0 && b.scfs.last().unwrap().etemp == 0.0);
+    for d in [1.5, 2.0, 2.5, 3.0] {
+        let (_, y) = formic_acid(d);
+        c.singlepoint(&y, false).unwrap();
+    }
+    assert_eq!(c.guess().map(|g| matches!(g, axtb_gxtb::GuessState::V2_0_1(s) if s.p.len() == 2)), Some(true));
+    let (_, y) = formic_acid(3.0);
+    assert!((c.singlepoint(&y, false).unwrap().singlepoint.energy - r.singlepoint.energy).abs() < 1e-7);
 }
 
 /// The setting is refused where it would mean nothing or break a promise.

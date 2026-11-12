@@ -645,6 +645,20 @@ fn broken_symmetry(b: &axtb_gxtb::BrokenSymmetry) -> response::BrokenSymmetry {
         unrestricted_s2: b.unrestricted_s2,
         restricted_iterations: b.restricted_iterations,
         unrestricted_iterations: b.unrestricted_iterations,
+        start_etemp: b.start_etemp,
+        scfs: b
+            .scfs
+            .iter()
+            .map(|s| response::BrokenSymmetryScf {
+                channels: s.channels,
+                start: s.start,
+                etemp: s.etemp,
+                iterations: s.iterations,
+                converged: s.converged,
+                energy: s.energy,
+                s2: s.s2,
+            })
+            .collect(),
     }
 }
 
