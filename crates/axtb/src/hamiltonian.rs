@@ -1,14 +1,13 @@
 //! Extended Hückel-type core Hamiltonian of the GFN-xTB methods and its nuclear gradient.
 
+use crate::ao::{AoMatrices, AtomPair, ShellPair, ShellPairs};
 use crate::basis::{nsph, Basis};
 use crate::integrals::{
-    multipole, multipole_grad, multipole_hess, multipole_raw, pair_screened, shift_to_bra, MultipoleGrad,
-    MultipoleHess, Scratch, KL, MBLK,
+    multipole, multipole_grad, multipole_hess, multipole_raw, MultipoleGrad, MultipoleHess, Scratch, KL, MBLK,
 };
-use crate::molecule::{norm2_sq, sub3, Molecule};
+use crate::molecule::Molecule;
 use axtb_base::threads;
 use faer::Mat;
-use rayon::prelude::*;
 
 /// Species-resolved parameters of the core Hamiltonian for one molecule.
 #[derive(Clone, Debug)]
@@ -66,130 +65,30 @@ impl H0Params {
         (n0sh, nel)
     }
 
-    /// Build overlap, core Hamiltonian, dipole and quadrupole matrices.
+    /// Build overlap, core Hamiltonian, dipole and quadrupole matrices
+    /// ([`AoMatrices::build_with_scaled`]: each atom pair once, mirrored blocks shifted to the
+    /// bra; H0 is the overlap scaled per shell pair).
     ///
     /// With `parallel`, atoms are distributed over the current rayon pool. Every matrix
     /// element is written by exactly one atom task (the larger atom index of its pair), so
     /// tasks never write the same memory and the result does not depend on the thread count.
     pub fn build(&self, mol: &Molecule, bas: &Basis, se: &[f64], cutoff: f64, parallel: bool) -> Integrals {
-        let nao = bas.nao;
-        let mut overlap = Mat::<f64>::zeros(nao, nao);
-        let mut h0 = Mat::<f64>::zeros(nao, nao);
-        let mut dip: [Mat<f64>; 3] = std::array::from_fn(|_| Mat::zeros(nao, nao));
-        let mut quad: [Mat<f64>; 6] = std::array::from_fn(|_| Mat::zeros(nao, nao));
-        {
-            let [d0, d1, d2] = &mut dip;
-            let [q0, q1, q2, q3, q4, q5] = &mut quad;
-            let w = MatWriter::new([&mut overlap, &mut h0, d0, d1, d2, q0, q1, q2, q3, q4, q5]);
-            let amin = MinExponents::new(bas);
-            let task = |scr: &mut Scratch, iat: usize| self.build_atom(mol, bas, se, cutoff, &amin, iat, &w, scr);
-            if parallel {
-                (0..mol.nat()).into_par_iter().for_each_init(Scratch::default, task);
-            } else {
-                let mut scr = Scratch::default();
-                (0..mol.nat()).for_each(|iat| task(&mut scr, iat));
+        let (ao, h0) = AoMatrices::build_with_scaled(mol, bas, cutoff, parallel, |p: &AtomPair| {
+            let (isp, jsp) = (mol.id[p.i], mol.id[p.j]);
+            // the shell polynomial of a pair; on-site: the average of the levels only
+            let onsite = p.i == p.j;
+            let rr = if onsite { 0.0 } else { (p.r2.sqrt() / (self.rad[jsp] + self.rad[isp])).sqrt() };
+            move |s: &ShellPair| {
+                if onsite {
+                    0.5 * (se[s.si] + se[s.sj])
+                } else {
+                    let shpoly = (1.0 + self.shpoly[isp][s.ish] * rr) * (1.0 + self.shpoly[jsp][s.jsh] * rr);
+                    0.5 * (se[s.si] + se[s.sj]) * self.hscale[jsp][isp][s.jsh][s.ish] * shpoly
+                }
             }
-        }
+        });
+        let AoMatrices { overlap, dip, quad } = ao;
         Integrals { overlap, h0, dip, quad }
-    }
-
-    /// All blocks owned by atom `iat`: pairs with every `jat < iat` (both orientations) and
-    /// the on-site block.
-    fn build_atom(
-        &self,
-        mol: &Molecule,
-        bas: &Basis,
-        se: &[f64],
-        cutoff: f64,
-        amin: &MinExponents,
-        iat: usize,
-        w: &MatWriter<'_>,
-        scr: &mut Scratch,
-    ) {
-        let cutoff2 = cutoff * cutoff;
-        let mut s = [0.0; MBLK];
-        let mut d = [[0.0; 3]; MBLK];
-        let mut q = [[0.0; 6]; MBLK];
-        let isp = mol.id[iat];
-        let is = bas.ish_at[iat];
-        // SAFETY (all `w.set` calls): the AO indices are those of atoms iat and jat <= iat of
-        // the basis the matrices were made for (in bounds), and element (mu, nu) with
-        // atom(mu) <= atom(nu) = iat or atom(nu) <= atom(mu) = iat is written only by this task.
-        for jat in 0..iat {
-            let jsp = mol.id[jat];
-            let js = bas.ish_at[jat];
-            let vec = sub3(mol.positions[iat], mol.positions[jat]);
-            let r2 = norm2_sq(vec);
-            // blocks of screened shell pairs are exactly zero (the matrices start at zero)
-            if r2 > cutoff2 || pair_screened(amin.species[isp], amin.species[jsp], r2, bas.intcut) {
-                continue;
-            }
-            let rr = (r2.sqrt() / (self.rad[jsp] + self.rad[isp])).sqrt();
-            for ish in 0..bas.nsh_id[isp] {
-                let ci = &bas.cgto[isp][ish];
-                let ii = bas.iao_sh[is + ish];
-                let shpolyi = 1.0 + self.shpoly[isp][ish] * rr;
-                for jsh in 0..bas.nsh_id[jsp] {
-                    if pair_screened(amin.shells[isp][ish], amin.shells[jsp][jsh], r2, bas.intcut) {
-                        continue;
-                    }
-                    let cj = &bas.cgto[jsp][jsh];
-                    let jj = bas.iao_sh[js + jsh];
-                    multipole(cj, ci, vec, bas.intcut, &mut s, &mut d, &mut q, scr);
-                    let shpoly = shpolyi * (1.0 + self.shpoly[jsp][jsh] * rr);
-                    let hij = 0.5 * (se[is + ish] + se[js + jsh]) * self.hscale[jsp][isp][jsh][ish] * shpoly;
-                    let nj = nsph(cj.l);
-                    for iao in 0..nsph(ci.l) {
-                        for jao in 0..nj {
-                            let ij = jao + nj * iao;
-                            let (mu, nu) = (jj + jao, ii + iao);
-                            let (dj, qj) = shift_to_bra(vec, s[ij], d[ij], q[ij]);
-                            unsafe {
-                                w.set(0, mu, nu, s[ij]);
-                                w.set(0, nu, mu, s[ij]);
-                                w.set(1, mu, nu, s[ij] * hij);
-                                w.set(1, nu, mu, s[ij] * hij);
-                                for k in 0..3 {
-                                    w.set(2 + k, mu, nu, d[ij][k]);
-                                    w.set(2 + k, nu, mu, dj[k]);
-                                }
-                                for k in 0..6 {
-                                    w.set(5 + k, mu, nu, q[ij][k]);
-                                    w.set(5 + k, nu, mu, qj[k]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        for ish in 0..bas.nsh_id[isp] {
-            let ci = &bas.cgto[isp][ish];
-            let ii = bas.iao_sh[is + ish];
-            for jsh in 0..bas.nsh_id[isp] {
-                let cj = &bas.cgto[isp][jsh];
-                let jj = bas.iao_sh[is + jsh];
-                multipole(cj, ci, [0.0; 3], bas.intcut, &mut s, &mut d, &mut q, scr);
-                let hij = 0.5 * (se[is + ish] + se[is + jsh]);
-                let nj = nsph(cj.l);
-                for iao in 0..nsph(ci.l) {
-                    for jao in 0..nj {
-                        let ij = jao + nj * iao;
-                        let (mu, nu) = (jj + jao, ii + iao);
-                        unsafe {
-                            w.set(0, mu, nu, s[ij]);
-                            w.set(1, mu, nu, s[ij] * hij);
-                            for k in 0..3 {
-                                w.set(2 + k, mu, nu, d[ij][k]);
-                            }
-                            for k in 0..6 {
-                                w.set(5 + k, mu, nu, q[ij][k]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     /// Nuclear gradient of the one-electron part of the energy.
@@ -216,11 +115,11 @@ impl H0Params {
         let nat = mol.nat();
         // fixed chunks (the same for serial and parallel runs) reduced in order, so the
         // result does not depend on the thread count
-        let amin = MinExponents::new(bas);
+        let pairs = ShellPairs::screened(mol, bas, cutoff, bas.intcut);
         let parts = threads::map_chunks(nat, parallel, |atoms| {
             let mut gr = vec![[0.0; 3]; nat];
             let mut dc = vec![0.0; nat];
-            self.gradient_atoms(mol, bas, se, dsedcn, cutoff, &amin, p, w, vao, vdp, vqp, atoms, &mut dc, &mut gr);
+            self.gradient_atoms(mol, &pairs, se, dsedcn, p, w, vao, vdp, vqp, atoms, &mut dc, &mut gr);
             (gr, dc)
         });
         for (gr, dc) in parts {
@@ -236,11 +135,9 @@ impl H0Params {
     fn gradient_atoms(
         &self,
         mol: &Molecule,
-        bas: &Basis,
+        pairs: &ShellPairs,
         se: &[f64],
         dsedcn: &[f64],
-        cutoff: f64,
-        amin: &MinExponents,
         p: &Mat<f64>,
         w: &Mat<f64>,
         vao: &[f64],
@@ -250,73 +147,60 @@ impl H0Params {
         dedcn: &mut [f64],
         grad: &mut [[f64; 3]],
     ) {
-        let cutoff2 = cutoff * cutoff;
+        let bas = pairs.basis();
         let mut g = MultipoleGrad::default();
         let mut scr = Scratch::default();
         for iat in atoms {
             let isp = mol.id[iat];
             let is = bas.ish_at[iat];
             for jat in 0..iat {
-                let jsp = mol.id[jat];
-                let js = bas.ish_at[jat];
-                let vec = sub3(mol.positions[iat], mol.positions[jat]);
-                let r2 = norm2_sq(vec);
                 // screened shell pairs contribute exactly zero
-                if r2 > cutoff2
-                    || r2 < f64::EPSILON
-                    || pair_screened(amin.species[isp], amin.species[jsp], r2, bas.intcut)
-                {
+                let Some(pair) = pairs.pair(iat, jat) else { continue };
+                let (vec, r2) = (pair.vec, pair.r2);
+                if r2 < f64::EPSILON {
                     continue;
                 }
+                let jsp = mol.id[jat];
                 let rr = (r2.sqrt() / (self.rad[jsp] + self.rad[isp])).sqrt();
                 let mut dg = [0.0; 3];
                 let (mut dcni, mut dcnj) = (0.0, 0.0);
-                for ish in 0..bas.nsh_id[isp] {
-                    let ci = &bas.cgto[isp][ish];
-                    let ii = bas.iao_sh[is + ish];
+                pairs.for_each(&pair, |sp| {
+                    let (ish, jsh, ci, cj) = (sp.ish, sp.jsh, sp.ci, sp.cj);
+                    multipole_grad(cj, ci, vec, bas.intcut, &mut g, &mut scr);
                     let shpolyi = 1.0 + self.shpoly[isp][ish] * rr;
-                    for jsh in 0..bas.nsh_id[jsp] {
-                        if pair_screened(amin.shells[isp][ish], amin.shells[jsp][jsh], r2, bas.intcut) {
-                            continue;
-                        }
-                        let cj = &bas.cgto[jsp][jsh];
-                        let jj = bas.iao_sh[js + jsh];
-                        multipole_grad(cj, ci, vec, bas.intcut, &mut g, &mut scr);
-                        let shpolyj = 1.0 + self.shpoly[jsp][jsh] * rr;
-                        let shpoly = shpolyi * shpolyj;
-                        let dshpoly =
-                            (shpolyi * self.shpoly[jsp][jsh] + shpolyj * self.shpoly[isp][ish]) * 0.5 * rr / r2;
-                        let dsv = [dshpoly / shpoly * vec[0], dshpoly / shpoly * vec[1], dshpoly / shpoly * vec[2]];
-                        let hs = self.hscale[jsp][isp][jsh][ish] * shpoly;
-                        let hij = 0.5 * (se[is + ish] + se[js + jsh]) * hs;
-                        let dhdcni = dsedcn[is + ish] * hs;
-                        let dhdcnj = dsedcn[js + jsh] * hs;
-                        let nj = nsph(cj.l);
-                        for iao in 0..nsph(ci.l) {
-                            for jao in 0..nj {
-                                let ij = jao + nj * iao;
-                                let (mu, nu) = (jj + jao, ii + iao);
-                                let pij = p[(mu, nu)];
-                                let hpij = pij * hij;
-                                let sval = -pij * (vao[mu] + vao[nu]) + 2.0 * hpij - 2.0 * w[(mu, nu)];
-                                let ds = g.ds[ij];
-                                let (ddi, ddj, dqi, dqj) = (&g.dd_i[ij], &g.dd_j[ij], &g.dq_i[ij], &g.dq_j[ij]);
-                                for k in 0..3 {
-                                    let mut mp = 0.0;
-                                    for c in 0..3 {
-                                        mp += ddi[k][c] * vdp[iat][c] + ddj[k][c] * vdp[jat][c];
-                                    }
-                                    for c in 0..6 {
-                                        mp += dqi[k][c] * vqp[iat][c] + dqj[k][c] * vqp[jat][c];
-                                    }
-                                    dg[k] += sval * ds[k] + 2.0 * hpij * g.s[ij] * dsv[k] - pij * mp;
+                    let shpolyj = 1.0 + self.shpoly[jsp][jsh] * rr;
+                    let shpoly = shpolyi * shpolyj;
+                    let dshpoly = (shpolyi * self.shpoly[jsp][jsh] + shpolyj * self.shpoly[isp][ish]) * 0.5 * rr / r2;
+                    let dsv = [dshpoly / shpoly * vec[0], dshpoly / shpoly * vec[1], dshpoly / shpoly * vec[2]];
+                    let hs = self.hscale[jsp][isp][jsh][ish] * shpoly;
+                    let hij = 0.5 * (se[sp.si] + se[sp.sj]) * hs;
+                    let dhdcni = dsedcn[sp.si] * hs;
+                    let dhdcnj = dsedcn[sp.sj] * hs;
+                    let nj = nsph(cj.l);
+                    for iao in 0..nsph(ci.l) {
+                        for jao in 0..nj {
+                            let ij = jao + nj * iao;
+                            let (mu, nu) = (sp.jj + jao, sp.ii + iao);
+                            let pij = p[(mu, nu)];
+                            let hpij = pij * hij;
+                            let sval = -pij * (vao[mu] + vao[nu]) + 2.0 * hpij - 2.0 * w[(mu, nu)];
+                            let ds = g.ds[ij];
+                            let (ddi, ddj, dqi, dqj) = (&g.dd_i[ij], &g.dd_j[ij], &g.dq_i[ij], &g.dq_j[ij]);
+                            for k in 0..3 {
+                                let mut mp = 0.0;
+                                for c in 0..3 {
+                                    mp += ddi[k][c] * vdp[iat][c] + ddj[k][c] * vdp[jat][c];
                                 }
-                                dcni += dhdcni * pij * g.s[ij];
-                                dcnj += dhdcnj * pij * g.s[ij];
+                                for c in 0..6 {
+                                    mp += dqi[k][c] * vqp[iat][c] + dqj[k][c] * vqp[jat][c];
+                                }
+                                dg[k] += sval * ds[k] + 2.0 * hpij * g.s[ij] * dsv[k] - pij * mp;
                             }
+                            dcni += dhdcni * pij * g.s[ij];
+                            dcnj += dhdcnj * pij * g.s[ij];
                         }
                     }
-                }
+                });
                 dedcn[iat] += dcni;
                 dedcn[jat] += dcnj;
                 for k in 0..3 {
@@ -341,77 +225,49 @@ impl H0Params {
     pub(crate) fn multipole_neglect(&self, mol: &Molecule, bas: &Basis, cutoff: f64, acc: f64) -> MultipoleNeglect {
         // scf_module.F90: neglect = 1e-8 acc; setdqlist compares squared elements with 1e-2 neglect
         let thr = 1.0e-10 * acc;
-        let cutoff2 = cutoff * cutoff;
+        let pairs = ShellPairs::unscreened(mol, bas, cutoff);
         let mut out = MultipoleNeglect { dip: Vec::new(), quad: Vec::new() };
         let mut s = [0.0; MBLK];
         let mut d = [[0.0; 3]; MBLK];
         let mut q = [[0.0; 6]; MBLK];
         let mut scr = Scratch::default();
         for iat in 0..mol.nat() {
-            let isp = mol.id[iat];
-            let is = bas.ish_at[iat];
             let rb = mol.positions[iat];
             for jat in 0..=iat {
-                let jsp = mol.id[jat];
-                let js = bas.ish_at[jat];
-                let vec = sub3(mol.positions[iat], mol.positions[jat]);
-                if norm2_sq(vec) > cutoff2 {
-                    continue;
-                }
-                for ish in 0..bas.nsh_id[isp] {
-                    let ci = &bas.cgto[isp][ish];
-                    let ii = bas.iao_sh[is + ish];
-                    for jsh in 0..bas.nsh_id[jsp] {
-                        let cj = &bas.cgto[jsp][jsh];
-                        let jj = bas.iao_sh[js + jsh];
-                        multipole_raw(cj, ci, vec, bas.intcut, &mut s, &mut d, &mut q, &mut scr);
-                        let nj = nsph(cj.l);
-                        for iao in 0..nsph(ci.l) {
-                            for jao in 0..nj {
-                                let (mu, nu) = (jj + jao, ii + iao);
-                                if mu > nu {
-                                    continue; // on-site: each unordered pair once
-                                }
-                                let ij = jao + nj * iao;
-                                let (sv, dc, mc) = (s[ij], d[ij], q[ij]);
-                                // moments around the coordinate origin (xtb's `point = 0`)
-                                let dg = [dc[0] + rb[0] * sv, dc[1] + rb[1] * sv, dc[2] + rb[2] * sv];
-                                let m2 = |a: usize, b: usize, k: usize| {
-                                    mc[k] + rb[a] * dc[b] + dc[a] * rb[b] + rb[a] * rb[b] * sv
-                                };
-                                let mg = [m2(0, 0, 0), m2(0, 1, 1), m2(1, 1, 2), m2(0, 2, 3), m2(1, 2, 4), m2(2, 2, 5)];
-                                if dg.iter().map(|x| x * x).sum::<f64>() <= thr {
-                                    out.dip.push((mu, nu, jat, iat, dg));
-                                }
-                                let tq = mg[0] * mg[0]
-                                    + mg[2] * mg[2]
-                                    + mg[5] * mg[5]
-                                    + 2.0 * (mg[1] * mg[1] + mg[3] * mg[3] + mg[4] * mg[4]);
-                                if tq <= thr {
-                                    out.quad.push((mu, nu, jat, iat, traceless6(mg)));
-                                }
+                let Some(pair) = pairs.pair(iat, jat) else { continue };
+                pairs.for_each(&pair, |sp| {
+                    multipole_raw(sp.cj, sp.ci, pair.vec, bas.intcut, &mut s, &mut d, &mut q, &mut scr);
+                    let nj = nsph(sp.cj.l);
+                    for iao in 0..nsph(sp.ci.l) {
+                        for jao in 0..nj {
+                            let (mu, nu) = (sp.jj + jao, sp.ii + iao);
+                            if mu > nu {
+                                continue; // on-site: each unordered pair once
+                            }
+                            let ij = jao + nj * iao;
+                            let (sv, dc, mc) = (s[ij], d[ij], q[ij]);
+                            // moments around the coordinate origin (xtb's `point = 0`)
+                            let dg = [dc[0] + rb[0] * sv, dc[1] + rb[1] * sv, dc[2] + rb[2] * sv];
+                            let m2 = |a: usize, b: usize, k: usize| {
+                                mc[k] + rb[a] * dc[b] + dc[a] * rb[b] + rb[a] * rb[b] * sv
+                            };
+                            let mg = [m2(0, 0, 0), m2(0, 1, 1), m2(1, 1, 2), m2(0, 2, 3), m2(1, 2, 4), m2(2, 2, 5)];
+                            if dg.iter().map(|x| x * x).sum::<f64>() <= thr {
+                                out.dip.push((mu, nu, jat, iat, dg));
+                            }
+                            let tq = mg[0] * mg[0]
+                                + mg[2] * mg[2]
+                                + mg[5] * mg[5]
+                                + 2.0 * (mg[1] * mg[1] + mg[3] * mg[3] + mg[4] * mg[4]);
+                            if tq <= thr {
+                                out.quad.push((mu, nu, jat, iat, traceless6(mg)));
                             }
                         }
                     }
-                }
+                });
             }
         }
         out
-    }
-}
-
-/// Smallest primitive exponent of every shell and species of a basis, for the exact
-/// shell-pair screening ([`pair_screened`]; grimme-lab/xtb#1465).
-pub(crate) struct MinExponents {
-    shells: Vec<Vec<f64>>,
-    species: Vec<f64>,
-}
-
-impl MinExponents {
-    pub(crate) fn new(bas: &Basis) -> Self {
-        let shells: Vec<Vec<f64>> = bas.cgto.iter().map(|sh| sh.iter().map(|c| c.min_alpha()).collect()).collect();
-        let species = shells.iter().map(|v| v.iter().copied().fold(f64::INFINITY, f64::min)).collect();
-        Self { shells, species }
     }
 }
 
@@ -545,74 +401,68 @@ impl H0Params {
         let mut overlap: [Mat<f64>; 3] = std::array::from_fn(|_| Mat::zeros(nao, na));
         let mut cn = Mat::<f64>::zeros(nao, na);
         let mut b: [Vec<f64>; 3] = std::array::from_fn(|_| vec![0.0; ndim]);
-        let cutoff2 = cutoff * cutoff;
+        let pairs = ShellPairs::unscreened(mol, bas, cutoff);
         let mut g = MultipoleGrad::default();
         let mut scr = Scratch::default();
         for jat in 0..nat {
             if jat == iat {
                 continue;
             }
-            let jsp = mol.id[jat];
-            let js = bas.ish_at[jat];
-            let vec = sub3(mol.positions[iat], mol.positions[jat]);
-            let r2 = norm2_sq(vec);
-            if r2 > cutoff2 || r2 < f64::EPSILON {
+            let Some(pair) = pairs.pair(iat, jat) else { continue };
+            let (vec, r2) = (pair.vec, pair.r2);
+            if r2 < f64::EPSILON {
                 continue;
             }
+            let jsp = mol.id[jat];
             let rr = (r2.sqrt() / (self.rad[jsp] + self.rad[isp])).sqrt();
-            for ish in 0..bas.nsh_id[isp] {
-                let ci = &bas.cgto[isp][ish];
-                let ii = bas.iao_sh[is + ish];
+            pairs.for_each(&pair, |sp| {
+                let (ish, jsh, ci, cj) = (sp.ish, sp.jsh, sp.ci, sp.cj);
+                multipole_grad(cj, ci, vec, bas.intcut, &mut g, &mut scr);
                 let shpolyi = 1.0 + self.shpoly[isp][ish] * rr;
-                for jsh in 0..bas.nsh_id[jsp] {
-                    let cj = &bas.cgto[jsp][jsh];
-                    let jj = bas.iao_sh[js + jsh];
-                    multipole_grad(cj, ci, vec, bas.intcut, &mut g, &mut scr);
-                    let shpolyj = 1.0 + self.shpoly[jsp][jsh] * rr;
-                    let shpoly = shpolyi * shpolyj;
-                    let dshpoly = (shpolyi * self.shpoly[jsp][jsh] + shpolyj * self.shpoly[isp][ish]) * 0.5 * rr / r2;
-                    let dsv = [dshpoly / shpoly * vec[0], dshpoly / shpoly * vec[1], dshpoly / shpoly * vec[2]];
-                    let hs = self.hscale[jsp][isp][jsh][ish] * shpoly;
-                    let hij = 0.5 * (se[is + ish] + se[js + jsh]) * hs;
-                    let nj = nsph(cj.l);
-                    for iao in 0..nsph(ci.l) {
-                        for jao in 0..nj {
-                            let ij = jao + nj * iao;
-                            let (mu, nu) = (jj + jao, ii + iao);
-                            let col = nu - off;
-                            let pij = p[(mu, nu)];
-                            let ds = g.ds[ij];
-                            let sv = g.s[ij];
-                            let (ddi, ddj, dqi, dqj) = (&g.dd_i[ij], &g.dd_j[ij], &g.dq_i[ij], &g.dq_j[ij]);
-                            for k in 0..3 {
-                                let mut mp = 0.0;
+                let shpolyj = 1.0 + self.shpoly[jsp][jsh] * rr;
+                let shpoly = shpolyi * shpolyj;
+                let dshpoly = (shpolyi * self.shpoly[jsp][jsh] + shpolyj * self.shpoly[isp][ish]) * 0.5 * rr / r2;
+                let dsv = [dshpoly / shpoly * vec[0], dshpoly / shpoly * vec[1], dshpoly / shpoly * vec[2]];
+                let hs = self.hscale[jsp][isp][jsh][ish] * shpoly;
+                let hij = 0.5 * (se[sp.si] + se[sp.sj]) * hs;
+                let nj = nsph(cj.l);
+                for iao in 0..nsph(ci.l) {
+                    for jao in 0..nj {
+                        let ij = jao + nj * iao;
+                        let (mu, nu) = (sp.jj + jao, sp.ii + iao);
+                        let col = nu - off;
+                        let pij = p[(mu, nu)];
+                        let ds = g.ds[ij];
+                        let sv = g.s[ij];
+                        let (ddi, ddj, dqi, dqj) = (&g.dd_i[ij], &g.dd_j[ij], &g.dq_i[ij], &g.dq_j[ij]);
+                        for k in 0..3 {
+                            let mut mp = 0.0;
+                            for c in 0..3 {
+                                mp += ddi[k][c] * vdp[iat][c] + ddj[k][c] * vdp[jat][c];
+                            }
+                            for c in 0..6 {
+                                mp += dqi[k][c] * vqp[iat][c] + dqj[k][c] * vqp[jat][c];
+                            }
+                            fock[k][(mu, col)] =
+                                hij * (sv * dsv[k] + ds[k]) - 0.5 * ds[k] * (vao[mu] + vao[nu]) - 0.5 * mp;
+                            overlap[k][(mu, col)] = ds[k];
+                            b[k][bas.ao2sh[nu]] -= pij * ds[k];
+                            b[k][bas.ao2sh[mu]] -= pij * ds[k];
+                            if multipoles {
                                 for c in 0..3 {
-                                    mp += ddi[k][c] * vdp[iat][c] + ddj[k][c] * vdp[jat][c];
+                                    b[k][dip(iat, c)] -= pij * ddi[k][c];
+                                    b[k][dip(jat, c)] -= pij * ddj[k][c];
                                 }
                                 for c in 0..6 {
-                                    mp += dqi[k][c] * vqp[iat][c] + dqj[k][c] * vqp[jat][c];
-                                }
-                                fock[k][(mu, col)] =
-                                    hij * (sv * dsv[k] + ds[k]) - 0.5 * ds[k] * (vao[mu] + vao[nu]) - 0.5 * mp;
-                                overlap[k][(mu, col)] = ds[k];
-                                b[k][bas.ao2sh[nu]] -= pij * ds[k];
-                                b[k][bas.ao2sh[mu]] -= pij * ds[k];
-                                if multipoles {
-                                    for c in 0..3 {
-                                        b[k][dip(iat, c)] -= pij * ddi[k][c];
-                                        b[k][dip(jat, c)] -= pij * ddj[k][c];
-                                    }
-                                    for c in 0..6 {
-                                        b[k][quad(iat, c)] -= pij * dqi[k][c];
-                                        b[k][quad(jat, c)] -= pij * dqj[k][c];
-                                    }
+                                    b[k][quad(iat, c)] -= pij * dqi[k][c];
+                                    b[k][quad(jat, c)] -= pij * dqj[k][c];
                                 }
                             }
-                            cn[(mu, col)] = 0.5 * dsedcn[is + ish] * hs * sv;
                         }
+                        cn[(mu, col)] = 0.5 * dsedcn[sp.si] * hs * sv;
                     }
                 }
-            }
+            });
         }
         // on-site block of dH0/dCN (halved)
         let mut s = [0.0; MBLK];
@@ -725,87 +575,79 @@ impl H0Params {
         let mut dcn = 0.0;
         let isp = mol.id[iat];
         let is = bas.ish_at[iat];
-        let cutoff2 = cutoff * cutoff;
+        let pairs = ShellPairs::unscreened(mol, bas, cutoff);
         let mut hs = Box::<MultipoleHess>::default();
         let mut scr = Scratch::default();
         for jat in 0..nat {
             if jat == iat {
                 continue;
             }
-            let jsp = mol.id[jat];
-            let js = bas.ish_at[jat];
-            let vec = sub3(mol.positions[iat], mol.positions[jat]);
-            let r2 = norm2_sq(vec);
-            if r2 > cutoff2 || r2 < f64::EPSILON {
+            let Some(pair) = pairs.pair(iat, jat) else { continue };
+            let (vec, r2) = (pair.vec, pair.r2);
+            if r2 < f64::EPSILON {
                 continue;
             }
+            let jsp = mol.id[jat];
             let r = r2.sqrt();
             let rr = (r / (self.rad[jsp] + self.rad[isp])).sqrt();
             let drr = 0.5 * rr / r;
             let d2rr = -0.25 * rr / r2;
             let mut hvv = [[0.0; 3]; 3];
-            for ish in 0..bas.nsh_id[isp] {
-                let ci = &bas.cgto[isp][ish];
-                let ii = bas.iao_sh[is + ish];
+            pairs.for_each(&pair, |sp| {
+                let (ish, jsh, ci, cj) = (sp.ish, sp.jsh, sp.ci, sp.cj);
                 let ki = self.shpoly[isp][ish];
-                for jsh in 0..bas.nsh_id[jsp] {
-                    let cj = &bas.cgto[jsp][jsh];
-                    let jj = bas.iao_sh[js + jsh];
-                    let kj = self.shpoly[jsp][jsh];
-                    multipole_hess(cj, ci, vec, bas.intcut, &mut hs, &mut scr);
-                    let shp = (1.0 + ki * rr) * (1.0 + kj * rr);
-                    let sp1 = (ki + kj + 2.0 * ki * kj * rr) * drr;
-                    let sp2 = 2.0 * ki * kj * drr * drr + (ki + kj + 2.0 * ki * kj * rr) * d2rr;
-                    let shp_k = [sp1 * vec[0] / r, sp1 * vec[1] / r, sp1 * vec[2] / r];
-                    let mut shp_kl = [0.0; 6];
-                    for (q, &(k, l)) in KL.iter().enumerate() {
-                        let d = if k == l { 1.0 / r } else { 0.0 };
-                        shp_kl[q] = sp2 * vec[k] * vec[l] / r2 + sp1 * (d - vec[k] * vec[l] / (r2 * r));
-                    }
-                    let hsc = self.hscale[jsp][isp][jsh][ish];
-                    let hs0 = 0.5 * (se[is + ish] + se[js + jsh]) * hsc;
-                    let (dsei, dsej) = (dsedcn[is + ish], dsedcn[js + jsh]);
-                    let nj = nsph(cj.l);
-                    let g = &hs.g;
-                    for iao in 0..nsph(ci.l) {
-                        for jao in 0..nj {
-                            let ij = jao + nj * iao;
-                            let (mu, nu) = (jj + jao, ii + iao);
-                            let pij = p[(mu, nu)];
-                            let wij = w[(mu, nu)];
-                            let vsum = vao[mu] + vao[nu];
-                            let sv = g.s[ij];
-                            let ds = g.ds[ij];
-                            for (q, &(k, l)) in KL.iter().enumerate() {
-                                let mut mp = 0.0;
-                                for c in 0..3 {
-                                    mp += hs.d2d_i[ij][q][c] * vdp[iat][c] + hs.d2d_j[ij][q][c] * vdp[jat][c];
-                                }
-                                for c in 0..6 {
-                                    mp += hs.d2q_i[ij][q][c] * vqp[iat][c] + hs.d2q_j[ij][q][c] * vqp[jat][c];
-                                }
-                                let d2s = hs.d2s[ij][q];
-                                let val = 2.0
-                                    * pij
-                                    * hs0
-                                    * (shp_kl[q] * sv + shp_k[k] * ds[l] + shp_k[l] * ds[k] + shp * d2s)
+                let kj = self.shpoly[jsp][jsh];
+                multipole_hess(cj, ci, vec, bas.intcut, &mut hs, &mut scr);
+                let shp = (1.0 + ki * rr) * (1.0 + kj * rr);
+                let sp1 = (ki + kj + 2.0 * ki * kj * rr) * drr;
+                let sp2 = 2.0 * ki * kj * drr * drr + (ki + kj + 2.0 * ki * kj * rr) * d2rr;
+                let shp_k = [sp1 * vec[0] / r, sp1 * vec[1] / r, sp1 * vec[2] / r];
+                let mut shp_kl = [0.0; 6];
+                for (q, &(k, l)) in KL.iter().enumerate() {
+                    let d = if k == l { 1.0 / r } else { 0.0 };
+                    shp_kl[q] = sp2 * vec[k] * vec[l] / r2 + sp1 * (d - vec[k] * vec[l] / (r2 * r));
+                }
+                let hsc = self.hscale[jsp][isp][jsh][ish];
+                let hs0 = 0.5 * (se[sp.si] + se[sp.sj]) * hsc;
+                let (dsei, dsej) = (dsedcn[sp.si], dsedcn[sp.sj]);
+                let nj = nsph(cj.l);
+                let g = &hs.g;
+                for iao in 0..nsph(ci.l) {
+                    for jao in 0..nj {
+                        let ij = jao + nj * iao;
+                        let (mu, nu) = (sp.jj + jao, sp.ii + iao);
+                        let pij = p[(mu, nu)];
+                        let wij = w[(mu, nu)];
+                        let vsum = vao[mu] + vao[nu];
+                        let sv = g.s[ij];
+                        let ds = g.ds[ij];
+                        for (q, &(k, l)) in KL.iter().enumerate() {
+                            let mut mp = 0.0;
+                            for c in 0..3 {
+                                mp += hs.d2d_i[ij][q][c] * vdp[iat][c] + hs.d2d_j[ij][q][c] * vdp[jat][c];
+                            }
+                            for c in 0..6 {
+                                mp += hs.d2q_i[ij][q][c] * vqp[iat][c] + hs.d2q_j[ij][q][c] * vqp[jat][c];
+                            }
+                            let d2s = hs.d2s[ij][q];
+                            let val =
+                                2.0 * pij * hs0 * (shp_kl[q] * sv + shp_k[k] * ds[l] + shp_k[l] * ds[k] + shp * d2s)
                                     - 2.0 * wij * d2s
                                     - pij * (d2s * vsum + mp);
-                                hvv[k][l] += val;
-                                if k != l {
-                                    hvv[l][k] += val;
-                                }
+                            hvv[k][l] += val;
+                            if k != l {
+                                hvv[l][k] += val;
                             }
-                            for k in 0..3 {
-                                let t = pij * hsc * (shp_k[k] * sv + shp * ds[k]);
-                                xrow[k * nat + iat] += dsei * t;
-                                xrow[k * nat + jat] += dsej * t;
-                            }
-                            dcn += dsei * pij * hsc * shp * sv;
                         }
+                        for k in 0..3 {
+                            let t = pij * hsc * (shp_k[k] * sv + shp * ds[k]);
+                            xrow[k * nat + iat] += dsei * t;
+                            xrow[k * nat + jat] += dsej * t;
+                        }
+                        dcn += dsei * pij * hsc * shp * sv;
                     }
                 }
-            }
+            });
             for k in 0..3 {
                 for l in 0..3 {
                     hrow[k * n3 + 3 * iat + l] += hvv[k][l];
@@ -821,48 +663,6 @@ impl H0Params {
             }
         }
         (hrow, xrow, dcn)
-    }
-}
-
-/// Writes into eleven n x n column-major matrices from several threads at once, for the
-/// lifetime `'a` of the exclusive borrows it was made from (nothing else reads or writes the
-/// matrices meanwhile).
-struct MatWriter<'a> {
-    ptr: [*mut f64; 11],
-    stride: [isize; 11],
-    n: usize,
-    _mats: std::marker::PhantomData<&'a mut Mat<f64>>,
-}
-
-// SAFETY: the writer only hands out writes through `set`, whose contract makes concurrent
-// calls touch disjoint elements
-unsafe impl Send for MatWriter<'_> {}
-unsafe impl Sync for MatWriter<'_> {}
-
-impl<'a> MatWriter<'a> {
-    fn new(mats: [&'a mut Mat<f64>; 11]) -> Self {
-        let n = mats[0].nrows();
-        let mut ptr = [std::ptr::null_mut(); 11];
-        let mut stride = [0; 11];
-        for (k, m) in mats.into_iter().enumerate() {
-            assert!(m.nrows() == n && m.ncols() == n && m.row_stride() == 1);
-            stride[k] = m.col_stride();
-            ptr[k] = m.as_ptr_mut();
-        }
-        Self { ptr, stride, n, _mats: std::marker::PhantomData }
-    }
-
-    /// Set element (i, j) of matrix `m` to `v`.
-    ///
-    /// # Safety
-    /// `m < 11` and `i, j < n` (checked in debug builds only), and no other thread writes
-    /// element (i, j) of matrix `m` while this call runs. `build_atom` keeps the latter by
-    /// letting the task of atom `iat` write only the blocks of its pairs with atoms `jat <=
-    /// iat` (both orientations): every element has exactly one writer.
-    #[inline]
-    unsafe fn set(&self, m: usize, i: usize, j: usize, v: f64) {
-        debug_assert!(m < 11 && i < self.n && j < self.n);
-        *self.ptr[m].offset(i as isize + j as isize * self.stride[m]) = v;
     }
 }
 

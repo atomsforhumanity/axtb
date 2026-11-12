@@ -13,6 +13,7 @@
 //! - every parameter table is generated from the reference sources (`scripts/gen_data.py`).
 
 pub(crate) mod analytic;
+pub mod ao;
 pub mod basis;
 mod calculator;
 pub mod conventions;

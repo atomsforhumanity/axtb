@@ -115,16 +115,24 @@ pub fn slater_to_gauss(ng: usize, n: usize, l: usize, zeta: f64, norm: bool, exp
     Ok(cgto)
 }
 
-/// Basis set for one molecule: shells per species plus index maps.
+/// Basis set for one molecule: its shell sets plus index maps.
+///
+/// The shells come in sets: one per species ([`Basis::new`]; the atoms of a species share
+/// their shells) or one per atom ([`Basis::from_atom_shells`], e.g. charge-adapted shells).
+/// [`Basis::id`] gives the set of every atom and [`Basis::shells`] the shells of an atom; the
+/// index maps are the same for both kinds.
 ///
 /// Indices are 0-based. AOs are ordered atom by atom, shell by shell, with spherical
 /// components m = -l..l (p: y, z, x).
 #[derive(Clone, Debug)]
 pub struct Basis {
-    /// Shells of each species.
+    /// Shells of each shell set (species, or atom for [`Basis::from_atom_shells`]).
     pub cgto: Vec<Vec<Cgto>>,
-    /// Number of shells of each species.
+    /// Number of shells of each shell set.
     pub nsh_id: Vec<usize>,
+    /// Shell set of each atom: its species index (`Molecule::id`) for [`Basis::new`], the atom
+    /// itself for [`Basis::from_atom_shells`].
+    pub id: Vec<usize>,
     /// First shell of each atom.
     pub ish_at: Vec<usize>,
     /// Number of shells of each atom.
@@ -146,6 +154,10 @@ pub struct Basis {
     pub maxl: usize,
     /// Smallest primitive exponent.
     pub min_alpha: f64,
+    /// Smallest primitive exponent of each shell ([`Cgto::min_alpha`]) and of each atom (over
+    /// its shells), for the shell-pair screening ([`crate::integrals::pair_screened`]).
+    pub min_alpha_sh: Vec<f64>,
+    pub min_alpha_at: Vec<f64>,
     /// Primitive-pair screening threshold on the Gaussian product exponent.
     pub intcut: f64,
 }
@@ -162,27 +174,50 @@ pub fn integral_cutoff(acc: f64) -> f64 {
 }
 
 impl Basis {
-    /// Build the basis for `mol` from the shells of each species.
+    /// Build the basis for `mol` from the shells of each species (`cgto[Molecule::id[atom]]`),
+    /// with tblite's primitive screening at accuracy `acc` ([`integral_cutoff`]).
     pub fn new(mol: &Molecule, cgto: Vec<Vec<Cgto>>, acc: f64) -> Self {
+        Self::from_sets(cgto, mol.id.clone(), integral_cutoff(acc))
+    }
+
+    /// Build the basis for `mol` from the shells of each atom (`shells[atom]`) with the
+    /// primitive screening threshold `intcut`. The index maps are those [`Basis::new`] gives
+    /// for the same shells.
+    ///
+    /// # Panics
+    /// If `shells` does not have one entry per atom.
+    pub fn from_atom_shells(mol: &Molecule, shells: Vec<Vec<Cgto>>, intcut: f64) -> Self {
+        assert_eq!(shells.len(), mol.nat(), "Basis::from_atom_shells: one shell list per atom");
+        let id = (0..shells.len()).collect();
+        Self::from_sets(shells, id, intcut)
+    }
+
+    /// The basis of shell sets `cgto` with set `id[atom]` for every atom.
+    fn from_sets(cgto: Vec<Vec<Cgto>>, id: Vec<usize>, intcut: f64) -> Self {
         let nsh_id: Vec<usize> = cgto.iter().map(|s| s.len()).collect();
-        let nat = mol.nat();
+        let nat = id.len();
         let mut ish_at = Vec::with_capacity(nat);
         let mut nsh_at = Vec::with_capacity(nat);
+        let mut min_alpha_at = Vec::with_capacity(nat);
         let mut sh2at = Vec::new();
         let mut iao_sh = Vec::new();
         let mut nao_sh = Vec::new();
+        let mut min_alpha_sh = Vec::new();
         let mut ao2at = Vec::new();
         let mut ao2sh = Vec::new();
         let mut ish = 0;
         let mut iao = 0;
-        for iat in 0..nat {
-            let isp = mol.id[iat];
+        for (iat, &isp) in id.iter().enumerate() {
             ish_at.push(ish);
             nsh_at.push(nsh_id[isp]);
+            let mut amin = f64::INFINITY;
             for sh in &cgto[isp] {
                 sh2at.push(iat);
                 iao_sh.push(iao);
                 nao_sh.push(nsph(sh.l));
+                let a = sh.min_alpha();
+                min_alpha_sh.push(a);
+                amin = amin.min(a);
                 for _ in 0..nsph(sh.l) {
                     ao2at.push(iat);
                     ao2sh.push(ish);
@@ -190,12 +225,14 @@ impl Basis {
                 iao += nsph(sh.l);
                 ish += 1;
             }
+            min_alpha_at.push(amin);
         }
         let maxl = cgto.iter().flatten().map(|c| c.l).max().unwrap_or(0);
         let min_alpha = cgto.iter().flatten().map(|c| c.min_alpha()).fold(f64::INFINITY, f64::min);
         Self {
             cgto,
             nsh_id,
+            id,
             ish_at,
             nsh_at,
             sh2at,
@@ -207,8 +244,16 @@ impl Basis {
             nao: iao,
             maxl,
             min_alpha,
-            intcut: integral_cutoff(acc),
+            min_alpha_sh,
+            min_alpha_at,
+            intcut,
         }
+    }
+
+    /// Shells of atom `iat`.
+    #[inline]
+    pub fn shells(&self, iat: usize) -> &[Cgto] {
+        &self.cgto[self.id[iat]]
     }
 
     /// Real-space cutoff (bohr) beyond which atom pairs have negligible overlap, as in tblite.
