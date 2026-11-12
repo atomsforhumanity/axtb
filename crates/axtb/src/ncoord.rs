@@ -55,9 +55,10 @@ impl Ncoord {
     }
 }
 
-/// The coordination number of GFN2-xTB (see the [module](self)) as an intermediate of the
-/// GFN2-xTB model's chain layout, named [`Gfn2Cn::NAME`]: the H0 self-energies and the damping
-/// radii of the anisotropic electrostatics depend on it.
+/// The coordination number of GFN2-xTB (the double exponential counting function with
+/// ka = 10, kb = 20 and a 2 bohr shift, the conventions' covalent radii, a hard cutoff) as an
+/// intermediate of the GFN2-xTB model's chain layout, named [`Gfn2Cn::NAME`]: the H0
+/// self-energies and the damping radii of the anisotropic electrostatics depend on it.
 pub struct Gfn2Cn(Ncoord);
 
 impl Gfn2Cn {

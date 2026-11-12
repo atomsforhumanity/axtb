@@ -9,7 +9,7 @@
 
 use crate::hessian::{HessianMethod, HessianOptions};
 use crate::molecule::Molecule;
-use crate::terms::AnyMomentTerm;
+use crate::terms::{AnyMomentTerm, ChainLayout, MomentTerm};
 use crate::xtb::{check_scf_options, ScfGuess, ScfOptions, SinglePoint, XtbModel};
 use crate::{Error, Result};
 use crate::{Method, Options};
@@ -41,7 +41,8 @@ pub struct Calculator {
     method: Method,
     mol: Molecule,
     model: XtbModel,
-    /// The terms added to the model, in order: dispersion, solvation.
+    /// The terms added to the model, in order: dispersion, solvation, the user's
+    /// ([`Calculator::push_term`]).
     extra: Vec<std::sync::Arc<dyn AnyMomentTerm>>,
     /// The settings. The SCF settings may change between calculations; the method's setup
     /// (conventions, dispersion, solvation) and the thread count (the calculator's pool) are
@@ -96,6 +97,29 @@ impl Calculator {
     /// The molecule (positions of the last evaluation).
     pub fn molecule(&self) -> &Molecule {
         &self.mol
+    }
+
+    /// Add an energy term to the model, after its dispersion and solvation terms and the terms
+    /// added before: every later single point, gradient and Hessian includes it, and its pieces
+    /// appear in [`EnergyTerms::other`](crate::EnergyTerms::other). Terms that read GFN2-xTB's
+    /// coordination number find its slot in [`Calculator::layout`]. GFN2-xTB has no shell
+    /// magnetizations, so a term that needs them is refused.
+    pub fn push_term<T>(&mut self, term: T) -> Result<()>
+    where
+        T: MomentTerm + 'static,
+        T::Cache: 'static,
+    {
+        if term.needs().magnetization {
+            return Err(Error::Input("GFN2-xTB has no shell magnetizations for a term to read".into()));
+        }
+        self.extra.push(std::sync::Arc::new(term));
+        Ok(())
+    }
+
+    /// The model's intermediates: GFN2-xTB's coordination number
+    /// ([`Gfn2Cn::NAME`](crate::terms::Gfn2Cn::NAME)).
+    pub fn layout(&self) -> &ChainLayout {
+        &self.model.layout
     }
 
     /// Forget the wavefunction of the previous geometry.

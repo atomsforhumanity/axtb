@@ -119,6 +119,25 @@ pub struct EnergyTerms {
     pub third_order: f64,
     pub anisotropic: f64,
     pub entropy: f64,
+    /// The energies of the terms added with [`Calculator::push_term`](crate::Calculator::push_term),
+    /// by the names of their pieces, in the order the pieces first appear (their
+    /// moment-independent and moment-dependent parts summed per name).
+    pub other: Vec<(&'static str, f64)>,
+}
+
+impl EnergyTerms {
+    /// Add `value` to the piece `name` of an added term (D4's `dispersion` and the solvation
+    /// model's `solvation` have fields of their own).
+    fn add_piece(&mut self, name: &'static str, value: f64) {
+        match name {
+            "dispersion" => self.dispersion += value,
+            "solvation" => self.solvation += value,
+            _ => match self.other.iter_mut().find(|(n, _)| *n == name) {
+                Some(e) => e.1 += value,
+                None => self.other.push((name, value)),
+            },
+        }
+    }
 }
 
 /// Results of a single point.
@@ -439,17 +458,23 @@ impl XtbModel {
         let mut e_repulsion = [0.0];
         let te = &mut TermEnergy { pieces: &mut e_repulsion, atoms: Some(&mut erep) };
         self.repulsion.energy(&tg, &(), te, chain.as_mut());
-        // fixed (charge-independent) energy of every extra term
-        let mut efixed = vec![0.0; geo.extra.len()];
-        for (k, t) in geo.extra.iter().enumerate() {
+        // fixed (charge-independent) energy of every extra term: per atom, or (a term that does
+        // not partition its energy) added after the atomic sum
+        let mut efixed = Vec::with_capacity(geo.extra.len());
+        let mut efixed_rest = None;
+        for t in &geo.extra {
             let mut e = vec![0.0; nat];
             let mut pieces = vec![0.0; t.fixed_names().len()];
             let atoms = t.partitions_energy().then_some(&mut e[..]);
             t.fixed_energy(&tg, &mut TermEnergy { pieces: &mut pieces, atoms }, chain.as_mut());
-            efixed[k] = pieces.iter().sum();
-            for i in 0..nat {
-                energies[i] += e[i];
+            if t.partitions_energy() {
+                for i in 0..nat {
+                    energies[i] += e[i];
+                }
+            } else {
+                *efixed_rest.get_or_insert(0.0) += pieces.iter().sum::<f64>();
             }
+            efixed.push(pieces);
         }
         for i in 0..nat {
             energies[i] += erep[i];
@@ -544,6 +569,7 @@ impl XtbModel {
             vao: vec![0.0; nao],
             eelec: vec![0.0; nat],
             terms: EnergyTerms::default(),
+            e_rest: None,
             failure: None,
         };
 
@@ -622,6 +648,7 @@ impl XtbModel {
             pot,
             eelec,
             mut terms,
+            e_rest,
             ..
         } = scf;
         terms.repulsion = e_repulsion[0];
@@ -630,7 +657,13 @@ impl XtbModel {
             energies[i] += eelec[i];
         }
         terms.electronic = eelec.iter().sum();
-        let energy: f64 = energies.iter().sum();
+        let mut energy: f64 = energies.iter().sum();
+        if let Some(e) = efixed_rest {
+            energy += e;
+        }
+        if let Some(e) = e_rest {
+            energy += e;
+        }
 
         let wdensity = if want_gradient || keep_state {
             let wocc: Vec<f64> = (0..kocc).map(|i| focc[i] * emo[i]).collect();
@@ -823,9 +856,10 @@ struct Gfn2Scf<'a> {
     neglect: Option<MultipoleNeglect>,
     solver: GenEigSolver,
     vars: ScfVariables,
-    /// Reference shell occupations; charge-independent energies of the extra terms.
+    /// Reference shell occupations; the pieces of the charge-independent energies of the extra
+    /// terms.
     n0sh: Vec<f64>,
-    efixed: Vec<f64>,
+    efixed: Vec<Vec<f64>>,
     nalpha: f64,
     nbeta: f64,
     /// kT (Eh) of the Fermi filling, and the temperature (K) for the error message.
@@ -856,6 +890,9 @@ struct Gfn2Scf<'a> {
     /// Electronic energy per atom and the SCF terms of the last iteration.
     eelec: Vec<f64>,
     terms: EnergyTerms,
+    /// The moment-dependent energy of the extra terms that do not partition theirs (last
+    /// iteration; `None` without such terms).
+    e_rest: Option<f64>,
     /// Why the last diagonalization broke off the SCF.
     failure: Option<Error>,
 }
@@ -1023,20 +1060,36 @@ impl ScfModel for Gfn2Scf<'_> {
         let mut edsc = vec![0.0; nat];
         terms.dispersion = 0.0;
         terms.solvation = 0.0;
+        terms.other.clear();
+        let mut rest = None;
         for (k, t) in self.geo.extra.iter().enumerate() {
             let mut e = vec![0.0; nat];
             let mut pieces = vec![0.0; t.names().len()];
             let atoms = t.partitions_energy().then_some(&mut e[..]);
             t.energy(&tg, &s, &mut TermEnergy { pieces: &mut pieces, atoms });
-            let total = self.efixed[k] + pieces.iter().sum::<f64>();
-            match t.names()[0] {
-                "dispersion" => terms.dispersion += total,
-                _ => terms.solvation += total,
+            // each piece with the charge-independent piece of the same name (D4: the three-body
+            // energy plus the two-body energy, as before)
+            let (fixed_names, fixed) = (t.fixed_names(), &self.efixed[k]);
+            for (name, &value) in t.names().iter().zip(&pieces) {
+                match fixed_names.iter().position(|f| f == name) {
+                    Some(j) => terms.add_piece(name, fixed[j] + value),
+                    None => terms.add_piece(name, value),
+                }
             }
-            for i in 0..nat {
-                edsc[i] += e[i];
+            for (name, &value) in fixed_names.iter().zip(fixed) {
+                if !t.names().contains(name) {
+                    terms.add_piece(name, value);
+                }
+            }
+            if t.partitions_energy() {
+                for i in 0..nat {
+                    edsc[i] += e[i];
+                }
+            } else {
+                *rest.get_or_insert(0.0) += pieces.iter().sum::<f64>();
             }
         }
+        self.e_rest = rest;
         let ts = self.ts;
         terms.entropy = ts;
         for i in 0..nat {
@@ -1049,7 +1102,10 @@ impl ScfModel for Gfn2Scf<'_> {
             eelec[bas.ao2at[nu]] += e;
         }
 
-        let energy: f64 = eelec.iter().sum();
+        let mut energy: f64 = eelec.iter().sum();
+        if let Some(e) = self.e_rest {
+            energy += e;
+        }
         if !energy.is_finite() {
             return Err(Error::Numerical(format!("non-finite energy in SCF iteration {iter}")));
         }
