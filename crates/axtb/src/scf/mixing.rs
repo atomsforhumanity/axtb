@@ -31,10 +31,6 @@ pub trait VectorMixer {
     fn residual(&self) -> &[f64];
     /// Set the residual to `out − input` for the output vector `out`.
     fn set_residual(&mut self, out: &[f64]);
-    /// Root mean square of the residual.
-    fn rms(&self) -> f64 {
-        rms(self.residual())
-    }
     /// Replace the input by the next one, from the inputs and residuals so far; `false` if the
     /// mixing failed (the SCF cannot go on with this mixer).
     fn next(&mut self) -> bool;
@@ -521,12 +517,12 @@ mod tests {
                 out[k] = eig[k] * m.input()[k] + b[k];
             }
             m.set_residual(&out);
-            if m.rms() < 1e-12 {
+            if rms(m.residual()) < 1e-12 {
                 break;
             }
             assert!(m.next());
             it += 1;
-            assert!(it <= 2 * n, "not converged after {it} steps (residual {})", m.rms());
+            assert!(it <= 2 * n, "not converged after {it} steps (residual {})", rms(m.residual()));
         }
         for k in 0..n {
             assert!((m.input()[k] - b[k] / (1.0 - eig[k])).abs() < 1e-10);
