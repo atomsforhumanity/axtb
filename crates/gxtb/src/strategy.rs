@@ -44,50 +44,48 @@ impl Gxtb110FockMixer {
 
 impl FockMixer for Gxtb110FockMixer {
     fn mix(&mut self, iter: usize, f: Vec<Vec<f64>>) -> Result<f64> {
-        let n = self.n;
+        let (n, alpha) = (self.n, self.alpha);
         let ns = f.len();
-        let fin = match std::mem::take(&mut self.fin) {
-            fin if fin.is_empty() => vec![vec![0.0; n * n]; ns],
-            fin => fin,
-        };
-        let out: Vec<Vec<f64>> = if iter < self.ndamp {
-            (0..ns).map(|s| (0..n * n).map(|k| fin[s][k] + self.alpha * (f[s][k] - fin[s][k])).collect()).collect()
-        } else {
-            // residual over the packed lower triangles of all spins
-            let mut r = Vec::with_capacity(ns * n * (n + 1) / 2);
-            for s in 0..ns {
-                for i in 0..n {
-                    for j in 0..=i {
-                        r.push(f[s][i * n + j] - fin[s][i * n + j]);
-                    }
+        // the mixed matrices are updated in place (Fin before the first iteration: zero)
+        if self.fin.is_empty() {
+            self.fin = vec![vec![0.0; n * n]; ns];
+        }
+        let fin = &mut self.fin;
+        if iter < self.ndamp {
+            for (fs, fb) in fin.iter_mut().zip(&f) {
+                fs.iter_mut().zip(fb).for_each(|(x, &y)| *x += alpha * (y - *x));
+            }
+            return Ok(f64::NAN);
+        }
+        // residual over the packed lower triangles of all spins
+        let mut r = Vec::with_capacity(ns * n * (n + 1) / 2);
+        for s in 0..ns {
+            for i in 0..n {
+                for j in 0..=i {
+                    r.push(f[s][i * n + j] - fin[s][i * n + j]);
                 }
             }
-            let transition = iter == self.ndamp && !self.restart;
-            let out = transition.then(|| {
-                (0..ns)
-                    .map(|s| (0..n * n).map(|k| 2.0 * fin[s][k] + self.alpha * (f[s][k] - fin[s][k])).collect())
-                    .collect()
-            });
-            self.hist.push((f, r));
-            if self.hist.len() > self.size {
-                self.hist.remove(0);
+        }
+        let transition = iter == self.ndamp && !self.restart;
+        if transition {
+            for (fs, fb) in fin.iter_mut().zip(&f) {
+                fs.iter_mut().zip(fb).for_each(|(x, &y)| *x = 2.0 * *x + alpha * (y - *x));
             }
-            out.unwrap_or_else(|| {
-                (0..ns)
-                    .map(|s| {
-                        let c = diis_coefficients(&self.hist, s, n * (n + 1) / 2);
-                        let mut v = vec![0.0; n * n];
-                        for (ci, (fi, _)) in c.iter().zip(&self.hist) {
-                            for k in 0..n * n {
-                                v[k] += ci * fi[s][k];
-                            }
-                        }
-                        v
-                    })
-                    .collect()
-            })
-        };
-        self.fin = out;
+        }
+        self.hist.push((f, r));
+        if self.hist.len() > self.size {
+            self.hist.remove(0);
+        }
+        if !transition {
+            for s in 0..ns {
+                let c = diis_coefficients(&self.hist, s, n * (n + 1) / 2);
+                let v = &mut self.fin[s];
+                v.fill(0.0);
+                for (ci, (fi, _)) in c.iter().zip(&self.hist) {
+                    v.iter_mut().zip(&fi[s]).for_each(|(x, &y)| *x += ci * y);
+                }
+            }
+        }
         Ok(f64::NAN)
     }
 
