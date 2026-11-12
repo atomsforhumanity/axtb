@@ -197,6 +197,12 @@ pub struct Broyden {
     dq: Vec<f64>,
     qlast: Vec<f64>,
     dqlast: Vec<f64>,
+    /// Work of `next`, kept between iterations (the history only grows): the slots of the
+    /// history in order, the right-hand side and the matrix of the coefficient equations (at
+    /// least as many rows, each at least as long, as the history has slots).
+    hist: Vec<usize>,
+    c: Vec<f64>,
+    beta: Vec<Vec<f64>>,
 }
 
 impl Broyden {
@@ -215,6 +221,9 @@ impl Broyden {
             dq: vec![0.0; ndim],
             qlast: vec![0.0; ndim],
             dqlast: vec![0.0; ndim],
+            hist: Vec::new(),
+            c: Vec::new(),
+            beta: Vec::new(),
         }
     }
 }
@@ -255,7 +264,9 @@ impl VectorMixer for Broyden {
         let it1 = (itn - 1) % memory;
         let nhist = memory.min(itn);
         let first = if itn + 1 > memory { itn + 1 - memory } else { 1 };
-        let hist: Vec<usize> = (0..nhist).map(|ih| (first + ih - 1) % memory).collect();
+        let mut hist = std::mem::take(&mut self.hist);
+        hist.clear();
+        hist.extend((0..nhist).map(|ih| (first + ih - 1) % memory));
         const OMEGA0: f64 = 0.01;
         const MINW: f64 = 1.0;
         const MAXW: f64 = 100000.0;
@@ -281,14 +292,19 @@ impl VectorMixer for Broyden {
         for x in self.df[it1].iter_mut() {
             *x *= inv;
         }
-        let mut c = vec![0.0; nhist];
+        // (every element of c and of the leading nhist x nhist block of beta is set here)
+        let (mut c, mut beta) = (std::mem::take(&mut self.c), std::mem::take(&mut self.beta));
+        c.resize(nhist, 0.0);
+        if beta.len() < nhist {
+            beta.iter_mut().for_each(|row| row.resize(nhist, 0.0));
+            beta.resize_with(nhist, || vec![0.0; nhist]);
+        }
         for (ih, &i) in hist.iter().enumerate() {
             c[ih] = self.omega[i] * dot(&self.df[i], &self.dq);
             for &j in &hist {
                 self.a[i][j] = dot(&self.df[i], &self.df[j]);
             }
         }
-        let mut beta = vec![vec![0.0; nhist]; nhist];
         for (ih, &i) in hist.iter().enumerate() {
             for (jh, &j) in hist.iter().enumerate() {
                 beta[ih][jh] = self.omega[i] * self.omega[j] * self.a[i][j];
@@ -296,7 +312,9 @@ impl VectorMixer for Broyden {
             beta[ih][ih] += OMEGA0 * OMEGA0;
         }
         // beta is symmetric, so solving beta^T x = c is solving beta x = c
-        if !gauss_last_max(&mut beta, &mut c) {
+        let solved = gauss_last_max(&mut beta[..nhist], &mut c);
+        if !solved {
+            (self.hist, self.c, self.beta) = (hist, c, beta);
             return false;
         }
         for k in 0..n {
@@ -313,6 +331,7 @@ impl VectorMixer for Broyden {
                 self.q_in[k] -= f * self.u[i][k];
             }
         }
+        (self.hist, self.c, self.beta) = (hist, c, beta);
         true
     }
 }
