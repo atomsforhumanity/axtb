@@ -69,7 +69,8 @@
 //!   Fermi-level shifts for program-mode gradients (`tests/etemp.rs`).
 //!
 //! Shared by both versions: row-major dense matrices, their conversions to faer and the dot
-//! products in the crate's two rounding orders ([`dense`]).
+//! products in the crate's two rounding orders ([`dense`]), and the Krylov solvers of the response
+//! equations ([`krylov`]: 2.0.1's conjugate gradients, v1.1's GMRES).
 //!
 //! The energy expressions, the parameter-file layouts and the status of every term are
 //! documented in `docs/gxtb-v2.0.1-spec.md` (a term-by-term delta to v1.1) and
@@ -97,6 +98,7 @@ pub mod gradient;
 pub mod h0;
 pub mod ints;
 pub mod kernels;
+pub mod krylov;
 pub mod mulliken;
 pub mod occupations;
 pub mod parallel;

@@ -25,7 +25,7 @@
 //! different fractional occupations), x_v = c_p^T dF c_q satisfies (1 + K~ d) x = b with
 //! d = -D1, K~_vw = c_p^T K[c_r c_s^T + c_s c_r^T] c_q (symmetric) and
 //! b = C^T (F^(y) + K[dP^S]) C. With z = d^1/2 x this is the symmetric positive definite system
-//! (1 + d^1/2 K~ d^1/2) z = d^1/2 b, solved by conjugate gradients;
+//! (1 + d^1/2 K~ d^1/2) z = d^1/2 b, solved by conjugate gradients ([`crate::krylov::cg`]);
 //! then dP = dP^S - C (d^1/2 z) C^T (symmetrized), dF = F^(y) + K(dP) and
 //! dW = C (C^T dF C o D2 - S~ o D3) C^T.
 //!
@@ -39,6 +39,7 @@ use super::exchange::ResponseBase;
 use super::scf::{ScfResult, Setup, State};
 use crate::dense::{dot, from_mat_sym, to_mat, to_mat_sym};
 use crate::fock::{add_charge_potential, add_potentials_rows};
+use crate::krylov::{self, CgError};
 use axtb::response::{occupied_count, MoSpace, OccupationResponse};
 use axtb::{Error, Result};
 use axtb_base::fd;
@@ -372,16 +373,6 @@ impl<'a> Cpks<'a> {
             .collect()
     }
 
-    fn dot(a: &[Mat<f64>], b: &[Mat<f64>]) -> f64 {
-        let mut s = 0.0;
-        for (x, y) in a.iter().zip(b) {
-            for j in 0..x.ncols() {
-                s += dot(x.col_as_slice(j), y.col_as_slice(j));
-            }
-        }
-        s
-    }
-
     /// Response to a perturbation with first-order Fock matrices `fy` (per channel, at fixed
     /// AO density) and overlap derivative `sy` (AO matrices).
     pub fn solve(&self, fy: &[Mat<f64>], sy: &Mat<f64>) -> Result<Perturbed> {
@@ -435,57 +426,15 @@ impl<'a> Cpks<'a> {
             })
             .collect();
         // conjugate gradients
-        let bnorm = Self::dot(&rhs, &rhs).sqrt();
-        let mut z: Vec<Mat<f64>> = rhs.iter().map(|r| Mat::<f64>::zeros(r.nrows(), r.ncols())).collect();
-        let mut iterations = 0;
-        let mut res: Vec<Mat<f64>> = Vec::new();
-        if bnorm > 0.0 {
-            let mut r = rhs.clone();
-            let mut p = r.clone();
-            let mut rr = Self::dot(&r, &r);
-            loop {
-                if rr.sqrt() <= self.opts.tol * bnorm {
-                    break;
-                }
-                if iterations >= self.opts.max_iter {
-                    return Err(Error::Numerical(format!(
-                        "g-xTB 2.0.1 response: no convergence in {} iterations (residual {:.1e})",
-                        iterations,
-                        rr.sqrt() / bnorm
-                    )));
-                }
-                iterations += 1;
-                let ap = self.apply(&p);
-                let pap = Self::dot(&p, &ap);
-                if pap <= 0.0 {
-                    return Err(Error::Numerical(
-                        "g-xTB 2.0.1 response: electronic Hessian not positive definite (unstable SCF solution)".into(),
-                    ));
-                }
-                let alpha = rr / pap;
-                for k in 0..z.len() {
-                    for j in 0..z[k].ncols() {
-                        for (u, v) in z[k].col_as_slice_mut(j).iter_mut().zip(p[k].col_as_slice(j)) {
-                            *u += alpha * v;
-                        }
-                        for (u, v) in r[k].col_as_slice_mut(j).iter_mut().zip(ap[k].col_as_slice(j)) {
-                            *u -= alpha * v;
-                        }
-                    }
-                }
-                let rr_new = Self::dot(&r, &r);
-                let beta = rr_new / rr;
-                rr = rr_new;
-                for k in 0..p.len() {
-                    for j in 0..p[k].ncols() {
-                        for (u, v) in p[k].col_as_slice_mut(j).iter_mut().zip(r[k].col_as_slice(j)) {
-                            *u = v + beta * *u;
-                        }
-                    }
-                }
-            }
-            res = r;
-        }
+        let krylov::CgSolution { x: z, residual: res, iterations } =
+            krylov::cg(|p| self.apply(p), &rhs, self.opts.tol, self.opts.max_iter).map_err(|e| match e {
+                CgError::NotConverged { iterations, residual } => Error::Numerical(format!(
+                    "g-xTB 2.0.1 response: no convergence in {iterations} iterations (residual {residual:.1e})"
+                )),
+                CgError::Indefinite => Error::Numerical(
+                    "g-xTB 2.0.1 response: electronic Hessian not positive definite (unstable SCF solution)".into(),
+                ),
+            })?;
         let zr = self.keep_solution.then(|| {
             let flat = |ms: &[Mat<f64>]| -> Vec<f32> {
                 let mut out = Vec::new();
@@ -497,7 +446,10 @@ impl<'a> Cpks<'a> {
                 out
             };
             // a zero right-hand side: z = 0 and no residual
-            let r = if res.is_empty() { flat(&z).iter().map(|_| 0.0).collect() } else { flat(&res) };
+            let r = match &res {
+                Some(res) => flat(res),
+                None => flat(&z).iter().map(|_| 0.0).collect(),
+            };
             (flat(&z), r)
         });
         // dP = dP^S - C (d^1/2 z) C^T

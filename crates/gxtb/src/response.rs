@@ -39,18 +39,19 @@
 //!   in P; the fourth-order charge term and the charge dependence of revD4 leave < 1e-12);
 //! - Tr(Z dF_x/dR|_P) and the dS terms, contracted analytically with the overlap derivative.
 //!
-//! In the Z-vector equations (restarted GMRES, diagonal preconditioner) dF_used(D) is the
-//! exchange part (linear in D) plus the potentials differentiated by central differences of
-//! the cheap potential functions of the charges and moments.
+//! In the Z-vector equations (restarted GMRES, diagonal preconditioner: [`crate::krylov::gmres`])
+//! dF_used(D) is the exchange part (linear in D) plus the potentials differentiated by central
+//! differences of the cheap potential functions of the charges and moments.
 //!
 //! At a finite electronic temperature the divided differences of the occupations come from
 //! `axtb::response::OccupationResponse` (every orbital a row, levels within 1e-10 Eh
 //! degenerate) and C^T X C from `axtb::response::MoSpace`.
 
 use crate::data::GMUNU;
-use crate::dense::{dot_seq as dot, matmul as matmul_rows};
+use crate::dense::matmul as matmul_rows;
 use crate::exchange::{gmunu_index, OFX_SCALE};
 use crate::gradient::MultipoleTerm;
+use crate::krylov::{gmres, GmresError};
 use crate::scf::{Conventions, DensityTerms, Potentials, ScfResult, Setup};
 use axtb::response::{MoSpace, OccupationResponse};
 use axtb::{Error, Result};
@@ -124,10 +125,6 @@ impl Channel {
         }
         out
     }
-}
-
-fn norm(a: &[f64]) -> f64 {
-    dot(a, a).sqrt()
 }
 
 impl Setup {
@@ -424,7 +421,7 @@ impl Setup {
             let g = self.fock_response_adjoint(&terms, &z, &m)?;
             Ok(y.iter().zip(g.concat()).map(|(a, b)| a - b).collect())
         };
-        let y = gmres(apply, &vec![1.0; rhs.len()], &rhs)?;
+        let y = gmres(apply, &vec![1.0; rhs.len()], &rhs, Z_TOL, Z_MAX_ITER, GMRES_RESTART).map_err(z_vector_error)?;
         let z: Vec<Vec<f64>> = (0..ns).map(|s| chi(&ch[s], &y[s * n * n..(s + 1) * n * n])).collect();
         // overlap weight: -W + sum_s C sigma^T(C^T y_s C) C^T + X_x(Z) (the F_x part of
         // Tr(Z F_used^(R)|_P))
@@ -547,7 +544,7 @@ impl Setup {
             }
             Ok(out)
         };
-        let z = gmres(apply, &diag, &rhs)?;
+        let z = gmres(apply, &diag, &rhs, Z_TOL, Z_MAX_ITER, GMRES_RESTART).map_err(z_vector_error)?;
         let zao = to_ao(&z);
         // overlap weight: -W - sum_s (1/n_s) sym(P dF P) + (1/n_s) sym(P G P) + sym(C_v z e_o C_o^T) - X_x
         let g = self.fock_response_adjoint(&terms, &zao, &m)?;
@@ -638,85 +635,12 @@ fn add_energy_weighted(n: usize, c: &Channel, x: &mut [f64]) {
     }
 }
 
-/// Right-preconditioned restarted GMRES for `op(x) = b` with the diagonal preconditioner
-/// `diag` (x = u / diag).
-fn gmres(mut op: impl FnMut(&[f64]) -> Result<Vec<f64>>, diag: &[f64], b: &[f64]) -> Result<Vec<f64>> {
-    let dim = b.len();
-    let mut x = vec![0.0; dim];
-    let bnorm = norm(b);
-    if bnorm == 0.0 {
-        return Ok(x);
-    }
-    let pre =
-        |v: &[f64]| -> Vec<f64> { v.iter().zip(diag).map(|(a, d)| if d.abs() > 1e-12 { a / d } else { *a }).collect() };
-    let mut iters = 0;
-    loop {
-        let ax = op(&x)?;
-        let r: Vec<f64> = b.iter().zip(&ax).map(|(a, c)| a - c).collect();
-        let beta = norm(&r);
-        if beta <= Z_TOL * bnorm {
-            return Ok(x);
-        }
-        if iters >= Z_MAX_ITER {
-            return Err(Error::Input(format!(
-                "g-xTB gradient: Z-vector equations not converged (residual {:.1e})",
-                beta / bnorm
-            )));
-        }
-        let m = GMRES_RESTART.min(dim);
-        let mut v: Vec<Vec<f64>> = vec![r.iter().map(|a| a / beta).collect()];
-        let mut h = vec![vec![0.0; m]; m + 1];
-        let (mut cs, mut sn) = (vec![0.0; m], vec![0.0; m]);
-        let mut e1 = vec![0.0; m + 1];
-        e1[0] = beta;
-        let mut k_used = 0;
-        for k in 0..m {
-            iters += 1;
-            let mut w = op(&pre(&v[k]))?;
-            for j in 0..=k {
-                h[j][k] = dot(&w, &v[j]);
-                for t in 0..dim {
-                    w[t] -= h[j][k] * v[j][t];
-                }
-            }
-            h[k + 1][k] = norm(&w);
-            for j in 0..k {
-                let t = cs[j] * h[j][k] + sn[j] * h[j + 1][k];
-                h[j + 1][k] = -sn[j] * h[j][k] + cs[j] * h[j + 1][k];
-                h[j][k] = t;
-            }
-            let rr = (h[k][k] * h[k][k] + h[k + 1][k] * h[k + 1][k]).sqrt();
-            cs[k] = h[k][k] / rr;
-            sn[k] = h[k + 1][k] / rr;
-            h[k][k] = rr;
-            let hk1 = h[k + 1][k];
-            h[k + 1][k] = 0.0;
-            e1[k + 1] = -sn[k] * e1[k];
-            e1[k] *= cs[k];
-            k_used = k + 1;
-            if e1[k + 1].abs() <= 0.1 * Z_TOL * bnorm || hk1 == 0.0 || iters >= Z_MAX_ITER {
-                break;
-            }
-            v.push(w.iter().map(|a| a / hk1).collect());
-        }
-        // solve the triangular system and update x
-        let mut yv = vec![0.0; k_used];
-        for i in (0..k_used).rev() {
-            let mut t = e1[i];
-            for j in i + 1..k_used {
-                t -= h[i][j] * yv[j];
-            }
-            yv[i] = t / h[i][i];
-        }
-        let mut u = vec![0.0; dim];
-        for (j, yj) in yv.iter().enumerate() {
-            for t in 0..dim {
-                u[t] += yj * v[j][t];
-            }
-        }
-        let du = pre(&u);
-        for t in 0..dim {
-            x[t] += du[t];
+/// The error of a failed Z-vector solve.
+fn z_vector_error(e: GmresError) -> Error {
+    match e {
+        GmresError::Operator(e) => e,
+        GmresError::NotConverged { residual } => {
+            Error::Input(format!("g-xTB gradient: Z-vector equations not converged (residual {residual:.1e})"))
         }
     }
 }
