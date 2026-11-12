@@ -38,6 +38,10 @@ Inputs map to ``axtb.Calculator`` as follows (the README's "Use" section lists e
     (``extras['bond_orders']``) and ``guess`` (set by ``propagate_wfn``, below);
   - GFN2-xTB: ``mixer``, ``dispersion`` (``False`` for validation), ``alpb`` or ``gbsa`` (a
     solvent) with ``solvation_state``;
+  - g-xTB (also in solvent): ``broken_symmetry`` (``True``: a broken-symmetry unrestricted
+    singlet where it lies lower than the restricted one, an axtb extension; multiplicity 1,
+    axtb conventions; ``extras['broken_symmetry']`` says which solution the result is, with
+    its ⟨S²⟩);
   - g-xTB in implicit solvent (the solvation composite E = E(g-xTB) + [E(GFN2-xTB + ALPB/GBSA)
     - E(GFN2-xTB)]): ``solvation_correction="gfn2"`` with ``alpb`` or ``gbsa``,
     ``solvation_state``, ``correction_conventions`` and ``mixer`` (the GFN2 halves'); ``alpb``
@@ -83,8 +87,8 @@ process's memory (the 8 most recent); a result carries only their id,
 ``extras['wavefunction_id']`` (also the file ``axtb.wavefunction`` qccompute collects), which
 ``propagate_wfn`` puts into the next input's keyword ``guess``. A ``guess`` this process does
 not hold, or that belongs to another calculation (method, atoms, charge, spin, conventions,
-solvent), starts from the method's own guess. Without ``propagate_wfn`` every call is
-independent (``guess`` absent or ``"fresh"``).
+solvent, broken symmetry), starts from the method's own guess. Without ``propagate_wfn`` every
+call is independent (``guess`` absent or ``"fresh"``).
 """
 
 from __future__ import annotations
@@ -114,10 +118,10 @@ SCF_KEYWORDS = COMMON_KEYWORDS | {"accuracy", "etemp", "max_iter", "hessian_accu
 KEYWORDS = {
     "gfn2": SCF_KEYWORDS | {"mixer", "dispersion", "alpb", "gbsa", "solvation_state"},
     "gfnff": COMMON_KEYWORDS | {"fragment_charges", "topology_positions"},
-    "gxtb": SCF_KEYWORDS,
+    "gxtb": SCF_KEYWORDS | {"broken_symmetry"},
     # g-xTB in solvent: the solvation composite
     "composite": SCF_KEYWORDS | {"solvation_correction", "correction_conventions", "alpb", "gbsa", "solvation_state",
-                                 "mixer"},
+                                 "mixer", "broken_symmetry"},
 }
 # keywords that are not `axtb.Calculator` arguments
 HESSIAN_ARGS = {"hessian_method": "method", "hessian_step": "step", "hessian_accuracy": "accuracy"}
@@ -172,7 +176,7 @@ TYPES: dict[str, tuple[str, Callable[[Any], bool]]] = {
                                                                "correction_conventions", "analysis_conventions",
                                                                "guess")},
     **{k: ("True or False", lambda v: isinstance(v, bool)) for k in ("bond_orders", "dispersion", "vibrations",
-                                                                    "thermo")},
+                                                                    "thermo", "broken_symmetry")},
     "molden": ("True, False, 'spherical' or 'cartesian'", lambda v: isinstance(v, bool) or v in ("spherical",
                                                                                                "cartesian")),
     "temperature": ("a number or a list of numbers", lambda v: _number(v) or _numbers(v)),
@@ -275,7 +279,7 @@ def run_axtb(
     scf = method != "gfnff"
     # a previous calculation's wavefunction (qccompute's propagate_wfn); None: the method's start
     key = (calc.method, tuple(int(z) for z in numbers), charge, uhf, calc.conventions,
-           keywords.get("alpb"), keywords.get("gbsa"))
+           keywords.get("alpb"), keywords.get("gbsa"), bool(keywords.get("broken_symmetry", False)))
     note = _start_from(calc, keywords.get("guess"), key) if scf else None
     call = {k: keywords[k] for k in ("molden", "bond_orders") if k in keywords}
     if calctype == CalcType.hessian.value:
@@ -293,7 +297,7 @@ def run_axtb(
         out["hessian"] = np.asarray(r["hessian"]).tolist()
         extras.update(hessian_max_asymmetry=float(r["hessian_max_asymmetry"]), hessian_method=r["hessian_method"])
         out.update(_vibrations(r))
-    for k in ("composite", "components", "parts", "hessian_parts", "topology"):
+    for k in ("composite", "components", "parts", "hessian_parts", "topology", "broken_symmetry"):
         if k in r:
             extras[k] = _plain(r[k])
     if not scf:
@@ -352,7 +356,8 @@ def _start_from(calc: Any, guess: str | None, key: tuple[Any, ...]) -> str | Non
     if entry is None:
         return f"wavefunction {guess} is not in this process (other process, or more than {MAX_WAVEFUNCTIONS} ago)"
     if entry[0] != key:
-        return f"wavefunction {guess} belongs to another calculation (method, atoms, charge, spin, conventions, solvent)"
+        return (f"wavefunction {guess} belongs to another calculation (method, atoms, charge, spin, conventions, "
+                "solvent, broken symmetry)")
     calc.set_guess_state(entry[1])
     return None
 

@@ -19,6 +19,7 @@
 //! that size and runs everything inside it; with `threads = 1` no thread is spawned and
 //! faer's global parallelism is never touched.
 
+use crate::broken_symmetry::{self, BrokenSymmetry};
 use crate::scf::{Conventions, Energies, Guess, ScfOptions, ScfResult, Setup};
 use crate::timing::Timings;
 use crate::v2;
@@ -123,6 +124,10 @@ pub struct Results {
     /// occupations of the alpha orbitals followed by the beta orbitals.
     pub singlepoint: SinglePoint,
     pub energies: Terms,
+    /// With [`ScfOptions::broken_symmetry`]: which solution the result is (restricted or
+    /// unrestricted), its ⟨S²⟩, and both solutions' energies and iterations
+    /// ([`crate::broken_symmetry`]); `None` without the setting.
+    pub broken_symmetry: Option<BrokenSymmetry>,
 }
 
 impl Energies {
@@ -188,6 +193,8 @@ pub struct Calculator {
     state: Option<GuessState>,
     /// Start the next SCF from `state` even if the options do not reuse it (it was given).
     given: bool,
+    /// No unpaired electrons (N_alpha = N_beta): the molecule a broken-symmetry singlet is for.
+    closed_shell: bool,
 }
 
 /// The setup of `mol` for `version` in the conventions of `opts`, on `opts.threads` threads
@@ -215,7 +222,7 @@ pub const RESTART_ACCURACY: f64 = 0.1;
 
 /// The 2.0.1 SCF options of a calculation from `start` (`opts`, with the thresholds scaled by
 /// [`RESTART_ACCURACY`] for a restart in the default conventions).
-fn v2_options(opts: &ScfOptions, restart: bool) -> ScfOptions {
+pub(crate) fn v2_options(opts: &ScfOptions, restart: bool) -> ScfOptions {
     let mut o = opts.clone();
     if restart && opts.conventions == Conventions::Axtb {
         o.accuracy *= RESTART_ACCURACY;
@@ -272,7 +279,13 @@ impl Calculator {
             Some(p) => p.install(|| new_setup(version, &mol, &options)),
             None => new_setup(version, &mol, &options),
         }?;
-        Ok(Self { mol, options, version, pool, setup: Some(setup), state: None, given: false })
+        let closed_shell = match &setup {
+            AnySetup::V2(s) => s.nalpha == s.nbeta,
+            AnySetup::V1(s) => s.nalpha == s.nbeta,
+        };
+        let calc = Self { mol, options, version, pool, setup: Some(setup), state: None, given: false, closed_shell };
+        calc.check_options()?;
+        Ok(calc)
     }
 
     /// The g-xTB version.
@@ -330,6 +343,13 @@ impl Calculator {
     /// Check the options of the next calculation.
     fn check_options(&self) -> Result<()> {
         self.options.check(self.version)?;
+        if self.options.broken_symmetry && !self.closed_shell {
+            return Err(Error::Input(
+                "broken_symmetry is for singlets (uhf = 0, an even electron count): a molecule with unpaired \
+                 electrons already has two spin channels"
+                    .into(),
+            ));
+        }
         let threads = self.pool.as_ref().map_or(1, |p| p.current_num_threads());
         if self.options.threads != threads {
             return Err(Error::Input(format!(
@@ -468,21 +488,47 @@ impl Calculator {
             ScfOptions { accuracy, threads: 1, keep_orbitals: false, bond_orders: false, ..self.options.clone() };
         let mol = &self.mol;
         let version = self.version;
-        // energy, gradient and dipole of one geometry
-        let point = |m: &Molecule| -> Result<(f64, Vec<[f64; 3]>, [f64; 3])> {
-            let (energy, g, qa, dip) = match version {
+        // energy, gradient and dipole of one geometry, and with a broken-symmetry reference
+        // (`first`) its unrestricted state: the displacements stay on the reference's surface,
+        // unrestricted from that state (`from`) or restricted from the program's start
+        type Point = (f64, Vec<[f64; 3]>, [f64; 3], Option<GuessState>);
+        let point = |m: &Molecule, first: bool, from: Option<&GuessState>| -> Result<Point> {
+            let bs = opts.broken_symmetry && first;
+            let (energy, g, qa, dip, state) = match version {
                 Version::V2_0_1 => {
-                    let setup = v2::scf::Setup::new(m, opts.conventions)?;
-                    let r = setup.scf(&opts)?;
+                    let mut setup = v2::scf::Setup::new(m, opts.conventions)?;
+                    let (r, unrestricted) = match from {
+                        Some(GuessState::V2_0_1(st)) => {
+                            setup.set_unrestricted(true)?;
+                            (setup.scf_from(&v2_options(&opts, true), Some(st))?, true)
+                        }
+                        _ if bs => {
+                            let (r, info) = broken_symmetry::scf_v2(&mut setup, &opts, None)?;
+                            (r, info.broken())
+                        }
+                        _ => (setup.scf(&opts)?, false),
+                    };
                     let g = setup.gradient(&r)?;
-                    (r.energies.total, g, r.atom_charges.clone(), r.state.dip.clone())
+                    let state = (bs && unrestricted).then(|| GuessState::V2_0_1(Box::new(r.state.clone())));
+                    (r.energies.total, g, r.atom_charges.clone(), r.state.dip.clone(), state)
                 }
                 Version::V1_1 => {
-                    let setup = Setup::new(m)?;
-                    let r = setup.scf(&opts)?;
+                    let mut setup = Setup::new(m)?;
+                    let (r, unrestricted) = match from {
+                        Some(GuessState::V1_1(p)) => {
+                            setup.set_unrestricted(true)?;
+                            (setup.scf_from(&opts, Some(p))?, true)
+                        }
+                        _ if bs => {
+                            let (r, info) = broken_symmetry::scf_v1(&mut setup, &opts, None)?;
+                            (r, info.broken())
+                        }
+                        _ => (setup.scf(&opts)?, false),
+                    };
                     let g = setup.gradient(&r)?;
                     let (dpat, _) = setup.atomic_moments(&total_density(&r.density));
-                    (r.energies.total, g, r.atom_charges.clone(), dpat)
+                    let state = (bs && unrestricted).then(|| GuessState::V1_1(r.density.clone()));
+                    (r.energies.total, g, r.atom_charges.clone(), dpat, state)
                 }
             };
             let mut mu = [0.0; 3];
@@ -491,14 +537,14 @@ impl Calculator {
                     mu[k] += qa[a] * p[k] + dip[a][k];
                 }
             }
-            Ok((energy, g, mu))
+            Ok((energy, g, mu, state))
         };
-        let (energy, gradient, _) = point(mol)?;
+        let (energy, gradient, _, reference) = point(mol, true, None)?;
         // every atom moved forward by the step and back by twice the step, as axtb::Calculator does
         let displaced = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
             let mut m = mol.clone();
             m.positions.copy_from_slice(x);
-            let (_, g, mu) = point(&m)?;
+            let (_, g, mu, _) = point(&m, false, reference.as_ref())?;
             Ok((g, mu))
         };
         let numerical =
@@ -547,9 +593,19 @@ impl Calculator {
                 Some(s) => s,
                 None => v2::scf::Setup::with_threads(mol, sopts.conventions, sopts.threads)?,
             };
-            let r = match setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()) {
-                Err(Error::ScfNotConverged { .. }) if start.is_some() => setup.scf(&sopts)?,
-                other => other?,
+            let r = if sopts.broken_symmetry {
+                // the reference on the broken-symmetry surface (every orbital: sopts)
+                match broken_symmetry::scf_v2(&mut setup, &sopts, start.as_ref()) {
+                    Err(Error::ScfNotConverged { .. }) if start.is_some() => {
+                        broken_symmetry::scf_v2(&mut setup, &sopts, None)?.0
+                    }
+                    other => other?.0,
+                }
+            } else {
+                match setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()) {
+                    Err(Error::ScfNotConverged { .. }) if start.is_some() => setup.scf(&sopts)?,
+                    other => other?,
+                }
             };
             let state = GuessState::V2_0_1(Box::new(r.state.clone()));
             let gradient = setup.gradient(&r)?;
@@ -614,12 +670,25 @@ fn run(
     let label = if start.is_some() { Guess::Previous.name() } else { Guess::EeqBc.name() };
     let res = match &mut setup {
         AnySetup::V1(setup) => {
+            // a broken-symmetry state starts a restricted SCF with its total density
+            let total: Vec<Vec<f64>>;
             let p0 = match start {
+                Some(GuessState::V1_1(p)) if p.len() == 2 && !opts.broken_symmetry && setup.nspin() == 1 => {
+                    total = vec![total_density(p)];
+                    Ok(Some(total.as_slice()))
+                }
                 Some(GuessState::V1_1(p)) => Ok(Some(p.as_slice())),
                 Some(_) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
                 None => Ok(None),
             };
-            p0.and_then(|p0| setup.scf_from(opts, p0)).and_then(|r| {
+            let scf = p0.and_then(|p0| {
+                if opts.broken_symmetry {
+                    broken_symmetry::scf_v1(setup, opts, p0).map(|(r, b)| (r, Some(b)))
+                } else {
+                    setup.scf_from(opts, p0).map(|r| (r, None))
+                }
+            });
+            scf.and_then(|(r, bs)| {
                 let mut timings = vec![("setup", t_setup), ("scf", t1.elapsed().as_secs_f64())];
                 let g = if gradient {
                     let t2 = Instant::now();
@@ -629,11 +698,17 @@ fn run(
                 } else {
                     None
                 };
-                Ok(results(setup, r, g, timings, opts, label))
+                Ok(results(setup, r, g, timings, opts, label, bs))
             })
         }
         AnySetup::V2(setup) => {
+            // a broken-symmetry state starts a restricted SCF with its total density and moments
+            let total: v2::scf::State;
             let s0 = match start {
+                Some(GuessState::V2_0_1(s)) if s.p.len() == 2 && !opts.broken_symmetry && setup.nspin == 1 => {
+                    total = broken_symmetry::restricted_v2(s);
+                    Ok(Some(&total))
+                }
                 Some(GuessState::V2_0_1(s)) => Ok(Some(s.as_ref())),
                 Some(_) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
                 None => Ok(None),
@@ -643,7 +718,14 @@ fn run(
             let setup_laps = std::mem::take(&mut setup.timings);
             let t_setup =
                 if setup_laps.is_empty() { t_setup } else { t_setup.max(setup_laps.iter().map(|x| x.1).sum()) };
-            s0.and_then(|s0| setup.scf_from(&vo, s0)).and_then(|mut r| {
+            let scf = s0.and_then(|s0| {
+                if opts.broken_symmetry {
+                    broken_symmetry::scf_v2(setup, opts, s0).map(|(r, b)| (r, Some(b)))
+                } else {
+                    setup.scf_from(&vo, s0).map(|r| (r, None))
+                }
+            });
+            scf.and_then(|(mut r, bs)| {
                 let mut timings = vec![("setup", t_setup)];
                 timings.extend(setup_laps);
                 timings.push(("scf", t1.elapsed().as_secs_f64()));
@@ -657,7 +739,7 @@ fn run(
                 } else {
                     None
                 };
-                Ok(results_v2(setup, r, g, timings, opts, label))
+                Ok(results_v2(setup, r, g, timings, opts, label, bs))
             })
         }
     };
@@ -717,6 +799,7 @@ fn results(
     timings: Timings,
     opts: &ScfOptions,
     guess: &'static str,
+    broken_symmetry: Option<BrokenSymmetry>,
 ) -> (Results, GuessState) {
     let e = &r.energies;
     let orbitals = opts.keep_orbitals.then(|| {
@@ -770,7 +853,7 @@ fn results(
         eigensolver: r.eigensolver.clone(),
     };
     let state = GuessState::V1_1(std::mem::take(&mut r.density));
-    (Results { singlepoint, energies: Terms::V1_1(r.energies) }, state)
+    (Results { singlepoint, energies: Terms::V1_1(r.energies), broken_symmetry }, state)
 }
 
 fn results_v2(
@@ -780,6 +863,7 @@ fn results_v2(
     timings: Timings,
     opts: &ScfOptions,
     guess: &'static str,
+    broken_symmetry: Option<BrokenSymmetry>,
 ) -> (Results, GuessState) {
     let e = &r.energies;
     let orbitals = opts.keep_orbitals.then(|| {
@@ -828,5 +912,6 @@ fn results_v2(
         guess,
         eigensolver: r.eigensolver.clone(),
     };
-    (Results { singlepoint, energies: Terms::V2_0_1(r.energies) }, GuessState::V2_0_1(Box::new(r.state)))
+    let state = GuessState::V2_0_1(Box::new(r.state));
+    (Results { singlepoint, energies: Terms::V2_0_1(r.energies), broken_symmetry }, state)
 }

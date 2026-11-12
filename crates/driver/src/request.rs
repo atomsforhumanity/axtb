@@ -72,6 +72,11 @@ pub struct Request {
     /// Conventions of the composite's GFN2 halves (default: `axtb` for g-xTB's `axtb`,
     /// `xtb-6.7.1` for `gxtb`).
     pub correction_conventions: Option<String>,
+    /// g-xTB singlets (uhf = 0, axtb conventions): a broken-symmetry unrestricted solution
+    /// (two spin channels from the HOMO-LUMO mixed restricted orbitals), returned where it lies
+    /// lower than the restricted one. An axtb extension; neither g-xTB program has it.
+    #[serde(default)]
+    pub broken_symmetry: bool,
     /// Where the SCFs of a calculator start: `previous` (the previous geometry's state), `fresh`
     /// (the method's own start at every geometry), or a named start at every geometry: `eeq` or
     /// `sad` (GFN2-xTB), `eeq-bc` (g-xTB); default: the conventions' choice.

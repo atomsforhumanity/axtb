@@ -171,3 +171,37 @@ fn analysis_of_a_given_hessian() {
     let t = r.vibrations.unwrap().thermo.unwrap();
     assert_eq!(t.last.free_energy, Some(-5.0 + t.last.g_rrho));
 }
+
+#[test]
+fn broken_symmetry_is_a_gxtb_singlet_setting() {
+    let h2 = |method: &str| Request {
+        method: Some(method.into()),
+        broken_symmetry: true,
+        ..Request::new(vec![1, 1], vec![[0.0, 0.0, 0.0], [0.0, 0.0, 5.67]])
+    };
+    let refused = |req: Request| match run(&req) {
+        Err(e @ Error::Input(_)) => e.to_string(),
+        other => panic!("{:?}", other.map(|r| r.energy)),
+    };
+    assert!(refused(h2("gfn2")).contains("GFN2-xTB has no spin-dependent term"));
+    assert!(refused(h2("gfnff")).contains("GFN-FF has no electrons"));
+    for method in ["gxtb-v2.0.1", "gxtb-v1.1"] {
+        assert!(refused(Request { uhf: Some(2), ..h2(method) }).contains("singlets"));
+        assert!(refused(Request { conventions: Some("gxtb".into()), ..h2(method) }).contains("axtb extension"));
+        assert!(refused(Request { charge: 1.0, ..h2(method) }).contains("singlets"));
+        let r = run(&h2(method)).unwrap();
+        let b = r.broken_symmetry.as_ref().unwrap();
+        assert!(b.broken && b.outcome == "broken" && b.start == Some("homo-lumo") && b.s2 > 0.9, "{b:?}");
+        assert_eq!(r.energy, b.unrestricted_energy);
+        assert!(run(&Request { broken_symmetry: false, ..h2(method) }).unwrap().broken_symmetry.is_none());
+    }
+    // the composite's g-xTB part
+    let r =
+        run(&Request { alpb: Some("water".into()), solvation_correction: Some("gfn2".into()), ..h2("gxtb-v2.0.1") });
+    assert!(r.unwrap().broken_symmetry.unwrap().broken);
+    let analysis = Request { analyze_hessian: Some(vec![vec![0.0; 6]; 6]), method: None, ..h2("gxtb-v2.0.1") };
+    assert!(refused(analysis).contains("broken_symmetry"));
+    // the field is written only when asked for
+    let text = serde_json::to_string(&run(&with("gxtb-v2.0.1")).unwrap()).unwrap();
+    assert!(!text.contains("broken_symmetry"));
+}

@@ -130,6 +130,23 @@ impl Calculator {
         if method != Method::Gfnff && (req.fragment_charges.is_some() || req.topology_positions.is_some()) {
             return Err(input("fragment_charges and topology_positions are GFN-FF settings"));
         }
+        if req.broken_symmetry {
+            match method {
+                Method::Gfn2 => {
+                    return Err(input(
+                        "broken_symmetry is a g-xTB setting: GFN2-xTB has no spin-dependent term, so its unrestricted \
+                         singlet is the restricted one",
+                    ))
+                }
+                Method::Gfnff => return Err(input("broken_symmetry is a g-xTB setting: GFN-FF has no electrons")),
+                _ => {}
+            }
+            if let Some(u) = req.uhf.filter(|&u| u > 0) {
+                return Err(input(format!(
+                    "broken_symmetry is for singlets (uhf = 0): with uhf = {u} the SCF already has two spin channels"
+                )));
+            }
+        }
         if !method.is_gxtb() && (req.solvation_correction.is_some() || req.correction_conventions.is_some()) {
             return Err(input(
                 "solvation_correction and correction_conventions are settings of g-xTB in solvent; GFN2-xTB has its \
@@ -332,6 +349,7 @@ impl Calculator {
                 let r = r?;
                 let form = calc.quadrupole_form();
                 out.hessian = hess.map(hessian_part);
+                out.broken_symmetry = r.broken_symmetry.as_ref().map(broken_symmetry);
                 scf_into(&mut out, r.singlepoint, r.energies.named(), positions, form)
             }
             #[cfg(feature = "gxtb")]
@@ -357,6 +375,7 @@ impl Calculator {
                 let mut terms = r.gxtb.energies.named();
                 terms.push(("solvation_correction", r.solvation_energy));
                 let form = calc.gxtb().quadrupole_form();
+                out.broken_symmetry = r.gxtb.broken_symmetry.as_ref().map(broken_symmetry);
                 out.composite = Some(composite::response(calc, &r, hess.as_ref().map(|h| &h.parts)));
                 out.hessian = hess.map(|h| hessian_part(h.total));
                 scf_into(&mut out, r.singlepoint, terms, positions, form)
@@ -562,6 +581,7 @@ fn gxtb_engine(
             max_iter: req.max_iter,
             threads,
             conventions,
+            broken_symmetry: req.broken_symmetry,
             reuse_guess: match guess {
                 None => None,
                 Some(names::Guess::Previous) => Some(true),
@@ -598,6 +618,7 @@ fn gxtb_engine(
     if let Some(m) = req.max_iter {
         o.max_iter = m;
     }
+    o.broken_symmetry = req.broken_symmetry;
     o.guess = match guess {
         None => None,
         Some(names::Guess::Previous) => Some(axtb_gxtb::Guess::Previous),
@@ -608,6 +629,23 @@ fn gxtb_engine(
     };
     let calc = axtb_gxtb::Calculator::new(version, &req.numbers, &req.positions, req.charge, uhf, o)?;
     Ok((Engine::Gxtb(Box::new(calc)), conventions))
+}
+
+/// The broken-symmetry treatment of a g-xTB single point in the response.
+#[cfg(feature = "gxtb")]
+fn broken_symmetry(b: &axtb_gxtb::BrokenSymmetry) -> response::BrokenSymmetry {
+    response::BrokenSymmetry {
+        broken: b.broken(),
+        outcome: b.outcome.name(),
+        s2: b.s2,
+        start: b.start,
+        frontier_pairs: b.pairs,
+        restricted_energy: b.restricted_energy,
+        unrestricted_energy: b.unrestricted_energy,
+        unrestricted_s2: b.unrestricted_s2,
+        restricted_iterations: b.restricted_iterations,
+        unrestricted_iterations: b.unrestricted_iterations,
+    }
 }
 
 /// A Hessian of an SCF method in the response.

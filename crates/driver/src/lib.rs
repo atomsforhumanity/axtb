@@ -36,8 +36,8 @@ pub use error::{Error, Result};
 pub use names::{canonical_method, Method};
 pub use request::{Request, Temperatures};
 pub use response::{
-    Attempt, Components, Composite, CompositeEtemp, CompositeInfo, Contribution, Gfnff, HessianPart, Matrix, Named,
-    Part, Parts, Response, Scf, Thermo, ThermoPoint, Topology, Vibrations, PROGRAM, VERSION,
+    Attempt, BrokenSymmetry, Components, Composite, CompositeEtemp, CompositeInfo, Contribution, Gfnff, HessianPart,
+    Matrix, Named, Part, Parts, Response, Scf, Thermo, ThermoPoint, Topology, Vibrations, PROGRAM, VERSION,
 };
 pub use task::{HessianTask, MoldenTask, Task, ThermoSettings, VibSettings};
 
@@ -88,6 +88,7 @@ pub fn analyze(req: &Request) -> Result<Response> {
         ("solvation_correction", req.solvation_correction.is_some()),
         ("correction_conventions", req.correction_conventions.is_some()),
         ("guess", req.guess.is_some()),
+        ("broken_symmetry", req.broken_symmetry),
         ("fragment_charges", req.fragment_charges.is_some()),
         ("topology_positions", req.topology_positions.is_some()),
         ("gradient", req.gradient),

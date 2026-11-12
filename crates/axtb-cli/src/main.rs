@@ -91,6 +91,11 @@ struct Cli {
     #[arg(long = "scf-trace", help_heading = "SCF (GFN2-xTB, g-xTB)")]
     scf_trace: bool,
 
+    /// g-xTB singlets: a broken-symmetry unrestricted solution where it lies lower (an axtb
+    /// extension; uhf 0, axtb conventions)
+    #[arg(long = "broken-symmetry", help_heading = "SCF (GFN2-xTB, g-xTB)")]
+    broken_symmetry: bool,
+
     /// Leave out the dispersion (GFN2-xTB, for validation)
     #[arg(long, help_heading = "SCF (GFN2-xTB, g-xTB)")]
     nodisp: bool,
@@ -280,6 +285,7 @@ fn request(mut cli: Cli) -> Result<Request, axtb_driver::Error> {
         dispersion: cli.nodisp.then_some(false),
         mixer: cli.mixer,
         scf_trace: cli.scf_trace,
+        broken_symmetry: cli.broken_symmetry,
         alpb: cli.alpb,
         gbsa: cli.gbsa,
         solvation_state: cli.solvation_state,

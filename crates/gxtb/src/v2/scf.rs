@@ -259,6 +259,21 @@ impl Setup {
         self.threads
     }
 
+    /// Run the SCFs of a closed-shell molecule (N_alpha = N_beta) with two spin channels
+    /// (`true`, an unrestricted singlet; [`crate::broken_symmetry`]) or one (`false`, as the
+    /// setup starts). Open shells always have two; `false` is refused for them.
+    pub fn set_unrestricted(&mut self, unrestricted: bool) -> Result<()> {
+        if self.nalpha != self.nbeta {
+            return if unrestricted {
+                Ok(())
+            } else {
+                Err(Error::Input("g-xTB 2.0.1: an open shell needs two spin channels".into()))
+            };
+        }
+        self.nspin = if unrestricted { 2 } else { 1 };
+        Ok(())
+    }
+
     /// Per AO row mu of a density: sum_nu P S, -sum_nu P D, -sum_nu P Q (rows in parallel with
     /// `self.parallel`; without `moments` only the first entry).
     fn row_moments(&self, p: &[f64], moments: bool) -> Vec<[f64; 10]> {

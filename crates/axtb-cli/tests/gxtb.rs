@@ -326,3 +326,25 @@ fn cli_etemp_reproduces_programs() {
         assert_eq!(r["iterations"], r1["scf_iterations"], "{name} v1.1");
     }
 }
+
+#[test]
+fn cli_broken_symmetry() {
+    let path = Path::new(env!("CARGO_TARGET_TMPDIR")).join("h2-3A.xyz");
+    std::fs::write(&path, "2\n\nH 0 0 0\nH 0 0 3.0\n").unwrap();
+    let run = |args: &[&str]| {
+        let out = Command::new(env!("CARGO_BIN_EXE_axtb")).arg(&path).args(args).output().unwrap();
+        (out.status.code(), String::from_utf8(out.stdout).unwrap(), String::from_utf8(out.stderr).unwrap())
+    };
+    let (code, stdout, _) = run(&["--method", "gxtb-v2.0.1", "--broken-symmetry", "--grad"]);
+    assert_eq!(code, Some(0));
+    let r: serde_json::Value = serde_json::from_str(&stdout).unwrap();
+    let b = &r["broken_symmetry"];
+    assert_eq!((b["broken"].as_bool(), b["outcome"].as_str()), (Some(true), Some("broken")), "{b}");
+    assert_eq!(r["energy"], b["unrestricted_energy"]);
+    assert!(b["restricted_energy"].as_f64().unwrap() - r["energy"].as_f64().unwrap() > 0.08);
+    assert_eq!(r["occupations_alpha"].as_array().unwrap()[0], 1.0);
+    let (code, _, stderr) = run(&["--broken-symmetry"]);
+    assert!(code == Some(1) && stderr.contains("GFN2-xTB has no spin-dependent term"), "{stderr}");
+    let (code, _, stderr) = run(&["--method", "gxtb-v2.0.1", "--broken-symmetry", "--uhf", "2"]);
+    assert!(code == Some(1) && stderr.contains("singlets"), "{stderr}");
+}

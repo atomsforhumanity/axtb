@@ -73,6 +73,7 @@
 
 pub mod acp;
 pub mod aes;
+pub mod broken_symmetry;
 pub mod calculator;
 pub mod classical;
 pub mod composite;
@@ -101,6 +102,7 @@ pub mod scf;
 pub mod timing;
 pub mod v2;
 
+pub use broken_symmetry::{BrokenSymmetry, Outcome};
 pub use calculator::{Calculator, GuessState, Results, Terms, Version};
 pub use composite::{CompositeCalculator, CompositeHessian, CompositeOptions, CompositeResults, Correction, PartInfo};
 pub use scf::{singlepoint, Conventions, Energies, Guess, ScfOptions, ScfResult, Setup};

@@ -64,6 +64,7 @@ class Calculator:
         topology_positions: ArrayLike2 | None = None,
         guess: str | None = None,
         scf_trace: bool = False,
+        broken_symmetry: bool = False,
     ) -> None: ...
     @property
     def method(self) -> str: ...
@@ -132,6 +133,7 @@ def singlepoint(
     topology_positions: ArrayLike2 | None = None,
     bond_orders: bool = False,
     scf_trace: bool = False,
+    broken_symmetry: bool = False,
 ) -> Result: ...
 def vibrational_analysis(
     numbers: Sequence[int],

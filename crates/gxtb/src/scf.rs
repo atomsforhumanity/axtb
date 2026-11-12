@@ -63,6 +63,9 @@ pub struct Setup {
     pub nbeta: usize,
     /// Parallelism of the dense linear algebra ([`Setup::set_threads`]; sequential by default).
     pub(crate) par: Par,
+    /// Two spin channels for a closed shell ([`Setup::set_unrestricted`]; a broken-symmetry
+    /// singlet).
+    unrestricted: bool,
 }
 
 /// Energy terms of one density (Eh), named as in the program's printout.
@@ -196,6 +199,7 @@ impl Setup {
             nalpha: nel - nbeta,
             nbeta,
             par: Par::Seq,
+            unrestricted: false,
         })
     }
 
@@ -534,6 +538,13 @@ pub struct ScfOptions {
     /// start; `None`: the conventions' choice (axtb: previous; gxtb: the program's start, so
     /// that every result is that of a fresh program run).
     pub guess: Option<Guess>,
+    /// Broken-symmetry unrestricted singlet (an axtb extension; neither g-xTB program has it):
+    /// a [`crate::Calculator`] of a closed-shell molecule (N_alpha = N_beta) converges the
+    /// restricted SCF, starts an unrestricted one (two spin channels) from its HOMO-LUMO mixed
+    /// orbitals and returns that solution when it lies lower ([`crate::broken_symmetry`]).
+    /// Refused in the gxtb conventions (they promise the programs' results) and, by the
+    /// calculator, for open shells.
+    pub broken_symmetry: bool,
 }
 
 impl Default for ScfOptions {
@@ -553,6 +564,7 @@ impl Default for ScfOptions {
             keep_orbitals: false,
             bond_orders: false,
             guess: None,
+            broken_symmetry: false,
         }
     }
 }
@@ -606,6 +618,13 @@ impl ScfOptions {
         }
         if self.transition_iteration == Some(0) {
             return Err(Error::Input("transition_iteration must be at least 1 (iterations count from 1)".into()));
+        }
+        if self.broken_symmetry && self.conventions == Conventions::Gxtb {
+            return Err(Error::Input(
+                "broken_symmetry is an axtb extension: the g-xTB programs run singlets restricted, and the gxtb \
+                 conventions promise the programs' results (use the default axtb conventions)"
+                    .into(),
+            ));
         }
         let other_version = match version {
             Version::V1_1 if self.residual_tol.is_some() => {
@@ -809,13 +828,25 @@ fn diis_coefficients(hist: &[(Vec<Vec<f64>>, Vec<f64>)], s: usize, npk: usize) -
 }
 
 impl Setup {
-    /// Number of spin channels: 1 for a closed shell without unpaired electrons, else 2.
+    /// Number of spin channels: 1 for a closed shell without unpaired electrons (unless
+    /// [`Setup::set_unrestricted`]), else 2.
     pub fn nspin(&self) -> usize {
-        if self.nalpha == self.nbeta {
+        if self.nalpha == self.nbeta && !self.unrestricted {
             1
         } else {
             2
         }
+    }
+
+    /// Run the SCFs of a closed-shell molecule (N_alpha = N_beta) with two spin channels
+    /// (`true`, an unrestricted singlet; [`crate::broken_symmetry`]) or one (`false`, the
+    /// default). Open shells always have two; `false` is refused for them.
+    pub fn set_unrestricted(&mut self, unrestricted: bool) -> Result<()> {
+        if self.nalpha != self.nbeta && !unrestricted {
+            return Err(Error::Input("g-xTB: an open shell needs two spin channels".into()));
+        }
+        self.unrestricted = unrestricted;
+        Ok(())
     }
 
     /// The program's start density (`guess_psh_`, `guess_p_`): diagonal, with the reference

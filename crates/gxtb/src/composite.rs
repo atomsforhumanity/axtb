@@ -113,6 +113,11 @@ pub struct CompositeOptions {
     /// conventions say, the GFN2 halves in their axtb conventions and the g-xTB part in its axtb
     /// conventions (the programs start every call from their own guess).
     pub reuse_guess: Option<bool>,
+    /// The g-xTB part as a broken-symmetry unrestricted singlet
+    /// ([`ScfOptions::broken_symmetry`]; axtb conventions, closed shells). The GFN2 halves
+    /// stay restricted: GFN2-xTB has no spin-dependent term, so its unrestricted singlet is
+    /// the restricted one.
+    pub broken_symmetry: bool,
 }
 
 impl Default for CompositeOptions {
@@ -135,6 +140,7 @@ impl Default for CompositeOptions {
             retries: true,
             keep_orbitals: false,
             reuse_guess: None,
+            broken_symmetry: false,
         }
     }
 }
@@ -329,6 +335,7 @@ impl CompositeCalculator {
             conventions: options.conventions,
             keep_orbitals: options.keep_orbitals,
             guess: options.reuse_guess.map(|r| if r { Guess::Previous } else { Guess::EeqBc }),
+            broken_symmetry: options.broken_symmetry,
             ..Default::default()
         };
         let gxtb_max_iter = gopts.iteration_limit(options.version);

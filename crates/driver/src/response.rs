@@ -372,6 +372,32 @@ pub struct Composite {
     pub hessian_parts: Option<Parts>,
 }
 
+/// The broken-symmetry treatment of a g-xTB singlet (request `broken_symmetry`): which
+/// solution the result is, and both solutions where they were computed.
+#[derive(Serialize, Clone, Debug, Default, PartialEq)]
+pub struct BrokenSymmetry {
+    /// Whether the result is the unrestricted (broken-symmetry) solution.
+    pub broken: bool,
+    /// `broken`, or why the result is the restricted solution: `not-lower` (the unrestricted
+    /// SCF did not end lower), `collapsed` (restarted from a broken-symmetry state, it
+    /// collapsed onto the restricted one), `not-converged`, `no-frontier` (no HOMO-LUMO pair).
+    pub outcome: &'static str,
+    /// ⟨S²⟩ of the result (0 for the restricted solution).
+    pub s2: f64,
+    /// Start of the unrestricted SCF: `homo-lumo` (the mixed restricted orbitals) or
+    /// `previous` (the previous geometry's broken-symmetry state); `null`: none ran.
+    pub start: Option<&'static str>,
+    /// Frontier orbital pairs rotated in the HOMO-LUMO start.
+    pub frontier_pairs: usize,
+    /// Energies (Eh), ⟨S²⟩ and SCF iterations of the solutions computed at this geometry
+    /// (`null`: not computed).
+    pub restricted_energy: Option<f64>,
+    pub unrestricted_energy: Option<f64>,
+    pub unrestricted_s2: Option<f64>,
+    pub restricted_iterations: Option<usize>,
+    pub unrestricted_iterations: Option<usize>,
+}
+
 /// The response to a [`crate::Request`], the same for every front end.
 ///
 /// Every response has `program`, `version`, `method` (canonical; `null` for an analysis of a
@@ -419,6 +445,9 @@ pub struct Response {
     pub vibrations: Option<Vibrations>,
     #[serde(flatten)]
     pub composite: Option<Composite>,
+    /// g-xTB with `broken_symmetry`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub broken_symmetry: Option<BrokenSymmetry>,
     /// Wall time per phase of the single point (s).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timings: Option<Named>,

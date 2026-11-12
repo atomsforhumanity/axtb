@@ -258,6 +258,7 @@ struct Settings<'a> {
     topology_positions: Option<PyArrayLike2<'a, f64, AllowTypeChange>>,
     guess: Option<String>,
     scf_trace: bool,
+    broken_symmetry: bool,
 }
 
 impl Settings<'_> {
@@ -286,6 +287,7 @@ impl Settings<'_> {
             solvation_correction: self.solvation_correction,
             correction_conventions: self.correction_conventions,
             guess: self.guess,
+            broken_symmetry: self.broken_symmetry,
             fragment_charges: self.fragment_charges,
             topology_positions,
             ..Request::default()
@@ -340,8 +342,11 @@ impl ScfState {
 /// names ignore case and anything but letters and digits. Every other argument is keyword-only
 /// and `None` means the method's default; a setting that does not apply to the method raises
 /// `axtb.InputError`. `guess`: where each SCF starts (`None`: the conventions' choice;
-/// `"previous"`, or the method's own start `"eeq-bc"`, `"eeq"`, `"fresh"`). GFN-FF sets its
-/// topology up from `positions` (or `topology_positions`) once.
+/// `"previous"`, or the method's own start `"eeq-bc"`, `"eeq"`, `"fresh"`).
+/// `broken_symmetry=True` (g-xTB singlets, axtb conventions): a broken-symmetry unrestricted
+/// solution where it lies lower than the restricted one, an axtb extension (results:
+/// `"broken_symmetry"`). GFN-FF sets its topology up from `positions` (or `topology_positions`)
+/// once.
 #[pyclass(module = "axtb")]
 struct Calculator {
     inner: axtb_driver::Calculator,
@@ -353,7 +358,7 @@ impl Calculator {
     #[pyo3(signature = (method, numbers, positions, *, charge=0.0, uhf=None, accuracy=None, etemp=None, max_iter=None,
                         threads=1, dispersion=None, conventions=None, alpb=None, gbsa=None, solvation_state=None,
                         mixer=None, solvation_correction=None, correction_conventions=None, fragment_charges=None,
-                        topology_positions=None, guess=None, scf_trace=false))]
+                        topology_positions=None, guess=None, scf_trace=false, broken_symmetry=false))]
     #[allow(clippy::too_many_arguments)]
     fn new(
         py: Python<'_>,
@@ -378,6 +383,7 @@ impl Calculator {
         topology_positions: Option<PyArrayLike2<'_, f64, AllowTypeChange>>,
         guess: Option<String>,
         scf_trace: bool,
+        broken_symmetry: bool,
     ) -> PyResult<Self> {
         let req = Settings {
             method,
@@ -399,6 +405,7 @@ impl Calculator {
             topology_positions,
             guess,
             scf_trace,
+            broken_symmetry,
         }
         .request(numbers, &positions)?;
         let inner = guarded(py, || axtb_driver::Calculator::new(&req))?;
@@ -551,7 +558,7 @@ impl Calculator {
                     etemp=None, max_iter=None, threads=1, dispersion=None, conventions=None, alpb=None, gbsa=None,
                     solvation_state=None, mixer=None, molden=None, solvation_correction=None,
                     correction_conventions=None, fragment_charges=None, topology_positions=None, bond_orders=false,
-                    scf_trace=false))]
+                    scf_trace=false, broken_symmetry=false))]
 #[allow(clippy::too_many_arguments)]
 fn singlepoint<'py>(
     py: Python<'py>,
@@ -578,6 +585,7 @@ fn singlepoint<'py>(
     topology_positions: Option<PyArrayLike2<'py, f64, AllowTypeChange>>,
     bond_orders: bool,
     scf_trace: bool,
+    broken_symmetry: bool,
 ) -> PyResult<Bound<'py, PyDict>> {
     let mut req = Settings {
         method,
@@ -599,6 +607,7 @@ fn singlepoint<'py>(
         topology_positions,
         guess: None,
         scf_trace,
+        broken_symmetry,
     }
     .request(numbers, &positions)?;
     req.gradient = gradient;
