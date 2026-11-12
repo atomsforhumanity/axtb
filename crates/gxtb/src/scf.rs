@@ -17,8 +17,10 @@ use crate::ints::overlap_matrix;
 use crate::kernels::{gamma2, gamma_mfx, hubbard_u, tau3};
 use crate::params::{EeqBcParams, GxtbParams, QvszpParams};
 use crate::qvszp::QvszpBasis;
+use crate::strategy::{Gxtb110FockMixer, Gxtb110Rule};
 use axtb::ao::ShellPairs;
 use axtb::integrals::{multipole, Scratch, MBLK};
+use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
 use axtb::{Error, Molecule, Result};
 use faer::{Mat, MatRef, Par};
 
@@ -667,95 +669,6 @@ pub struct ScfResult {
     pub eigensolver: String,
 }
 
-/// The program's Fock mixing (`diisfock_`), all matrices per spin as full row-major vectors
-/// here (closed-shell iteration numbers; open shell one later): iterations 1 and 2 damp, Fs = Fin + alpha (F - Fin) (Fin: the previous
-/// mixed Fock matrix, zero at the start); iteration 3 stores its pair (F, F - Fin) and returns
-/// 2 Fin + alpha (F - Fin); from iteration 4 on the stored pairs (at most `diis_size`, oldest
-/// dropped) are combined, Fs = sum_i c_i F_i with the coefficients minimizing
-/// |sum_i c_i r_i|^2, r_i = F_i - Fin_i, sum_i c_i = 1 (dot products over the packed lower
-/// triangle, separately for each spin). Only the direction of Fs matters (it is diagonalized).
-/// An SCF restarted from a given density (`restart`, the program's `gxtbrestart`) has no
-/// transition step: iteration 3 (4) already combines the stored pairs, its own only, so
-/// Fs = F (found by comparing every iteration of the program's restarted runs).
-struct FockMixer {
-    alpha: f64,
-    ndamp: usize,
-    restart: bool,
-    size: usize,
-    fin: Option<Vec<Vec<f64>>>,
-    hist: Vec<(Vec<Vec<f64>>, Vec<f64>)>,
-}
-
-impl FockMixer {
-    fn mix(&mut self, iter: usize, f: &[Vec<f64>], n: usize) -> Vec<Vec<f64>> {
-        let ns = f.len();
-        let fin = self.fin.clone().unwrap_or_else(|| vec![vec![0.0; n * n]; ns]);
-        let out: Vec<Vec<f64>> = if iter < self.ndamp {
-            (0..ns).map(|s| (0..n * n).map(|k| fin[s][k] + self.alpha * (f[s][k] - fin[s][k])).collect()).collect()
-        } else {
-            // residual over the packed lower triangles of all spins
-            let mut r = Vec::with_capacity(ns * n * (n + 1) / 2);
-            for s in 0..ns {
-                for i in 0..n {
-                    for j in 0..=i {
-                        r.push(f[s][i * n + j] - fin[s][i * n + j]);
-                    }
-                }
-            }
-            self.hist.push((f.to_vec(), r));
-            if self.hist.len() > self.size {
-                self.hist.remove(0);
-            }
-            if iter == self.ndamp && !self.restart {
-                (0..ns)
-                    .map(|s| (0..n * n).map(|k| 2.0 * fin[s][k] + self.alpha * (f[s][k] - fin[s][k])).collect())
-                    .collect()
-            } else {
-                (0..ns)
-                    .map(|s| {
-                        let c = diis_coefficients(&self.hist, s, n * (n + 1) / 2);
-                        let mut v = vec![0.0; n * n];
-                        for (ci, (fi, _)) in c.iter().zip(&self.hist) {
-                            for k in 0..n * n {
-                                v[k] += ci * fi[s][k];
-                            }
-                        }
-                        v
-                    })
-                    .collect()
-            }
-        };
-        self.fin = Some(out.clone());
-        out
-    }
-}
-
-/// Pulay coefficients of spin `s` from the residuals of `hist` (`npk` packed elements per spin).
-fn diis_coefficients(hist: &[(Vec<Vec<f64>>, Vec<f64>)], s: usize, npk: usize) -> Vec<f64> {
-    let m = hist.len();
-    let mut b = Mat::<f64>::zeros(m + 1, m + 1);
-    let r = |i: usize| &hist[i].1[s * npk..(s + 1) * npk];
-    for i in 0..m {
-        for j in 0..=i {
-            let v: f64 = r(i).iter().zip(r(j)).map(|(a, b)| a * b).sum();
-            b[(i, j)] = v;
-            b[(j, i)] = v;
-        }
-        b[(i, m)] = -1.0;
-        b[(m, i)] = -1.0;
-    }
-    let mut rhs = Mat::<f64>::zeros(m + 1, 1);
-    rhs[(m, 0)] = -1.0;
-    // sequential: faer's high-level `partial_piv_lu` would start rayon's global pool
-    axtb_base::linalg::Lu::new(b, Par::Seq).solve(rhs.as_mut());
-    if (0..m).any(|i| !rhs[(i, 0)].is_finite()) {
-        let mut c = vec![0.0; m];
-        c[m - 1] = 1.0;
-        return c;
-    }
-    (0..m).map(|i| rhs[(i, 0)]).collect()
-}
-
 impl Setup {
     /// Number of spin channels: 1 for a closed shell without unpaired electrons, else 2.
     pub fn nspin(&self) -> usize {
@@ -837,14 +750,8 @@ impl Setup {
         let mut occ = aufbau.clone();
         let mut efermi = [None, None];
         let npk = (n * (n + 1) / 2) as f64;
-        let mut mixer = FockMixer {
-            alpha: opts.damping.unwrap_or(DAMPING),
-            ndamp,
-            restart: start.is_some(),
-            size: ndiis,
-            fin: None,
-            hist: Vec::new(),
-        };
+        let mut mixer = Gxtb110FockMixer::new(n, opts.damping.unwrap_or(DAMPING), ndamp, ndiis, start.is_some());
+        let mut rule = Gxtb110Rule::new(ethr, pthr);
         let mut p = match start {
             Some(p) => p.to_vec(),
             None => self.guess(),
@@ -852,7 +759,8 @@ impl Setup {
         let conv = Some(opts.conventions);
         let mut ev = self.evaluate(&p, conv)?;
         let mut e_old = 0.0;
-        let mut converged = false;
+        // after convergence the program diagonalizes the unmixed Fock matrix once more
+        let mut unmixed = false;
         let mut c = Mat::<f64>::zeros(n, n);
         let mut eps = vec![vec![0.0; n]; ns];
         let mut coef = vec![vec![0.0; n * n]; ns];
@@ -860,10 +768,16 @@ impl Setup {
         // energy change and RMS density change of the last iteration (for the error)
         let (mut de, mut dp) = (f64::NAN, f64::NAN);
         for iter in 1..=max_iter {
-            // after convergence the program diagonalizes the unmixed Fock matrix once more
-            let fs = if converged { ev.fock.clone() } else { mixer.mix(iter, &ev.fock, n) };
+            let fock = std::mem::take(&mut ev.fock);
+            let unmixed_fock = if unmixed {
+                Some(fock)
+            } else {
+                mixer.mix(iter, fock)?;
+                None
+            };
             for s in 0..ns {
-                solver.solve(MatRef::from_row_major_slice(&fs[s], n, n), &mut eps[s], &mut c)?;
+                let fs = unmixed_fock.as_ref().map_or_else(|| mixer.mixed(s), |f| &f[s][..]);
+                solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut eps[s], &mut c)?;
                 for i in 0..n {
                     for k in 0..n {
                         coef[s][i * n + k] = c[(i, k)];
@@ -916,18 +830,21 @@ impl Setup {
             }
             dp = (dp2 / npk).sqrt();
             p = pnew;
-            ev = self.evaluate(&p, if converged { None } else { conv })?;
+            ev = self.evaluate(&p, if unmixed { None } else { conv })?;
             ev.energies.add_entropy(ts);
-            if converged {
-                // orbital energies of the last diagonalization (unmixed Fock matrix of the
-                // previous density), as the program prints them
-                let eigensolver = solver.backend();
-                return Ok(self.result(ev, p, eps, coef, occ, (kt, efermi), iter, opts.conventions, eigensolver));
-            }
             let e = ev.energies.total;
             de = e - e_old;
-            if de.abs() < ethr && dp < pthr {
-                converged = true;
+            let it =
+                Iteration { iteration: iter, energy: e, energy_change: de, residual: f64::NAN, density_change: dp };
+            match rule.update(&it) {
+                Verdict::Done => {
+                    // orbital energies of the last diagonalization (unmixed Fock matrix of the
+                    // previous density), as the program prints them
+                    let eigensolver = solver.backend();
+                    return Ok(self.result(ev, p, eps, coef, occ, (kt, efermi), iter, opts.conventions, eigensolver));
+                }
+                Verdict::OneMore { unmixed: u } => unmixed = u,
+                Verdict::Continue => {}
             }
             e_old = e;
         }
