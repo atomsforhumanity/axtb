@@ -297,7 +297,7 @@ impl Setup {
         let pops = |p: &[f64]| -> Vec<f64> {
             let mut pop = vec![0.0; self.shells.len()];
             for mu in 0..n {
-                pop[self.ao_shell[mu]] += dot(&p[mu * n..(mu + 1) * n], &self.s[mu * n..(mu + 1) * n]);
+                pop[self.basis.scf.ao2sh[mu]] += dot(&p[mu * n..(mu + 1) * n], &self.s[mu * n..(mu + 1) * n]);
             }
             pop
         };
@@ -307,7 +307,7 @@ impl Setup {
         let mut dip = vec![[0.0; 3]; nat];
         let mut qp = vec![[0.0; 6]; nat];
         for mu in 0..n {
-            let a = self.ao_atom[mu];
+            let a = self.basis.scf.ao2at[mu];
             let row = &ptot[mu * n..(mu + 1) * n];
             for x in 0..3 {
                 dip[a][x] -= dot(row, &self.dpint[x][mu * n..(mu + 1) * n]);
@@ -402,9 +402,9 @@ impl Setup {
     ) -> Vec<Vec<f64>> {
         let n = self.nao;
         let mut f0 = vec![0.0; n * n];
-        let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| dv[ish]).collect();
-        add_potentials_rows(n, &self.s, &self.ao_atom, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f0);
-        let wao: Option<Vec<f64>> = w.map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
+        let vao: Vec<f64> = self.basis.scf.ao2sh.iter().map(|&ish| dv[ish]).collect();
+        add_potentials_rows(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f0);
+        let wao: Option<Vec<f64>> = w.map(|w| self.basis.scf.ao2sh.iter().map(|&ish| w[ish]).collect());
         fx.into_iter()
             .enumerate()
             .map(|(k, mut f)| {

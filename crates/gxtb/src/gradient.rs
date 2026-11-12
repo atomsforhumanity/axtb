@@ -687,7 +687,7 @@ impl Setup {
         let mut tsh = vec![0.0; ns * ns];
         for i in 0..n {
             for j in 0..n {
-                tsh[self.ao_shell[i] * ns + self.ao_shell[j]] += t[i * n + j];
+                tsh[self.basis.scf.ao2sh[i] * ns + self.basis.scf.ao2sh[j]] += t[i * n + j];
             }
         }
         let g = &self.param.glob;
@@ -796,7 +796,7 @@ impl Setup {
         let mut x = vec![0.0; n * n];
         for i in 0..n {
             for j in 0..n {
-                x[i * n + j] = -0.5 * (vsh[self.ao_shell[i]] + vsh[self.ao_shell[j]]) * ptot[i * n + j];
+                x[i * n + j] = -0.5 * (vsh[self.basis.scf.ao2sh[i]] + vsh[self.basis.scf.ao2sh[j]]) * ptot[i * n + j];
             }
         }
         if let Some(mag) = crate::mulliken::magnetizations(&self.basis.scf, &self.s, p, false) {
@@ -804,7 +804,7 @@ impl Setup {
             for i in 0..n {
                 for j in 0..n {
                     let pd = p[0][i * n + j] - p[1][i * n + j];
-                    x[i * n + j] += 0.5 * (w[self.ao_shell[i]] + w[self.ao_shell[j]]) * pd;
+                    x[i * n + j] += 0.5 * (w[self.basis.scf.ao2sh[i]] + w[self.basis.scf.ao2sh[j]]) * pd;
                 }
             }
         }

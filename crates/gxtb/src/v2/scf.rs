@@ -49,12 +49,12 @@ pub struct Setup {
     pub(crate) eeq_solution: Arc<EeqBcSolution>,
     /// g-xTB coordination numbers.
     pub cn: Vec<f64>,
+    /// The SCF and H0 bases (the AO maps of the SCF basis: `basis.scf.ao2sh`, `ao2at`).
     pub basis: Basis,
     /// Integral pair cutoff (bohr; infinite in the default conventions).
     pub cutoff: f64,
+    /// (atom, shell, l) per shell of the SCF basis ([`crate::fock::shell_list`]).
     pub shells: Vec<Shell>,
-    pub ao_shell: Vec<usize>,
-    pub ao_atom: Vec<usize>,
     pub nao: usize,
     /// Overlap, dipole and quadrupole integrals of the SCF basis (around the atom of the
     /// first AO index).
@@ -162,8 +162,6 @@ impl Setup {
         let cutoff = basis.pair_cutoff(&model);
         t.lap("setup: cn+basis");
         let shells = shell_list(&basis.scf);
-        let ao_shell = basis.scf.ao2sh.clone();
-        let ao_atom = basis.scf.ao2at.clone();
         let nao = basis.scf.nao;
         axtb_base::threads::check(threads)?;
         let dense = axtb_base::threads::dense_par(threads, nao);
@@ -174,7 +172,7 @@ impl Setup {
         add_acp(mol, &basis.scf, cutoff, &mut h, dense, parallel);
         t.lap("setup: acp");
         let aniso = anisotropy_par(&model, mol, parallel);
-        mirror_add_anisotropy(nao, &ao_atom, &dpint, &aniso, &mut h, parallel);
+        mirror_add_anisotropy(nao, &basis.scf.ao2at, &dpint, &aniso, &mut h, parallel);
         t.lap("setup: anisotropy");
         let ref_occ: Vec<f64> = shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect();
         let coulomb = Coulomb::new_par(&model, mol, &shells, &cn, parallel);
@@ -184,7 +182,7 @@ impl Setup {
         t.lap("setup: revd4");
         let e_atm = disp.three_body_par(&model, mol, None, parallel).0;
         t.lap("setup: revd4 three-body");
-        let exch = Exchange::new(&model, mol, &shells, &ao_shell, parallel);
+        let exch = Exchange::new(&model, mol, &shells, &basis.scf.ao2sh, parallel);
         t.lap("setup: exchange");
         let e_incr: f64 = mol.numbers.iter().map(|&z| INCREMENT[z - 1]).sum();
         // electrons: program mode the stored reference occupations, otherwise the Aufbau
@@ -221,8 +219,6 @@ impl Setup {
             basis,
             cutoff,
             shells,
-            ao_shell,
-            ao_atom,
             nao,
             s,
             dpint,
@@ -393,18 +389,18 @@ impl Setup {
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
             vsh[ish] += vx[ish] + vs[iat] + vrep[iat] + vdisp[iat];
         }
-        let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| vsh[ish]).collect();
+        let vao: Vec<f64> = self.basis.scf.ao2sh.iter().map(|&ish| vsh[ish]).collect();
         // spin potential: +1/2 (w_m + w_n) S on alpha, - on beta
         let wao: Option<Vec<f64>> = st
             .mag
             .as_ref()
             .map(|m| spin_potential(mol, &self.shells, m))
-            .map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
+            .map(|w| self.basis.scf.ao2sh.iter().map(|&ish| w[ish]).collect());
         let fm = crate::fock::from_potentials_fused(
             n,
             &self.h,
             &self.s,
-            &self.ao_atom,
+            &self.basis.scf.ao2at,
             &self.dpint,
             &self.qpint,
             &vao,

@@ -30,13 +30,12 @@ pub struct Setup {
     pub eeq: EeqBcCharges,
     /// g-xTB coordination numbers.
     pub cn: Vec<f64>,
-    /// q-vSZP basis.
+    /// q-vSZP basis (its SCF basis `basis.scf` has the AO maps: `ao2sh`, `ao2at`).
     pub basis: QvszpBasis,
-    /// (atom, shell, l) per shell and per AO.
+    /// (atom, shell, l) per shell ([`crate::fock::shell_list`]) and per AO (the OFX kernels'
+    /// layout).
     pub shells: Vec<Shell>,
     pub ao: Vec<Shell>,
-    /// Shell index of every AO.
-    pub ao_shell: Vec<usize>,
     pub nao: usize,
     /// Overlap and one-electron Hamiltonian H0 + ACP (full, row-major).
     pub s: Vec<f64>,
@@ -130,7 +129,6 @@ impl Setup {
         let shells = shell_list(&basis.scf);
         let ao: Vec<Shell> = basis.scf.ao2sh.iter().map(|&s| shells[s]).collect();
         let nao = basis.scf.nao;
-        let ao_shell = basis.scf.ao2sh.clone();
         let s = overlap_matrix(mol, &basis.scf);
         let mut h = build_h0(&param, &qparam, mol, &basis, &cn)?.h;
         crate::acp::add_acp(&param, mol, &basis.scf, &cn, &mut h)?;
@@ -142,7 +140,7 @@ impl Setup {
         let mut gamma_x = vec![0.0; nao * nao];
         for i in 0..nao {
             for j in 0..nao {
-                gamma_x[i * nao + j] = gx_sh[ao_shell[i] * nsh + ao_shell[j]];
+                gamma_x[i * nao + j] = gx_sh[basis.scf.ao2sh[i] * nsh + basis.scf.ao2sh[j]];
             }
         }
         let (dpint, qpint) = multipole_integrals(mol, &basis);
@@ -174,7 +172,6 @@ impl Setup {
             basis,
             shells,
             ao,
-            ao_shell,
             nao,
             s,
             h,
@@ -320,9 +317,9 @@ impl Setup {
     ) -> Vec<Vec<f64>> {
         let n = self.nao;
         let closed = p.len() == 1;
-        let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| pot.vsh[ish]).collect();
+        let vao: Vec<f64> = self.basis.scf.ao2sh.iter().map(|&ish| pot.vsh[ish]).collect();
         add_potentials(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &pot.vd, &pot.vq, &mut f0);
-        let wao: Option<Vec<f64>> = pot.w.as_ref().map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
+        let wao: Option<Vec<f64>> = pot.w.as_ref().map(|w| self.basis.scf.ao2sh.iter().map(|&ish| w[ish]).collect());
         let mut fmats = Vec::with_capacity(p.len());
         for (k, ps) in p.iter().enumerate() {
             let fx = mfx_fock(n, &self.s, ps, &self.gamma_x, closed, self.par);
@@ -781,7 +778,7 @@ impl Setup {
         }
         let mut p = vec![0.0; n * n];
         for (mu, &(iat, _, l)) in self.ao.iter().enumerate() {
-            let ish = self.ao_shell[mu];
+            let ish = self.basis.scf.ao2sh[mu];
             let z = zval[iat];
             let psh = (z - self.eeq.charges[iat]) * self.ref_occ[ish] / z;
             p[mu * n + mu] = fac * psh / (2 * l + 1) as f64;

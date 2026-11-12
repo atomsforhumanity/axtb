@@ -23,7 +23,7 @@ fn molecule(rel: &str, conv: Conventions) -> axtb::Molecule {
 /// H0 + ACP (the setup's one-electron Hamiltonian without the anisotropy term).
 fn h_noaniso(s: &Setup) -> Vec<f64> {
     let mut a = vec![0.0; s.nao * s.nao];
-    add_anisotropy(s.nao, &s.ao_atom, &s.dpint, &s.aniso, &mut a);
+    add_anisotropy(s.nao, &s.basis.scf.ao2at, &s.dpint, &s.aniso, &mut a);
     s.h.iter().zip(&a).map(|(h, x)| h - x).collect()
 }
 

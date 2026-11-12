@@ -753,7 +753,7 @@ fn results_v2(
     let levels = levels(&r.orbital_energies, &r.occupations);
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha, setup.nbeta, gap_rule(opts.conventions));
     let bond_orders =
-        opts.bond_orders.then(|| bond_orders(setup.mol.nat(), &setup.ao_atom, &setup.s, &r.state.p, setup.par));
+        opts.bond_orders.then(|| bond_orders(setup.mol.nat(), &setup.basis.scf.ao2at, &setup.s, &r.state.p, setup.par));
     let (dpat, qpat) = (r.state.dip.clone(), r.state.qp.clone());
     let mut dipole = [0.0; 3];
     for (a, (q, d)) in r.atom_charges.iter().zip(&dpat).enumerate() {

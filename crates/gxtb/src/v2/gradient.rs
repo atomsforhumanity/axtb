@@ -785,7 +785,8 @@ impl Setup {
         let mut x = self.exch.overlap_weight_with(&st.p, &pr, &st.q, self.par, self.parallel);
         for i in 0..n {
             for j in 0..n {
-                x[i * n + j] -= 0.5 * (pot.vsh[self.ao_shell[i]] + pot.vsh[self.ao_shell[j]]) * ptot[i * n + j];
+                x[i * n + j] -=
+                    0.5 * (pot.vsh[self.basis.scf.ao2sh[i]] + pot.vsh[self.basis.scf.ao2sh[j]]) * ptot[i * n + j];
             }
         }
         if let Some(w) = &pot.w {
@@ -793,7 +794,7 @@ impl Setup {
             for i in 0..n {
                 for j in 0..n {
                     let pd = st.p[0][i * n + j] - st.p[1][i * n + j];
-                    x[i * n + j] += 0.5 * (w[self.ao_shell[i]] + w[self.ao_shell[j]]) * pd;
+                    x[i * n + j] += 0.5 * (w[self.basis.scf.ao2sh[i]] + w[self.basis.scf.ao2sh[j]]) * pd;
                 }
             }
         }

@@ -256,24 +256,24 @@ fn block_moments(
     spin: Option<(&[f64], &[f64])>,
 ) -> Vec<f64> {
     let n = s.nao;
-    let a = s.ao_atom[off];
+    let a = s.basis.scf.ao2at[off];
     let mut v = vec![0.0; lay.dim()];
     for ml in 0..na {
         let mu = off + ml;
-        let smu = s.ao_shell[mu];
+        let smu = s.basis.scf.ao2sh[mu];
         for nu in 0..n {
             let o = ml * n + nu;
             let b = nu * na + ml;
             let p = ptot[mu * n + nu];
             let pv = p * blk.s[o];
             v[smu] -= pv;
-            v[s.ao_shell[nu]] -= pv;
+            v[s.basis.scf.ao2sh[nu]] -= pv;
             if let Some((pa, pb)) = spin {
                 let m = (pa[mu * n + nu] - pb[mu * n + nu]) * blk.s[o];
                 v[lay.mag(smu)] += m;
-                v[lay.mag(s.ao_shell[nu])] += m;
+                v[lay.mag(s.basis.scf.ao2sh[nu])] += m;
             }
-            let an = s.ao_atom[nu];
+            let an = s.basis.scf.ao2at[nu];
             for k in 0..3 {
                 v[lay.dip(a, k)] -= p * blk.d[k][o];
                 v[lay.dip(an, k)] -= p * blk.dc[k][b];
@@ -313,9 +313,9 @@ impl<'a> Analytic<'a> {
         let n3 = 3 * nat;
         let dim = lay.dim();
         // Fock rows at the reference potentials
-        let vao: Vec<f64> = setup.ao_shell.iter().map(|&i| pot.vsh[i]).collect();
+        let vao: Vec<f64> = setup.basis.scf.ao2sh.iter().map(|&i| pot.vsh[i]).collect();
         let fr = |a: usize, blk: &IntegralBlock, h: &[f64]| {
-            fock_rows(n, &setup.ao_atom, tan.off[a], tan.na[a], blk, h, &vao, &vd_tot, &pot.vq)
+            fock_rows(n, &setup.basis.scf.ao2at, tan.off[a], tan.na[a], blk, h, &vao, &vd_tot, &pot.vq)
         };
         let f_disp: Vec<[Vec<f64>; 3]> =
             (0..nat).map(|a| [0, 1, 2].map(|c| fr(a, &tan.disp[a][c], &tan.h_disp[a][c]))).collect();
@@ -554,15 +554,15 @@ impl<'a> Analytic<'a> {
         // F^(x): integrals x old potentials + potential changes x integrals + exchange
         let (mut cv, mut cd, mut cq) = (vec![0.0; lay.nsh], vec![[0.0; 3]; lay.nat], vec![[0.0; 6]; lay.nat]);
         lay.unpack(&c, &mut cv, &mut cd, &mut cq, None);
-        let cao: Vec<f64> = s.ao_shell.iter().map(|&i| cv[i]).collect();
-        add_potentials_rows(n, &s.s, &s.ao_atom, &s.dpint, &s.qpint, &cao, &cd, &cq, &mut f0);
+        let cao: Vec<f64> = s.basis.scf.ao2sh.iter().map(|&i| cv[i]).collect();
+        add_potentials_rows(n, &s.s, &s.basis.scf.ao2at, &s.dpint, &s.qpint, &cao, &cd, &cq, &mut f0);
         let (dg, dk) = self.exchange_kernel_tangent(x);
         let a1: Vec<f64> = dg.iter().zip(&dk).map(|(g, k)| -0.125 * g + 0.5 * k).collect();
         let a2: Vec<f64> = dg.iter().map(|g| -0.125 * g).collect();
         drop((dg, dk));
         let fr = s.fock_response_fixed_density(self.st, &self.base, &ds, Some((&a1, &a2)), par);
         drop((a1, a2));
-        let wspin: Option<Vec<f64>> = self.pot.w.as_ref().map(|w| s.ao_shell.iter().map(|&i| w[i]).collect());
+        let wspin: Option<Vec<f64>> = self.pot.w.as_ref().map(|w| s.basis.scf.ao2sh.iter().map(|&i| w[i]).collect());
         let mut f = Vec::with_capacity(ns);
         for k in 0..ns {
             let mut fk = f0.clone();
@@ -701,7 +701,7 @@ impl<'a> Analytic<'a> {
             for i in 0..n {
                 for j in 0..n {
                     let pd = dp[0][i * n + j] - dp[1][i * n + j];
-                    y[i * n + j] += 0.5 * (w[s.ao_shell[i]] + w[s.ao_shell[j]]) * pd;
+                    y[i * n + j] += 0.5 * (w[s.basis.scf.ao2sh[i]] + w[s.basis.scf.ao2sh[j]]) * pd;
                 }
             }
         }
