@@ -202,7 +202,8 @@ pub fn run_scf<M: ScfModel>(
     // the rule asked for an iteration with the Fock matrices as built
     let mut unmixed = false;
     for iter in 1..=max_iter {
-        let (source, residual) = match &mut accelerator {
+        // (the matrices of an unmixed iteration, and the residual a Fock mixer measured)
+        let (as_built, residual) = match &mut accelerator {
             Accelerator::Moments(mixer) => {
                 if iter > 1 && !unmixed {
                     if !mixer.next() {
@@ -231,7 +232,7 @@ pub fn run_scf<M: ScfModel>(
                 (f, residual)
             }
         };
-        let fock_source = match (&accelerator, &source) {
+        let fock_source = match (&accelerator, &as_built) {
             (Accelerator::Moments(_), _) => FockSource::Built,
             (Accelerator::Fock(_), Some(f)) => FockSource::Unmixed(f),
             (Accelerator::Fock(mixer), None) => FockSource::Mixed(&**mixer),
@@ -240,7 +241,7 @@ pub fn run_scf<M: ScfModel>(
             stop = Stop::Model;
             break;
         }
-        drop(source);
+        drop(as_built);
         laps.lap("scf: diagonalization");
         model.density();
         laps.lap("scf: density");
