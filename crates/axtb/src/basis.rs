@@ -200,17 +200,19 @@ impl Basis {
     fn from_sets(cgto: Vec<Vec<Cgto>>, id: Vec<usize>, intcut: f64) -> Self {
         let nsh_id: Vec<usize> = cgto.iter().map(|s| s.len()).collect();
         let nat = id.len();
+        let nsh: usize = id.iter().map(|&s| nsh_id[s]).sum();
+        let nao: usize = id.iter().map(|&s| cgto[s].iter().map(|c| nsph(c.l)).sum::<usize>()).sum();
         let mut ish_at = Vec::with_capacity(nat);
         let mut nsh_at = Vec::with_capacity(nat);
         let mut iao_at = Vec::with_capacity(nat);
         let mut nao_at = Vec::with_capacity(nat);
         let mut min_alpha_at = Vec::with_capacity(nat);
-        let mut sh2at = Vec::new();
-        let mut iao_sh = Vec::new();
-        let mut nao_sh = Vec::new();
-        let mut min_alpha_sh = Vec::new();
-        let mut ao2at = Vec::new();
-        let mut ao2sh = Vec::new();
+        let mut sh2at = Vec::with_capacity(nsh);
+        let mut iao_sh = Vec::with_capacity(nsh);
+        let mut nao_sh = Vec::with_capacity(nsh);
+        let mut min_alpha_sh = Vec::with_capacity(nsh);
+        let mut ao2at = Vec::with_capacity(nao);
+        let mut ao2sh = Vec::with_capacity(nao);
         let mut ish = 0;
         let mut iao = 0;
         for (iat, &isp) in id.iter().enumerate() {
@@ -235,6 +237,7 @@ impl Basis {
             nao_at.push(iao - iao_at[iat]);
             min_alpha_at.push(amin);
         }
+        debug_assert_eq!((ish, iao), (nsh, nao));
         let maxl = cgto.iter().flatten().map(|c| c.l).max().unwrap_or(0);
         let min_alpha = cgto.iter().flatten().map(|c| c.min_alpha()).fold(f64::INFINITY, f64::min);
         Self {
@@ -250,8 +253,8 @@ impl Basis {
             nao_sh,
             ao2at,
             ao2sh,
-            nsh: ish,
-            nao: iao,
+            nsh,
+            nao,
             maxl,
             min_alpha,
             min_alpha_sh,
