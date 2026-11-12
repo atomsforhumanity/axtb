@@ -31,7 +31,7 @@
 
 use super::exchange::ResponseBase;
 use super::scf::{ScfResult, Setup, State};
-use crate::fock::add_charge_potential;
+use crate::fock::{add_charge_potential, add_potentials_rows};
 use crate::parallel::TILE;
 use axtb::{Error, Result};
 use axtb_base::fd;
@@ -90,50 +90,6 @@ pub fn to_mat_sym(n: usize, v: &[f64]) -> Mat<f64> {
         m.col_as_slice_mut(j).copy_from_slice(&v[j * n..(j + 1) * n]);
     }
     m
-}
-
-/// [`crate::fock::add_multipole_potential`] with contiguous access (the row part
-/// R_ij = vd(A(i)).D_ij + vq(A(i)).Q_ij first, then F -= 1/2 (R + R^T)); used by the response
-/// and Hessian code (same sum, different rounding order than the SCF's Fock build).
-pub fn add_multipole_potential_rows(
-    n: usize,
-    ao_atom: &[usize],
-    dpint: &[Vec<f64>; 3],
-    qpint: &[Vec<f64>; 6],
-    vd: &[[f64; 3]],
-    vq: &[[f64; 6]],
-    f: &mut [f64],
-) {
-    let mut r = vec![0.0; n * n];
-    for i in 0..n {
-        let a = ao_atom[i];
-        let row = &mut r[i * n..(i + 1) * n];
-        for x in 0..3 {
-            let c = vd[a][x];
-            if c != 0.0 {
-                for (o, d) in row.iter_mut().zip(&dpint[x][i * n..(i + 1) * n]) {
-                    *o += c * d;
-                }
-            }
-        }
-        for x in 0..6 {
-            let c = vq[a][x];
-            if c != 0.0 {
-                for (o, d) in row.iter_mut().zip(&qpint[x][i * n..(i + 1) * n]) {
-                    *o += c * d;
-                }
-            }
-        }
-    }
-    for i0 in (0..n).step_by(TILE) {
-        for j0 in (0..n).step_by(TILE) {
-            for i in i0..(i0 + TILE).min(n) {
-                for j in j0..(j0 + TILE).min(n) {
-                    f[i * n + j] -= 0.5 * (r[i * n + j] + r[j * n + i]);
-                }
-            }
-        }
-    }
 }
 
 /// X + X^T of a square faer matrix (tiled).
@@ -447,8 +403,7 @@ impl Setup {
         let n = self.nao;
         let mut f0 = vec![0.0; n * n];
         let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| dv[ish]).collect();
-        add_charge_potential(n, &self.s, &vao, &mut f0, 1.0);
-        add_multipole_potential_rows(n, &self.ao_atom, &self.dpint, &self.qpint, &vd, &vq, &mut f0);
+        add_potentials_rows(n, &self.s, &self.ao_atom, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f0);
         let wao: Option<Vec<f64>> = w.map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
         fx.into_iter()
             .enumerate()

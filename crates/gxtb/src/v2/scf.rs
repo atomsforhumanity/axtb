@@ -438,45 +438,26 @@ impl Setup {
             vsh[ish] += vx[ish] + vs[iat] + vrep[iat] + vdisp[iat];
         }
         let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| vsh[ish]).collect();
-        // multipole potential -1/2 (G_mn + G_nm), G_mn = vd(A(m)) . D_mn + vq(A(m)) . Q_mn (by rows)
-        let mut g = vec![0.0; n * n];
-        let ([d0, d1, d2], [q0, q1, q2, q3, q4, q5]) = (&self.dpint, &self.qpint);
-        axtb_base::threads::for_slices(&mut g, n, self.parallel, |m, row| {
-            let (vdm, vqm) = (vd[self.ao_atom[m]], vq[self.ao_atom[m]]);
-            for (k, x) in row.iter_mut().enumerate() {
-                let mk = m * n + k;
-                *x = vdm[0] * d0[mk]
-                    + vdm[1] * d1[mk]
-                    + vdm[2] * d2[mk]
-                    + vqm[0] * q0[mk]
-                    + vqm[1] * q1[mk]
-                    + vqm[2] * q2[mk]
-                    + vqm[3] * q3[mk]
-                    + vqm[4] * q4[mk]
-                    + vqm[5] * q5[mk];
-            }
-        });
         // spin potential: +1/2 (w_m + w_n) S on alpha, - on beta
         let wao: Option<Vec<f64>> = st
             .mag
             .as_ref()
             .map(|m| spin_potential(mol, &self.shells, m))
             .map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
-        let mut fm = Vec::with_capacity(st.p.len());
-        for (k, fxs) in fx.iter().enumerate() {
-            let mut f = vec![0.0; n * n];
-            let (h, s, g) = (&self.h, &self.s, &g);
-            let sw = if k == 0 { 0.5 } else { -0.5 };
-            crate::parallel::fill_tiled(&mut f, n, self.parallel, |m, k| {
-                let mk = m * n + k;
-                let mut v = h[mk] + fxs[mk] - 0.5 * (vao[m] + vao[k]) * s[mk] - 0.5 * (g[mk] + g[k * n + m]);
-                if let Some(w) = &wao {
-                    v += sw * (w[m] + w[k]) * s[mk];
-                }
-                v
-            });
-            fm.push(f);
-        }
+        let fm = crate::fock::from_potentials_fused(
+            n,
+            &self.h,
+            &self.s,
+            &self.ao_atom,
+            &self.dpint,
+            &self.qpint,
+            &vao,
+            &vd,
+            &vq,
+            wao.as_deref(),
+            &fx,
+            self.parallel,
+        );
         t.lap("scf: fock potentials");
         (energies, fm)
     }

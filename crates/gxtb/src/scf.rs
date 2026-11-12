@@ -8,8 +8,8 @@ use crate::disp::RevD4;
 use crate::eeqbc::{eeqbc_charges, EeqBcCharges};
 use crate::es::{first_order_energy, higher_order_energies, spin_energy};
 use crate::fock::{
-    add_charge_potential, add_multipole_potential, aes_potentials, isotropic_shell_potential, matmul, mfx_fock,
-    ofx_fock, shell_list, spin_shell_potential, Shell,
+    add_charge_potential, add_potentials, aes_potentials, isotropic_shell_potential, matmul, mfx_fock, ofx_fock,
+    shell_list, spin_shell_potential, Shell,
 };
 use crate::h0::build_h0;
 use crate::ints::overlap_matrix;
@@ -252,8 +252,7 @@ impl Setup {
         let (vs, vd, vq) = aes_potentials(&self.mol, &qa, &dip, &qp, &self.aes_kernels, full);
         let vao: Vec<f64> = self.basis.scf.ao2at.iter().map(|&a| vs[a]).collect();
         let mut f = vec![0.0; n * n];
-        add_charge_potential(n, &self.s, &vao, &mut f, 1.0);
-        add_multipole_potential(n, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vd, &vq, &mut f);
+        add_potentials(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f);
         f
     }
 
@@ -354,8 +353,7 @@ impl Setup {
         let n = self.nao;
         let closed = p.len() == 1;
         let vao: Vec<f64> = self.ao_shell.iter().map(|&ish| pot.vsh[ish]).collect();
-        add_charge_potential(n, &self.s, &vao, &mut f0, 1.0);
-        add_multipole_potential(n, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &pot.vd, &pot.vq, &mut f0);
+        add_potentials(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &pot.vd, &pot.vq, &mut f0);
         let wao: Option<Vec<f64>> = pot.w.as_ref().map(|w| self.ao_shell.iter().map(|&ish| w[ish]).collect());
         let mut fmats = Vec::with_capacity(p.len());
         for (k, ps) in p.iter().enumerate() {

@@ -26,11 +26,20 @@
 //!
 //! Apart from the two deviations noted (AES, onsite exchange) the Fock matrices are the exact
 //! derivatives of the energy (checked by finite differences).
+//!
+//! The potential part F = -1/2 (v_mu + v_nu) S - 1/2 (D.v_d + Q.v_q + transpose) is written
+//! once per rounding order, for both versions: [`add_potentials`] (v1.1, the program's order:
+//! the two orientations of each multipole component summed pairwise), [`add_potentials_rows`]
+//! (the 2.0.1 response and Hessian: multipole row products first, then halved with their
+//! transpose) and [`from_potentials_fused`] (the 2.0.1 SCF: one expression per element with
+//! H and the exchange). GFN2-xTB's form (`axtb::scf`, B = S v + D.v_d + Q.v_q by columns, then
+//! 1/2 (B + B^T)) is a fourth order.
 
 use crate::data::{GAM3, GMUNU, SPIN_W0};
 use crate::eeqbc::erf_f64;
 use crate::es::{atom_charges, reference_drho, spin_index, K1_DIS, K1_S, K4};
 use crate::exchange::{gmunu_index, OFX_SCALE};
+use crate::parallel::TILE;
 use crate::params::GxtbParams;
 use axtb::basis::Basis;
 use axtb::{Molecule, Result};
@@ -220,7 +229,8 @@ pub fn spin_shell_potential(param: &GxtbParams, mol: &Molecule, shells: &[Shell]
     Ok(w)
 }
 
-/// Add -1/2 (v(mu) + v(nu)) S_{mu nu} for an AO potential `v`.
+/// Add -1/2 (v(mu) + v(nu)) S_{mu nu} for an AO potential `v` (times `scale`; -1 and +1 give
+/// the alpha and beta spin potentials).
 pub fn add_charge_potential(n: usize, s: &[f64], v: &[f64], f: &mut [f64], scale: f64) {
     for i in 0..n {
         for j in 0..n {
@@ -230,7 +240,8 @@ pub fn add_charge_potential(n: usize, s: &[f64], v: &[f64], f: &mut [f64], scale
 }
 
 /// Add the multipole potentials: -1/2 [vd(A(mu)).D_{mu nu} + vd(A(nu)).D_{nu mu} + (Q likewise)],
-/// with `dpint[x][mu*n + nu]` the dipole integrals around the atom of mu (same for `qpint`).
+/// with `dpint[x][mu*n + nu]` the dipole integrals around the atom of mu (same for `qpint`);
+/// v1.1's order: the two orientations of every component summed pairwise in one scalar.
 pub fn add_multipole_potential(
     n: usize,
     ao_atom: &[usize],
@@ -255,6 +266,147 @@ pub fn add_multipole_potential(
             f[ij] -= 0.5 * t;
         }
     }
+}
+
+/// The potential part of the v1.1 Fock matrix (the 1.1.0 program's order), added to `f`: the
+/// charge potentials per AO `vao` ([`add_charge_potential`]), then the multipole potentials
+/// ([`add_multipole_potential`]).
+pub fn add_potentials(
+    n: usize,
+    s: &[f64],
+    ao_atom: &[usize],
+    dpint: &[Vec<f64>; 3],
+    qpint: &[Vec<f64>; 6],
+    vao: &[f64],
+    vd: &[[f64; 3]],
+    vq: &[[f64; 6]],
+    f: &mut [f64],
+) {
+    add_charge_potential(n, s, vao, f, 1.0);
+    add_multipole_potential(n, ao_atom, dpint, qpint, vd, vq, f);
+}
+
+/// The multipole potentials with contiguous access (2.0.1's response and Hessian): the row part
+/// R_ij = vd(A(i)).D_ij + vq(A(i)).Q_ij first (components with a zero potential skipped), then
+/// F -= 1/2 (R + R^T) in tiles. The same sum as [`add_multipole_potential`], in a different
+/// rounding order.
+pub fn add_multipole_potential_rows(
+    n: usize,
+    ao_atom: &[usize],
+    dpint: &[Vec<f64>; 3],
+    qpint: &[Vec<f64>; 6],
+    vd: &[[f64; 3]],
+    vq: &[[f64; 6]],
+    f: &mut [f64],
+) {
+    let mut r = vec![0.0; n * n];
+    for i in 0..n {
+        let a = ao_atom[i];
+        let row = &mut r[i * n..(i + 1) * n];
+        for x in 0..3 {
+            let c = vd[a][x];
+            if c != 0.0 {
+                for (o, d) in row.iter_mut().zip(&dpint[x][i * n..(i + 1) * n]) {
+                    *o += c * d;
+                }
+            }
+        }
+        for x in 0..6 {
+            let c = vq[a][x];
+            if c != 0.0 {
+                for (o, d) in row.iter_mut().zip(&qpint[x][i * n..(i + 1) * n]) {
+                    *o += c * d;
+                }
+            }
+        }
+    }
+    for i0 in (0..n).step_by(TILE) {
+        for j0 in (0..n).step_by(TILE) {
+            for i in i0..(i0 + TILE).min(n) {
+                for j in j0..(j0 + TILE).min(n) {
+                    f[i * n + j] -= 0.5 * (r[i * n + j] + r[j * n + i]);
+                }
+            }
+        }
+    }
+}
+
+/// The potential part of a 2.0.1 Fock matrix change in the response and Hessian order, added to
+/// `f`: the charge potentials per AO `vao` ([`add_charge_potential`]), then the multipole
+/// potentials by rows ([`add_multipole_potential_rows`]).
+pub fn add_potentials_rows(
+    n: usize,
+    s: &[f64],
+    ao_atom: &[usize],
+    dpint: &[Vec<f64>; 3],
+    qpint: &[Vec<f64>; 6],
+    vao: &[f64],
+    vd: &[[f64; 3]],
+    vq: &[[f64; 6]],
+    f: &mut [f64],
+) {
+    add_charge_potential(n, s, vao, f, 1.0);
+    add_multipole_potential_rows(n, ao_atom, dpint, qpint, vd, vq, f);
+}
+
+/// The 2.0.1 SCF's Fock matrices, one fused expression per element: for every channel s with
+/// the density-dependent part `x[s]` (the exchange),
+///
+/// ```text
+/// F_s = H + X_s - 1/2 (v_m + v_k) S - 1/2 (G + G^T) +- 1/2 (w_m + w_k) S
+/// ```
+///
+/// with the charge potentials per AO `vao`, G_mk = vd(A(m)).D_mk + vq(A(m)).Q_mk (by rows, all
+/// nine products in one sum) and, with `wao`, the spin potentials per AO (+ on alpha, the first
+/// channel, - on beta). G by rows and F in tiles, in parallel with `parallel` (each element by
+/// one task: the result does not depend on the thread count).
+pub fn from_potentials_fused(
+    n: usize,
+    h: &[f64],
+    s: &[f64],
+    ao_atom: &[usize],
+    dpint: &[Vec<f64>; 3],
+    qpint: &[Vec<f64>; 6],
+    vao: &[f64],
+    vd: &[[f64; 3]],
+    vq: &[[f64; 6]],
+    wao: Option<&[f64]>,
+    x: &[Vec<f64>],
+    parallel: bool,
+) -> Vec<Vec<f64>> {
+    let mut g = vec![0.0; n * n];
+    let ([d0, d1, d2], [q0, q1, q2, q3, q4, q5]) = (dpint, qpint);
+    axtb_base::threads::for_slices(&mut g, n, parallel, |m, row| {
+        let (vdm, vqm) = (vd[ao_atom[m]], vq[ao_atom[m]]);
+        for (k, x) in row.iter_mut().enumerate() {
+            let mk = m * n + k;
+            *x = vdm[0] * d0[mk]
+                + vdm[1] * d1[mk]
+                + vdm[2] * d2[mk]
+                + vqm[0] * q0[mk]
+                + vqm[1] * q1[mk]
+                + vqm[2] * q2[mk]
+                + vqm[3] * q3[mk]
+                + vqm[4] * q4[mk]
+                + vqm[5] * q5[mk];
+        }
+    });
+    let mut fm = Vec::with_capacity(x.len());
+    for (k, xs) in x.iter().enumerate() {
+        let mut f = vec![0.0; n * n];
+        let g = &g;
+        let sw = if k == 0 { 0.5 } else { -0.5 };
+        crate::parallel::fill_tiled(&mut f, n, parallel, |m, k| {
+            let mk = m * n + k;
+            let mut v = h[mk] + xs[mk] - 0.5 * (vao[m] + vao[k]) * s[mk] - 0.5 * (g[mk] + g[k * n + m]);
+            if let Some(w) = wao {
+                v += sw * (w[m] + w[k]) * s[mk];
+            }
+            v
+        });
+        fm.push(f);
+    }
+    fm
 }
 
 /// Mulliken-exchange Fock matrix of one spin density `p` (closed shell: total density with
