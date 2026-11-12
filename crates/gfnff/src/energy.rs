@@ -523,21 +523,12 @@ pub fn evaluate_full(
     e.electrostatic = es;
     lap("eeq solve", &mut t);
     if want_grad {
-        let sqrtpi = param::sqrtpi();
         let parts = map_chunks(pool, nch, |c| {
             let mut gl = vec![[0.0; 3]; n];
             let mut i = c;
             while i < n {
                 for j in 0..i {
-                    let d = [xyz[i][0] - xyz[j][0], xyz[i][1] - xyz[j][1], xyz[i][2] - xyz[j][2]];
-                    let r2 = d[0].powi(2) + d[1].powi(2) + d[2].powi(2);
-                    let rab = r2.sqrt();
-                    let gammij = 1. / (topo.alpeeq[i] + topo.alpeeq[j]).sqrt();
-                    let erff = erf(gammij * rab);
-                    let dd = (2.0e0 * gammij * (-(gammij.powi(2) * r2)).exp() / (sqrtpi * r2) - erff / (rab * r2))
-                        * q[i]
-                        * q[j];
-                    let r3 = [d[0] * dd, d[1] * dd, d[2] * dd];
+                    let r3 = terms::eeq_pair_grad(xyz[i], xyz[j], topo.alpeeq[i], topo.alpeeq[j], q[i], q[j]);
                     addv(&mut gl[i], r3);
                     addv(&mut gl[j], [-r3[0], -r3[1], -r3[2]]);
                 }

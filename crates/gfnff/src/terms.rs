@@ -1330,6 +1330,16 @@ pub fn xb<T: Real>(
     Some((energy, [ga, gb, gx]))
 }
 
+/// (d/dr [erf(g r)/r]) / r of the EEQ pair kernel at r² = `r2`, r = `rab`, g = `gammij`
+/// = 1/sqrt(alp_i + alp_j), as the `gfnff_eg` ES gradient loop computes it: the gradient of
+/// the pair energy at fixed charges is q_i q_j times this times R_i − R_j.
+#[inline]
+pub fn eeq_kernel_dd<T: Real>(r2: T, rab: T, gammij: f64) -> T {
+    let erff = (rab * gammij).erf();
+    let sqrtpi = crate::param::sqrtpi();
+    (-(r2 * gammij.powi(2))).exp() * (2.0e0 * gammij) / (r2 * sqrtpi) - erff / (rab * r2)
+}
+
 /// Gradient on atom i of the EEQ pair energy q_i q_j erf(g r)/r at fixed charges, as the
 /// `gfnff_eg` ES gradient loop computes it (atom j gets minus).
 #[inline]
@@ -1338,9 +1348,7 @@ pub fn eeq_pair_grad<T: Real>(xi: V3<T>, xj: V3<T>, alpi: f64, alpj: f64, qi: f6
     let r2 = d[0].powi(2) + d[1].powi(2) + d[2].powi(2);
     let rab = r2.sqrt();
     let gammij = 1. / (alpi + alpj).sqrt();
-    let erff = (rab * gammij).erf();
-    let sqrtpi = crate::param::sqrtpi();
-    let dd = ((-(r2 * gammij.powi(2))).exp() * (2.0e0 * gammij) / (r2 * sqrtpi) - erff / (rab * r2)) * qi * qj;
+    let dd = eeq_kernel_dd(r2, rab, gammij) * qi * qj;
     [d[0] * dd, d[1] * dd, d[2] * dd]
 }
 

@@ -557,7 +557,6 @@ impl<'a> Ctx<'a> {
         let xyz = self.xyz;
         let n = topo.natoms();
         let q = &st.charges;
-        let sqrtpi = param::sqrtpi();
         let mut r = Mat::<f64>::zeros(n + topo.nfrag, 3 * n);
         for i in 0..n {
             for j in 0..i {
@@ -565,8 +564,7 @@ impl<'a> Ctx<'a> {
                 let r2 = d[0].powi(2) + d[1].powi(2) + d[2].powi(2);
                 let rab = r2.sqrt();
                 let gammij = 1. / (topo.alpeeq[i] + topo.alpeeq[j]).sqrt();
-                let erff = crate::real::erf(gammij * rab);
-                let dd = 2.0e0 * gammij * (-(gammij.powi(2) * r2)).exp() / (sqrtpi * r2) - erff / (rab * r2);
+                let dd = terms::eeq_kernel_dd(r2, rab, gammij);
                 for c in 0..3 {
                     let t = dd * d[c];
                     // d A_ij / d x_i = t, d A_ij / d x_j = -t
