@@ -11,13 +11,13 @@
 //! Jacobians d q_eff/dR (EEQ-BC charges and basis CN), d q_eff0/dR and d CN/dR
 //! ([`Jacobians`]); the ACP projectors of a displaced atom add a low-rank term.
 
-use super::basis::{ao_offsets, effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
+use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
 use super::h0::{acp_projectors, diat_scale, kshell, selfenergy, shell_poly};
 use super::scf::Setup;
 use crate::acp::projector;
 use crate::h0::bond_projectors_deriv;
-use axtb::basis::Cgto;
+use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;

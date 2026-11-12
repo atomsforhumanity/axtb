@@ -14,7 +14,7 @@
 //! - ACP: H += S_pv^T diag(w) S_pv, normalized single-Gaussian projectors (`pa_nacp` per
 //!   element, l = `pa_l_acp`, exponent `ps_acp_exp`, weight `ps_acp_level`).
 
-use super::basis::{ao_offsets, atom_min_exponents, min_exponent, screened, INTCUT};
+use super::basis::{atom_min_exponents, min_exponent, screened, INTCUT};
 use super::Model;
 use crate::acp::projector;
 use crate::data_v2::{
@@ -23,7 +23,7 @@ use crate::data_v2::{
 };
 use crate::eeqbc::erf_f64;
 use crate::h0::scale_diatomic_block;
-use axtb::basis::Cgto;
+use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;

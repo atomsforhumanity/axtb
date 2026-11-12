@@ -461,7 +461,7 @@ impl Calculator {
                     let setup = Setup::new(m)?;
                     let r = setup.scf(&opts)?;
                     let g = setup.gradient(&r)?;
-                    let (dpat, _) = setup.atomic_moments(&total_density(&r.density));
+                    let (dpat, _) = setup.atomic_moments(&crate::fock::total_density(&r.density));
                     (r.energies.total, g, r.atom_charges.clone(), dpat)
                 }
             };
@@ -556,15 +556,6 @@ impl Calculator {
         self.setup = Some(AnySetup::V2(Box::new(setup)));
         self.state = Some(state);
         Ok(hess)
-    }
-}
-
-/// Total density of spin densities `p` (closed shell: the one matrix).
-fn total_density(p: &[Vec<f64>]) -> Vec<f64> {
-    if p.len() == 1 {
-        p[0].clone()
-    } else {
-        p[0].iter().zip(&p[1]).map(|(a, b)| a + b).collect()
     }
 }
 
@@ -704,11 +695,7 @@ fn results(
     let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha as f64, setup.nbeta as f64, gap_rule(opts.conventions));
     let ao_atom: Vec<usize> = setup.ao.iter().map(|a| a.0).collect();
     let bond_orders = opts.bond_orders.then(|| bond_orders(setup.mol.nat(), &ao_atom, &setup.s, &r.density, setup.par));
-    let ptot: Vec<f64> = if r.density.len() == 1 {
-        r.density[0].clone()
-    } else {
-        r.density[0].iter().zip(&r.density[1]).map(|(a, b)| a + b).collect()
-    };
+    let ptot = crate::fock::total_density(&r.density);
     let (dpat, qpat) = setup.atomic_moments(&ptot);
     let mut dipole = [0.0; 3];
     for (a, (q, d)) in r.atom_charges.iter().zip(&dpat).enumerate() {

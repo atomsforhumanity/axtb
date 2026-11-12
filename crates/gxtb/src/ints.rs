@@ -1,7 +1,7 @@
 //! One-electron integrals in a per-atom basis (`Vec<Vec<Cgto>>`), with the program's
 //! primitive screening (a_i a_j R^2/(a_i + a_j) > INTCUT skipped).
 
-use axtb::basis::Cgto;
+use axtb::basis::{ao_count, ao_offsets, Cgto};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::sub3;
 use axtb::Molecule;
@@ -25,16 +25,8 @@ pub fn ao_list(shells: &[Vec<Cgto>]) -> Vec<(usize, usize, usize)> {
 
 /// Full overlap matrix (row-major nao x nao).
 pub fn overlap_matrix(mol: &Molecule, shells: &[Vec<Cgto>]) -> Vec<f64> {
-    let mut first = Vec::new();
-    let mut nao = 0;
-    for sh in shells {
-        let mut v = Vec::new();
-        for s in sh {
-            v.push(nao);
-            nao += 2 * s.l + 1;
-        }
-        first.push(v);
-    }
+    let first = ao_offsets(shells);
+    let nao = ao_count(shells);
     let mut s = vec![0.0; nao * nao];
     let mut blk = [0.0; MBLK];
     for ia in 0..shells.len() {

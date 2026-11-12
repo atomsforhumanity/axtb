@@ -10,7 +10,7 @@
 use crate::data::MAX_REF;
 use crate::disp::{smooth_cutoff, D4Cache, D4Dispersion, RationalDamping};
 use crate::model::D4Model;
-use axtb_base::math::add_radial_hessian;
+use axtb_base::math::{add_radial_hessian, sub3};
 
 /// `zeta`, `dzeta/dq` and `d²zeta/dq²`.
 #[inline]
@@ -150,11 +150,6 @@ impl D4Model {
     pub fn add_coordination_number_hessian(&self, positions: &[[f64; 3]], cutoff: f64, w: &[f64], hess: &mut [f64]) {
         self.cn_model(cutoff).add_hessian(&positions[..self.natoms()], w, hess);
     }
-}
-
-#[inline]
-fn sub(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
 /// Second-order forward-mode dual number in three variables (value, gradient, packed
@@ -327,7 +322,7 @@ impl D4Dispersion {
             for p in cache.pair_offset[iat]..cache.pair_offset[iat + 1] {
                 let jat = cache.pair_j[p] as usize;
                 let (e, g) = (cache.pair_e[p], cache.pair_g[p]);
-                let v = sub(pos[iat], pos[jat]);
+                let v = sub3(pos[iat], pos[jat]);
                 let ai = m.c6x(iat, jat, &w.dq[iat], &w.gw[jat]);
                 let aj = m.c6x(iat, jat, &w.gw[iat], &w.dq[jat]);
                 for k in 0..3 {
@@ -402,7 +397,7 @@ impl D4Dispersion {
         for iat in 0..nat {
             for p in cache.pair_offset[iat]..cache.pair_offset[iat + 1] {
                 let jat = cache.pair_j[p] as usize;
-                let v = sub(pos[iat], pos[jat]);
+                let v = sub3(pos[iat], pos[jat]);
                 let r = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
                 let (e, e1, e2) = self.pair_radial(iat, jat, r);
                 let c6 = m.c6x(iat, jat, &w.gw[iat], &w.gw[jat]);
@@ -476,7 +471,7 @@ impl D4Dispersion {
         nb.off.push(0);
         for a in 0..nat {
             for b in 0..a {
-                let v = sub(pos[b], pos[a]);
+                let v = sub3(pos[b], pos[a]);
                 let r2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
                 if r2 > cutoff2 || r2 < f64::EPSILON {
                     continue;
@@ -936,15 +931,15 @@ impl<'a> AtmTerms<'a> {
     #[inline]
     fn new(t: &'a AtmTriple, at: [usize; 3], pos: &[[f64; 3]], full: bool) -> Self {
         let [i, j, k] = at;
-        let dij = sub(pos[i], pos[j]);
-        let dik = sub(pos[i], pos[k]);
+        let dij = sub3(pos[i], pos[j]);
+        let dik = sub3(pos[i], pos[k]);
         let mut gu = [[0.0; 9]; 3];
         for d in 0..3 {
             gu[0][d] = 2.0 * dij[d];
             gu[1][d] = 2.0 * dik[d];
         }
         if full {
-            let djk = sub(pos[j], pos[k]);
+            let djk = sub3(pos[j], pos[k]);
             for d in 0..3 {
                 gu[0][3 + d] = -2.0 * dij[d];
                 gu[1][6 + d] = -2.0 * dik[d];

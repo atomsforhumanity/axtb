@@ -15,20 +15,18 @@ use axtb::basis::{Cgto, MAXPRIM};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
-use std::f64::consts::PI;
+use axtb_base::math::primitive_norm;
 
 /// Squared-distance cutoff of the projector overlaps (bohr^2).
 pub const R2_CUTOFF: f64 = 1600.0;
 /// Primitive screening of the projector overlaps.
 pub const INTCUT: f64 = 20.0;
 
-const DFACTORIAL: [f64; 5] = [1.0, 1.0, 3.0, 15.0, 105.0];
-
 /// Normalized projector shell.
 pub fn projector(l: usize, alpha: f64) -> Cgto {
     let mut c = Cgto { l, nprim: 1, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
     c.alpha[0] = alpha;
-    c.coeff[0] = (2.0 * alpha / PI).powf(0.75) * (4.0 * alpha).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+    c.coeff[0] = primitive_norm(l, alpha);
     c
 }
 

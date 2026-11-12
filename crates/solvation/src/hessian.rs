@@ -14,6 +14,7 @@
 use crate::kernel::Kernel;
 use crate::params::{OBC_ALPHA, OBC_BETA, OBC_GAMMA, TOLSESP, ZETA_P16};
 use crate::{SolvCache, Solvation};
+use axtb_base::math::{add_radial_hessian, sub3};
 
 /// Value with first and second derivative in one variable.
 #[derive(Clone, Copy, Debug)]
@@ -184,27 +185,6 @@ fn psi_pair(r: f64, rhoi: f64, rhoj: f64, rvdwi: f64, rvdwj: f64) -> (Option<D1>
     (ci, cj)
 }
 
-/// Add the Hessian of a pair function (`dE/dr = e1`, `d²E/dr² = e2`, `v = R_i - R_j`).
-#[inline]
-fn add_radial(h: &mut [f64], n3: usize, i: usize, j: usize, v: [f64; 3], r: f64, e1: f64, e2: f64) {
-    let u = [v[0] / r, v[1] / r, v[2] / r];
-    for a in 0..3 {
-        for b in 0..3 {
-            let d = if a == b { 1.0 } else { 0.0 };
-            let blk = e2 * u[a] * u[b] + e1 / r * (d - u[a] * u[b]);
-            h[(3 * i + a) * n3 + 3 * i + b] += blk;
-            h[(3 * j + a) * n3 + 3 * j + b] += blk;
-            h[(3 * i + a) * n3 + 3 * j + b] -= blk;
-            h[(3 * j + a) * n3 + 3 * i + b] -= blk;
-        }
-    }
-}
-
-#[inline]
-fn sub(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
 impl Solvation {
     /// GB pair kernel `keps / f_GB(r, a_i, a_j)` with derivatives in (r, a_i, a_j).
     fn gb_pair(&self, r: f64, ai: f64, aj: f64) -> Dn<3> {
@@ -262,7 +242,7 @@ impl Solvation {
         let mut gi = vec![[0.0; 6]; n3];
         for i in 0..nat {
             let r2v = self.vdwr[i] * self.vdwr[i];
-            let v = sub(xyz[i], c);
+            let v = sub3(xyz[i], c);
             let vv = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
             for (u, &(a, b)) in IDX.iter().enumerate() {
                 let d = if a == b { vv + TOF * r2v } else { 0.0 };
@@ -352,7 +332,7 @@ impl Solvation {
         let mut pairs: Vec<PsiPair> = Vec::new();
         for i in 0..nat {
             for j in 0..i {
-                let v = sub(xyz[i], xyz[j]);
+                let v = sub3(xyz[i], xyz[j]);
                 let r2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
                 if !(r2 < lrcut2) {
                     continue;
@@ -393,12 +373,12 @@ impl Solvation {
         }
         for i in 0..nat {
             for j in 0..i {
-                let v = sub(xyz[i], xyz[j]);
+                let v = sub3(xyz[i], xyz[j]);
                 let r = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
                 let e = self.gb_pair(r, a[i], a[j]);
                 let qq = q[i] * q[j];
                 if let Some(h) = hess.as_deref_mut() {
-                    add_radial(h, n3, i, j, v, r, qq * e.g[0], qq * e.h[0][0]);
+                    add_radial_hessian(h, n3, i, j, v, r, qq * e.g[0], qq * e.h[0][0]);
                 }
                 ea[i] += qq * e.g[1];
                 ea[j] += qq * e.g[2];
@@ -516,7 +496,7 @@ impl Solvation {
             for (a_, c) in [(i, ci), (j, cj)] {
                 if let Some(c) = c {
                     let w = ea[a_] * bt[a_].d;
-                    add_radial(h, n3, i, j, v, r, w * c.d, w * c.dd);
+                    add_radial_hessian(h, n3, i, j, v, r, w * c.d, w * c.dd);
                 }
             }
         }
@@ -564,7 +544,7 @@ impl Solvation {
                 let mut buried = false;
                 let mut sasap = 1.0;
                 for &ja in &d.nb_idx[p0..p1] {
-                    let t = sub(xp, xyz[ja]);
+                    let t = sub3(xp, xyz[ja]);
                     let tj2 = t[0] * t[0] + t[1] * t[1] + t[2] * t[2];
                     if tj2 <= self.trj2[ja][0] {
                         buried = true;

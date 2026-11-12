@@ -11,18 +11,16 @@ use super::cn::basis_cn;
 use super::{element_shells, qvszp, sqrt_cn, Model};
 use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
 use crate::qvszp::shell_q_derivative;
-use axtb::basis::{Cgto, MAXPRIM};
+use axtb::basis::{ao_offsets, Cgto, MAXPRIM};
 use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
-use std::f64::consts::PI;
+use axtb_base::math::primitive_norm;
 
 /// tblite's primitive screening threshold at accuracy 1 (and below).
 pub const INTCUT: f64 = 25.0;
 /// Largest integral pair cutoff (bohr).
 pub const MAX_CUTOFF: f64 = 40.0;
-
-const DFACTORIAL: [f64; 6] = [1.0, 1.0, 3.0, 15.0, 105.0, 945.0];
 
 /// The q-vSZP basis of a molecule and its effective charges.
 #[derive(Clone, Debug)]
@@ -81,7 +79,7 @@ pub fn contracted(l: usize, alpha: &[f64], c0: &[f64], c1: &[f64], q: f64) -> Re
     let scale = 1.0 / s.sqrt();
     let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
     for (i, (&a, &c)) in alpha.iter().zip(&raw).enumerate() {
-        let norm = (2.0 * a / PI).powf(0.75) * (4.0 * a).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+        let norm = primitive_norm(l, a);
         cgto.alpha[i] = a;
         cgto.coeff[i] = c * norm * scale;
     }
@@ -175,21 +173,6 @@ pub fn atom_min_exponents(shells: &[Vec<Cgto>]) -> Vec<f64> {
 #[inline]
 pub fn screened(a: f64, b: f64, r2: f64) -> bool {
     a * b * r2 / (a + b) > INTCUT * (1.0 + 1e-10)
-}
-
-/// AO offsets of the shells of every atom.
-pub fn ao_offsets(shells: &[Vec<Cgto>]) -> Vec<Vec<usize>> {
-    let mut first = Vec::with_capacity(shells.len());
-    let mut nao = 0;
-    for sh in shells {
-        let mut v = Vec::with_capacity(sh.len());
-        for s in sh {
-            v.push(nao);
-            nao += 2 * s.l + 1;
-        }
-        first.push(v);
-    }
-    first
 }
 
 /// Overlap S (full, row-major) and the dipole and traceless quadrupole integrals of all AO

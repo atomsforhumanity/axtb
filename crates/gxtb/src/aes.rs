@@ -21,7 +21,7 @@
 
 use crate::eeqbc::{erf_f64, vdw_rad_pair};
 use crate::params::GxtbParams;
-use axtb::basis::Cgto;
+use axtb::basis::{ao_count, ao_offsets, Cgto};
 use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
@@ -40,16 +40,8 @@ pub const R_MAX: f64 = 200.0;
 /// density `p` (full nao x nao in the AO order of `shells`).
 pub fn atomic_moments(mol: &Molecule, shells: &[Vec<Cgto>], p: &[f64]) -> (Vec<[f64; 3]>, Vec<[f64; 6]>) {
     let nat = mol.nat();
-    let mut first = Vec::new();
-    let mut nao = 0;
-    for sh in shells {
-        let mut v = Vec::new();
-        for s in sh {
-            v.push(nao);
-            nao += 2 * s.l + 1;
-        }
-        first.push(v);
-    }
+    let first = ao_offsets(shells);
+    let nao = ao_count(shells);
     let mut dip = vec![[0.0; 3]; nat];
     let mut qp = vec![[0.0; 6]; nat];
     let mut s = [0.0; MBLK];

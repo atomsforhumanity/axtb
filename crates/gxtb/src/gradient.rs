@@ -39,7 +39,7 @@ use crate::kernels::{hubbard_u, ALPHA_FX, R_SAME_ATOM};
 use crate::params::{EeqBcParams, QvszpParams};
 use crate::qvszp::{atom_shells_dq, KCN_BASIS};
 use crate::scf::Setup;
-use axtb::basis::Cgto;
+use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;
@@ -96,20 +96,6 @@ impl Chain {
             }
         }
     }
-}
-
-fn ao_offsets(shells: &[Vec<Cgto>]) -> Vec<Vec<usize>> {
-    let mut first = Vec::with_capacity(shells.len());
-    let mut nao = 0;
-    for sh in shells {
-        let mut v = Vec::with_capacity(sh.len());
-        for s in sh {
-            v.push(nao);
-            nao += 2 * s.l + 1;
-        }
-        first.push(v);
-    }
-    first
 }
 
 /// Density-dependent parts of the explicit gradient ([`Setup::explicit_parts`]).
@@ -794,7 +780,7 @@ impl Setup {
         let mol = &self.mol;
         let nat = mol.nat();
         let closed = p.len() == 1;
-        let ptot: Vec<f64> = if closed { p[0].clone() } else { (0..n * n).map(|k| p[0][k] + p[1][k]).collect() };
+        let ptot = crate::fock::total_density(p);
         let pop = self.shell_populations(&ptot);
         let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
         let qa = atom_charges(nat, &self.shells, &q);

@@ -172,13 +172,9 @@ impl Coulomb {
         Self { shells, nat, mu, u, gamma, tau, gam3, gam4, rref, aes, dip_scale }
     }
 
-    /// Atomic charges from shell charges.
+    /// Atomic charges from shell charges ([`axtb_base::math::atom_charges`]).
     pub fn atom_charges(&self, q: &[f64]) -> Vec<f64> {
-        let mut qa = vec![0.0; self.nat];
-        for (k, &(iat, _, _)) in self.shells.iter().enumerate() {
-            qa[iat] += q[k];
-        }
-        qa
+        crate::es::atom_charges(self.nat, &self.shells, q)
     }
 
     /// (E1, E2, E3, E4), shells in fixed chunks (in parallel when `parallel`; same result).

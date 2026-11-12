@@ -3,7 +3,7 @@
 use crate::molecule::Molecule;
 use crate::param::sto_data::*;
 use crate::{Error, Result};
-use std::f64::consts::PI;
+use axtb_base::math::primitive_norm_tblite;
 
 /// Highest angular momentum supported by the integral code.
 pub const MAXL: usize = 4;
@@ -49,9 +49,6 @@ pub enum StoExpansion {
     Gfn2,
     Gfn1,
 }
-
-/// Double factorials (2l-1)!! for l = 0, 1, 2, ... (with (-1)!! = 1).
-const DFACTORIAL: [f64; 8] = [1.0, 1.0, 3.0, 15.0, 105.0, 945.0, 10395.0, 135135.0];
 
 /// Expand a Slater function (principal quantum number `n`, angular momentum `l`, exponent
 /// `zeta`) in `ng` Gaussians (STO-NG, Stewart's tables), optionally normalized.
@@ -111,10 +108,8 @@ pub fn slater_to_gauss(ng: usize, n: usize, l: usize, zeta: f64, norm: bool, exp
         _ => return Err(Error::Input(format!("STO-NG: {ng} primitives not supported"))),
     }
     if norm {
-        let top = 2.0 / PI;
         for i in 0..ng {
-            let a = cgto.alpha[i];
-            cgto.coeff[i] *= (top * a).powf(0.75) * (4.0 * a).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+            cgto.coeff[i] *= primitive_norm_tblite(l, cgto.alpha[i]);
         }
     }
     Ok(cgto)
@@ -220,4 +215,27 @@ impl Basis {
     pub fn cutoff(&self, acc: f64) -> f64 {
         (2.0 * integral_cutoff(acc) / self.min_alpha).sqrt().min(40.0)
     }
+}
+
+/// First AO of every shell of every atom for shells given per atom (`shells[atom]`), with the
+/// AOs ordered as in [`Basis::new`]: atom by atom, shell by shell, [`nsph`] each.
+pub fn ao_offsets(shells: &[Vec<Cgto>]) -> Vec<Vec<usize>> {
+    let mut iao = 0;
+    shells
+        .iter()
+        .map(|sh| {
+            sh.iter()
+                .map(|s| {
+                    let first = iao;
+                    iao += nsph(s.l);
+                    first
+                })
+                .collect()
+        })
+        .collect()
+}
+
+/// Number of AOs of shells given per atom (the AO count of [`ao_offsets`]).
+pub fn ao_count(shells: &[Vec<Cgto>]) -> usize {
+    shells.iter().flatten().map(|s| nsph(s.l)).sum()
 }

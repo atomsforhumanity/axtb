@@ -18,8 +18,8 @@ use crate::data::RCOV_BASIS_CN;
 use crate::params::QvszpParams;
 use axtb::basis::{Cgto, MAXPRIM};
 use axtb::{Error, Molecule, Result};
+use axtb_base::math::primitive_norm;
 use axtb_base::ncoord::{CnModel, Erf};
-use std::f64::consts::PI;
 
 /// Steepness of the basis coordination number.
 pub const KCN_BASIS: f64 = 3.75;
@@ -55,8 +55,6 @@ pub fn effective_charges(basis: &QvszpParams, mol: &Molecule, q: &[f64], cn: &[f
         .collect()
 }
 
-const DFACTORIAL: [f64; 6] = [1.0, 1.0, 3.0, 15.0, 105.0, 945.0];
-
 /// Contracted shells of an atom of element `z` with effective charge `qeff`, normalized,
 /// in the [`axtb::basis::Cgto`] convention (coefficients include the normalization of the
 /// x^l primitive component).
@@ -82,7 +80,7 @@ pub fn atom_shells(basis: &QvszpParams, z: usize, qeff: f64) -> Result<Vec<Cgto>
             let scale = 1.0 / s.sqrt();
             let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
             for (i, (&a, &c)) in sh.alpha.iter().zip(&raw).enumerate() {
-                let norm = (2.0 * a / PI).powf(0.75) * (4.0 * a).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+                let norm = primitive_norm(l, a);
                 cgto.alpha[i] = a;
                 cgto.coeff[i] = c * norm * scale;
             }
@@ -109,7 +107,7 @@ pub fn shell_q_derivative(l: usize, alpha: &[f64], c0: &[f64], c1: &[f64], q: f6
     let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
     for i in 0..np {
         let a = alpha[i];
-        let norm = (2.0 * a / PI).powf(0.75) * (4.0 * a).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+        let norm = primitive_norm(l, a);
         cgto.alpha[i] = a;
         cgto.coeff[i] = norm * (c1[i] / s.sqrt() - raw[i] * ds / (2.0 * s * s.sqrt()));
     }
@@ -132,7 +130,7 @@ pub fn raw_shell_coefficients(basis: &QvszpParams, z: usize, qeff: f64) -> Resul
             (0..sh.alpha.len())
                 .map(|i| {
                     let a = sh.alpha[i];
-                    let norm = (2.0 * a / PI).powf(0.75) * (4.0 * a).sqrt().powi(sh.l as i32) / DFACTORIAL[sh.l].sqrt();
+                    let norm = primitive_norm(sh.l, a);
                     (sh.c0[i] + sh.c1[i] * qeff) * norm
                 })
                 .collect()

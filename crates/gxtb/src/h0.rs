@@ -25,7 +25,7 @@ use axtb::basis::{Cgto, MAXPRIM};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
-use std::f64::consts::PI;
+use axtb_base::math::primitive_norm;
 
 /// Wolfsberg-type shell factors K_l (s, p, d, f) of the off-diagonal H0 elements.
 pub fn k_wolfsberg(param: &GxtbParams) -> [f64; 4] {
@@ -43,8 +43,6 @@ pub const INTCUT: f64 = 20.0;
 
 /// Delta-bond scaling of the diatomic-frame overlap.
 pub const K_DELTA: f64 = 5.0;
-
-const DFACTORIAL: [f64; 6] = [1.0, 1.0, 3.0, 15.0, 105.0, 945.0];
 
 /// Effective charge of the H0 basis.
 pub fn h0_effective_charge(param: &GxtbParams, z: usize, e: &EffectiveCharge) -> Result<f64> {
@@ -77,7 +75,7 @@ pub fn h0_atom_shells(param: &GxtbParams, basis: &QvszpParams, z: usize, qeff_h0
             let scale = 1.0 / s.sqrt();
             let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
             for (i, (&a, &c)) in alpha.iter().zip(&raw).enumerate() {
-                let norm = (2.0 * a / PI).powf(0.75) * (4.0 * a).sqrt().powi(l as i32) / DFACTORIAL[l].sqrt();
+                let norm = primitive_norm(l, a);
                 cgto.alpha[i] = a;
                 cgto.coeff[i] = c * norm * scale;
             }

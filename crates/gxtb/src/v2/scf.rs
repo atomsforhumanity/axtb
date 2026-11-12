@@ -318,13 +318,9 @@ impl Setup {
         (pop, dip, qp)
     }
 
-    /// Total density of spin densities `p`.
+    /// Total density of spin densities `p` ([`crate::fock::total_density`]).
     pub fn total_density(&self, p: &[Vec<f64>]) -> Vec<f64> {
-        if p.len() == 1 {
-            p[0].clone()
-        } else {
-            p[0].iter().zip(&p[1]).map(|(a, b)| a + b).collect()
-        }
+        crate::fock::total_density(p)
     }
 
     /// The total density of spin densities `p`, borrowed for a closed shell.
@@ -332,7 +328,7 @@ impl Setup {
         if p.len() == 1 {
             std::borrow::Cow::Borrowed(&p[0])
         } else {
-            std::borrow::Cow::Owned(p[0].iter().zip(&p[1]).map(|(a, b)| a + b).collect())
+            std::borrow::Cow::Owned(crate::fock::total_density(p))
         }
     }
 

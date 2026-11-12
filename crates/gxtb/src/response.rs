@@ -314,7 +314,7 @@ impl Setup {
         let par = self.par;
         let m = self.ofx_population_couplings();
         let terms = self.density_terms(p);
-        let ptot: Vec<f64> = if closed { p[0].clone() } else { (0..n * n).map(|k| p[0][k] + p[1][k]).collect() };
+        let ptot = crate::fock::total_density(p);
         // D = F_exact - F_used per spin
         let fa = self.aes_fock(&ptot, true);
         let fs = self.aes_fock(&ptot, false);
@@ -505,7 +505,7 @@ impl Setup {
         }
         let m = self.ofx_population_couplings();
         let terms = self.density_terms(p);
-        let ptot: Vec<f64> = if closed { p[0].clone() } else { (0..n * n).map(|k| p[0][k] + p[1][k]).collect() };
+        let ptot = crate::fock::total_density(p);
         // dF = F_exact - F_used per spin
         let fa = self.aes_fock(&ptot, true);
         let fs = self.aes_fock(&ptot, false);

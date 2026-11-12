@@ -1138,10 +1138,7 @@ pub(crate) fn electrons(mol: &Molecule, nref: f64, nao: usize) -> Result<(f64, f
 }
 
 pub(crate) fn qat_from_qsh(bas: &Basis, qsh: &[f64], qat: &mut [f64]) {
-    qat.iter_mut().for_each(|x| *x = 0.0);
-    for (ish, &q) in qsh.iter().enumerate() {
-        qat[bas.sh2at[ish]] += q;
-    }
+    axtb_base::math::atom_charges_into(qat, bas.sh2at.iter().copied(), qsh);
 }
 
 /// `out = γ q` for the row-major square `gamma`, rows in parallel when asked (each row summed

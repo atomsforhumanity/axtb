@@ -16,6 +16,7 @@ use crate::ints::{ao_list, overlap_matrix};
 use crate::kernels::{gamma2, gamma_mfx, hubbard_u, shell_list, tau3};
 use crate::params::{EeqBcParams, GxtbParams, QvszpParams};
 use crate::qvszp::QvszpBasis;
+use axtb::basis::{ao_count, ao_offsets};
 use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::molecule::sub3;
 use axtb::{Error, Molecule, Result};
@@ -307,9 +308,8 @@ impl Setup {
 
     /// Total density, Mulliken charges, atomic moments and magnetizations of `p`.
     pub(crate) fn density_terms(&self, p: &[Vec<f64>]) -> DensityTerms {
-        let n = self.nao;
         let closed = p.len() == 1;
-        let ptot: Vec<f64> = if closed { p[0].clone() } else { (0..n * n).map(|k| p[0][k] + p[1][k]).collect() };
+        let ptot = crate::fock::total_density(p);
         let pop = self.shell_populations(&ptot);
         let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
         let qa = crate::es::atom_charges(self.mol.nat(), &self.shells, &q);
@@ -426,16 +426,8 @@ fn mfx_energy_fast(n: usize, s: &[f64], p: &[f64], gamma: &[f64], closed: bool, 
 #[allow(clippy::type_complexity)]
 pub fn multipole_integrals(mol: &Molecule, basis: &QvszpBasis) -> ([Vec<f64>; 3], [Vec<f64>; 6]) {
     let shells = &basis.shells;
-    let mut first = Vec::new();
-    let mut nao = 0;
-    for sh in shells {
-        let mut v = Vec::new();
-        for s in sh {
-            v.push(nao);
-            nao += 2 * s.l + 1;
-        }
-        first.push(v);
-    }
+    let first = ao_offsets(shells);
+    let nao = ao_count(shells);
     let z = || vec![0.0; nao * nao];
     let mut dp = [z(), z(), z()];
     let mut qp = [z(), z(), z(), z(), z(), z()];

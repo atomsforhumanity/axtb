@@ -16,8 +16,8 @@
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
 use super::basis::{
-    ao_offsets, atom_min_exponents, effective_charge_deriv, h0_shells, min_exponent, qeff_h0_weights, qeff_weights,
-    scf_shells, screened, INTCUT,
+    atom_min_exponents, effective_charge_deriv, h0_shells, min_exponent, qeff_h0_weights, qeff_weights, scf_shells,
+    screened, INTCUT,
 };
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
 use super::coulomb::{aes_kernel, first_order_g, gamma_kernel, spin_potential, tau_kernel};
@@ -28,7 +28,7 @@ use super::sqrt_cn;
 use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, IPEA, IPEA_CN, SHELL_HUBBARD};
 use crate::h0::bond_projectors_deriv;
 use crate::timing::Laps;
-use axtb::basis::Cgto;
+use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Result;

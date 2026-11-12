@@ -38,6 +38,16 @@ use faer::{MatMut, MatRef, Par};
 /// Shell list entry: (atom, shell index on the atom, l).
 pub type Shell = (usize, usize, usize);
 
+/// The total density of spin densities `p` (closed shell: the one matrix, copied), for both
+/// versions.
+pub fn total_density(p: &[Vec<f64>]) -> Vec<f64> {
+    if p.len() == 1 {
+        p[0].clone()
+    } else {
+        p[0].iter().zip(&p[1]).map(|(a, b)| a + b).collect()
+    }
+}
+
 /// `a b` for row-major square matrices (faer on row-major views, no copies), on `par`
 /// (explicit; never faer's global setting).
 pub fn matmul(n: usize, a: &[f64], b: &[f64], par: Par) -> Vec<f64> {

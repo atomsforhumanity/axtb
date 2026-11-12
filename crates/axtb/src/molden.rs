@@ -35,7 +35,7 @@
 use crate::basis::{ncart, nsph, Cgto};
 use crate::integrals::{cart_exponents, sph_trafo};
 use crate::{Error, Result};
-use std::f64::consts::PI;
+use axtb_base::math::{primitive_norm, DFACTORIAL};
 use std::fmt::Write;
 
 /// Spin of a set of orbitals.
@@ -100,14 +100,6 @@ impl std::str::FromStr for MoldenFunctions {
             other => Err(Error::Input(format!("unknown Molden functions {other:?} (spherical or cartesian)"))),
         }
     }
-}
-
-/// Double factorial (2l - 1)!! for l = 0..=4.
-const DFACT: [f64; 5] = [1.0, 1.0, 3.0, 15.0, 105.0];
-
-/// Normalization of the primitive x^l exp(-alpha r^2).
-fn primitive_norm(l: usize, alpha: f64) -> f64 {
-    (2.0 * alpha / PI).powf(0.75) * (4.0 * alpha).sqrt().powi(l as i32) / DFACT[l].sqrt()
 }
 
 /// Coefficients d_k of the normalized primitives of `cgto` and the norm of its contracted
@@ -303,7 +295,7 @@ fn cartesian_coefficients(l: usize, norm: f64, c: &[f64], out: &mut Vec<f64>) {
     for e in molden_cartesian(l) {
         let ic = cca.iter().position(|x| x == e).expect("Cartesian component");
         // x^a y^b z^c with the norm of x^l has norm sqrt((2a-1)!! (2b-1)!! (2c-1)!! / (2l-1)!!)
-        let ratio = (DFACT[e[0]] * DFACT[e[1]] * DFACT[e[2]] / DFACT[l]).sqrt();
+        let ratio = (DFACTORIAL[e[0]] * DFACTORIAL[e[1]] * DFACTORIAL[e[2]] / DFACTORIAL[l]).sqrt();
         let v: f64 = (0..ns).map(|m| c[m] * t[m * nc + ic]).sum();
         out.push(norm * ratio * v);
     }

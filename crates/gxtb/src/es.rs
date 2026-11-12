@@ -30,13 +30,9 @@ pub const K4: f64 = 0.021;
 pub const K1_DIS: f64 = 0.012;
 pub const K1_S: f64 = 0.666666666;
 
-/// Atomic charges from shell charges.
+/// Atomic charges from shell charges ([`axtb_base::math::atom_charges`]).
 pub fn atom_charges(nat: usize, shells: &[(usize, usize, usize)], q: &[f64]) -> Vec<f64> {
-    let mut qa = vec![0.0; nat];
-    for (k, &(iat, _, _)) in shells.iter().enumerate() {
-        qa[iat] += q[k];
-    }
-    qa
+    axtb_base::math::atom_charges(nat, shells.iter().map(|s| s.0), q)
 }
 
 /// Reference density change drho_l = Z_l - n^ref_l per shell.
