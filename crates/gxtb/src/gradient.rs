@@ -781,8 +781,7 @@ impl Setup {
         let nat = mol.nat();
         let closed = p.len() == 1;
         let ptot = crate::fock::total_density(p);
-        let pop = self.shell_populations(&ptot);
-        let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
+        let q = crate::mulliken::shell_charges(&self.basis.scf, &self.s, &self.ref_occ, &ptot, false);
         let qa = atom_charges(nat, &self.shells, &q);
         let (dip, qp) = self.atomic_moments(&ptot);
         let mut ch = Chain::new(nat);
@@ -800,9 +799,7 @@ impl Setup {
                 x[i * n + j] = -0.5 * (vsh[self.ao_shell[i]] + vsh[self.ao_shell[j]]) * ptot[i * n + j];
             }
         }
-        if !closed {
-            let (pa, pb) = (self.shell_populations(&p[0]), self.shell_populations(&p[1]));
-            let mag: Vec<f64> = pa.iter().zip(&pb).map(|(a, b)| a - b).collect();
+        if let Some(mag) = crate::mulliken::magnetizations(&self.basis.scf, &self.s, p, false) {
             let w = spin_shell_potential(&self.param, mol, &self.shells, &mag)?;
             for i in 0..n {
                 for j in 0..n {

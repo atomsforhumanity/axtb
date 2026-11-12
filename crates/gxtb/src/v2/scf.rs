@@ -265,35 +265,9 @@ impl Setup {
         self.threads
     }
 
-    /// Per AO row mu of a density: sum_nu P S, -sum_nu P D, -sum_nu P Q (rows in parallel with
-    /// `self.parallel`; without `moments` only the first entry).
-    fn row_moments(&self, p: &[f64], moments: bool) -> Vec<[f64; 10]> {
-        let n = self.nao;
-        axtb_base::threads::map(n, self.parallel, |mu| {
-            let r = mu * n..(mu + 1) * n;
-            let pr = &p[r.clone()];
-            let mut out = [0.0; 10];
-            out[0] = pr.iter().zip(&self.s[r.clone()]).map(|(a, b)| a * b).sum();
-            if moments {
-                for x in 0..3 {
-                    out[1 + x] = -pr.iter().zip(&self.dpint[x][r.clone()]).map(|(a, b)| a * b).sum::<f64>();
-                }
-                for c in 0..6 {
-                    out[4 + c] = -pr.iter().zip(&self.qpint[c][r.clone()]).map(|(a, b)| a * b).sum::<f64>();
-                }
-            }
-            out
-        })
-    }
-
-    /// Mulliken shell populations of a density.
+    /// Mulliken shell populations of a density ([`crate::mulliken::shell_populations`]).
     pub fn shell_populations(&self, p: &[f64]) -> Vec<f64> {
-        let mut pop = vec![0.0; self.shells.len()];
-        // S is symmetric (exactly): its rows are its columns
-        for (mu, v) in self.row_moments(p, false).iter().enumerate() {
-            pop[self.ao_shell[mu]] += v[0];
-        }
-        pop
+        crate::mulliken::shell_populations(&self.basis.scf, &self.s, p, self.parallel)
     }
 
     /// Atomic dipoles and traceless quadrupoles of the total density.
@@ -302,24 +276,11 @@ impl Setup {
         (dip, qp)
     }
 
-    /// Shell populations, atomic dipoles and quadrupoles of a density.
+    /// Shell populations, atomic dipoles and quadrupoles of a density (2.0.1's order,
+    /// [`crate::mulliken::moments_by_rows`]).
     #[allow(clippy::type_complexity)]
     fn mulliken(&self, p: &[f64]) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>) {
-        let nat = self.mol.nat();
-        let mut pop = vec![0.0; self.shells.len()];
-        let mut dip = vec![[0.0; 3]; nat];
-        let mut qp = vec![[0.0; 6]; nat];
-        for (mu, v) in self.row_moments(p, true).iter().enumerate() {
-            let a = self.ao_atom[mu];
-            pop[self.ao_shell[mu]] += v[0];
-            for x in 0..3 {
-                dip[a][x] += v[1 + x];
-            }
-            for c in 0..6 {
-                qp[a][c] += v[4 + c];
-            }
-        }
-        (pop, dip, qp)
+        crate::mulliken::moments_by_rows(&self.basis.scf, &self.s, &self.dpint, &self.qpint, p, self.parallel)
     }
 
     /// Total density of spin densities `p` ([`crate::fock::total_density`]).
@@ -348,12 +309,7 @@ impl Setup {
         drop(ptot);
         let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
         let qa = self.coulomb.atom_charges(&q);
-        let mag = if p.len() == 2 {
-            let (pa, pb) = (self.shell_populations(&p[0]), self.shell_populations(&p[1]));
-            Some(pa.iter().zip(&pb).map(|(a, b)| a - b).collect())
-        } else {
-            None
-        };
+        let mag = crate::mulliken::magnetizations(&self.basis.scf, &self.s, &p, self.parallel);
         State { p, q, qa, dip, qp, mag }
     }
 

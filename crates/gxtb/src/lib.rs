@@ -93,6 +93,7 @@ pub mod gradient;
 pub mod h0;
 pub mod ints;
 pub mod kernels;
+pub mod mulliken;
 pub mod occupations;
 pub mod parallel;
 pub mod params;

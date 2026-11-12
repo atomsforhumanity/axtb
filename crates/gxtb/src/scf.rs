@@ -206,47 +206,22 @@ impl Setup {
         Ok(())
     }
 
-    /// Mulliken shell populations of a (spin) density.
+    /// Mulliken shell populations of a (spin) density ([`crate::mulliken::shell_populations`]).
     pub fn shell_populations(&self, p: &[f64]) -> Vec<f64> {
-        let n = self.nao;
-        let mut pop = vec![0.0; self.shells.len()];
-        for mu in 0..n {
-            let mut v = 0.0;
-            for nu in 0..n {
-                v += p[mu * n + nu] * self.s[nu * n + mu];
-            }
-            pop[self.ao_shell[mu]] += v;
-        }
-        pop
+        crate::mulliken::shell_populations(&self.basis.scf, &self.s, p, false)
     }
 
-    /// Atomic dipoles and traceless quadrupoles of the total density.
+    /// Atomic dipoles and traceless quadrupoles of the total density (v1.1's order,
+    /// [`crate::mulliken::moments_by_elements`]).
     pub fn atomic_moments(&self, p: &[f64]) -> (Vec<[f64; 3]>, Vec<[f64; 6]>) {
-        let n = self.nao;
-        let nat = self.mol.nat();
-        let mut dip = vec![[0.0; 3]; nat];
-        let mut qp = vec![[0.0; 6]; nat];
-        for mu in 0..n {
-            let a = self.basis.scf.ao2at[mu];
-            for nu in 0..n {
-                let pmn = p[mu * n + nu];
-                for x in 0..3 {
-                    dip[a][x] -= pmn * self.dpint[x][mu * n + nu];
-                }
-                for c in 0..6 {
-                    qp[a][c] -= pmn * self.qpint[c][mu * n + nu];
-                }
-            }
-        }
-        (dip, qp)
+        crate::mulliken::moments_by_elements(&self.basis.scf, &self.dpint, &self.qpint, p)
     }
 
     /// Fock contribution of the anisotropic electrostatics for the total density `ptot`
     /// (`full`: exact derivative incl. the dipole-quadrupole and quadrupole-quadrupole parts).
     pub fn aes_fock(&self, ptot: &[f64], full: bool) -> Vec<f64> {
         let n = self.nao;
-        let pop = self.shell_populations(ptot);
-        let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
+        let q = crate::mulliken::shell_charges(&self.basis.scf, &self.s, &self.ref_occ, ptot, false);
         let qa = crate::es::atom_charges(self.mol.nat(), &self.shells, &q);
         let (dip, qp) = self.atomic_moments(ptot);
         let (vs, vd, vq) = aes_potentials(&self.mol, &qa, &dip, &qp, &self.aes_kernels, full);
@@ -302,18 +277,11 @@ impl Setup {
 
     /// Total density, Mulliken charges, atomic moments and magnetizations of `p`.
     pub(crate) fn density_terms(&self, p: &[Vec<f64>]) -> DensityTerms {
-        let closed = p.len() == 1;
         let ptot = crate::fock::total_density(p);
-        let pop = self.shell_populations(&ptot);
-        let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
+        let q = crate::mulliken::shell_charges(&self.basis.scf, &self.s, &self.ref_occ, &ptot, false);
         let qa = crate::es::atom_charges(self.mol.nat(), &self.shells, &q);
         let (dip, qp) = self.atomic_moments(&ptot);
-        let mag = if closed {
-            None
-        } else {
-            let (pa, pb) = (self.shell_populations(&p[0]), self.shell_populations(&p[1]));
-            Some(pa.iter().zip(&pb).map(|(a, b)| a - b).collect::<Vec<f64>>())
-        };
+        let mag = crate::mulliken::magnetizations(&self.basis.scf, &self.s, p, false);
         DensityTerms { ptot, q, qa, dip, qp, mag }
     }
 
