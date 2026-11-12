@@ -12,10 +12,13 @@
 //!   stores c_i times the primitive normalization and normalizes the contracted function
 //!   (its `molden.input` prints exactly these normalized coefficients).
 //!
-//! All of this is verified against the 1.1.0 program to ~1e-15 (reference tests).
+//! All of this is verified against the 1.1.0 program to ~1e-15 (reference tests). The
+//! contraction ([`contracted`], [`contracted_dq`], with tabulated or scaled [`Exponents`]) is
+//! the one of every q-vSZP shell of both versions: the SCF bases and the H0 bases of v1.1
+//! ([`crate::h0`]) and 2.0.1 ([`crate::v2::basis`]).
 
 use crate::data::RCOV_BASIS_CN;
-use crate::params::QvszpParams;
+use crate::params::{QvszpParams, QvszpShell};
 use axtb::basis::{Cgto, MAXPRIM};
 use axtb::{Error, Molecule, Result};
 use axtb_base::math::primitive_norm;
@@ -55,68 +58,109 @@ pub fn effective_charges(basis: &QvszpParams, mol: &Molecule, q: &[f64], cn: &[f
         .collect()
 }
 
-/// Contracted shells of an atom of element `z` with effective charge `qeff`, normalized,
-/// in the [`axtb::basis::Cgto`] convention (coefficients include the normalization of the
-/// x^l primitive component).
-pub fn atom_shells(basis: &QvszpParams, z: usize, qeff: f64) -> Result<Vec<Cgto>> {
-    let el = basis.element(z)?;
-    el.shells
-        .iter()
-        .map(|sh| {
-            let np = sh.alpha.len();
-            if np > MAXPRIM {
-                return Err(Error::Input(format!("q-vSZP: {np} primitives exceed MAXPRIM")));
-            }
-            let l = sh.l;
-            let raw: Vec<f64> = (0..np).map(|i| sh.c0[i] + sh.c1[i] * qeff).collect();
-            // self-overlap of the contraction of normalized primitives
-            let mut s = 0.0;
-            for i in 0..np {
-                for j in 0..np {
-                    let (a, b) = (sh.alpha[i], sh.alpha[j]);
-                    s += raw[i] * raw[j] * (2.0 * (a * b).sqrt() / (a + b)).powf(l as f64 + 1.5);
-                }
-            }
-            let scale = 1.0 / s.sqrt();
-            let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
-            for (i, (&a, &c)) in sh.alpha.iter().zip(&raw).enumerate() {
-                let norm = primitive_norm(l, a);
-                cgto.alpha[i] = a;
-                cgto.coeff[i] = c * norm * scale;
-            }
-            Ok(cgto)
-        })
-        .collect()
+/// The exponents of a q-vSZP shell: as tabulated (the SCF basis of both versions) or scaled
+/// by a factor (the H0 bases: `pln` of v1.1, `ps_h0_qvszp_exp_scal` of 2.0.1).
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Exponents {
+    Tabulated,
+    Scaled(f64),
 }
 
-/// Derivative with respect to q of the normalized shell with exponents `alpha` and raw
-/// coefficients c0 + c1 q (as [`atom_shells`] builds it): a shell with the same primitives and
-/// coefficients dc_i/dq (integrals are linear in the coefficients of each shell).
-pub fn shell_q_derivative(l: usize, alpha: &[f64], c0: &[f64], c1: &[f64], q: f64) -> Cgto {
-    let np = alpha.len();
-    let raw: Vec<f64> = (0..np).map(|i| c0[i] + c1[i] * q).collect();
-    let (mut s, mut ds) = (0.0, 0.0);
-    for i in 0..np {
-        for j in 0..np {
-            let (a, b) = (alpha[i], alpha[j]);
-            let o = (2.0 * (a * b).sqrt() / (a + b)).powf(l as f64 + 1.5);
-            s += raw[i] * raw[j] * o;
-            ds += 2.0 * c1[i] * raw[j] * o;
+impl Exponents {
+    #[inline]
+    fn of(self, alpha: f64) -> f64 {
+        match self {
+            Exponents::Tabulated => alpha,
+            Exponents::Scaled(f) => f * alpha,
         }
     }
-    let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
-    for i in 0..np {
-        let a = alpha[i];
-        let norm = primitive_norm(l, a);
-        cgto.alpha[i] = a;
-        cgto.coeff[i] = norm * (c1[i] / s.sqrt() - raw[i] * ds / (2.0 * s * s.sqrt()));
+}
+
+/// The primitives of shell `sh` with exponents `exps` and raw coefficients c0 + c1 q, and the
+/// powers (2 sqrt(a b)/(a + b))^(l + 3/2) of their normalized overlaps: (shell with the raw
+/// coefficients, overlap of primitives i, j).
+#[inline]
+fn primitives(sh: &QvszpShell, exps: Exponents, q: f64) -> Result<(Cgto, impl Fn(usize, usize) -> f64)> {
+    let np = sh.alpha.len();
+    if np > MAXPRIM {
+        return Err(Error::Input(format!("q-vSZP: {np} primitives exceed MAXPRIM")));
     }
-    cgto
+    let l = sh.l;
+    let mut raw = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
+    for i in 0..np {
+        raw.alpha[i] = exps.of(sh.alpha[i]);
+        raw.coeff[i] = sh.c0[i] + sh.c1[i] * q;
+    }
+    let alpha = raw.alpha;
+    Ok((raw, move |i: usize, j: usize| {
+        let (a, b) = (alpha[i], alpha[j]);
+        (2.0 * (a * b).sqrt() / (a + b)).powf(l as f64 + 1.5)
+    }))
+}
+
+/// The normalized contracted shell `sh` with exponents `exps` and coefficients c0 + c1 q, in the
+/// [`axtb::basis::Cgto`] convention (coefficients include the normalization of the x^l
+/// primitive component).
+pub fn contracted(sh: &QvszpShell, exps: Exponents, q: f64) -> Result<Cgto> {
+    let (mut cgto, o) = primitives(sh, exps, q)?;
+    let raw = cgto.coeff;
+    // self-overlap of the contraction of normalized primitives
+    let mut s = 0.0;
+    for i in 0..cgto.nprim {
+        for j in 0..cgto.nprim {
+            s += raw[i] * raw[j] * o(i, j);
+        }
+    }
+    let scale = 1.0 / s.sqrt();
+    for i in 0..cgto.nprim {
+        let norm = primitive_norm(cgto.l, cgto.alpha[i]);
+        cgto.coeff[i] = raw[i] * norm * scale;
+    }
+    Ok(cgto)
+}
+
+/// Derivative with respect to q of the shell of [`contracted`]: a shell with the same
+/// primitives and coefficients dc_i/dq (integrals are linear in the coefficients of each
+/// shell).
+pub fn contracted_dq(sh: &QvszpShell, exps: Exponents, q: f64) -> Result<Cgto> {
+    let (mut cgto, o) = primitives(sh, exps, q)?;
+    let raw = cgto.coeff;
+    let (mut s, mut ds) = (0.0, 0.0);
+    for i in 0..cgto.nprim {
+        for j in 0..cgto.nprim {
+            let o = o(i, j);
+            s += raw[i] * raw[j] * o;
+            ds += 2.0 * sh.c1[i] * raw[j] * o;
+        }
+    }
+    for i in 0..cgto.nprim {
+        let norm = primitive_norm(cgto.l, cgto.alpha[i]);
+        cgto.coeff[i] = norm * (sh.c1[i] / s.sqrt() - raw[i] * ds / (2.0 * s * s.sqrt()));
+    }
+    Ok(cgto)
+}
+
+/// The shells `shells` of one atom at effective charge `q`, shell `ish` with exponents
+/// `exps(ish)` ([`contracted`]), or with `dq` their q derivatives ([`contracted_dq`]).
+pub fn contracted_shells(
+    shells: &[QvszpShell],
+    exps: impl Fn(usize) -> Exponents,
+    q: f64,
+    dq: bool,
+) -> Result<Vec<Cgto>> {
+    let f = if dq { contracted_dq } else { contracted };
+    shells.iter().enumerate().map(|(ish, sh)| f(sh, exps(ish), q)).collect()
+}
+
+/// Contracted shells of an atom of element `z` with effective charge `qeff`, normalized
+/// ([`contracted`] with the tabulated exponents).
+pub fn atom_shells(basis: &QvszpParams, z: usize, qeff: f64) -> Result<Vec<Cgto>> {
+    contracted_shells(&basis.element(z)?.shells, |_| Exponents::Tabulated, qeff, false)
 }
 
 /// d/dq_eff of the shells of [`atom_shells`].
 pub fn atom_shells_dq(basis: &QvszpParams, z: usize, qeff: f64) -> Result<Vec<Cgto>> {
-    Ok(basis.element(z)?.shells.iter().map(|sh| shell_q_derivative(sh.l, &sh.alpha, &sh.c0, &sh.c1, qeff)).collect())
+    contracted_shells(&basis.element(z)?.shells, |_| Exponents::Tabulated, qeff, true)
 }
 
 /// The program's internal (unnormalized-contraction) coefficients of a shell:

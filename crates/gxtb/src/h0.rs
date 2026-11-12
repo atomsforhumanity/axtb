@@ -20,12 +20,11 @@
 
 use crate::data::RCOV_COM;
 use crate::params::{GxtbParams, QvszpParams};
-use crate::qvszp::{EffectiveCharge, QvszpBasis};
-use axtb::basis::{Cgto, MAXPRIM};
+use crate::qvszp::{contracted_shells, EffectiveCharge, Exponents, QvszpBasis};
+use axtb::basis::Cgto;
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
-use axtb::{Error, Molecule, Result};
-use axtb_base::math::primitive_norm;
+use axtb::{Molecule, Result};
 
 /// Wolfsberg-type shell factors K_l (s, p, d, f) of the off-diagonal H0 elements.
 pub fn k_wolfsberg(param: &GxtbParams) -> [f64; 4] {
@@ -50,53 +49,18 @@ pub fn h0_effective_charge(param: &GxtbParams, z: usize, e: &EffectiveCharge) ->
     Ok(k[0] * e.q_term + k[1] * e.cn_term + k[2] * e.qcn_term)
 }
 
-/// Normalized shells of the H0 basis of one atom.
+/// Normalized shells of the H0 basis of one atom (exponents scaled by `pln`).
 pub fn h0_atom_shells(param: &GxtbParams, basis: &QvszpParams, z: usize, qeff_h0: f64) -> Result<Vec<Cgto>> {
     let el = basis.element(z)?;
     let pln = param.element(z)?.pln;
-    el.shells
-        .iter()
-        .enumerate()
-        .map(|(ish, sh)| {
-            let np = sh.alpha.len();
-            if np > MAXPRIM {
-                return Err(Error::Input(format!("H0 basis: {np} primitives exceed MAXPRIM")));
-            }
-            let l = sh.l;
-            let alpha: Vec<f64> = sh.alpha.iter().map(|a| pln[ish] * a).collect();
-            let raw: Vec<f64> = (0..np).map(|i| sh.c0[i] + sh.c1[i] * qeff_h0).collect();
-            let mut s = 0.0;
-            for i in 0..np {
-                for j in 0..np {
-                    let (a, b) = (alpha[i], alpha[j]);
-                    s += raw[i] * raw[j] * (2.0 * (a * b).sqrt() / (a + b)).powf(l as f64 + 1.5);
-                }
-            }
-            let scale = 1.0 / s.sqrt();
-            let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
-            for (i, (&a, &c)) in alpha.iter().zip(&raw).enumerate() {
-                let norm = primitive_norm(l, a);
-                cgto.alpha[i] = a;
-                cgto.coeff[i] = c * norm * scale;
-            }
-            Ok(cgto)
-        })
-        .collect()
+    contracted_shells(&el.shells, |ish| Exponents::Scaled(pln[ish]), qeff_h0, false)
 }
 
 /// d/dq'_eff of the shells of [`h0_atom_shells`].
 pub fn h0_atom_shells_dq(param: &GxtbParams, basis: &QvszpParams, z: usize, qeff_h0: f64) -> Result<Vec<Cgto>> {
     let el = basis.element(z)?;
     let pln = param.element(z)?.pln;
-    Ok(el
-        .shells
-        .iter()
-        .enumerate()
-        .map(|(ish, sh)| {
-            let alpha: Vec<f64> = sh.alpha.iter().map(|a| pln[ish] * a).collect();
-            crate::qvszp::shell_q_derivative(sh.l, &alpha, &sh.c0, &sh.c1, qeff_h0)
-        })
-        .collect())
+    contracted_shells(&el.shells, |ish| Exponents::Scaled(pln[ish]), qeff_h0, true)
 }
 
 /// Projectors onto the bond-frame |m| = 0, 1, 2 subspaces of a shell with angular momentum

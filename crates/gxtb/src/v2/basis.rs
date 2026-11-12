@@ -10,12 +10,11 @@
 use super::cn::basis_cn;
 use super::{element_shells, qvszp, sqrt_cn, Model};
 use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
-use crate::qvszp::shell_q_derivative;
-use axtb::basis::{ao_offsets, Cgto, MAXPRIM};
+use crate::qvszp::{contracted_shells, Exponents};
+use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
-use axtb::{Error, Molecule, Result};
-use axtb_base::math::primitive_norm;
+use axtb::{Molecule, Result};
 
 /// tblite's primitive screening threshold at accuracy 1 (and below).
 pub const INTCUT: f64 = 25.0;
@@ -62,58 +61,15 @@ pub fn effective_charge_deriv(k: [f64; 4], q: f64, cn: f64) -> (f64, f64) {
     (k[0] * (1.0 - 2.0 * k[1] * q) + k[3] * cn, k[2] * sqrt_cn(cn).1 + k[3] * q)
 }
 
-/// Normalized contracted shell with exponents `alpha` and coefficients c0 + c1 q.
-pub fn contracted(l: usize, alpha: &[f64], c0: &[f64], c1: &[f64], q: f64) -> Result<Cgto> {
-    let np = alpha.len();
-    if np > MAXPRIM {
-        return Err(Error::Input(format!("q-vSZP: {np} primitives exceed MAXPRIM")));
-    }
-    let raw: Vec<f64> = (0..np).map(|i| c0[i] + c1[i] * q).collect();
-    let mut s = 0.0;
-    for i in 0..np {
-        for j in 0..np {
-            let (a, b) = (alpha[i], alpha[j]);
-            s += raw[i] * raw[j] * (2.0 * (a * b).sqrt() / (a + b)).powf(l as f64 + 1.5);
-        }
-    }
-    let scale = 1.0 / s.sqrt();
-    let mut cgto = Cgto { l, nprim: np, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
-    for (i, (&a, &c)) in alpha.iter().zip(&raw).enumerate() {
-        let norm = primitive_norm(l, a);
-        cgto.alpha[i] = a;
-        cgto.coeff[i] = c * norm * scale;
-    }
-    Ok(cgto)
-}
-
 /// SCF-basis shells of element `z` at effective charge `q` (`dq`: their q derivatives).
 pub fn scf_shells(z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
-    element_shells(z)
-        .iter()
-        .map(|sh| {
-            if dq {
-                Ok(shell_q_derivative(sh.l, &sh.alpha, &sh.c0, &sh.c1, q))
-            } else {
-                contracted(sh.l, &sh.alpha, &sh.c0, &sh.c1, q)
-            }
-        })
-        .collect()
+    contracted_shells(element_shells(z), |_| Exponents::Tabulated, q, dq)
 }
 
-/// H0-basis shells of element `z` at effective charge `q` (`dq`: their q derivatives).
+/// H0-basis shells of element `z` at effective charge `q` (`dq`: their q derivatives):
+/// exponents scaled by `ps_h0_qvszp_exp_scal`.
 pub fn h0_shells(z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
-    element_shells(z)
-        .iter()
-        .enumerate()
-        .map(|(ish, sh)| {
-            let alpha: Vec<f64> = sh.alpha.iter().map(|a| H0_EXP_SCALE[z - 1][ish] * a).collect();
-            if dq {
-                Ok(shell_q_derivative(sh.l, &alpha, &sh.c0, &sh.c1, q))
-            } else {
-                contracted(sh.l, &alpha, &sh.c0, &sh.c1, q)
-            }
-        })
-        .collect()
+    contracted_shells(element_shells(z), |ish| Exponents::Scaled(H0_EXP_SCALE[z - 1][ish]), q, dq)
 }
 
 impl Basis {
