@@ -59,26 +59,69 @@ pub struct MoResponse {
 }
 
 /// Occupations of a converged SCF, their level derivatives and their divided differences
-/// between orbitals: the occupation part of a coupled-perturbed SCF.
+/// between orbitals: the occupation part of a coupled-perturbed SCF. Read-only: D1, D2 and D3
+/// follow from the energies, occupations and level derivatives they were built from.
 #[derive(Clone, Debug)]
 pub struct OccupationResponse {
-    /// Orbital energies (ascending).
-    pub eps: Vec<f64>,
-    /// Occupations, one vector per spin summed into the response (one or two).
-    pub f: Vec<Vec<f64>>,
-    /// Level derivatives `f'_p = ∂f_p/∂ε_p` of every vector (zero without smearing).
-    pub df: Vec<Vec<f64>>,
-    /// `Σ_p f'_p` of every vector, over all orbitals (zero without smearing).
-    pub z: Vec<f64>,
-    /// The rows of the response are the orbitals `[0, n_o)`.
-    pub n_o: usize,
-    /// D1, D2 and D3 for the rows `[0, n_o)` (n_o x n).
-    pub d1: Mat<f64>,
-    pub d2: Mat<f64>,
-    pub d3: Mat<f64>,
+    eps: Vec<f64>,
+    f: Vec<Vec<f64>>,
+    df: Vec<Vec<f64>>,
+    z: Vec<f64>,
+    n_o: usize,
+    d1: Mat<f64>,
+    d2: Mat<f64>,
+    d3: Mat<f64>,
 }
 
 impl OccupationResponse {
+    /// Orbital energies (ascending).
+    #[inline]
+    pub fn eps(&self) -> &[f64] {
+        &self.eps
+    }
+
+    /// Occupations, one vector per spin summed into the response (one or two).
+    #[inline]
+    pub fn f(&self) -> &[Vec<f64>] {
+        &self.f
+    }
+
+    /// Level derivatives `f'_p = ∂f_p/∂ε_p` of every vector (zero without smearing).
+    #[inline]
+    pub fn df(&self) -> &[Vec<f64>] {
+        &self.df
+    }
+
+    /// `Σ_p f'_p` of every vector, over all orbitals (zero without smearing).
+    #[inline]
+    pub fn z(&self) -> &[f64] {
+        &self.z
+    }
+
+    /// The rows of the response are the orbitals `[0, n_o)`.
+    #[inline]
+    pub fn n_o(&self) -> usize {
+        self.n_o
+    }
+
+    /// D1 for the rows `[0, n_o)` (n_o x n).
+    #[inline]
+    pub fn d1(&self) -> &Mat<f64> {
+        &self.d1
+    }
+
+    /// D2 for the rows `[0, n_o)` (n_o x n).
+    #[inline]
+    pub fn d2(&self) -> &Mat<f64> {
+        &self.d2
+    }
+
+    /// D3 for the rows `[0, n_o)` (n_o x n).
+    #[inline]
+    pub fn d3(&self) -> &Mat<f64> {
+        &self.d3
+    }
+
     /// The response of orbitals with energies `eps`, occupations `f` and level derivatives `df`
     /// (one vector per spin summed into the response, each as long as `eps`) for the rows
     /// `[0, n_o)`. `degenerate(ε_p − ε_q, f_p, f_q)` tells, for every vector, whether D1 takes

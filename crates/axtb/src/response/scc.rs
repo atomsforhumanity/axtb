@@ -138,7 +138,7 @@ impl<'a> Response<'a> {
 
     /// The orbitals and the rows `[0, n_o)` of the response matrices.
     pub fn mo(&self) -> MoSpace<'_> {
-        MoSpace::new(self.st.coeff.as_ref(), self.occ.n_o)
+        MoSpace::new(self.st.coeff.as_ref(), self.occ.n_o())
     }
 
     fn map<T: Send>(&self, n: usize, f: impl Fn(usize) -> T + Sync + Send) -> Vec<T> {
@@ -170,12 +170,13 @@ impl<'a> Response<'a> {
     pub fn chi0(&self) -> Mat<f64> {
         let m = self.lay.dim();
         let nao = self.bas().nao;
-        let (n_o, n_f) = (self.occ.n_o, self.n_f);
+        let (n_o, n_f) = (self.occ.n_o(), self.n_f);
         // pairs p <= q with p occupied and q not full; weight 2 D1 (p < q) or D1 (p = q)
         let mut pairs: Vec<(u32, u32, f64)> = Vec::new();
+        let d1s = self.occ.d1();
         for p in 0..n_o {
             for q in p.max(n_f)..nao {
-                let d1 = self.occ.d1[(p, q)];
+                let d1 = d1s[(p, q)];
                 let w = if p == q { d1 } else { 2.0 * d1 };
                 if w < 0.0 {
                     pairs.push((p as u32, q as u32, (-w).sqrt()));
@@ -217,14 +218,15 @@ impl<'a> Response<'a> {
         }
         // Fermi-level shifts: χ0 -= a aᵀ / Z per spin
         for s in 0..2 {
-            let z = self.occ.z[s];
+            let z = self.occ.z()[s];
             if z == 0.0 {
                 continue;
             }
             let mut a = vec![0.0; m];
             let mut tmp = vec![0.0; m];
+            let df = &self.occ.df()[s];
             for p in 0..n_o {
-                let w = self.occ.df[s][p];
+                let w = df[p];
                 if w == 0.0 {
                     continue;
                 }

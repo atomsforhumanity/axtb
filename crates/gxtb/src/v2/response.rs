@@ -77,9 +77,10 @@ impl Channel {
         let occ =
             OccupationResponse::new(eps, vec![occ.to_vec()], vec![dn], n_o, |de, fp, fq| fp == fq || de.abs() < 1e-10);
         let mut dh = Mat::<f64>::zeros(n_o, n);
+        let d1 = occ.d1();
         for q in 0..n {
             for p in 0..n_o {
-                let a = occ.d1[(p, q)];
+                let a = d1[(p, q)];
                 if q > p && a < 0.0 {
                     dh[(p, q)] = (-a).sqrt();
                 } else if q == p && a < 0.0 {
@@ -87,7 +88,7 @@ impl Channel {
                 }
             }
         }
-        let dn = &occ.df[0][..n_o];
+        let dn = &occ.df()[0][..n_o];
         let z: f64 = dn.iter().sum();
         let fermi = (z < 0.0).then(|| (z, dn.iter().map(|&d| (d / z).sqrt()).collect()));
         let v0 = (0..n).find(|&q| (0..n_o).any(|p| dh[(p, q)] != 0.0)).unwrap_or(n);
@@ -96,14 +97,14 @@ impl Channel {
 
     /// The orbitals and the rows [0, n_o) of the response.
     pub fn mo(&self) -> MoSpace<'_> {
-        MoSpace::new(self.c.as_ref(), self.occ.n_o)
+        MoSpace::new(self.c.as_ref(), self.occ.n_o())
     }
 
     /// Project the diagonal response pairs of `z` (rows [0, n_o)) onto the complement of the
     /// Fermi-level shift: z_pp -= v_p sum_r v_r z_rr.
     fn project(&self, z: &mut Mat<f64>) {
         if let Some((_, v)) = &self.fermi {
-            let n_o = self.occ.n_o;
+            let n_o = self.occ.n_o();
             let s: f64 = (0..n_o).map(|p| v[p] * z[(p, p)]).sum();
             for p in 0..n_o {
                 z[(p, p)] -= v[p] * s;
@@ -116,8 +117,8 @@ impl Channel {
     fn fermi_shift(&self, x: impl Fn(usize) -> f64) -> f64 {
         match &self.fermi {
             Some((z, _)) => {
-                let dn = &self.occ.df[0];
-                (0..self.occ.n_o).map(|p| dn[p] * x(p)).sum::<f64>() / z
+                let dn = &self.occ.df()[0];
+                (0..self.occ.n_o()).map(|p| dn[p] * x(p)).sum::<f64>() / z
             }
             None => 0.0,
         }
@@ -391,17 +392,19 @@ impl<'a> Cpks<'a> {
             .zip(&st)
             .map(|(ch, s)| {
                 let (oc, mo) = (&ch.occ, ch.mo());
-                let mut a = Mat::<f64>::zeros(oc.n_o, s.ncols());
+                let (n_o, eps, d2) = (oc.n_o(), oc.eps(), oc.d2());
+                let mut a = Mat::<f64>::zeros(n_o, s.ncols());
                 for j in 0..s.ncols() {
-                    for i in 0..oc.n_o {
-                        a[(i, j)] = -s[(i, j)] * oc.d2[(i, j)];
+                    for i in 0..n_o {
+                        a[(i, j)] = -s[(i, j)] * d2[(i, j)];
                     }
                 }
                 // finite temperature: the Fermi level follows the overlap part of the levels
                 if ch.fermi.is_some() {
-                    let mu = ch.fermi_shift(|p| oc.eps[p] * s[(p, p)]);
-                    for p in 0..oc.n_o {
-                        a[(p, p)] += oc.df[0][p] * mu;
+                    let mu = ch.fermi_shift(|p| eps[p] * s[(p, p)]);
+                    let dn = &oc.df()[0];
+                    for p in 0..n_o {
+                        a[(p, p)] += dn[p] * mu;
                     }
                 }
                 mo.halve_occupied(&mut a);
@@ -479,17 +482,19 @@ impl<'a> Cpks<'a> {
             .map(|((ch, f), s)| {
                 let (oc, mo) = (&ch.occ, ch.mo());
                 let ft = mo.to_mo(f.as_ref(), par);
-                let mut a = Mat::<f64>::zeros(oc.n_o, ft.ncols());
+                let (n_o, eps, d2, d3) = (oc.n_o(), oc.eps(), oc.d2(), oc.d3());
+                let mut a = Mat::<f64>::zeros(n_o, ft.ncols());
                 for j in 0..ft.ncols() {
-                    for i in 0..oc.n_o {
-                        a[(i, j)] = ft[(i, j)] * oc.d2[(i, j)] - s[(i, j)] * oc.d3[(i, j)];
+                    for i in 0..n_o {
+                        a[(i, j)] = ft[(i, j)] * d2[(i, j)] - s[(i, j)] * d3[(i, j)];
                     }
                 }
                 // finite temperature: d(n_p e_p) gains -n'_p e_p dmu
                 if ch.fermi.is_some() {
-                    let mu = ch.fermi_shift(|p| ft[(p, p)] - oc.eps[p] * s[(p, p)]);
-                    for p in 0..oc.n_o {
-                        a[(p, p)] -= oc.df[0][p] * oc.eps[p] * mu;
+                    let mu = ch.fermi_shift(|p| ft[(p, p)] - eps[p] * s[(p, p)]);
+                    let dn = &oc.df()[0];
+                    for p in 0..n_o {
+                        a[(p, p)] -= dn[p] * eps[p] * mu;
                     }
                 }
                 mo.halve_occupied(&mut a);

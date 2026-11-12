@@ -392,10 +392,11 @@ impl Setup {
         };
         let chi = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let (dn, dnsum) = (&c.occ.df[0], c.occ.z[0]);
+            let (dn, dnsum) = (&c.occ.df()[0], c.occ.z()[0]);
             let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
+            let d1 = c.occ.d1();
             for k in 0..n * n {
-                x[k] *= c.occ.d1[(k / n, k % n)];
+                x[k] *= d1[(k / n, k % n)];
             }
             for q in 0..n {
                 x[q * n + q] -= dn[q] * a;
@@ -404,13 +405,14 @@ impl Setup {
         };
         let sigma_t = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let (dn, dnsum) = (&c.occ.df[0], c.occ.z[0]);
+            let (dn, dnsum) = (&c.occ.df()[0], c.occ.z()[0]);
             let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
+            let (d2, eps) = (c.occ.d2(), c.occ.eps());
             for k in 0..n * n {
-                x[k] *= -c.occ.d2[(k / n, k % n)];
+                x[k] *= -d2[(k / n, k % n)];
             }
             for q in 0..n {
-                x[q * n + q] += dn[q] * c.occ.eps[q] * a;
+                x[q * n + q] += dn[q] * eps[q] * a;
             }
             to_ao(&c.c, &x)
         };

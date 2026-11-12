@@ -32,7 +32,14 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
     let (sp, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
     let resp = Response::new(&model, &extra, mol, &st, 1);
-    eprintln!("nao {} n_o {} n_f {} kT {:.3e} Z {:?}", model.basis.nao, resp.occ.n_o, resp.n_f, resp.st.kt, resp.occ.z);
+    eprintln!(
+        "nao {} n_o {} n_f {} kT {:.3e} Z {:?}",
+        model.basis.nao,
+        resp.occ.n_o(),
+        resp.n_f,
+        resp.st.kt,
+        resp.occ.z()
+    );
     let r = resp.scc_response(false).unwrap();
     let lay = resp.lay;
     let m = lay.dim();
