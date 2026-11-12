@@ -19,7 +19,7 @@ use crate::kernels::{gamma2, gamma_mfx, hubbard_u, tau3};
 use crate::params::{EeqBcParams, GxtbParams, QvszpParams};
 use crate::qvszp::QvszpBasis;
 use crate::strategy::{Gxtb110FockMixer, Gxtb110Rule};
-use crate::timing::Laps;
+use crate::timing::{Laps, Timings};
 use axtb::ao::ShellPairs;
 use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::linalg::GenEigSolver;
@@ -239,6 +239,13 @@ impl Setup {
     /// of the spin densities `p` (closed shell: one matrix, the total density; open shell:
     /// alpha and beta).
     pub fn evaluate(&self, p: &[Vec<f64>], fock: Option<Conventions>) -> Result<Evaluation> {
+        self.evaluate_timed(p, fock, &mut Laps::new())
+    }
+
+    /// [`Setup::evaluate`] with its phases timed in `t`: the Mulliken analysis and the energies
+    /// (`scf: fock energies`), the potentials and Fock matrices (`scf: fock potentials`).
+    pub(crate) fn evaluate_timed(&self, p: &[Vec<f64>], fock: Option<Conventions>, t: &mut Laps) -> Result<Evaluation> {
+        t.skip();
         let n = self.nao;
         let mol = &self.mol;
         let closed = p.len() == 1;
@@ -272,8 +279,13 @@ impl Setup {
             entropy: 0.0,
             total: electronic + self.e_incr + e_disp2 + self.e_atm + self.e_rep,
         };
+        t.lap("scf: fock energies");
         let fmats = match fock {
-            Some(c) => self.fock_from(p, &d, c)?,
+            Some(c) => {
+                let f = self.fock_from(p, &d, c)?;
+                t.lap("scf: fock potentials");
+                f
+            }
             None => Vec::new(),
         };
         Ok(Evaluation { energies, shell_charges: d.q, atom_charges: d.qa, fock: fmats })
@@ -671,6 +683,9 @@ pub struct ScfResult {
     pub conventions: Conventions,
     /// The eigensolver of the SCF (`axtb::linalg::GenEigSolver::backend`).
     pub eigensolver: String,
+    /// Wall time of the SCF phases (`scf: cholesky`, the core driver's laps, and the
+    /// evaluation's `scf: fock energies` and `scf: fock potentials`).
+    pub timings: Timings,
 }
 
 impl Setup {
@@ -738,7 +753,9 @@ impl Setup {
         } else {
             0.0
         };
+        let mut t = Laps::new();
         let solver = GenEigSolver::new(MatRef::from_row_major_slice(&self.s, n, n), self.par)?;
+        t.lap("scf: cholesky");
         let nocc = if ns == 1 { vec![self.nalpha] } else { vec![self.nalpha, self.nbeta] };
         if nocc.iter().any(|&k| k > n) {
             return Err(Error::Input("g-xTB: more occupied orbitals than basis functions".into()));
@@ -775,7 +792,7 @@ impl Setup {
         };
         let max_iter = opts.iteration_limit(Version::V1_1);
         let strategy = ScfStrategy { accelerator: Accelerator::Fock(&mut mixer), rule: &mut rule, max_iter };
-        let out = run_scf(&mut scf, strategy, p, &mut Laps::new())?;
+        let out = run_scf(&mut scf, strategy, p, &mut t)?;
         if !out.converged {
             let (de, dp) = (out.last.energy_change, out.last.density_change);
             return Err(Error::ScfNotConverged { iterations: max_iter, energy_change: de, residual: dp });
@@ -785,7 +802,18 @@ impl Setup {
         let Scf110 { solver, occ, efermi, eps, coef, ev, .. } = scf;
         let ev = ev.expect("a converged SCF evaluated its density");
         let eigensolver = solver.backend();
-        Ok(self.result(ev, out.state, eps, coef, occ, (kt, efermi), out.iterations, opts.conventions, eigensolver))
+        Ok(self.result(
+            ev,
+            out.state,
+            eps,
+            coef,
+            occ,
+            (kt, efermi),
+            out.iterations,
+            opts.conventions,
+            eigensolver,
+            t.finish(),
+        ))
     }
 
     fn result(
@@ -799,6 +827,7 @@ impl Setup {
         iterations: usize,
         conventions: Conventions,
         eigensolver: String,
+        timings: Timings,
     ) -> ScfResult {
         ScfResult {
             energies: ev.energies,
@@ -813,6 +842,7 @@ impl Setup {
             iterations,
             conventions,
             eigensolver,
+            timings,
         }
     }
 }
@@ -926,9 +956,9 @@ impl ScfModel for Scf110<'_> {
         _iter: usize,
         p: &Vec<Vec<f64>>,
         fock: bool,
-        _laps: &mut Laps,
+        laps: &mut Laps,
     ) -> Result<(f64, Option<Vec<Vec<f64>>>)> {
-        let mut ev = self.setup.evaluate(p, fock.then_some(self.conventions))?;
+        let mut ev = self.setup.evaluate_timed(p, fock.then_some(self.conventions), laps)?;
         ev.energies.add_entropy(self.ts);
         let e = ev.energies.total;
         let f = fock.then(|| std::mem::take(&mut ev.fock));

@@ -588,8 +588,9 @@ fn run(
                 Some(_) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
                 None => Ok(None),
             };
-            p0.and_then(|p0| setup.scf_from(opts, p0)).and_then(|r| {
+            p0.and_then(|p0| setup.scf_from(opts, p0)).and_then(|mut r| {
                 let mut timings = vec![("setup", t_setup), ("scf", t1.elapsed().as_secs_f64())];
+                timings.append(&mut r.timings);
                 let g = if gradient {
                     let t2 = Instant::now();
                     let g = setup.gradient(&r)?;
