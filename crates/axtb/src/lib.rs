@@ -33,6 +33,7 @@ pub(crate) mod repulsion;
 pub mod response;
 pub mod scf;
 mod solvation;
+pub mod terms;
 #[cfg(test)]
 mod tests_response;
 pub mod threads;
