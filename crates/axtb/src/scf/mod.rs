@@ -1,7 +1,8 @@
 //! Building blocks of a self-consistent-charge tight-binding SCF that do not depend on the
 //! method: the layout of the self-consistent variables ([`ScfVariables`]), the Mulliken
-//! analysis that gives them from a density (`mulliken`, crate-private) and the Fock matrix of
-//! their potentials (`fock`, crate-private).
+//! analysis that gives them from a density (`mulliken`, crate-private), the Fock matrix of
+//! their potentials (`fock`, crate-private), the mixers between iterations ([`VectorMixer`],
+//! [`FockMixer`]) and the convergence tests ([`ConvergenceRule`]).
 //!
 //! The SCC variables of a GFN-type method are Mulliken shell charges, atomic dipoles and
 //! traceless atomic quadrupoles (and, for spin-polarized methods, shell magnetizations). Each is
@@ -12,10 +13,14 @@
 //! S. Ehlert, S. Grimme, J. Chem. Theory Comput. 15, 1652 (2019); the same forms as tblite's
 //! Mulliken analysis and Fock assembly).
 
+pub(crate) mod convergence;
 pub(crate) mod fock;
+pub(crate) mod mixing;
 pub(crate) mod mulliken;
 mod variables;
 
+pub use convergence::{ConvergenceRule, Iteration, Verdict};
+pub use mixing::{FockMixer, VectorMixer};
 pub use variables::{ScfVariables, QUAD_OFFDIAG};
 
 use faer::Mat;

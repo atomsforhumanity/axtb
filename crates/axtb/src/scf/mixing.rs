@@ -1,10 +1,78 @@
-//! Mixing of the SCF variables between SCC iterations: modified Broyden mixing
-//! (D. D. Johnson, PRB 38, 12807 (1988)) with the weights and damping used by xtb/tblite,
-//! and Pulay (DIIS) mixing with restarts.
+//! Mixing between SCF iterations. The accelerators come in two kinds, by what they mix:
+//!
+//! - [`VectorMixer`]: the input vector of the self-consistent variables, before the Fock matrix
+//!   is built from it (GFN2-xTB: shell charges, atomic dipoles and quadrupoles, packed by
+//!   [`ScfVariables`](super::ScfVariables)). Its energy depends on the density only through
+//!   `Tr(H0 P)` and these moments, so mixing them is enough.
+//! - [`FockMixer`]: the Fock matrices of all spin channels, after they are built (g-xTB, whose
+//!   exchange depends on the whole density). g-xTB's Fock mixers reproduce its programs and are
+//!   in `axtb-gxtb`.
+//!
+//! The vector mixers here are modified Broyden mixing (D. D. Johnson, PRB 38, 12807 (1988)) with
+//! the weights and damping used by xtb/tblite, and Pulay (DIIS) mixing with restarts; GFN2-xTB
+//! runs them as the attempts of a plan of mixers ([`MixerKind`]).
 
+use super::convergence::Iteration;
 use crate::linalg::gauss_last_max;
 use crate::{Error, Result};
 use std::collections::VecDeque;
+
+/// A mixer of the input vector of an SCF's self-consistent variables (see the module
+/// documentation). In each iteration the SCF builds the Fock matrix of
+/// [`input`](Self::input), finds the output vector of the new density, hands it to
+/// [`set_residual`](Self::set_residual) and calls [`next`](Self::next) for the input of the
+/// next iteration. Implemented by GFN2-xTB's Broyden and DIIS mixers.
+pub trait VectorMixer {
+    /// The current input vector.
+    fn input(&self) -> &[f64];
+    /// The current input vector, to write (the start before the first iteration).
+    fn input_mut(&mut self) -> &mut [f64];
+    /// The residual (output − input) of the current input.
+    fn residual(&self) -> &[f64];
+    /// Set the residual to `out − input` for the output vector `out`.
+    fn set_residual(&mut self, out: &[f64]);
+    /// Root mean square of the residual.
+    fn rms(&self) -> f64 {
+        rms(self.residual())
+    }
+    /// Replace the input by the next one, from the inputs and residuals so far; `false` if the
+    /// mixing failed (the SCF cannot go on with this mixer).
+    fn next(&mut self) -> bool;
+}
+
+/// A mixer of the Fock matrices of an SCF (see the module documentation). In each iteration the
+/// SCF hands over the Fock matrices it built, one per spin channel, and diagonalizes the mixed
+/// ones. Implemented by g-xTB's program mixers (`axtb-gxtb`).
+///
+/// The mixer takes the built matrices over (it keeps some of them in its history) and holds
+/// the mixed ones, which the SCF reads through [`mixed`](Self::mixed): no matrix is copied for
+/// the handover.
+pub trait FockMixer {
+    /// Mix the Fock matrices `fock` built in SCF iteration `iter` (counted from 1; one row-major
+    /// n x n matrix per spin channel) with those of the earlier iterations. Returns the
+    /// residual the mixer measures: the RMS of the change of the Fock matrices against the last
+    /// mixed ones (0 before anything was mixed), or NaN for a mixer that measures none.
+    fn mix(&mut self, iter: usize, fock: Vec<Vec<f64>>) -> Result<f64>;
+    /// The mixed Fock matrix of spin channel `s` (row-major n x n) of the last
+    /// [`mix`](Self::mix), to diagonalize.
+    fn mixed(&self, s: usize) -> &[f64];
+    /// The record of an iteration once its energy is known, for mixers whose schedule depends
+    /// on it (by default ignored).
+    fn observe(&mut self, _it: &Iteration) {}
+}
+
+/// Root mean square of `r`, sqrt(Σ r_k² / n) (each square divided by n, then summed).
+pub(crate) fn rms(r: &[f64]) -> f64 {
+    let n = r.len() as f64;
+    r.iter().map(|x| x * x / n).sum::<f64>().sqrt()
+}
+
+/// `dq = out − q_in` (the residual of a vector mixer).
+fn set_residual(out: &[f64], q_in: &[f64], dq: &mut [f64]) {
+    for k in 0..dq.len() {
+        dq[k] = out[k] - q_in[k];
+    }
+}
 
 /// Which accelerator mixes the SCC variables between SCF iterations.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -34,12 +102,73 @@ impl MixerKind {
     }
 }
 
+impl MixerKind {
+    /// A fresh mixer of this kind for `ndim` variables with damping `damp` (Broyden keeps a
+    /// history of `memory` iterations, the SCF's `max_iter`). `Auto` is a plan of mixers
+    /// ([`MixerPlan`]); here it means its first, Broyden.
+    pub(crate) fn mixer(self, ndim: usize, memory: usize, damp: f64) -> Box<dyn VectorMixer> {
+        match self {
+            MixerKind::Broyden | MixerKind::Auto => Box::new(Broyden::new(ndim, memory, damp)),
+            MixerKind::Diis => Box::new(Diis::new(ndim, damp)),
+        }
+    }
+}
+
 /// One SCF attempt of a single point (see [`MixerKind::Auto`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ScfAttempt {
     pub mixer: MixerKind,
     pub iterations: usize,
     pub converged: bool,
+}
+
+/// GFN2-xTB's SCF attempts for a [`MixerKind`]: one attempt per mixer, in order, each from the
+/// start guess with its own `max_iter` iterations, until one converges ([`MixerKind::Auto`]:
+/// Broyden, then DIIS). The plan records the attempts and names the mixer of the result.
+pub(crate) struct MixerPlan {
+    kind: MixerKind,
+    attempts: Vec<ScfAttempt>,
+}
+
+impl MixerPlan {
+    pub(crate) fn new(kind: MixerKind) -> Self {
+        let mut plan = Self { kind, attempts: Vec::new() };
+        plan.attempts.reserve_exact(plan.mixers().len());
+        plan
+    }
+
+    /// The mixers of the attempts, in order.
+    pub(crate) fn mixers(&self) -> &'static [MixerKind] {
+        match self.kind {
+            MixerKind::Auto => &[MixerKind::Broyden, MixerKind::Diis],
+            MixerKind::Broyden => &[MixerKind::Broyden],
+            MixerKind::Diis => &[MixerKind::Diis],
+        }
+    }
+
+    /// Record an attempt that ended.
+    pub(crate) fn record(&mut self, attempt: ScfAttempt) {
+        self.attempts.push(attempt);
+    }
+
+    /// SCF iterations of all attempts together.
+    pub(crate) fn iterations(&self) -> usize {
+        self.attempts.iter().map(|a| a.iterations).sum()
+    }
+
+    /// The mixer that produced the result: `"broyden"`, `"diis"`, or `"diis-fallback"` (`auto`
+    /// after Broyden did not converge).
+    pub(crate) fn used(&self) -> &'static str {
+        match (self.kind, self.attempts.len()) {
+            (MixerKind::Auto, n) if n > 1 => "diis-fallback",
+            _ => self.attempts.last().map_or("broyden", |a| a.mixer.label()),
+        }
+    }
+
+    /// The attempts, in order.
+    pub(crate) fn into_attempts(self) -> Vec<ScfAttempt> {
+        self.attempts
+    }
 }
 
 impl std::str::FromStr for MixerKind {
@@ -67,9 +196,9 @@ pub struct Broyden {
     a: Vec<Vec<f64>>,
     omega: Vec<f64>,
     /// Current input vector.
-    pub q_in: Vec<f64>,
+    q_in: Vec<f64>,
     /// Current residual (output - input).
-    pub dq: Vec<f64>,
+    dq: Vec<f64>,
     qlast: Vec<f64>,
     dqlast: Vec<f64>,
 }
@@ -92,15 +221,27 @@ impl Broyden {
             dqlast: vec![0.0; ndim],
         }
     }
+}
 
-    /// Root mean square of the residual.
-    pub fn error(&self) -> f64 {
-        let n = self.dq.len() as f64;
-        self.dq.iter().map(|x| x * x / n).sum::<f64>().sqrt()
+impl VectorMixer for Broyden {
+    fn input(&self) -> &[f64] {
+        &self.q_in
     }
 
-    /// Produce the next input vector from `q_in` and the residual `dq`.
-    pub fn next(&mut self) -> bool {
+    fn input_mut(&mut self) -> &mut [f64] {
+        &mut self.q_in
+    }
+
+    fn residual(&self) -> &[f64] {
+        &self.dq
+    }
+
+    fn set_residual(&mut self, out: &[f64]) {
+        set_residual(out, &self.q_in, &mut self.dq);
+    }
+
+    /// The next input vector from `q_in` and the residual `dq`.
+    fn next(&mut self) -> bool {
         self.iter += 1;
         let iter = self.iter;
         let n = self.ndim;
@@ -221,9 +362,9 @@ pub struct Diis {
     /// Iterations since the best iterate.
     since_best: usize,
     /// Current input vector.
-    pub q_in: Vec<f64>,
+    q_in: Vec<f64>,
     /// Current residual (output - input).
-    pub dq: Vec<f64>,
+    dq: Vec<f64>,
 }
 
 impl Diis {
@@ -238,15 +379,27 @@ impl Diis {
             dq: vec![0.0; ndim],
         }
     }
+}
 
-    /// Root mean square of the residual.
-    pub fn error(&self) -> f64 {
-        let n = self.dq.len() as f64;
-        self.dq.iter().map(|x| x * x / n).sum::<f64>().sqrt()
+impl VectorMixer for Diis {
+    fn input(&self) -> &[f64] {
+        &self.q_in
     }
 
-    /// Produce the next input vector from `q_in` and the residual `dq`.
-    pub fn next(&mut self) -> bool {
+    fn input_mut(&mut self) -> &mut [f64] {
+        &mut self.q_in
+    }
+
+    fn residual(&self) -> &[f64] {
+        &self.dq
+    }
+
+    fn set_residual(&mut self, out: &[f64]) {
+        set_residual(out, &self.q_in, &mut self.dq);
+    }
+
+    /// The next input vector from `q_in` and the residual `dq`.
+    fn next(&mut self) -> bool {
         let norm = dot(&self.dq, &self.dq).sqrt();
         if !norm.is_finite() {
             return false;
@@ -348,47 +501,6 @@ fn diis_coefficients(r: &VecDeque<Vec<f64>>) -> Vec<f64> {
     c
 }
 
-/// The SCF mixer of one SCF ([`MixerKind`]).
-pub enum Mixer {
-    Broyden(Broyden),
-    Diis(Diis),
-}
-
-impl Mixer {
-    /// A mixer for `ndim` variables; `max_iter` is Broyden's memory, `damp` the damping.
-    /// `Auto` is a sequence of mixers handled by the SCF; here it means its first, Broyden.
-    pub fn new(kind: MixerKind, ndim: usize, max_iter: usize, damp: f64) -> Self {
-        match kind {
-            MixerKind::Broyden | MixerKind::Auto => Mixer::Broyden(Broyden::new(ndim, max_iter, damp)),
-            MixerKind::Diis => Mixer::Diis(Diis::new(ndim, damp)),
-        }
-    }
-
-    /// Current input vector and residual (output - input).
-    pub fn vectors(&mut self) -> (&mut Vec<f64>, &mut Vec<f64>) {
-        match self {
-            Mixer::Broyden(m) => (&mut m.q_in, &mut m.dq),
-            Mixer::Diis(m) => (&mut m.q_in, &mut m.dq),
-        }
-    }
-
-    /// Root mean square of the residual.
-    pub fn error(&self) -> f64 {
-        match self {
-            Mixer::Broyden(m) => m.error(),
-            Mixer::Diis(m) => m.error(),
-        }
-    }
-
-    /// Produce the next input vector; false if the mixing failed.
-    pub fn next(&mut self) -> bool {
-        match self {
-            Mixer::Broyden(m) => m.next(),
-            Mixer::Diis(m) => m.next(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -403,20 +515,40 @@ mod tests {
         let n = eig.len();
         let mut m = Diis::new(n, 0.4);
         let mut it = 0;
+        let mut out = vec![0.0; n];
         loop {
             for k in 0..n {
-                m.dq[k] = eig[k] * m.q_in[k] + b[k] - m.q_in[k];
+                out[k] = eig[k] * m.input()[k] + b[k];
             }
-            if m.error() < 1e-12 {
+            m.set_residual(&out);
+            if m.rms() < 1e-12 {
                 break;
             }
             assert!(m.next());
             it += 1;
-            assert!(it <= 2 * n, "not converged after {it} steps (residual {})", m.error());
+            assert!(it <= 2 * n, "not converged after {it} steps (residual {})", m.rms());
         }
         for k in 0..n {
-            assert!((m.q_in[k] - b[k] / (1.0 - eig[k])).abs() < 1e-10);
+            assert!((m.input()[k] - b[k] / (1.0 - eig[k])).abs() < 1e-10);
         }
+    }
+
+    #[test]
+    fn the_plan_names_the_mixer_of_the_result() {
+        let attempt = |mixer, iterations, converged| ScfAttempt { mixer, iterations, converged };
+        let mut plan = MixerPlan::new(MixerKind::Auto);
+        assert_eq!(plan.mixers(), [MixerKind::Broyden, MixerKind::Diis]);
+        plan.record(attempt(MixerKind::Broyden, 250, false));
+        plan.record(attempt(MixerKind::Diis, 60, true));
+        assert_eq!((plan.used(), plan.iterations()), ("diis-fallback", 310));
+        let mut plan = MixerPlan::new(MixerKind::Auto);
+        plan.record(attempt(MixerKind::Broyden, 12, true));
+        assert_eq!(plan.used(), "broyden");
+        let mut plan = MixerPlan::new(MixerKind::Diis);
+        assert_eq!(plan.mixers(), [MixerKind::Diis]);
+        plan.record(attempt(MixerKind::Diis, 12, true));
+        assert_eq!(plan.used(), "diis");
+        assert_eq!(plan.into_attempts().len(), 1);
     }
 
     #[test]

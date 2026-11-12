@@ -2,17 +2,18 @@
 //! nuclear gradient for the GFN-type Hamiltonians.
 
 use crate::basis::Basis;
-use crate::conventions::{SccGradient, SccResidual, OCCUPATION_CUTOFF};
+use crate::conventions::{SccGradient, OCCUPATION_CUTOFF};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, MultipoleCache, OnsiteThirdOrder};
 use crate::hamiltonian::{H0Params, Integrals};
 use crate::linalg::{weighted_outer, weighted_outer_sym, GenEigSolver};
-use crate::mixer::{Mixer, MixerKind, ScfAttempt};
 use crate::molden::{MoSet, Orbitals, Spin};
 use crate::molecule::Molecule;
 use crate::ncoord::Ncoord;
 use crate::properties::{GapRule, OrbitalLevels};
 use crate::repulsion::Repulsion;
-use crate::scf::{dot, fock, mulliken, ScfVariables};
+use crate::scf::convergence::XtbRule;
+use crate::scf::mixing::{MixerKind, MixerPlan, ScfAttempt};
+use crate::scf::{dot, fock, mulliken, ConvergenceRule, Iteration, ScfVariables, Verdict};
 use crate::{Error, Result};
 use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
@@ -525,8 +526,6 @@ impl XtbModel {
         // (bench/linalg), so small systems keep the linear algebra sequential
         let par = threads::dense_par(opts.threads, self.basis.nao);
         let acc = opts.accuracy;
-        let econv = 1.0e-6 * acc;
-        let pconv = 2.0e-5 * acc;
 
         // electrons
         let (n0sh, nref) = self.h0.reference_occupation(mol, bas);
@@ -579,11 +578,6 @@ impl XtbModel {
         let has_mp = self.aes2.is_some();
         let vars = ScfVariables::new(nsh, nat, has_mp, false).with_quad_offdiag_scale(self.params.scc_quadrupole_scale);
         let ndim = vars.dim();
-        // xtb 6.7.1's convergence test (`ConventionParams::scc_residual`): residual
-        // sqrt(Σ dq² / N_atoms) below 1e-4·acc with multipoles (scf_module.F90 `qconv`)
-        let per_atom = self.params.scc_residual == SccResidual::PerAtom;
-        let extra_iteration = self.params.scc_extra_iteration;
-        let pconv = if per_atom && has_mp { 1.0e-4 * acc } else { pconv };
         let kind = opts.mixer.unwrap_or(self.params.mixer);
         let mut qsh = vec![0.0; nsh];
         let mut qat = vec![0.0; nat];
@@ -643,9 +637,6 @@ impl XtbModel {
         let mut packed_out = vec![0.0; ndim];
         let mut converged = false;
         let mut iscf = 0;
-        // xtb 6.7.1: the iteration after the first converged one ends the loop (`lastdiag`)
-        let mut stop = false;
-        let mut lastdiag = false;
         // xtb 6.7.1: the moments of the last iteration's input and as mixed after it
         type Moments = (Vec<f64>, Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>);
         let unpack = |q: &[f64]| -> Moments {
@@ -658,15 +649,11 @@ impl XtbModel {
         let (mut de_last, mut pnorm) = (0.0, 0.0);
 
         // one attempt per mixer of the plan (auto: Broyden, then DIIS from the initial guess)
-        let plan: &[MixerKind] = match kind {
-            MixerKind::Auto => &[MixerKind::Broyden, MixerKind::Diis],
-            MixerKind::Broyden => &[MixerKind::Broyden],
-            MixerKind::Diis => &[MixerKind::Diis],
-        };
+        let mut plan = MixerPlan::new(kind);
+        let mixers = plan.mixers();
         let start = (qsh.clone(), qat.clone(), dpat.clone(), qpat.clone());
-        let mut attempts: Vec<ScfAttempt> = Vec::with_capacity(plan.len());
-        for (ia, &mk) in plan.iter().enumerate() {
-            let last_attempt = ia + 1 == plan.len();
+        for (ia, &mk) in mixers.iter().enumerate() {
+            let last_attempt = ia + 1 == mixers.len();
             if ia > 0 {
                 solver.restart();
                 qsh.copy_from_slice(&start.0);
@@ -676,9 +663,12 @@ impl XtbModel {
                 eelec.iter_mut().for_each(|x| *x = 0.0);
                 iscf = 0;
                 (de_last, pnorm) = (0.0, 0.0);
-                (stop, lastdiag) = (false, false);
             }
-            let mut mixer = Mixer::new(mk, ndim, opts.max_iter, opts.damping);
+            let mut mixer = mk.mixer(ndim, opts.max_iter, opts.damping);
+            // the conventions' test: the residual norm (xtb 6.7.1: per atom) and xtb 6.7.1's
+            // extra iteration (`ConventionParams::scc_residual`, `scc_extra_iteration`)
+            let mut rule = XtbRule::new(&self.params, acc, nat, has_mp);
+            let mut stop = false;
             while !stop && iscf < opts.max_iter {
                 let elast: f64 = eelec.iter().sum();
                 if iscf > 0 {
@@ -691,7 +681,7 @@ impl XtbModel {
                     }
                     // (without multipoles the dipoles and quadrupoles stay zero, as the
                     // Mulliken analysis left them)
-                    vars.unpack(mixer.vectors().0, &mut qsh, &mut dpat, &mut qpat, None);
+                    vars.unpack(mixer.input(), &mut qsh, &mut dpat, &mut qpat, None);
                     qat_from_qsh(bas, &qsh, &mut qat);
                 }
                 iscf += 1;
@@ -711,7 +701,7 @@ impl XtbModel {
                 }
                 timer.lap("scf: fock");
 
-                vars.pack(&qsh, &dpat, &qpat, None, mixer.vectors().0);
+                vars.pack(&qsh, &dpat, &qpat, None, mixer.input_mut());
 
                 // new density
                 if lowest {
@@ -766,12 +756,7 @@ impl XtbModel {
                 qat_from_qsh(bas, &qsh, &mut qat);
                 timer.lap("scf: mulliken");
                 vars.pack(&qsh, &dpat, &qpat, None, &mut packed_out);
-                {
-                    let (q_in, dq) = mixer.vectors();
-                    for k in 0..ndim {
-                        dq[k] = packed_out[k] - q_in[k];
-                    }
-                }
+                mixer.set_residual(&packed_out);
 
                 // energy with the output moments
                 eelec.iter_mut().for_each(|x| *x = 0.0);
@@ -822,35 +807,27 @@ impl XtbModel {
                     return Err(Error::Numerical(format!("non-finite energy in SCF iteration {iscf}")));
                 }
                 de_last = eiter - elast;
-                pnorm = if per_atom {
-                    let dq = &*mixer.vectors().1;
-                    (dq.iter().map(|x| x * x).sum::<f64>() / nat as f64).sqrt()
-                } else {
-                    mixer.error()
+                pnorm = rule.residual(mixer.residual());
+                let it = Iteration {
+                    iteration: iscf,
+                    energy: eiter,
+                    energy_change: de_last,
+                    residual: pnorm,
+                    density_change: f64::NAN,
                 };
-                let ok = de_last.abs() < econv && pnorm < pconv;
-                if extra_iteration {
-                    // xtb 6.7.1: converged once counts as converged; one more iteration follows
-                    converged |= ok;
-                    if ok {
-                        stop = lastdiag;
-                        lastdiag = true;
-                    }
-                } else {
-                    converged = ok;
-                    stop = ok;
-                }
+                stop = rule.update(&it) == Verdict::Done;
                 if opts.trace {
                     eprintln!("scf {iscf:4} E {eiter:.12} dE {de_last:.3e} res {pnorm:.3e}");
                 }
                 timer.lap("scf: energy+mixing");
             }
-            attempts.push(ScfAttempt { mixer: mk, iterations: iscf, converged });
+            converged = rule.converged();
+            plan.record(ScfAttempt { mixer: mk, iterations: iscf, converged });
             if converged {
                 // the moments of the gradient besides the output moments
                 // (`ConventionParams::scc_gradient`): the last iteration's input, and xtb 6.7.1's
                 // moments as mixed once more after the last iteration
-                let input = unpack(mixer.vectors().0);
+                let input = unpack(mixer.input());
                 match self.params.scc_gradient {
                     SccGradient::Output => {}
                     SccGradient::OutputAes => {
@@ -860,24 +837,21 @@ impl XtbModel {
                     }
                     SccGradient::Mixed => {
                         if mixer.next() {
-                            xtb_moments = Some((input, unpack(mixer.vectors().0)));
+                            xtb_moments = Some((input, unpack(mixer.input())));
                         }
                     }
                 }
-            }
-            if converged {
                 break;
             }
         }
         if !converged {
-            // iterations of all attempts together
-            let iterations = attempts.iter().map(|a| a.iterations).sum();
-            return Err(Error::ScfNotConverged { iterations, energy_change: de_last, residual: pnorm });
+            return Err(Error::ScfNotConverged {
+                iterations: plan.iterations(),
+                energy_change: de_last,
+                residual: pnorm,
+            });
         }
-        let mixer_used = match (kind, attempts.len()) {
-            (MixerKind::Auto, n) if n > 1 => "diis-fallback",
-            _ => attempts.last().map_or("broyden", |a| a.mixer.label()),
-        };
+        let mixer_used = plan.used();
         for i in 0..nat {
             energies[i] += eelec[i];
         }
@@ -1028,7 +1002,7 @@ impl XtbModel {
                 occupations: focc,
                 iterations: iscf,
                 mixer_used: Some(mixer_used),
-                scf_attempts: attempts,
+                scf_attempts: plan.into_attempts(),
                 timings: timer.finish(),
                 orbitals,
                 levels,

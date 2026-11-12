@@ -25,7 +25,6 @@ pub(crate) mod hamiltonian;
 mod hessian;
 pub mod integrals;
 pub mod io;
-mod mixer;
 pub mod molden;
 pub(crate) mod ncoord;
 pub mod param;
@@ -43,9 +42,9 @@ mod xtb;
 pub use calculator::{Calculator, Hessian};
 pub use conventions::{ConventionParams, Conventions};
 pub use hessian::{HessianMethod, HessianOptions};
-pub use mixer::{MixerKind, ScfAttempt};
 pub use molden::{MoldenFunctions, Orbitals};
 pub use properties::{GapRule, OrbitalLevels, QuadrupoleForm};
+pub use scf::mixing::{MixerKind, ScfAttempt};
 pub use solvation::{ReferenceState, SolvationModel, SolvationSpec};
 pub use xtb::{EnergyTerms, InitialGuess, ScfGuess, ScfOptions, SinglePoint};
 
