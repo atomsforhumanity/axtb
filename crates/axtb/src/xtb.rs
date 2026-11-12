@@ -807,7 +807,7 @@ impl XtbModel {
                     return Err(Error::Numerical(format!("non-finite energy in SCF iteration {iscf}")));
                 }
                 de_last = eiter - elast;
-                pnorm = rule.residual(mixer.residual());
+                pnorm = rule.residual_norm(mixer.residual());
                 let it = Iteration {
                     iteration: iscf,
                     energy: eiter,

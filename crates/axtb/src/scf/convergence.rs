@@ -45,6 +45,11 @@ pub trait ConvergenceRule {
     /// [`Verdict::Done`], and for a rule that counts its first converged iteration (xtb 6.7.1)
     /// from then on.
     fn converged(&self) -> bool;
+    /// The norm of a vector mixer's residual `r` that the rule tests ([`Iteration::residual`]
+    /// of an SCF mixed as a vector): by default its root mean square.
+    fn residual_norm(&self, r: &[f64]) -> f64 {
+        rms(r)
+    }
 }
 
 /// GFN2-xTB's convergence test (xtb, tblite; points 2 and 3 of
@@ -79,14 +84,6 @@ impl XtbRule {
             lastdiag: false,
         }
     }
-
-    /// The residual norm the rule tests, of the residual `r` of the mixed vector.
-    pub(crate) fn residual(&self, r: &[f64]) -> f64 {
-        match self.residual {
-            SccResidual::Rms => rms(r),
-            SccResidual::PerAtom => (r.iter().map(|x| x * x).sum::<f64>() / self.nat as f64).sqrt(),
-        }
-    }
 }
 
 impl ConvergenceRule for XtbRule {
@@ -112,6 +109,14 @@ impl ConvergenceRule for XtbRule {
     fn converged(&self) -> bool {
         self.converged
     }
+
+    /// The conventions' norm: RMS, or per atom sqrt(Σ r² / N_atoms) (xtb 6.7.1).
+    fn residual_norm(&self, r: &[f64]) -> f64 {
+        match self.residual {
+            SccResidual::Rms => rms(r),
+            SccResidual::PerAtom => (r.iter().map(|x| x * x).sum::<f64>() / self.nat as f64).sqrt(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -131,7 +136,7 @@ mod tests {
         assert_eq!(r.update(&it(2, 1e-7, 1e-6)), Verdict::Done);
         assert!(r.converged());
         // RMS over the vector
-        assert_eq!(r.residual(&[0.5; 4]), 0.5);
+        assert_eq!(r.residual_norm(&[0.5; 4]), 0.5);
     }
 
     /// xtb 6.7.1: the iteration after the first converged one must converge too; in between
@@ -144,6 +149,6 @@ mod tests {
         assert_eq!(r.update(&it(2, 1e-3, 1e-5)), Verdict::OneMore { unmixed: false });
         assert_eq!(r.update(&it(3, 1e-7, 1e-5)), Verdict::Done);
         // per atom: sqrt(Σ r² / N_atoms) = sqrt(8 / 4)
-        assert_eq!(r.residual(&[1.0; 8]), 2f64.sqrt());
+        assert_eq!(r.residual_norm(&[1.0; 8]), 2f64.sqrt());
     }
 }

@@ -2,7 +2,8 @@
 //! method: the layout of the self-consistent variables ([`ScfVariables`]), the Mulliken
 //! analysis that gives them from a density (`mulliken`, crate-private), the Fock matrix of
 //! their potentials (`fock`, crate-private), the mixers between iterations ([`VectorMixer`],
-//! [`FockMixer`]) and the convergence tests ([`ConvergenceRule`]).
+//! [`FockMixer`]), the convergence tests ([`ConvergenceRule`]) and the SCF loop that runs a
+//! method's [`ScfModel`] with them ([`run_scf`]).
 //!
 //! The SCC variables of a GFN-type method are Mulliken shell charges, atomic dipoles and
 //! traceless atomic quadrupoles (and, for spin-polarized methods, shell magnetizations). Each is
@@ -14,12 +15,14 @@
 //! Mulliken analysis and Fock assembly).
 
 pub(crate) mod convergence;
+mod driver;
 pub(crate) mod fock;
 pub(crate) mod mixing;
 pub(crate) mod mulliken;
 mod variables;
 
 pub use convergence::{ConvergenceRule, Iteration, Verdict};
+pub use driver::{run_scf, Accelerator, FockSource, ScfModel, ScfOutcome, ScfStrategy, Stop};
 pub use mixing::{FockMixer, VectorMixer};
 pub use variables::{ScfVariables, QUAD_OFFDIAG};
 
