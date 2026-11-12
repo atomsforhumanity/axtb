@@ -30,16 +30,19 @@ use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
 use super::intermediates::Slots;
 use super::repulsion::Repulsion;
 use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
+use super::terms::Terms;
 use super::Model;
 use crate::calculator::Version;
-use crate::data_v2::{INCREMENT, REF_OCC, ZEFF_SHELL};
+use crate::data_v2::{REF_OCC, ZEFF_SHELL};
 use crate::eeqbc::EeqBcCharges;
 use crate::fock::shell_list;
 use crate::scf::{Conventions, ScfOptions};
 use crate::timing::{Laps, Timings};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
-use axtb::terms::{ChainLayout, Geometry, Values};
+use axtb::terms::{
+    ChainLayout, Geometry, GeometryTerm, MomentTerm, Potentials as TermPotentials, SccMoments, TermEnergy, Values,
+};
 use axtb::{Error, Molecule, Result};
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -97,6 +100,8 @@ pub struct Setup {
     pub layout: ChainLayout,
     pub slots: Slots,
     pub values: Values,
+    /// The terms ([`super::terms`]; their caches are the fields above).
+    pub terms: Terms,
 }
 
 /// Energy terms of one density (Eh), named after the program's containers.
@@ -149,6 +154,13 @@ pub struct State {
     pub mag: Option<Vec<f64>>,
 }
 
+impl State {
+    /// The SCC moments as the terms read them.
+    pub fn moments(&self) -> SccMoments<'_> {
+        SccMoments { qsh: &self.q, qat: &self.qa, dip: &self.dip, quad: &self.qp, mag: self.mag.as_deref() }
+    }
+}
+
 impl Setup {
     /// Geometry-dependent setup of `mol` (positions in bohr, integer charge), on one thread.
     pub fn new(mol: &Molecule, conventions: Conventions) -> Result<Self> {
@@ -189,12 +201,30 @@ impl Setup {
         let rep = Repulsion::new_par(&model, mol, &cn, parallel);
         t.lap("setup: coulomb+repulsion");
         let disp = RevD4::new_par(&model, mol, parallel)?;
+        // the intermediates; the EEQ-BC charges keep the factorized equations the charges were
+        // solved from: the gradients at this geometry (the analytic gradient, the Jacobian rows
+        // of the Hessian) reuse them instead of factorizing again
+        let eeq_solution = Arc::new(eeq_solution);
+        let (layout, slots) = super::intermediates::layout(&model, mol, Arc::clone(&eeq_solution));
+        let mut values = Values::new(&layout);
+        values.set(slots.eeq, eeq.charges.clone());
+        values.set(slots.cnd4, disp.cn.clone());
+        values.set(slots.cnb, basis.cn.clone());
+        values.set(slots.cn, cn.clone());
+        values.set(slots.qeff, basis.qeff.clone());
+        values.set(slots.qeff0, basis.qeff_h0.clone());
+        let terms = Terms::new(&model, &slots);
+        let tg = Geometry { mol, layout: &layout, values: &values, parallel };
         t.lap("setup: revd4");
-        let e_atm = disp.three_body_par(&model, mol, None, parallel).0;
+        let mut e_atm = [0.0];
+        terms.disp.fixed_energy(&tg, &disp, &mut TermEnergy { pieces: &mut e_atm, atoms: None }, None);
+        let e_atm = e_atm[0];
         t.lap("setup: revd4 three-body");
         let exch = Exchange::new(&model, mol, &shells, &basis.scf.ao2sh, parallel);
         t.lap("setup: exchange");
-        let e_incr: f64 = mol.numbers.iter().map(|&z| INCREMENT[z - 1]).sum();
+        let mut e_incr = [0.0];
+        terms.increments.energy(&tg, &(), &mut TermEnergy { pieces: &mut e_incr, atoms: None }, None);
+        let e_incr = e_incr[0];
         // electrons: program mode the stored reference occupations, otherwise the Aufbau
         // valence electrons (integer)
         let nel = if model.program() {
@@ -220,18 +250,6 @@ impl Setup {
             return Err(Error::Input("g-xTB 2.0.1: more occupied orbitals than basis functions".into()));
         }
         let nspin = if uhf > 0 { 2 } else { 1 };
-        // the intermediates; the EEQ-BC charges keep the factorized equations the charges were
-        // solved from: the gradients at this geometry (the analytic gradient, the Jacobian rows
-        // of the Hessian) reuse them instead of factorizing again
-        let eeq_solution = Arc::new(eeq_solution);
-        let (layout, slots) = super::intermediates::layout(&model, mol, Arc::clone(&eeq_solution));
-        let mut values = Values::new(&layout);
-        values.set(slots.eeq, eeq.charges.clone());
-        values.set(slots.cnd4, disp.cn.clone());
-        values.set(slots.cnb, basis.cn.clone());
-        values.set(slots.cn, cn.clone());
-        values.set(slots.qeff, basis.qeff.clone());
-        values.set(slots.qeff0, basis.qeff_h0.clone());
         Ok(Self {
             mol: mol.clone(),
             model,
@@ -264,6 +282,7 @@ impl Setup {
             layout,
             slots,
             values,
+            terms,
         })
     }
 
@@ -385,7 +404,12 @@ impl Setup {
         let [e1, e2, e3, e4] = self.coulomb.isotropic_energies(&st.q, par);
         let e_aes = self.coulomb.aes_energy(mol, &st.qa, &st.dip, &st.qp, par);
         let e_spin = st.mag.as_ref().map_or(0.0, |m| spin_energy(mol, &self.shells, m));
-        let (e_disp, vdisp) = self.disp.two_body_par(&st.qa, par);
+        let tg = self.term_geometry();
+        let s = st.moments();
+        let (mut e_disp, mut pdisp) = ([0.0], TermPotentials::new(0, mol.nat(), false));
+        let te = &mut TermEnergy { pieces: &mut e_disp, atoms: None };
+        self.terms.disp.energy_and_potential(&tg, &self.disp, &s, te, &mut pdisp);
+        let (e_disp, vdisp) = (e_disp[0], pdisp.atom);
         let e_rep = self.rep.energy_par(&st.qa, par);
         t.lap("scf: fock energies");
         let pr = self.exch.products(&self.s, &st.p, self.par);

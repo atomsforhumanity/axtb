@@ -194,7 +194,16 @@ impl Setup {
         let mut dv = self.coulomb.isotropic_hessian_vec(&st.q, &ds.q);
         let (vs, vd, vq) = self.coulomb.aes_potentials(mol, &ds.qa, &ds.dip, &ds.qp, false);
         let vrep = self.rep.potential_delta(&ds.qa);
-        let vdisp = self.disp.two_body_hessian_vec(&st.qa, &ds.qa);
+        let mut pdisp = axtb::terms::Potentials::new(0, mol.nat(), false);
+        axtb::terms::MomentTerm::kernel_apply(
+            &self.terms.disp,
+            &self.term_geometry(),
+            &self.disp,
+            &st.moments(),
+            &ds.moments(),
+            &mut pdisp,
+        );
+        let vdisp = pdisp.atom;
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
             let x = vx.map_or(0.0, |v| v[ish]);
             dv[ish] += x + vs[iat] + vrep[iat] + vdisp[iat];

@@ -29,7 +29,7 @@ use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
 use axtb::integrals::{multipole, multipole_grad_coeff, overlap_grad_coeff, Moments, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
-use axtb::terms::Chain;
+use axtb::terms::{Chain, MomentTerm, Potentials as TermPotentials, TermEnergy};
 use axtb::Result;
 use axtb_base::threads::map_chunks;
 
@@ -315,7 +315,9 @@ impl Setup {
         let (vs, vd_scaled, vq) = self.coulomb.aes_potentials_raw(mol, &st.qa, &st.dip, &st.qp, par);
         let vd = self.coulomb.scaled_dipoles(&vd_scaled);
         let vrep = self.rep.potential_par(&st.qa, par);
-        let (_, vdisp) = self.disp.two_body_par(&st.qa, par);
+        let mut pdisp = TermPotentials::new(0, mol.nat(), false);
+        self.terms.disp.potential(&self.term_geometry(), &self.disp, &st.moments(), &mut pdisp);
+        let vdisp = pdisp.atom;
         let (_, _, vx) = self.exch.evaluate_with(&self.s, &st.p, pr, &st.q, false, self.par, self.parallel);
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
             vsh[ish] += vx[ish] + vs[iat] + vrep[iat] + vdisp[iat];
@@ -782,13 +784,11 @@ impl Setup {
         t.lap("gradient: exchange kernels");
         let (g, dcn) = ch.g_and_slot(self.slots.cn);
         self.rep.gradient_par(&self.model, mol, &self.cn, &st.qa, g, dcn, self.parallel);
-        let d2 = self.disp.two_body_gradient_par(&self.model, mol, &st.qa, &mut ch.g, self.parallel);
+        let tg = self.term_geometry();
+        self.terms.disp.gradient(&tg, &self.disp, &st.moments(), &mut ch);
         t.lap("gradient: repulsion+revd4");
-        let (_, d3) = self.disp.three_body_par(&self.model, mol, Some(&mut ch.g), self.parallel);
-        let dcnd4 = ch.slot(self.slots.cnd4);
-        for i in 0..nat {
-            dcnd4[i] += d2[i] + d3[i];
-        }
+        let mut e3 = [0.0];
+        self.terms.disp.fixed_energy(&tg, &self.disp, &mut TermEnergy { pieces: &mut e3, atoms: None }, Some(&mut ch));
         t.lap("gradient: revd4 three-body");
         Ok(ch)
     }

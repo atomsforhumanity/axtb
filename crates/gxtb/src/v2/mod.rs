@@ -40,6 +40,7 @@ pub mod response;
 pub mod scf;
 pub(crate) mod strategy;
 pub mod tangent;
+pub mod terms;
 
 use crate::scf::Conventions;
 use axtb::units::reference::MCTC_AATOAU;

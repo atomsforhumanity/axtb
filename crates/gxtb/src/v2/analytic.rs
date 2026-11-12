@@ -47,7 +47,7 @@ use crate::dense::dot;
 use crate::fock::{add_charge_potential, add_potentials_rows};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::scf::ScfVariables;
-use axtb::terms::{Chain, ChainLayout};
+use axtb::terms::{Chain, ChainLayout, Geometry, MomentTerm, Potentials as TermPotentials, Values};
 use axtb::{Molecule, Result};
 use axtb_base::fd;
 use faer::{Accum, Mat, MatMut, MatRef, Par};
@@ -67,6 +67,8 @@ pub struct Kernels<'a> {
     /// The setup's chain layout (the shape of the gradient's accumulators) and its slots.
     pub layout: &'a ChainLayout,
     pub slots: Slots,
+    /// The terms (their caches are the fields above).
+    pub terms: super::terms::Terms,
 }
 
 impl<'a> Kernels<'a> {
@@ -89,7 +91,14 @@ impl<'a> Kernels<'a> {
             cn,
             layout,
             slots,
+            terms: super::terms::Terms::new(model, &slots),
         })
+    }
+
+    /// The geometry of the terms; the kernels' terms read no intermediate values (their caches
+    /// hold what they need), so the values are left empty.
+    fn term_geometry<'v>(&'v self, none: &'v Values) -> Geometry<'v> {
+        Geometry { mol: &self.mol, layout: self.layout, values: none, parallel: false }
     }
 
     pub fn view(&self) -> KernelRef<'_> {
@@ -114,7 +123,10 @@ impl<'a> Kernels<'a> {
         let mut v = self.coulomb.isotropic_potential(&st.q, false);
         let (vs, mut vd, vq) = self.coulomb.aes_potentials(mol, &st.qa, &st.dip, &st.qp, false);
         let vrep = self.rep.potential(&st.qa);
-        let (_, vdisp) = self.disp.two_body(&st.qa);
+        let none = Values::new(self.layout);
+        let mut pdisp = TermPotentials::new(0, mol.nat(), false);
+        self.terms.disp.potential(&self.term_geometry(&none), &self.disp, &st.moments(), &mut pdisp);
+        let vdisp = pdisp.atom;
         for (ish, &(iat, _, _)) in self.coulomb.shells.iter().enumerate() {
             v[ish] += vs[iat] + vrep[iat] + vdisp[iat];
         }
@@ -142,10 +154,12 @@ impl<'a> Kernels<'a> {
         k.add_aes(&st.qa, &st.dip, &st.qp, &vd_scaled, &mut ch);
         let (g, dcn) = ch.g_and_slot(self.slots.cn);
         self.rep.gradient(&self.model, mol, &self.cn, &st.qa, g, dcn);
-        let d2 = self.disp.two_body_gradient(&self.model, mol, &st.qa, &mut ch.g);
+        let none = Values::new(self.layout);
+        self.terms.disp.gradient(&self.term_geometry(&none), &self.disp, &st.moments(), &mut ch);
         anisotropy_gradient(&self.model, mol, &st.dip, &mut ch.g);
         let dcn = ch.weights(self.slots.cn).to_vec();
         super::cn::gxtb_cn_gradient(&self.model, mol, &dcn, &mut ch.g);
+        let d2 = ch.weights(self.slots.cnd4).to_vec();
         super::disp::add_cn_gradient(&self.model, mol, &d2, &mut ch.g);
         ch.g.concat()
     }
