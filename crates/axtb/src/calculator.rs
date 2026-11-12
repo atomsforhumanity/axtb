@@ -9,7 +9,8 @@
 
 use crate::hessian::{HessianMethod, HessianOptions};
 use crate::molecule::Molecule;
-use crate::xtb::{check_scf_options, ChargeDependentTerm, ScfGuess, ScfOptions, SinglePoint, XtbModel};
+use crate::terms::AnyMomentTerm;
+use crate::xtb::{check_scf_options, ScfGuess, ScfOptions, SinglePoint, XtbModel};
 use crate::{Error, Result};
 use crate::{Method, Options};
 use axtb_base::fd;
@@ -40,7 +41,8 @@ pub struct Calculator {
     method: Method,
     mol: Molecule,
     model: XtbModel,
-    extra: Vec<Box<dyn ChargeDependentTerm>>,
+    /// The terms added to the model, in order: dispersion, solvation.
+    extra: Vec<std::sync::Arc<dyn AnyMomentTerm>>,
     /// The settings. The SCF settings may change between calculations; the method's setup
     /// (conventions, dispersion, solvation) and the thread count (the calculator's pool) are
     /// fixed when the calculator is built.
@@ -130,8 +132,7 @@ impl Calculator {
     }
 
     fn run(&self, mol: &Molecule, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<SinglePoint> {
-        let extra: Vec<&dyn ChargeDependentTerm> = self.extra.iter().map(|b| b.as_ref()).collect();
-        let mut sp = self.model.singlepoint(mol, &extra, scf, guess, gradient)?;
+        let mut sp = self.model.singlepoint(mol, &self.extra, scf, guess, gradient)?;
         // xtb (6.7.1 and 6.8.0, `get_wiberg`) leaves out pairs more than 10 bohr apart
         if matches!(self.options.conventions, crate::Conventions::Xtb | crate::Conventions::Xtb671) {
             if let Some(bo) = sp.bond_orders.as_mut() {
@@ -198,13 +199,13 @@ impl Calculator {
         scf.accuracy = opts.accuracy.unwrap_or(1e-3).min(scf.accuracy);
         let threads = scf.threads;
         let run = || -> Result<(Hessian, ScfGuess)> {
-            let extra: Vec<&dyn ChargeDependentTerm> = self.extra.iter().map(|b| b.as_ref()).collect();
+            let extra = &self.extra;
             let t0 = std::time::Instant::now();
             let (reference, st) =
-                match self.model.singlepoint_state(&self.mol, &extra, &scf, self.guess.as_ref(), true, true) {
+                match self.model.singlepoint_state(&self.mol, extra, &scf, self.guess.as_ref(), true, true) {
                     // a guess from a distant geometry can hurt; retry once from scratch
                     Err(Error::ScfNotConverged { .. }) if self.guess.is_some() => {
-                        self.model.singlepoint_state(&self.mol, &extra, &scf, None, true, true)?
+                        self.model.singlepoint_state(&self.mol, extra, &scf, None, true, true)?
                     }
                     other => other?,
                 };
@@ -213,9 +214,9 @@ impl Calculator {
             let (mut h, dipd, t) = match opts.method {
                 HessianMethod::Response => {
                     let step = opts.step.unwrap_or(5e-4);
-                    crate::hessian::response_hessian(&self.model, &extra, &self.mol, &st, threads, step)?
+                    crate::hessian::response_hessian(&self.model, extra, &self.mol, &st, threads, step)?
                 }
-                _ => crate::analytic::analytic_hessian(&self.model, &extra, &self.mol, &st, threads)?,
+                _ => crate::analytic::analytic_hessian(&self.model, &self.mol, &st, threads)?,
             };
             timings.extend(t);
             let max_asymmetry = fd::symmetrize(&mut h, 3 * self.mol.nat());

@@ -46,6 +46,7 @@
 //! response and analytic Hessians of GFN2-xTB use them for terms without analytic second
 //! derivatives).
 
+mod bound;
 mod chain;
 mod fd;
 mod sinks;
@@ -55,6 +56,9 @@ mod tests;
 pub use crate::ncoord::Gfn2Cn;
 pub use chain::{Chain, Chain2, ChainLayout, Intermediate, Jacobians, Slot, Values};
 pub use sinks::{Geometry, Kernel, Needs, PotentialDerivative, Potentials, SccMoments, TermEnergy};
+
+pub(crate) use bound::{AnyMomentTerm, BoundMoment};
+pub(crate) use fd::second_derivatives as moment_fd_second_derivatives;
 
 use crate::Result;
 

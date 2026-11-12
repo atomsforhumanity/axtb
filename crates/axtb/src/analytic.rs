@@ -21,19 +21,18 @@
 use crate::molecule::Molecule;
 use crate::response::Response;
 use crate::terms::{Chain2, GeometryTerm, MomentTerm};
-use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
+use crate::xtb::{ScfState, XtbModel};
 use crate::Result;
 use faer::{Accum, Mat};
 
 /// Analytic Hessian (row-major 3N x 3N), dipole derivatives (3N rows ∂μ/∂R_x) and timings.
 pub(crate) fn analytic_hessian(
     model: &XtbModel,
-    extra: &[&dyn ChargeDependentTerm],
     mol: &Molecule,
     st: &ScfState,
     threads: usize,
 ) -> Result<crate::hessian::HessianParts> {
-    let resp = Response::new(model, extra, mol, st, threads);
+    let resp = Response::new(model, mol, st, threads);
     let r = resp.scc_response(true)?;
     let dipd = resp.dipole_derivatives(&r.ds);
     let mut timings = r.timings.clone();

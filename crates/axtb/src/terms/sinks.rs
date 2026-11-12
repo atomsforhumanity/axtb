@@ -119,6 +119,20 @@ pub struct TermEnergy<'a> {
     pub atoms: Option<&'a mut [f64]>,
 }
 
+impl TermEnergy<'_> {
+    /// The row to partition into: the model's, or `own` (zeroed to `nat` atoms) when the model
+    /// asks for totals only.
+    pub(crate) fn atoms_or<'b>(&'b mut self, own: &'b mut Vec<f64>, nat: usize) -> &'b mut [f64] {
+        match self.atoms.as_deref_mut() {
+            Some(row) => row,
+            None => {
+                own.resize(nat, 0.0);
+                &mut own[..]
+            }
+        }
+    }
+}
+
 /// Second derivatives d²E/ds ds of the SCC moments, added to by blocks (the model sizes the
 /// blocks it uses, leaves the others empty, and maps them to the layout of its SCF variables).
 #[derive(Clone, Debug, Default, PartialEq)]

@@ -175,7 +175,7 @@ fn values_at(geo: &Geometry<'_>, mol: &crate::Molecule, uses: bool) -> Result<Va
 }
 
 /// See [`MomentTerm::second_derivatives`].
-pub(super) fn second_derivatives<T: MomentTerm + ?Sized>(
+pub(crate) fn second_derivatives<T: MomentTerm + ?Sized>(
     t: &T,
     geo: &Geometry<'_>,
     s: &SccMoments<'_>,

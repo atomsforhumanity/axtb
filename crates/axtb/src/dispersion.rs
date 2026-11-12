@@ -1,11 +1,12 @@
 //! D4 dispersion (crate `axtb-d4`) as a self-consistent, charge-dependent SCF term.
 
 use crate::molecule::Molecule;
-use crate::xtb::ChargeDependentTerm;
+use crate::terms::{
+    Chain, Chain2, Geometry, Kernel, MomentTerm, Needs, PotentialDerivative, Potentials, SccMoments, TermEnergy,
+};
 use crate::ConventionParams;
 use crate::{Error, Result};
 use axtb_d4::{ChargeModel, D4Cache, D4Dispersion, D4Model, RationalDamping};
-use std::any::Any;
 
 /// Self-consistent D4: two-body energy with the SCF Mulliken charges, three-body (ATM) at
 /// zero charges, both with GFN2-xTB damping parameters.
@@ -25,58 +26,75 @@ impl D4Term {
     }
 }
 
-fn cache(c: &(dyn Any + Send + Sync)) -> &D4Cache {
-    c.downcast_ref::<D4Cache>().expect("D4 cache")
-}
+/// GFN2-xTB's D4 as a moment term: the three-body energy at zero charges is its
+/// moment-independent part (per atom, with its gradient), the two-body energy, potential,
+/// gradient, charge kernel, potential derivatives and Hessian (of both parts) come from axtb-d4.
+impl MomentTerm for D4Term {
+    type Cache = D4Cache;
 
-impl ChargeDependentTerm for D4Term {
-    fn name(&self) -> &'static str {
-        "dispersion"
+    fn names(&self) -> &[&'static str] {
+        &["dispersion"]
     }
 
-    fn update(&self, mol: &Molecule) -> Box<dyn Any + Send + Sync> {
-        Box::new(self.0.update(&mol.positions))
+    fn fixed_names(&self) -> &[&'static str] {
+        &["dispersion"]
     }
 
-    fn fixed_energy(
-        &self,
-        _mol: &Molecule,
-        c: &(dyn Any + Send + Sync),
-        energies: &mut [f64],
-        grad: Option<&mut [[f64; 3]]>,
-        parallel: bool,
-    ) {
-        self.0.three_body(cache(c), energies, grad, parallel);
+    fn needs(&self) -> Needs {
+        Needs { atom: true, ..Needs::default() }
     }
 
-    fn energy(&self, _mol: &Molecule, c: &(dyn Any + Send + Sync), qat: &[f64], energies: &mut [f64], parallel: bool) {
-        self.0.energy(cache(c), qat, energies, parallel);
+    fn partitions_energy(&self) -> bool {
+        true
     }
 
-    fn potential(&self, _mol: &Molecule, c: &(dyn Any + Send + Sync), qat: &[f64], vat: &mut [f64], parallel: bool) {
-        self.0.potential(cache(c), qat, vat, parallel);
+    fn update(&self, geo: &Geometry<'_>) -> Result<D4Cache> {
+        Ok(self.0.update(&geo.mol.positions))
     }
 
-    fn gradient(&self, _mol: &Molecule, c: &(dyn Any + Send + Sync), qat: &[f64], grad: &mut [[f64; 3]]) {
-        self.0.gradient(cache(c), qat, grad);
+    fn fixed_energy(&self, geo: &Geometry<'_>, c: &D4Cache, e: &mut TermEnergy<'_>, chain: Option<&mut Chain>) {
+        let mut own = Vec::new();
+        let atoms = e.atoms_or(&mut own, geo.mol.nat());
+        self.0.three_body(c, atoms, chain.map(|ch| &mut ch.g[..]), geo.parallel);
+        let total = atoms.iter().sum();
+        e.pieces[0] = total;
     }
 
-    fn kernel(&self, _mol: &Molecule, c: &(dyn Any + Send + Sync), qat: &[f64], k: &mut [f64]) {
-        self.0.charge_hessian(cache(c), qat, k);
+    fn energy(&self, geo: &Geometry<'_>, c: &D4Cache, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        let mut own = Vec::new();
+        let atoms = e.atoms_or(&mut own, geo.mol.nat());
+        self.0.energy(c, s.qat, atoms, geo.parallel);
+        let total = atoms.iter().sum();
+        e.pieces[0] = total;
+    }
+
+    fn potential(&self, geo: &Geometry<'_>, c: &D4Cache, s: &SccMoments<'_>, v: &mut Potentials) {
+        self.0.potential(c, s.qat, &mut v.atom, geo.parallel);
+    }
+
+    fn gradient(&self, _geo: &Geometry<'_>, c: &D4Cache, s: &SccMoments<'_>, chain: &mut Chain) {
+        self.0.gradient(c, s.qat, &mut chain.g);
+    }
+
+    fn kernel(&self, _geo: &Geometry<'_>, c: &D4Cache, s: &SccMoments<'_>, k: &mut Kernel) {
+        self.0.charge_hessian(c, s.qat, &mut k.atom);
     }
 
     fn second_derivatives(
         &self,
-        _mol: &Molecule,
-        c: &(dyn Any + Send + Sync),
-        qat: &[f64],
-        dv: &mut [f64],
-        hess: Option<&mut [f64]>,
-        parallel: bool,
-    ) {
-        self.0.potential_derivative(cache(c), qat, dv);
-        if let Some(h) = hess {
-            self.0.hessian(cache(c), qat, h, parallel);
+        geo: &Geometry<'_>,
+        c: &D4Cache,
+        s: &SccMoments<'_>,
+        dv: Option<&mut PotentialDerivative>,
+        h: Option<&mut Chain2<'_>>,
+    ) -> Result<()> {
+        let nat = geo.mol.nat();
+        if let Some(dv) = dv {
+            self.0.potential_derivative(c, s.qat, &mut dv.atomic[..3 * nat * nat]);
         }
+        if let Some(h) = h {
+            self.0.hessian(c, s.qat, h.h, geo.parallel);
+        }
+        Ok(())
     }
 }

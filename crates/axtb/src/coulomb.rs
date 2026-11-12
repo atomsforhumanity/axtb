@@ -895,17 +895,6 @@ fn gamma_rows(gamma: &[f64], q: &[f64], out: &mut [f64], parallel: bool, add: bo
     }
 }
 
-/// The energy row of a term that partitions its energy: the model's row, or a scratch row.
-fn atoms_row<'a>(e: &'a mut TermEnergy<'_>, own: &'a mut Vec<f64>, nat: usize) -> &'a mut [f64] {
-    match e.atoms.as_deref_mut() {
-        Some(row) => row,
-        None => {
-            own.resize(nat, 0.0);
-            &mut own[..]
-        }
-    }
-}
-
 /// GFN2-xTB's isotropic second-order electrostatics: energy split over the shells' atoms,
 /// shell potential γ q, kernel γ, analytic gradient and second derivatives. The cache is γ.
 impl MomentTerm for EffectiveCoulomb {
@@ -1012,7 +1001,7 @@ impl MomentTerm for OnsiteThirdOrder {
 
     fn energy(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
         let mut own = Vec::new();
-        let atoms = atoms_row(e, &mut own, geo.mol.nat());
+        let atoms = e.atoms_or(&mut own, geo.mol.nat());
         let ish_at = &self.ish_at;
         for iat in 0..geo.mol.nat() {
             let ii = ish_at[iat];
@@ -1079,7 +1068,7 @@ impl MomentTerm for DampedMultipole {
 
     fn energy(&self, geo: &Geometry<'_>, c: &MultipoleCache, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
         let mut own = Vec::new();
-        let atoms = atoms_row(e, &mut own, geo.mol.nat());
+        let atoms = e.atoms_or(&mut own, geo.mol.nat());
         self.atom_energies(geo.mol, c, s.qat, s.dip, s.quad, atoms, geo.parallel);
         let total = atoms.iter().sum();
         e.pieces[0] = total;

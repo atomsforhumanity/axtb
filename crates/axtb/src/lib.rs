@@ -111,17 +111,17 @@ pub(crate) fn build_method(
     method: Method,
     mol: &Molecule,
     opts: &Options,
-) -> Result<(xtb::XtbModel, Vec<Box<dyn xtb::ChargeDependentTerm>>)> {
+) -> Result<(xtb::XtbModel, Vec<std::sync::Arc<dyn terms::AnyMomentTerm>>)> {
     match method {
         Method::Gfn2 => {
             let params = opts.params.unwrap_or_else(|| opts.conventions.params());
             let model = gfn2::build(mol, opts.scf.accuracy, &params)?;
-            let mut extra: Vec<Box<dyn xtb::ChargeDependentTerm>> = Vec::new();
+            let mut extra: Vec<std::sync::Arc<dyn terms::AnyMomentTerm>> = Vec::new();
             if opts.dispersion {
-                extra.push(Box::new(dispersion::D4Term::gfn2(mol, &params)?));
+                extra.push(std::sync::Arc::new(dispersion::D4Term::gfn2(mol, &params)?));
             }
             if let Some(spec) = &opts.solvation {
-                extra.push(Box::new(solvation::SolvationTerm::new(mol, spec, params.solvation)?));
+                extra.push(std::sync::Arc::new(solvation::SolvationTerm::new(mol, spec, params.solvation)?));
             }
             Ok((model, extra))
         }

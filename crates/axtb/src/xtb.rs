@@ -17,148 +17,16 @@ use crate::scf::{
     dot, fock, mulliken, run_scf, Accelerator, FockSource, Iteration, ScfModel, ScfStrategy, ScfVariables, Stop,
 };
 use crate::terms::{
-    self, Chain, ChainLayout, GeometryTerm, MomentTerm, Potentials, SccMoments, Slot, TermEnergy, Values,
+    self, AnyMomentTerm, BoundMoment, Chain, ChainLayout, GeometryTerm, MomentTerm, Potentials, SccMoments, Slot,
+    TermEnergy, Values,
 };
 use crate::{Error, Result};
-use axtb_base::fd;
 use axtb_base::occupations::{self, Newton};
 use axtb_base::threads;
 use axtb_base::timing::Laps;
 use faer::{Mat, Par};
 use std::ops::ControlFlow;
-
-/// An atom-resolved, charge-dependent energy term that enters the SCF (e.g. the
-/// self-consistent D4 dispersion of GFN2-xTB).
-///
-/// `parallel`: the method may spread its work over the current rayon pool (the caller runs
-/// it inside the calculator's pool, and passes false where the call itself is one of many
-/// running in parallel). The results must not depend on it.
-pub(crate) trait ChargeDependentTerm: Send + Sync {
-    /// Name used in energy decompositions.
-    fn name(&self) -> &'static str;
-    /// GeometryData-dependent setup; returns an opaque cache.
-    fn update(&self, mol: &Molecule) -> Box<dyn std::any::Any + Send + Sync>;
-    /// Charge-independent energy (per atom) and optional gradient, evaluated once.
-    fn fixed_energy(
-        &self,
-        mol: &Molecule,
-        cache: &(dyn std::any::Any + Send + Sync),
-        energies: &mut [f64],
-        grad: Option<&mut [[f64; 3]]>,
-        parallel: bool,
-    );
-    /// Charge-dependent energy per atom.
-    fn energy(
-        &self,
-        mol: &Molecule,
-        cache: &(dyn std::any::Any + Send + Sync),
-        qat: &[f64],
-        energies: &mut [f64],
-        parallel: bool,
-    );
-    /// dE/dq per atom, added to `vat`.
-    fn potential(
-        &self,
-        mol: &Molecule,
-        cache: &(dyn std::any::Any + Send + Sync),
-        qat: &[f64],
-        vat: &mut [f64],
-        parallel: bool,
-    );
-    /// Explicit gradient at fixed charges.
-    fn gradient(&self, mol: &Molecule, cache: &(dyn std::any::Any + Send + Sync), qat: &[f64], grad: &mut [[f64; 3]]);
-
-    /// Second derivatives d²E/dq_A dq_B, added to `k` (row-major `nat x nat`). The default
-    /// takes central differences of [`potential`](Self::potential).
-    fn kernel(&self, mol: &Molecule, cache: &(dyn std::any::Any + Send + Sync), qat: &[f64], k: &mut [f64]) {
-        let nat = mol.nat();
-        let h = 1e-4;
-        let mut q = qat.to_vec();
-        for b in 0..nat {
-            let kb = fd::derivative(fd::Stencil::Central2, h, |d| {
-                let mut v = vec![0.0; nat];
-                q[b] = qat[b] + d;
-                self.potential(mol, cache, &q, &mut v, false);
-                v
-            });
-            q[b] = qat[b];
-            for a in 0..nat {
-                k[a * nat + b] += kb[a];
-            }
-        }
-    }
-
-    /// Second derivatives involving the nuclear positions at fixed charges: the derivative
-    /// of the potential dE/dq_A, added to `dv` (row-major `nat x 3 nat`), and, when `hess`
-    /// is given, the Hessian of the whole term (charge-independent part included), added
-    /// to it (row-major `3 nat x 3 nat`). With `parallel`, work may be spread over the
-    /// current rayon pool.
-    ///
-    /// The default takes central differences of the analytic potential and gradient, one
-    /// geometry update per displaced geometry, parallel over displacements.
-    fn second_derivatives(
-        &self,
-        mol: &Molecule,
-        _cache: &(dyn std::any::Any + Send + Sync),
-        qat: &[f64],
-        dv: &mut [f64],
-        hess: Option<&mut [f64]>,
-        parallel: bool,
-    ) {
-        fd_second_derivatives(self, mol, qat, dv, hess, parallel);
-    }
-}
-
-/// Central differences of the analytic potential and gradient of a charge-dependent term
-/// (see [`ChargeDependentTerm::second_derivatives`]): one geometry update per displaced
-/// geometry, parallel over displacements with `parallel`.
-pub(crate) fn fd_second_derivatives<T: ChargeDependentTerm + ?Sized>(
-    term: &T,
-    mol: &Molecule,
-    qat: &[f64],
-    dv: &mut [f64],
-    hess: Option<&mut [f64]>,
-    parallel: bool,
-) {
-    let nat = mol.nat();
-    let n3 = 3 * nat;
-    let h = FD_STEP;
-    let want_h = hess.is_some();
-    // column x: the potential and (with `hess`) the gradient at R + d e_x
-    let column = |x: usize| -> (Vec<f64>, Vec<[f64; 3]>) {
-        let (a, k) = (x / 3, x % 3);
-        let mut m = mol.clone();
-        fd::derivative(fd::Stencil::Central2, h, |d| {
-            m.positions[a][k] = mol.positions[a][k] + d;
-            let c = term.update(&m);
-            let mut v = vec![0.0; nat];
-            term.potential(&m, c.as_ref(), qat, &mut v, false);
-            let mut g = Vec::new();
-            if want_h {
-                g = vec![[0.0; 3]; nat];
-                let mut e = vec![0.0; nat];
-                term.fixed_energy(&m, c.as_ref(), &mut e, Some(&mut g), false);
-                term.gradient(&m, c.as_ref(), qat, &mut g);
-            }
-            (v, g)
-        })
-    };
-    let mut hess = hess;
-    for (x, (dvx, hx)) in threads::map(n3, parallel, column).into_iter().enumerate() {
-        for i in 0..nat {
-            dv[i * n3 + x] += dvx[i];
-        }
-        if let Some(hs) = hess.as_deref_mut() {
-            for y in 0..n3 {
-                hs[y * n3 + x] += hx[y / 3][y % 3];
-            }
-        }
-    }
-}
-
-/// Step (bohr) of the central differences used where a term has no analytic second
-/// derivatives.
-pub(crate) const FD_STEP: f64 = 2e-5;
+use std::sync::Arc;
 
 /// A parametrized xTB Hamiltonian for one molecule.
 pub(crate) struct XtbModel {
@@ -331,8 +199,8 @@ pub(crate) struct GeometryData {
     /// Shell-resolved second-order kernel (row-major nsh x nsh).
     pub gamma: Vec<f64>,
     pub mp_cache: Option<MultipoleCache>,
-    /// Caches of the charge-dependent extra terms.
-    pub caches: Vec<Box<dyn std::any::Any + Send + Sync>>,
+    /// The terms added to the model (D4, solvation, a user's), bound to this geometry.
+    pub extra: Vec<Box<dyn BoundMoment>>,
 }
 
 /// Charge potential per AO of the potentials `pot` (shell plus atom part).
@@ -374,18 +242,20 @@ impl ScfState {
 }
 
 impl XtbModel {
-    /// Coordination numbers, self-energies, Coulomb kernels and extra-term caches.
-    pub(crate) fn geometry(&self, mol: &Molecule, extra: &[&dyn ChargeDependentTerm]) -> GeometryData {
+    /// Coordination numbers, self-energies, Coulomb kernels and the added terms bound to
+    /// `mol`.
+    pub(crate) fn geometry(&self, mol: &Molecule, extra: &[Arc<dyn AnyMomentTerm>]) -> Result<GeometryData> {
         let bas = &self.basis;
         let cn = self.ncoord.compute(mol);
         let (se, dsedcn) = self.h0.selfenergy(mol, bas, &cn);
         let cutoff = self.pair_cutoff;
         let gamma = self.es2.matrix(mol, &bas.ish_at, &bas.nsh_at, bas.nsh);
         let mp_cache = self.aes2.as_ref().map(|m| m.cache(mol, &cn));
-        let caches = extra.iter().map(|t| t.update(mol)).collect();
         let mut values = Values::new(&self.layout);
         values.set(self.cn, cn);
-        GeometryData { values, se, dsedcn, cutoff, gamma, mp_cache, caches }
+        let tg = terms::Geometry { mol, layout: &self.layout, values: &values, parallel: false };
+        let extra = extra.iter().map(|t| Arc::clone(t).bind(&tg)).collect::<Result<_>>()?;
+        Ok(GeometryData { values, se, dsedcn, cutoff, gamma, mp_cache, extra })
     }
 
     /// The geometry of the terms: `mol` with the values of the intermediates of `geo`.
@@ -413,7 +283,6 @@ impl XtbModel {
     pub(crate) fn potentials(
         &self,
         mol: &Molecule,
-        extra: &[&dyn ChargeDependentTerm],
         geo: &GeometryData,
         qsh: &[f64],
         qat: &[f64],
@@ -432,8 +301,8 @@ impl XtbModel {
         if let (Some(aes), Some(c)) = (&self.aes2, &geo.mp_cache) {
             aes.potential(&tg, c, &s, pot);
         }
-        for (t, c) in extra.iter().zip(&geo.caches) {
-            t.potential(mol, c.as_ref(), qat, &mut pot.atom, parallel);
+        for t in &geo.extra {
+            t.potential(&tg, &s, pot);
         }
     }
 
@@ -444,7 +313,6 @@ impl XtbModel {
     pub(crate) fn add_scc_gradient(
         &self,
         mol: &Molecule,
-        extra: &[&dyn ChargeDependentTerm],
         geo: &GeometryData,
         p: &Mat<f64>,
         w: &Mat<f64>,
@@ -463,8 +331,8 @@ impl XtbModel {
         if let (Some(aes), Some(c)) = (&self.aes2, &geo.mp_cache) {
             aes.gradient(&tg, c, &s, chain);
         }
-        for (t, c) in extra.iter().zip(&geo.caches) {
-            t.gradient(mol, c.as_ref(), qat, &mut chain.g);
+        for t in &geo.extra {
+            t.gradient(&tg, &s, chain);
         }
         let vao = vao(pot, bas);
         let (g, dedcn) = chain.g_and_slot(self.cn);
@@ -491,38 +359,39 @@ impl XtbModel {
     pub(crate) fn gradient_functional(
         &self,
         mol: &Molecule,
-        extra: &[&dyn ChargeDependentTerm],
+        extra: &[Arc<dyn AnyMomentTerm>],
         p: &Mat<f64>,
         w: &Mat<f64>,
         qsh: &[f64],
         dpat: &[[f64; 3]],
         qpat: &[[f64; 6]],
         parallel: bool,
-    ) -> Vec<[f64; 3]> {
+    ) -> Result<Vec<[f64; 3]>> {
         let nat = mol.nat();
         let bas = &self.basis;
         let mut chain = Chain::new(&self.layout, nat);
         let mut e = vec![0.0; nat];
-        let geo = self.geometry(mol, extra);
+        let geo = self.geometry(mol, extra)?;
+        let tg = self.term_geometry(mol, &geo, parallel);
         let mut erep = [0.0];
-        let te = &mut TermEnergy { pieces: &mut erep, atoms: Some(&mut e) };
-        self.repulsion.energy(&self.term_geometry(mol, &geo, parallel), &(), te, Some(&mut chain));
-        for (t, c) in extra.iter().zip(&geo.caches) {
-            t.fixed_energy(mol, c.as_ref(), &mut e, Some(&mut chain.g), parallel);
+        self.repulsion.energy(&tg, &(), &mut TermEnergy { pieces: &mut erep, atoms: Some(&mut e) }, Some(&mut chain));
+        for t in &geo.extra {
+            let mut pieces = vec![0.0; t.fixed_names().len()];
+            t.fixed_energy(&tg, &mut TermEnergy { pieces: &mut pieces, atoms: Some(&mut e) }, Some(&mut chain));
         }
         let mut qat = vec![0.0; nat];
         qat_from_qsh(bas, qsh, &mut qat);
         let mut pot = Potentials::new(bas.nsh, nat, false);
-        self.potentials(mol, extra, &geo, qsh, &qat, dpat, qpat, &mut pot, parallel);
-        self.add_scc_gradient(mol, extra, &geo, p, w, qsh, &qat, dpat, qpat, &pot, &mut chain, parallel);
-        self.finish_gradient(mol, &geo, chain, parallel)
+        self.potentials(mol, &geo, qsh, &qat, dpat, qpat, &mut pot, parallel);
+        self.add_scc_gradient(mol, &geo, p, w, qsh, &qat, dpat, qpat, &pot, &mut chain, parallel);
+        Ok(self.finish_gradient(mol, &geo, chain, parallel))
     }
 
     /// Run the SCF and optionally the analytic gradient.
     pub fn singlepoint(
         &self,
         mol: &Molecule,
-        extra: &[&dyn ChargeDependentTerm],
+        extra: &[Arc<dyn AnyMomentTerm>],
         opts: &ScfOptions,
         guess: Option<&ScfGuess>,
         want_gradient: bool,
@@ -535,7 +404,7 @@ impl XtbModel {
     pub(crate) fn singlepoint_state(
         &self,
         mol: &Molecule,
-        extra: &[&dyn ChargeDependentTerm],
+        extra: &[Arc<dyn AnyMomentTerm>],
         opts: &ScfOptions,
         guess: Option<&ScfGuess>,
         want_gradient: bool,
@@ -565,16 +434,19 @@ impl XtbModel {
         let mut energies = vec![0.0; nat];
         let mut erep = vec![0.0; nat];
         // geometry-dependent setup
-        let geo = self.geometry(mol, extra);
+        let geo = self.geometry(mol, extra)?;
+        let tg = self.term_geometry(mol, &geo, parallel);
         let mut e_repulsion = [0.0];
         let te = &mut TermEnergy { pieces: &mut e_repulsion, atoms: Some(&mut erep) };
-        self.repulsion.energy(&self.term_geometry(mol, &geo, parallel), &(), te, chain.as_mut());
+        self.repulsion.energy(&tg, &(), te, chain.as_mut());
         // fixed (charge-independent) energy of every extra term
-        let mut efixed = vec![0.0; extra.len()];
-        for (k, (t, c)) in extra.iter().zip(&geo.caches).enumerate() {
+        let mut efixed = vec![0.0; geo.extra.len()];
+        for (k, t) in geo.extra.iter().enumerate() {
             let mut e = vec![0.0; nat];
-            t.fixed_energy(mol, c.as_ref(), &mut e, chain.as_mut().map(|c| &mut c.g[..]), parallel);
-            efixed[k] = e.iter().sum();
+            let mut pieces = vec![0.0; t.fixed_names().len()];
+            let atoms = t.partitions_energy().then_some(&mut e[..]);
+            t.fixed_energy(&tg, &mut TermEnergy { pieces: &mut pieces, atoms }, chain.as_mut());
+            efixed[k] = pieces.iter().sum();
             for i in 0..nat {
                 energies[i] += e[i];
             }
@@ -642,7 +514,6 @@ impl XtbModel {
         let mut scf = Gfn2Scf {
             xtb: self,
             mol,
-            extra,
             geo,
             ints,
             neglect,
@@ -798,7 +669,6 @@ impl XtbModel {
                     }
                     self.add_scc_gradient(
                         mol,
-                        extra,
                         &geo,
                         &density,
                         &wdensity,
@@ -812,7 +682,7 @@ impl XtbModel {
                     );
                 }
                 None => self.add_scc_gradient(
-                    mol, extra, &geo, &density, &wdensity, &qsh, &qat, &dpat, &qpat, &pot, &mut ch, parallel,
+                    mol, &geo, &density, &wdensity, &qsh, &qat, &dpat, &qpat, &pot, &mut ch, parallel,
                 ),
             }
             let g = self.finish_gradient(mol, &geo, ch, parallel);
@@ -948,7 +818,6 @@ impl Moments {
 struct Gfn2Scf<'a> {
     xtb: &'a XtbModel,
     mol: &'a Molecule,
-    extra: &'a [&'a dyn ChargeDependentTerm],
     geo: GeometryData,
     ints: Integrals,
     neglect: Option<MultipoleNeglect>,
@@ -1029,7 +898,7 @@ impl ScfModel for Gfn2Scf<'_> {
     fn build_fock(&mut self, iter: usize, m: &Moments, laps: &mut Laps) -> Result<()> {
         let bas = &self.xtb.basis;
         let geo = &self.geo;
-        self.xtb.potentials(self.mol, self.extra, geo, &m.qsh, &m.qat, &m.dpat, &m.qpat, &mut self.pot, self.parallel);
+        self.xtb.potentials(self.mol, geo, &m.qsh, &m.qat, &m.dpat, &m.qpat, &mut self.pot, self.parallel);
         laps.lap("scf: potentials");
         let pot = &self.pot;
         for mu in 0..bas.nao {
@@ -1154,11 +1023,13 @@ impl ScfModel for Gfn2Scf<'_> {
         let mut edsc = vec![0.0; nat];
         terms.dispersion = 0.0;
         terms.solvation = 0.0;
-        for (k, (t, c)) in self.extra.iter().zip(&self.geo.caches).enumerate() {
+        for (k, t) in self.geo.extra.iter().enumerate() {
             let mut e = vec![0.0; nat];
-            t.energy(mol, c.as_ref(), qat, &mut e, parallel);
-            let total = self.efixed[k] + e.iter().sum::<f64>();
-            match t.name() {
+            let mut pieces = vec![0.0; t.names().len()];
+            let atoms = t.partitions_energy().then_some(&mut e[..]);
+            t.energy(&tg, &s, &mut TermEnergy { pieces: &mut pieces, atoms });
+            let total = self.efixed[k] + pieces.iter().sum::<f64>();
+            match t.names()[0] {
                 "dispersion" => terms.dispersion += total,
                 _ => terms.solvation += total,
             }

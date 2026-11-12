@@ -3,7 +3,6 @@
 
 use crate::molecule::Molecule;
 use crate::response::Response;
-use crate::xtb::ChargeDependentTerm;
 use crate::{Conventions, Method, Options};
 
 pub fn mol_from(xyz: &str, charge: f64, uhf: Option<usize>) -> Molecule {
@@ -28,10 +27,10 @@ pub fn tight(conv: Conventions, alpb: bool) -> Options {
 /// returns the largest error relative to the largest component of each column.
 pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
     let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
-    let extra: Vec<&dyn ChargeDependentTerm> = extra_box.iter().map(|b| b.as_ref()).collect();
+    let extra = extra_box;
     let (sp, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
-    let resp = Response::new(&model, &extra, mol, &st, 1);
+    let resp = Response::new(&model, mol, &st, 1);
     eprintln!(
         "nao {} n_o {} n_f {} kT {:.3e} Z {:?}",
         model.basis.nao,
@@ -83,10 +82,10 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
 /// Explicit potential derivatives `∂V/∂R|_s` against central differences of the potentials.
 pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
     let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
-    let extra: Vec<&dyn ChargeDependentTerm> = extra_box.iter().map(|b| b.as_ref()).collect();
+    let extra = extra_box;
     let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
-    let resp = Response::new(&model, &extra, mol, &st, 1);
+    let resp = Response::new(&model, mol, &st, 1);
     let c = resp.potential_derivative(None);
     let lay = resp.lay;
     let (nat, nsh) = (lay.nat, lay.nsh);
@@ -99,9 +98,9 @@ pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
         for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
             let mut mm = mol.clone();
             mm.positions[a][k] += sign * h;
-            let geo = model.geometry(&mm, &extra);
+            let geo = model.geometry(&mm, &extra).unwrap();
             let mut pot = crate::terms::Potentials::new(nsh, nat, false);
-            model.potentials(&mm, &extra, &geo, &st.qsh, &st.qat, &st.dpat, &st.qpat, &mut pot, false);
+            model.potentials(&mm, &geo, &st.qsh, &st.qat, &st.dpat, &st.qpat, &mut pot, false);
             let vsh: Vec<f64> = (0..nsh).map(|s| pot.shell[s] + pot.atom[model.basis.sh2at[s]]).collect();
             lay.pack(&vsh, &pot.dipole, &pot.quadrupole, None, &mut v[i]);
         }
@@ -252,7 +251,7 @@ fn fd_check(name: &str, mol: &Molecule, hess: &[f64], grad: impl Fn(&Molecule) -
 /// Explicit second derivatives of the electrostatic and repulsion terms at fixed moments.
 pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
     let (model, extra_box) = crate::build_method(Method::Gfn2, mol, o).unwrap();
-    let extra: Vec<&dyn ChargeDependentTerm> = extra_box.iter().map(|b| b.as_ref()).collect();
+    let extra = extra_box;
     let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
     let st = st.unwrap();
     let bas = &model.basis;

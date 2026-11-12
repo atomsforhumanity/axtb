@@ -31,8 +31,8 @@ use crate::hamiltonian::AtomBlocks;
 use crate::linalg::Lu;
 use crate::molecule::Molecule;
 use crate::scf::{mulliken, ScfVariables};
-use crate::terms::{Jacobians, Kernel, MomentTerm, PotentialDerivative};
-use crate::xtb::{ChargeDependentTerm, ScfState, XtbModel};
+use crate::terms::{Chain2, Jacobians, Kernel, MomentTerm, PotentialDerivative};
+use crate::xtb::{ScfState, XtbModel};
 use crate::{Error, Result};
 use axtb_base::occupations::fermi;
 use axtb_base::threads;
@@ -64,7 +64,6 @@ fn occupations(st: &ScfState) -> OccupationResponse {
 /// Linear response machinery for one converged SCF.
 pub(crate) struct Response<'a> {
     pub model: &'a XtbModel,
-    pub extra: &'a [&'a dyn ChargeDependentTerm],
     pub mol: &'a Molecule,
     pub st: &'a ScfState,
     pub lay: ScfVariables,
@@ -84,13 +83,7 @@ pub(crate) struct Response<'a> {
 }
 
 impl<'a> Response<'a> {
-    pub fn new(
-        model: &'a XtbModel,
-        extra: &'a [&'a dyn ChargeDependentTerm],
-        mol: &'a Molecule,
-        st: &'a ScfState,
-        threads: usize,
-    ) -> Self {
+    pub fn new(model: &'a XtbModel, mol: &'a Molecule, st: &'a ScfState, threads: usize) -> Self {
         let bas = &model.basis;
         let nat = mol.nat();
         let nao = bas.nao;
@@ -127,7 +120,7 @@ impl<'a> Response<'a> {
                 gx.push(g);
             }
         }
-        Self { model, extra, mol, st, lay, occ, n_f, blocks, ao_off, jacobians, sc, gx, threads }
+        Self { model, mol, st, lay, occ, n_f, blocks, ao_off, jacobians, sc, gx, threads }
     }
 
     /// The CN Jacobian dCN/dR (row-major nat x 3 nat).
@@ -280,8 +273,8 @@ impl<'a> Response<'a> {
                 k[(a, b)] = ks.shell[a * nsh + b];
             }
         }
-        for (t, c) in self.extra.iter().zip(&st.geo.caches) {
-            t.kernel(self.mol, c.as_ref(), &st.qat, &mut ks.atom);
+        for t in &st.geo.extra {
+            t.kernel(&tg, &s, &mut ks);
         }
         if let (Some(aes), Some(c)) = (&self.model.aes2, &st.geo.mp_cache) {
             aes.kernel(&tg, c, &s, &mut ks);
@@ -354,15 +347,11 @@ impl<'a> Response<'a> {
             h.clear();
             h.resize(n3 * n3, 0.0);
         }
-        for (t, cc) in self.extra.iter().zip(&st.geo.caches) {
-            t.second_derivatives(
-                self.mol,
-                cc.as_ref(),
-                &st.qat,
-                &mut pd.atomic[..nat * n3],
-                extra_hessian.as_deref_mut().map(|h| h.as_mut_slice()),
-                self.threads > 1,
-            );
+        {
+            let mut h2 = extra_hessian.map(|h| Chain2 { h: h.as_mut_slice(), jacobians: &self.jacobians });
+            for t in &st.geo.extra {
+                t.second_derivatives(&tg, &s, Some(&mut pd), h2.as_mut()).expect("second derivatives of an added term");
+            }
         }
         if let (Some(aes), Some(cache)) = (&self.model.aes2, &st.geo.mp_cache) {
             aes.second_derivatives(&tg, cache, &s, Some(&mut pd), None).expect(seconds);
