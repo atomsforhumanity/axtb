@@ -1,6 +1,7 @@
 //! Validation of the coupled-perturbed SCC response and the Hessians against finite
 //! differences (run with `cargo test --release -p axtb --lib response -- --nocapture`).
 
+use crate::method::{Method, Want};
 use crate::molecule::Molecule;
 use crate::response::Response;
 use crate::{Conventions, Hamiltonian, Options};
@@ -28,7 +29,7 @@ pub fn tight(conv: Conventions, alpb: bool) -> Options {
 pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
     let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
-    let (sp, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
+    let (sp, st) = model.singlepoint_state(mol, &extra, &o.run(1, &Want::ENERGY), None, false, true).unwrap();
     let st = st.unwrap();
     let resp = Response::new(&model, mol, &st, 1);
     eprintln!(
@@ -51,7 +52,7 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
         for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
             let mut mm = mol.clone();
             mm.positions[a][k] += sign * h;
-            let sp = model.singlepoint(&mm, &extra, &o.scf, Some(&guess), false).unwrap();
+            let sp = model.singlepoint(&mm, &extra, &o.run(1, &Want::ENERGY), Some(&guess), false).unwrap();
             lay.pack(&sp.qsh, &sp.dpat, &sp.qpat, None, &mut s[i]);
         }
         let fd: Vec<f64> = (0..m).map(|t| (s[0][t] - s[1][t]) / (2.0 * h)).collect();
@@ -83,7 +84,7 @@ pub fn check_scc_response(mol: &Molecule, o: &Options, xs: &[usize]) -> f64 {
 pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
     let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
-    let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
+    let (_, st) = model.singlepoint_state(mol, &extra, &o.run(1, &Want::ENERGY), None, false, true).unwrap();
     let st = st.unwrap();
     let resp = Response::new(&model, mol, &st, 1);
     let c = resp.potential_derivative(None);
@@ -223,7 +224,7 @@ fn diagnose_alpb_smoothness() {
     for t in -8..=8 {
         let mut m = mol.clone();
         m.positions[y / 3][y % 3] += t as f64 * 2.5e-4;
-        let g = crate::singlepoint(Hamiltonian::Gfn2, &m, &o, true).unwrap().gradient.unwrap();
+        let g = crate::singlepoint(Hamiltonian::Gfn2, &m, &o, &Want::gradient(true)).unwrap().gradient.unwrap();
         eprintln!("{:+.5} {:.12}", t as f64 * 2.5e-4, g[x / 3][x % 3]);
     }
 }
@@ -253,7 +254,7 @@ fn fd_check(name: &str, mol: &Molecule, hess: &[f64], grad: impl Fn(&Molecule) -
 pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
     let (model, extra_box) = crate::build_method(Hamiltonian::Gfn2, mol, o).unwrap();
     let extra = extra_box;
-    let (_, st) = model.singlepoint_state(mol, &extra, &o.scf, None, false, true).unwrap();
+    let (_, st) = model.singlepoint_state(mol, &extra, &o.run(1, &Want::ENERGY), None, false, true).unwrap();
     let st = st.unwrap();
     let bas = &model.basis;
     let n3 = 3 * mol.nat();
@@ -397,7 +398,7 @@ fn analytic_hessian_single_atom_and_threads() {
     let mut calc1 =
         crate::Calculator::new(Hamiltonian::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o.clone()).unwrap();
     let mut o8 = o.clone();
-    o8.scf.threads = 4;
+    o8.threads = 4;
     let mut calc8 = crate::Calculator::new(Hamiltonian::Gfn2, &mol.numbers, &mol.positions, 0.0, None, o8).unwrap();
     let ho = crate::HessianOptions::default();
     let h1 = calc1.hessian(&mol.positions, &ho).unwrap();

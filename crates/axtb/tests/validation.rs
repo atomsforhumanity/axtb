@@ -3,7 +3,8 @@
 //! compute garbage or panic-free nonsense for most of these; see tests/reference_matrix,
 //! category `failures`).
 
-use axtb::{Calculator, Conventions, Error, Hamiltonian, HessianMethod, HessianOptions, Molecule, Options, ScfGuess};
+use axtb::method::{Method, ScfData, SinglePoint, Want, Wavefunction, WavefunctionData};
+use axtb::{Calculator, Conventions, Error, Hamiltonian, HessianMethod, HessianOptions, Molecule, Options};
 
 const MODES: [Conventions; 4] = [Conventions::Axtb, Conventions::Xtb, Conventions::Xtb671, Conventions::Tblite];
 
@@ -21,14 +22,14 @@ fn run(
     uhf: Option<usize>,
     conv: Conventions,
     f: impl Fn(&mut Options),
-) -> axtb::Result<axtb::SinglePoint> {
+) -> axtb::Result<SinglePoint> {
     let m = Molecule::new(&mol.0, &mol.1, charge, uhf)?;
     let mut o = Options { conventions: conv, ..Default::default() };
     f(&mut o);
-    axtb::singlepoint(Hamiltonian::Gfn2, &m, &o, true)
+    axtb::singlepoint(Hamiltonian::Gfn2, &m, &o, &Want::gradient(true))
 }
 
-fn is_input_error(r: axtb::Result<axtb::SinglePoint>) -> bool {
+fn is_input_error(r: axtb::Result<SinglePoint>) -> bool {
     matches!(r, Err(Error::Input(_)))
 }
 
@@ -47,7 +48,7 @@ fn impossible_electron_counts_are_input_errors() {
         assert!(is_input_error(run(o2, 0.0, Some(10), conv, |_| {})), "O2 uhf 10 ({conv:?})");
         // no electrons at all is a valid (if unusual) state that every program computes
         let sp = run(h2(), 2.0, None, conv, |_| {}).unwrap();
-        assert!((sp.qat.iter().sum::<f64>() - 2.0).abs() < 1e-12);
+        assert!((sp.charges.iter().sum::<f64>() - 2.0).abs() < 1e-12);
     }
 }
 
@@ -58,9 +59,9 @@ fn invalid_scf_settings_are_input_errors() {
             assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.accuracy = acc)), "accuracy {acc}");
         }
         for t in [-5.0, f64::NAN] {
-            assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.etemp = t)), "etemp {t}");
+            assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.etemp = Some(t))), "etemp {t}");
         }
-        assert!(run(water(), 0.0, None, conv, |o| o.scf.etemp = 0.0).is_ok());
+        assert!(run(water(), 0.0, None, conv, |o| o.scf.etemp = Some(0.0)).is_ok());
     }
 }
 
@@ -71,7 +72,7 @@ fn invalid_scf_settings_are_input_errors() {
 fn fractional_charge_is_an_input_error() {
     for conv in MODES {
         for etemp in [300.0, 0.0, 5000.0] {
-            assert!(is_input_error(run(h2(), 0.5, None, conv, |o| o.scf.etemp = etemp)), "{conv:?} {etemp} K");
+            assert!(is_input_error(run(h2(), 0.5, None, conv, |o| o.scf.etemp = Some(etemp))), "{conv:?} {etemp} K");
         }
         assert!(is_input_error(run(water(), -1e-9, None, conv, |_| {})), "{conv:?}");
     }
@@ -107,26 +108,25 @@ fn broken_structures_are_input_errors() {
     let mut inf = r.clone();
     inf[0][1] = f64::INFINITY;
     for bad in [p.clone(), inf, r[..2].to_vec()] {
-        assert!(matches!(calc.singlepoint(&bad, true), Err(Error::Input(_))));
+        assert!(matches!(calc.singlepoint(&bad, &Want::gradient(true)), Err(Error::Input(_))));
         assert!(matches!(calc.hessian(&bad, &HessianOptions::default()), Err(Error::Input(_))));
         assert_eq!(calc.molecule().positions, r);
     }
-    assert!(calc.singlepoint(&far, true).is_ok());
+    assert!(calc.singlepoint(&far, &Want::gradient(true)).is_ok());
 }
 
 #[test]
 fn invalid_mixer_and_thread_settings_are_input_errors() {
     for conv in MODES {
         for damping in [0.0, -1.0, 1.5, f64::NAN, f64::INFINITY] {
-            assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.damping = damping)), "damping {damping}");
+            assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.mixing.damping = damping)), "damping {damping}");
         }
-        assert!(run(water(), 0.0, None, conv, |o| o.scf.damping = 1.0).is_ok());
-        assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.max_iter = 0)));
-        assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.threads = 0)));
+        assert!(run(water(), 0.0, None, conv, |o| o.mixing.damping = 1.0).is_ok());
+        assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.scf.max_iter = Some(0))));
+        assert!(is_input_error(run(water(), 0.0, None, conv, |o| o.threads = 0)));
     }
     let (z, r) = water();
-    let mut o = Options::default();
-    o.scf.threads = 0;
+    let o = Options { threads: 0, ..Default::default() };
     assert!(matches!(Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, o.clone()), Err(Error::Input(_))));
     let one = axtb::Threads::sequential();
     assert!(matches!(Calculator::with_threads(Hamiltonian::Gfn2, &z, &r, 0.0, None, o, one), Err(Error::Input(_))));
@@ -155,16 +155,19 @@ fn bad_guesses_are_errors_not_panics() {
     for conv in MODES {
         let o = Options { conventions: conv, ..Default::default() };
         let mut calc = Calculator::new(Hamiltonian::Gfn2, &z, &r, 0.0, None, o).unwrap();
-        let g = calc.singlepoint(&r, false).unwrap().guess();
+        calc.singlepoint(&r, &Want::gradient(false)).unwrap();
+        let wf = calc.wavefunction().unwrap();
+        let WavefunctionData::Scf(g) = wf.data().clone() else { panic!("GFN2-xTB's moments") };
+        let with = |d: ScfData| Wavefunction::new(wf.fingerprint().clone(), WavefunctionData::Scf(d));
         let mut nan = g.clone();
-        nan.qpat[1][3] = f64::NAN;
-        assert!(matches!(calc.set_guess(nan), Err(Error::Input(_))));
+        nan.atomic_quadrupoles[1][3] = f64::NAN;
+        assert!(matches!(calc.set_wavefunction(&with(nan)), Err(Error::Input(_))));
         let mut short = g.clone();
-        short.qpat.pop();
-        assert!(matches!(calc.set_guess(short), Err(Error::Input(_))));
-        let huge = ScfGuess { qsh: vec![1e300; g.qsh.len()], ..g };
-        calc.set_guess(huge).unwrap();
-        let e = calc.singlepoint(&r, true);
+        short.atomic_quadrupoles.pop();
+        assert!(matches!(calc.set_wavefunction(&with(short)), Err(Error::Input(_))));
+        let huge = ScfData { shell_charges: vec![1e300; g.shell_charges.len()], ..g };
+        calc.set_wavefunction(&with(huge)).unwrap();
+        let e = calc.singlepoint(&r, &Want::gradient(true));
         assert!(matches!(e, Err(Error::Numerical(_))), "{conv:?}: {e:?}");
     }
 }
@@ -178,7 +181,7 @@ fn xtb_conventions_smear_only_above_one_tenth_kelvin() {
     let o2 = (vec![8, 8], vec![[0.0, 0.0, 0.0], [0.0, 0.0, 1.21 / 0.529177210544]]);
     let e = |conv: Conventions, t: f64| {
         run(o2.clone(), 0.0, Some(0), conv, |o| {
-            o.scf.etemp = t;
+            o.scf.etemp = Some(t);
             o.scf.accuracy = 1e-6
         })
         .unwrap()

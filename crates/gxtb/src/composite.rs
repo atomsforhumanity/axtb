@@ -41,9 +41,8 @@
 //! build of xtb 6.7.1: every SCF starts from the program's guess, as each program call does.
 use crate::calculator::{Calculator, Results, Version};
 use crate::scf::{Conventions, Guess, ScfOptions};
-use axtb::{
-    Error, HessianMethod, HessianOptions, MixerKind, Result, ScfAttempt, SinglePoint, SolvationModel, SolvationSpec,
-};
+use axtb::method::{Attempt, Method as _, Want, Wavefunction};
+use axtb::{Error, HessianMethod, HessianOptions, MixerKind, Result, SinglePoint, SolvationModel, SolvationSpec};
 use axtb_base::threads::{self, Threads};
 use std::time::Instant;
 
@@ -176,7 +175,7 @@ pub struct PartInfo {
     /// `None` for g-xTB.
     pub mixer_used: Option<&'static str>,
     /// GFN2-xTB: every attempt of the converging rung.
-    pub scf_attempts: Vec<ScfAttempt>,
+    pub scf_attempts: Vec<Attempt>,
     /// Electronic temperature (K) and iteration limit of the converging rung.
     pub etemp: f64,
     pub max_iter: usize,
@@ -197,8 +196,8 @@ pub struct CompositeResults {
     /// The g-xTB part (with its energy terms).
     pub gxtb: Results,
     /// The GFN2 halves with and without the solvent model.
-    pub gfn2_solvated: SinglePoint,
-    pub gfn2_gas: SinglePoint,
+    pub gfn2_solvated: axtb::method::SinglePoint,
+    pub gfn2_gas: axtb::method::SinglePoint,
     /// ΔG_solv = E_GFN2+solv - E_GFN2 (Eh) and its gradient.
     pub solvation_energy: f64,
     pub solvation_gradient: Option<Vec<[f64; 3]>>,
@@ -274,6 +273,21 @@ fn not_converged(e: &Error) -> bool {
     matches!(e, Error::ScfNotConverged { .. } | Error::Numerical(_))
 }
 
+/// The SCF report of a part's single point: iterations, mixer, attempts.
+fn old_scf(sp: &SinglePoint) -> (usize, Option<&'static str>, Vec<Attempt>) {
+    let attempts = sp.scf_attempts.iter().map(|a| Attempt {
+        mixer: a.mixer.label(),
+        iterations: a.iterations,
+        converged: a.converged,
+    });
+    (sp.iterations, sp.mixer_used, attempts.collect())
+}
+
+fn new_scf(sp: &axtb::method::SinglePoint) -> (usize, Option<&'static str>, Vec<Attempt>) {
+    let s = sp.scf().expect("GFN2-xTB has an SCF");
+    (s.iterations, s.mixer_used, s.attempts.clone())
+}
+
 fn add(a: &[[f64; 3]], b: &[[f64; 3]], sign: f64) -> Vec<[f64; 3]> {
     a.iter().zip(b).map(|(x, y)| [x[0] + sign * y[0], x[1] + sign * y[1], x[2] + sign * y[2]]).collect()
 }
@@ -327,17 +341,11 @@ impl CompositeCalculator {
         let gfn2_conv = options.gfn2_conventions();
         let mut o = axtb::Options { conventions: gfn2_conv, ..Default::default() };
         o.scf.accuracy = options.accuracy;
-        o.scf.threads = options.threads;
-        o.scf.mixer = options.mixer;
-        if let Some(t) = options.etemp {
-            o.scf.etemp = t;
-        } else {
-            o.scf.etemp = GFN2_ETEMP;
-        }
-        if let Some(m) = options.max_iter {
-            o.scf.max_iter = m;
-        }
-        let gfn2_base = (o.scf.etemp, o.scf.max_iter);
+        o.threads = options.threads;
+        o.mixing.mixer = options.mixer;
+        o.scf.etemp = Some(options.etemp.unwrap_or(GFN2_ETEMP));
+        o.scf.max_iter = options.max_iter;
+        let gfn2_base = (o.scf.etemp.unwrap_or(GFN2_ETEMP), o.scf.max_iter.unwrap_or(axtb::MAX_ITER));
         let gas = axtb::Calculator::with_threads(
             axtb::Hamiltonian::Gfn2,
             numbers,
@@ -427,8 +435,8 @@ impl CompositeCalculator {
     /// Forget the previous converged states of all parts.
     pub fn reset_guess(&mut self) {
         self.gxtb.reset_guess();
-        self.solvated.reset_guess();
-        self.gas.reset_guess();
+        self.solvated.reset_wavefunction();
+        self.gas.reset_wavefunction();
     }
 
     /// The g-xTB part's calculator (e.g. for its [`Calculator::guess`]).
@@ -447,8 +455,8 @@ impl CompositeCalculator {
     }
 
     /// The GFN2 halves' last wavefunctions (gas phase, solvated).
-    pub fn gfn2_guesses(&self) -> (Option<&axtb::ScfGuess>, Option<&axtb::ScfGuess>) {
-        (self.gas.guess(), self.solvated.guess())
+    pub fn gfn2_guesses(&self) -> (Option<Wavefunction>, Option<Wavefunction>) {
+        (self.gas.wavefunction(), self.solvated.wavefunction())
     }
 
     /// g-xTB with its retries (only without an explicit electronic temperature).
@@ -503,10 +511,10 @@ impl CompositeCalculator {
         let mut last = None;
         for (etemp, max_iter, retry) in rungs {
             for c in [&mut self.gas, &mut self.solvated] {
-                c.options.scf.etemp = etemp;
-                c.options.scf.max_iter = max_iter;
+                c.options.scf.etemp = Some(etemp);
+                c.options.scf.max_iter = Some(max_iter);
                 if !self.reuse_guess {
-                    c.reset_guess();
+                    c.reset_wavefunction();
                 }
             }
             let t0 = Instant::now();
@@ -545,8 +553,8 @@ impl CompositeCalculator {
     fn restore_pair(&mut self) {
         let (etemp, max_iter) = self.gfn2_base;
         for c in [&mut self.gas, &mut self.solvated] {
-            c.options.scf.etemp = etemp;
-            c.options.scf.max_iter = max_iter;
+            c.options.scf.etemp = Some(etemp);
+            c.options.scf.max_iter = Some(max_iter);
         }
     }
 
@@ -567,7 +575,14 @@ impl CompositeCalculator {
         Ok(())
     }
 
-    fn part(&self, k: usize, energy: f64, sp: Option<&SinglePoint>, rung: &Rung, seconds: f64) -> PartInfo {
+    fn part(
+        &self,
+        k: usize,
+        energy: f64,
+        scf: Option<(usize, Option<&'static str>, Vec<Attempt>)>,
+        rung: &Rung,
+        seconds: f64,
+    ) -> PartInfo {
         let (gconv, fconv) = self.conventions_labels();
         let (method, conventions) = match k {
             0 => (self.options.version.method().to_string(), gconv),
@@ -578,9 +593,9 @@ impl CompositeCalculator {
             method,
             conventions,
             energy,
-            iterations: sp.map_or(0, |s| s.iterations),
-            mixer_used: sp.and_then(|s| s.mixer_used),
-            scf_attempts: sp.map_or_else(Vec::new, |s| s.scf_attempts.clone()),
+            iterations: scf.as_ref().map_or(0, |s| s.0),
+            mixer_used: scf.as_ref().and_then(|s| s.1),
+            scf_attempts: scf.map_or_else(Vec::new, |s| s.2),
             etemp: rung.etemp,
             max_iter: rung.max_iter,
             retry: rung.retry.clone(),
@@ -594,7 +609,7 @@ impl CompositeCalculator {
     pub fn singlepoint(&mut self, positions: &[[f64; 3]], gradient: bool) -> Result<CompositeResults> {
         let t0 = Instant::now();
         let (gx, grung) = self.run_gxtb(|c| c.singlepoint(positions, gradient))?;
-        let (gas, solv, prung, secs) = self.run_pair(|c| c.singlepoint(positions, gradient))?;
+        let (gas, solv, prung, secs) = self.run_pair(|c| c.singlepoint(positions, &Want::gradient(gradient)))?;
         let dg = solv.energy - gas.energy;
         self.check(dg)?;
         let dgrad = match (&solv.gradient, &gas.gradient) {
@@ -615,9 +630,9 @@ impl CompositeCalculator {
             ("total", t0.elapsed().as_secs_f64()),
         ];
         let parts = [
-            self.part(0, gx.singlepoint.energy, Some(&gx.singlepoint), &grung, grung.seconds),
-            self.part(1, solv.energy, Some(&solv), &prung, secs[1]),
-            self.part(2, gas.energy, Some(&gas), &prung, secs[0]),
+            self.part(0, gx.singlepoint.energy, Some(old_scf(&gx.singlepoint)), &grung, grung.seconds),
+            self.part(1, solv.energy, Some(new_scf(&solv)), &prung, secs[1]),
+            self.part(2, gas.energy, Some(new_scf(&gas)), &prung, secs[0]),
         ];
         Ok(CompositeResults {
             singlepoint: sp,

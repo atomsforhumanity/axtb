@@ -10,6 +10,7 @@
 //!     cargo run --release -p axtb --example conventions_ablation < mol.txt
 
 use axtb::conventions::{ConventionParams, SccGradient, SccResidual};
+use axtb::method::Want;
 use axtb::param::xtb_data::{
     XTB671_ATOMIC_RAD, XTB671_COVALENT_RAD_D3, XTB671_D4_EN, XTB671_D4_RCOV, XTB671_PAULING_EN,
 };
@@ -86,11 +87,12 @@ fn main() {
             ..Default::default()
         };
         opts.scf.accuracy = accuracy;
-        opts.scf.etemp = etemp;
-        match axtb::singlepoint(Hamiltonian::Gfn2, &mol, &opts, true) {
+        opts.scf.etemp = Some(etemp);
+        match axtb::singlepoint(Hamiltonian::Gfn2, &mol, &opts, &Want::gradient(true)) {
             Ok(sp) => {
-                let g: Vec<String> = sp.gradient.unwrap().iter().flatten().map(|x| format!("{x:.17e}")).collect();
-                println!("{name}\t{:.17e}\t{}\t{}", sp.energy, sp.iterations, g.join(" "));
+                let g: Vec<String> =
+                    sp.gradient.as_ref().unwrap().iter().flatten().map(|x| format!("{x:.17e}")).collect();
+                println!("{name}\t{:.17e}\t{}\t{}", sp.energy, sp.scf().unwrap().iterations, g.join(" "));
             }
             Err(e) => println!("{name}\terror\t{e}"),
         }

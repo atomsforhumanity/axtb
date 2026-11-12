@@ -4,7 +4,8 @@
 //! calculation gives the same bits on 1 and 3 threads; above it, the same bits on repeats with
 //! the same thread count, and round-off between thread counts.
 
-use axtb::{Calculator, Conventions, Hamiltonian, Options, SinglePoint};
+use axtb::method::{Method, SinglePoint, Want};
+use axtb::{Calculator, Conventions, Hamiltonian, Options};
 
 /// A zigzag n-alkane CnH(2n+2) (bohr), idealized geometry.
 fn alkane(n: usize) -> (Vec<usize>, Vec<[f64; 3]>) {
@@ -29,14 +30,14 @@ fn alkane(n: usize) -> (Vec<usize>, Vec<[f64; 3]>) {
 
 fn run(mol: &(Vec<usize>, Vec<[f64; 3]>), conventions: Conventions, threads: usize) -> SinglePoint {
     let mut o = Options { conventions, ..Default::default() };
-    o.scf.threads = threads;
+    o.threads = threads;
     let mut calc = Calculator::new(Hamiltonian::Gfn2, &mol.0, &mol.1, 0.0, None, o).unwrap();
-    calc.singlepoint(&mol.1, true).unwrap()
+    calc.singlepoint(&mol.1, &Want::gradient(true)).unwrap()
 }
 
 fn bits(sp: &SinglePoint) -> Vec<u64> {
     let g = sp.gradient.as_ref().unwrap().iter().flatten();
-    std::iter::once(&sp.energy).chain(g).chain(&sp.qat).map(|x| x.to_bits()).collect()
+    std::iter::once(&sp.energy).chain(g).chain(&sp.charges).map(|x| x.to_bits()).collect()
 }
 
 /// C50H102: 302 basis functions, where the dense linear algebra runs on the pool but faer's
@@ -51,7 +52,7 @@ fn same_bits_on_one_and_three_threads_below_parallel_tridiagonalization() {
     let mol = alkane(50);
     for conv in [Conventions::Axtb, Conventions::Xtb] {
         let one = run(&mol, conv, 1);
-        assert_eq!(one.orbital_energies.len(), 302);
+        assert_eq!(one.electronic.as_ref().unwrap().levels[0].energies.len(), 302);
         assert_eq!(bits(&run(&mol, conv, 3)), bits(&one), "{conv:?}");
     }
 }
@@ -61,7 +62,7 @@ fn same_bits_on_one_and_three_threads_below_parallel_tridiagonalization() {
 fn same_bits_on_repeats_above_parallel_tridiagonalization() {
     let mol = alkane(80);
     let one = run(&mol, Conventions::Axtb, 1);
-    assert_eq!(one.orbital_energies.len(), 482);
+    assert_eq!(one.electronic.as_ref().unwrap().levels[0].energies.len(), 482);
     let three = run(&mol, Conventions::Axtb, 3);
     assert_eq!(bits(&run(&mol, Conventions::Axtb, 3)), bits(&three));
     assert!((one.energy - three.energy).abs() < 1e-10, "{} {}", one.energy, three.energy);

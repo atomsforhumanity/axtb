@@ -7,8 +7,9 @@
 
 use axtb::basis::{nsph, Cgto};
 use axtb::integrals::{overlap, MBLK};
+use axtb::method::{Method, Want};
 use axtb::molden::{MoldenFunctions, Spin, ToMolden};
-use axtb::{Molecule, Orbitals};
+use axtb::{Molecule, OrbitalLevels, Orbitals};
 use axtb_gxtb::{Calculator, ScfOptions, Version};
 use std::path::Path;
 
@@ -58,24 +59,22 @@ fn orthonormality(orb: &Orbitals) -> f64 {
     worst
 }
 
-fn check(name: &str, orb: &Orbitals, sp: &axtb::SinglePoint, uhf: usize) {
+/// The orbitals `orb` of a single point with the orbital levels `levels` (per spin channel);
+/// `one_set`: GFN2-xTB's one set of orbitals with alpha and beta occupations.
+fn check(name: &str, orb: &Orbitals, levels: &[OrbitalLevels], uhf: usize, one_set: bool) {
     let nao = orb.nao();
     let err = orthonormality(orb);
     // (the SCF overlap screens primitive pairs, this one does not)
     assert!(err < 1e-8, "{name}: orbitals not orthonormal ({err:e})");
     assert_eq!(orb.sets.len(), if uhf > 0 { 2 } else { 1 }, "{name}");
     assert_eq!(orb.sets[0].spin, Spin::Alpha);
-    let energies: Vec<f64> = orb.sets.iter().flat_map(|s| s.energies.iter().copied()).collect();
-    if orb.sets.len() == 2 && sp.orbital_energies.len() == nao {
-        // GFN2-xTB: one set of orbitals with alpha and beta occupations
-        assert_eq!(orb.sets[0].energies, sp.orbital_energies);
+    assert_eq!(orb.sets.len(), levels.len(), "{name}");
+    for (set, level) in orb.sets.iter().zip(levels) {
+        assert_eq!(set.energies, level.energies, "{name}");
+        assert_eq!(set.occupations, level.occupations, "{name}");
+    }
+    if one_set && orb.sets.len() == 2 {
         assert_eq!(orb.sets[0].coefficients, orb.sets[1].coefficients);
-        let occ: Vec<f64> = (0..nao).map(|k| orb.sets[0].occupations[k] + orb.sets[1].occupations[k]).collect();
-        assert_eq!(occ, sp.occupations);
-    } else {
-        assert_eq!(energies, sp.orbital_energies, "{name}");
-        let occ: Vec<f64> = orb.sets.iter().flat_map(|s| s.occupations.iter().copied()).collect();
-        assert_eq!(occ, sp.occupations, "{name}");
     }
     let nalpha: f64 = orb.sets[0].occupations.iter().sum();
     if uhf > 0 {
@@ -126,7 +125,7 @@ fn gxtb_orbitals() {
             calc.options.keep_orbitals = true;
             let r = calc.singlepoint(&mol.positions, true).unwrap();
             let orb = r.singlepoint.orbitals.as_ref().expect("orbitals");
-            check(&name, orb, &r.singlepoint, uhf);
+            check(&name, orb, &r.singlepoint.levels, uhf, false);
         }
     }
 }
@@ -136,7 +135,7 @@ fn gfn2_orbitals() {
     let cases = [("reference/water", 0.0, 0), ("reference/dioxygen_triplet", 0.0, 2), ("reference/cu-nh3-4", 2.0, 1)];
     for (rel, charge, uhf) in cases {
         let mol = molecule(rel, charge, uhf);
-        let mut opts = axtb::Options::default();
+        let opts = axtb::Options::default();
         let mut calc = axtb::Calculator::new(
             axtb::Hamiltonian::Gfn2,
             &mol.numbers,
@@ -146,10 +145,10 @@ fn gfn2_orbitals() {
             opts.clone(),
         )
         .unwrap();
-        assert!(calc.singlepoint(&mol.positions, false).unwrap().orbitals.is_none());
-        opts.scf.keep_orbitals = true;
-        let sp = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, false).unwrap();
-        check(&format!("{rel} gfn2"), sp.orbitals.as_ref().unwrap(), &sp, uhf);
+        assert!(calc.singlepoint(&mol.positions, &Want::ENERGY).unwrap().electronic.unwrap().orbitals.is_none());
+        let want = Want { orbitals: true, ..Want::ENERGY };
+        let e = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, &want).unwrap().electronic.unwrap();
+        check(&format!("{rel} gfn2"), e.orbitals.as_ref().unwrap(), &e.levels, uhf, true);
     }
 }
 

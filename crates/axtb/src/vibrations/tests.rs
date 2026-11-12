@@ -1,4 +1,5 @@
 use super::*;
+use crate::method::{Method, Want};
 
 /// Hessian (row-major 3N x 3N) of harmonic springs V = Σ ½ k (|r_i − r_j| − d0)².
 fn springs(pos: &[[f64; 3]], bonds: &[(usize, usize, f64, f64)]) -> Vec<f64> {
@@ -299,8 +300,8 @@ fn gfn2_dipole_derivatives() {
             for (i, s) in [1.0, -1.0].into_iter().enumerate() {
                 let mut p = pos.clone();
                 p[x / 3][x % 3] += s * h;
-                calc.reset_guess();
-                d[i] = calc.singlepoint(&p, false).unwrap().dipole;
+                calc.reset_wavefunction();
+                d[i] = calc.singlepoint(&p, &Want::gradient(false)).unwrap().dipole;
             }
             fd[x] = [0, 1, 2].map(|k| (d[0][k] - d[1][k]) / (2.0 * h));
         }

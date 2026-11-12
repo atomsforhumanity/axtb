@@ -241,10 +241,11 @@ fn cli_molden_equals_rust_api() {
             assert!(ok, "{err}");
             let r: serde_json::Value = serde_json::from_str(&out).unwrap();
             let orbitals = if method == "gfn2" {
-                let mut opts = axtb::Options::default();
-                opts.scf.keep_orbitals = true;
+                let opts = axtb::Options::default();
+                let want = axtb::method::Want { orbitals: true, ..axtb::method::Want::ENERGY };
                 let mol = axtb::Molecule::new(&numbers, &cu, -2.0, Some(1)).unwrap();
-                axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, false).unwrap().orbitals.unwrap()
+                let sp = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &opts, &want).unwrap();
+                sp.electronic.unwrap().orbitals.unwrap()
             } else {
                 let version = axtb_gxtb::Version::from_method(method).unwrap();
                 let opts = axtb_gxtb::ScfOptions { keep_orbitals: true, ..Default::default() };

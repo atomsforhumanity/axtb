@@ -189,7 +189,7 @@ pub struct ConventionParams {
     /// Implicit solvation variant (xtb 6.8.0's, xtb 6.7.1's with its two bugs, or the
     /// corrected model).
     pub solvation: SolvConventions,
-    /// Mixer of the SCC variables when [`ScfOptions::mixer`](crate::ScfOptions::mixer) does
+    /// Mixer of the SCC variables when [`Mixing::mixer`](crate::Mixing::mixer) does
     /// not choose one. xtb and tblite: their modified Broyden mixing alone, so the
     /// iterations, the SCF solution where there are several, and the failures are theirs;
     /// axtb: [`MixerKind::Auto`], Broyden with a DIIS fallback for SCFs Broyden does not

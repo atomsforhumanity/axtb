@@ -2,6 +2,7 @@
 //! have no external reference program: analytic gradients against central finite
 //! differences, and invariance under atom permutation.
 
+use axtb::method::Want;
 use axtb::{io::read_xyz, Conventions, Molecule, Options, SolvationModel, SolvationSpec};
 
 fn opts(conventions: Conventions, alpb: bool) -> Options {
@@ -18,14 +19,14 @@ fn opts(conventions: Conventions, alpb: bool) -> Options {
 }
 
 fn energy(mol: &Molecule, o: &Options) -> f64 {
-    axtb::singlepoint(axtb::Hamiltonian::Gfn2, mol, o, false).unwrap().energy
+    axtb::singlepoint(axtb::Hamiltonian::Gfn2, mol, o, &Want::gradient(false)).unwrap().energy
 }
 
 fn check_fd(xyz: &str, alpb: bool, atoms: &[usize], tol: f64) {
     let (num, pos) = read_xyz(xyz, axtb::units::AATOAU).unwrap();
     let mol = Molecule::new(&num, &pos, 0.0, None).unwrap();
     let o = opts(Conventions::Axtb, alpb);
-    let g = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &o, true).unwrap().gradient.unwrap();
+    let g = axtb::singlepoint(axtb::Hamiltonian::Gfn2, &mol, &o, &Want::gradient(true)).unwrap().gradient.unwrap();
     let h = 1e-4;
     for &i in atoms {
         for k in 0..3 {

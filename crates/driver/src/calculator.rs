@@ -6,7 +6,7 @@ use crate::names::{self, Method};
 use crate::request::Request;
 use crate::response::{self, Attempt, Gfnff, HessianPart, Matrix, Named, Response, Scf, Topology, Vibrations};
 use crate::task::Task;
-use axtb::method::{Method as _, Want};
+use axtb::method::{Fingerprint, Method as _, Restart, ScfData, Want, Wavefunction, WavefunctionData};
 use axtb::vibrations::Conventions as VibConventions;
 use axtb::ToMolden;
 use std::time::Instant;
@@ -33,12 +33,12 @@ pub struct ScfState {
 
 #[derive(Clone)]
 enum StateInner {
-    Gfn2(axtb::ScfGuess),
+    Gfn2(Wavefunction),
     #[cfg(feature = "gxtb")]
     Gxtb(axtb_gxtb::GuessState),
     /// g-xTB part, GFN2 gas phase, GFN2 solvated
     #[cfg(feature = "gxtb")]
-    Composite(Option<axtb_gxtb::GuessState>, Option<axtb::ScfGuess>, Option<axtb::ScfGuess>),
+    Composite(Option<axtb_gxtb::GuessState>, Option<Wavefunction>, Option<Wavefunction>),
 }
 
 impl ScfState {
@@ -62,9 +62,9 @@ pub struct Calculator {
     method: Method,
     conventions: &'static str,
     numbers: Vec<usize>,
+    charge: f64,
+    uhf: Option<usize>,
     threads: usize,
-    /// GFN2-xTB with `guess` the method's own start: every SCF starts from it.
-    fresh: bool,
     /// The analysis conventions of the calculation's conventions.
     analysis: VibConventions,
 }
@@ -141,7 +141,7 @@ impl Calculator {
         let threads = req.threads.unwrap_or(1);
         let uhf = req.uhf.map(|u| u as usize);
         let guess = req.guess.as_deref().map(names::guess).transpose()?;
-        let (engine, conventions, analysis, fresh) = match method {
+        let (engine, conventions, analysis) = match method {
             Method::Gfn2 => {
                 let conventions =
                     req.conventions.as_deref().map(names::gfn2_conventions).transpose()?.unwrap_or_default();
@@ -149,15 +149,11 @@ impl Calculator {
                 if let Some(a) = req.accuracy {
                     opts.scf.accuracy = a;
                 }
-                if let Some(t) = req.etemp {
-                    opts.scf.etemp = t;
-                }
-                if let Some(m) = req.max_iter {
-                    opts.scf.max_iter = m;
-                }
-                opts.scf.mixer = req.mixer.as_deref().map(names::mixer).transpose()?;
+                opts.scf.etemp = req.etemp;
+                opts.scf.max_iter = req.max_iter;
+                opts.mixing.mixer = req.mixer.as_deref().map(names::mixer).transpose()?;
                 match guess {
-                    Some(names::Guess::Sad) => opts.scf.guess = axtb::InitialGuess::Sad,
+                    Some(names::Guess::Sad) => opts.initial_guess = axtb::InitialGuess::Sad,
                     Some(names::Guess::EeqBc) => {
                         return Err(input(
                             "GFN2-xTB starts from EEQ charges or neutral atoms: guess \"eeq\" or \"sad\"",
@@ -165,8 +161,13 @@ impl Calculator {
                     }
                     _ => {}
                 }
-                opts.scf.threads = threads;
-                opts.scf.trace = req.scf_trace;
+                // a named start at every geometry is the method's own start at every geometry
+                opts.scf.restart = guess.map(|g| match g {
+                    names::Guess::Previous => Restart::Previous,
+                    _ => Restart::Fresh,
+                });
+                opts.threads = threads;
+                opts.trace = req.scf_trace;
                 opts.dispersion = req.dispersion.unwrap_or(true);
                 opts.conventions = conventions;
                 opts.solvation = solvation(req)?;
@@ -178,8 +179,7 @@ impl Calculator {
                     uhf,
                     opts,
                 )?;
-                let fresh = matches!(guess, Some(names::Guess::Fresh | names::Guess::Eeq | names::Guess::Sad));
-                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into(), fresh)
+                (Engine::Gfn2(Box::new(calc)), conventions.label(), conventions.into())
             }
             Method::Gfnff => {
                 let mut bad = Vec::new();
@@ -214,7 +214,7 @@ impl Calculator {
                     ..Default::default()
                 };
                 let calc = axtb_gfnff::Calculator::new(&req.numbers, setup, req.charge, opts)?;
-                (Engine::Gfnff(Box::new(calc)), label, analysis, false)
+                (Engine::Gfnff(Box::new(calc)), label, analysis)
             }
             Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
                 #[cfg(feature = "gxtb")]
@@ -225,7 +225,7 @@ impl Calculator {
                         axtb_gxtb::Conventions::Gxtb => VibConventions::Xtb671,
                         axtb_gxtb::Conventions::Axtb => VibConventions::Axtb,
                     };
-                    (engine, names::gxtb_conventions_label(conventions), analysis, false)
+                    (engine, names::gxtb_conventions_label(conventions), analysis)
                 }
                 #[cfg(not(feature = "gxtb"))]
                 {
@@ -234,7 +234,16 @@ impl Calculator {
                 }
             }
         };
-        Ok(Self { engine, method, conventions, numbers: req.numbers.clone(), threads, fresh, analysis })
+        Ok(Self {
+            engine,
+            method,
+            conventions,
+            numbers: req.numbers.clone(),
+            charge: req.charge,
+            uhf,
+            threads,
+            analysis,
+        })
     }
 
     /// The method.
@@ -267,9 +276,6 @@ impl Calculator {
         if positions.len() != nat {
             return Err(input(format!("positions must have one row per atom ({nat}), not {}", positions.len())));
         }
-        if self.fresh {
-            self.reset_guess(false);
-        }
         let mut out = Response {
             program: response::PROGRAM,
             version: response::VERSION,
@@ -282,39 +288,16 @@ impl Calculator {
             Engine::Gfn2(calc) => {
                 let hess = match &task.hessian {
                     Some(h) => {
-                        // the orbitals and bond orders of the single point only, not of every
-                        // displacement
-                        calc.options.scf.keep_orbitals = false;
-                        calc.options.scf.bond_orders = false;
-                        let o = axtb::HessianOptions {
-                            method: Some(h.method.unwrap_or_default()),
-                            step: h.step,
-                            accuracy: h.accuracy,
-                        };
+                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
                         Some(calc.hessian(positions, &o)?)
                     }
                     None => None,
                 };
-                calc.options.scf.keep_orbitals = molden;
-                calc.options.scf.bond_orders = task.bond_orders;
-                let sp = calc.singlepoint(positions, task.gradient || hess.is_some());
-                calc.options.scf.keep_orbitals = false;
-                calc.options.scf.bond_orders = false;
-                let sp = sp?;
-                let t = &sp.terms;
-                let terms = vec![
-                    ("repulsion", t.repulsion),
-                    ("dispersion", t.dispersion),
-                    ("electronic", t.electronic),
-                    ("isotropic_es", t.isotropic_es),
-                    ("third_order", t.third_order),
-                    ("anisotropic", t.anisotropic),
-                    ("entropy", t.entropy),
-                    ("solvation", t.solvation),
-                ];
-                let form = axtb::QuadrupoleForm::from(calc.options.conventions);
+                let want =
+                    Want { gradient: task.gradient || hess.is_some(), orbitals: molden, bond_orders: task.bond_orders };
+                let sp = calc.singlepoint(positions, &want)?;
                 out.hessian = hess.map(hessian_part);
-                scf_into(&mut out, sp, terms, positions, form)
+                report_into(&mut out, sp)
             }
             #[cfg(feature = "gxtb")]
             Engine::Gxtb(calc) => {
@@ -438,15 +421,14 @@ impl Calculator {
     /// for another calculator of the same method and molecule ([`Calculator::set_guess`]).
     pub fn guess(&self) -> Option<ScfState> {
         let inner = match &self.engine {
-            Engine::Gfn2(c) => c.guess().cloned().map(StateInner::Gfn2),
+            Engine::Gfn2(c) => c.wavefunction().map(StateInner::Gfn2),
             #[cfg(feature = "gxtb")]
             Engine::Gxtb(c) => c.guess().cloned().map(StateInner::Gxtb),
             #[cfg(feature = "gxtb")]
             Engine::Composite(c) => {
                 let (gas, solv) = c.gfn2_guesses();
                 let g = c.gxtb().guess().cloned();
-                (g.is_some() || gas.is_some() || solv.is_some())
-                    .then(|| StateInner::Composite(g, gas.cloned(), solv.cloned()))
+                (g.is_some() || gas.is_some() || solv.is_some()).then_some(StateInner::Composite(g, gas, solv))
             }
             Engine::Gfnff(_) => None,
         }?;
@@ -466,7 +448,7 @@ impl Calculator {
             )));
         }
         match (&mut self.engine, &state.inner) {
-            (Engine::Gfn2(c), StateInner::Gfn2(g)) => c.set_guess(g.clone())?,
+            (Engine::Gfn2(c), StateInner::Gfn2(g)) => c.set_wavefunction(g)?,
             #[cfg(feature = "gxtb")]
             (Engine::Gxtb(c), StateInner::Gxtb(g)) => c.set_guess(g.clone())?,
             #[cfg(feature = "gxtb")]
@@ -476,10 +458,10 @@ impl Calculator {
                 }
                 let (cg, cs) = c.gfn2_mut();
                 if let Some(x) = gas {
-                    cg.set_guess(x.clone())?;
+                    cg.set_wavefunction(x)?;
                 }
                 if let Some(x) = solv {
-                    cs.set_guess(x.clone())?;
+                    cs.set_wavefunction(x)?;
                 }
             }
             _ => return Err(input("the wavefunction belongs to another kind of calculation")),
@@ -497,7 +479,14 @@ impl Calculator {
     ) -> Result<()> {
         match &mut self.engine {
             Engine::Gfn2(c) => {
-                Ok(c.set_guess(axtb::ScfGuess { qsh: shell_charges, dpat: dipoles, qpat: quadrupoles })?)
+                let data = ScfData {
+                    shell_charges,
+                    atomic_dipoles: dipoles,
+                    atomic_quadrupoles: quadrupoles,
+                    ..ScfData::default()
+                };
+                let fingerprint = Fingerprint::new(c.info().name, &self.numbers, self.charge, self.uhf);
+                Ok(c.set_wavefunction(&Wavefunction::new(fingerprint, WavefunctionData::Scf(data)))?)
             }
             Engine::Gfnff(_) => Err(input("gfnff has no SCF; starting moments are GFN2-only")),
             #[cfg(feature = "gxtb")]
@@ -513,7 +502,7 @@ impl Calculator {
     /// but g-xTB's).
     pub fn reset_guess(&mut self, gxtb_only: bool) {
         match (&mut self.engine, gxtb_only) {
-            (Engine::Gfn2(c), false) => c.reset_guess(),
+            (Engine::Gfn2(c), false) => c.reset_wavefunction(),
             #[cfg(feature = "gxtb")]
             (Engine::Gxtb(c), _) => c.reset_guess(),
             #[cfg(feature = "gxtb")]
@@ -616,6 +605,43 @@ fn hessian_part(h: axtb::Hessian) -> HessianPart {
 }
 
 /// Fill the single point of an SCF method into `out`; returns its orbitals (when kept).
+fn report_into(out: &mut Response, sp: axtb::method::SinglePoint) -> Option<axtb::Orbitals> {
+    let e = sp.electronic.expect("an SCF method's electronic structure");
+    let [a, b] = axtb::properties::alpha_beta(&e.levels);
+    let nat = sp.charges.len();
+    let s = e.scf;
+    out.eigensolver = Some(s.eigensolver);
+    out.energy = Some(sp.energy);
+    out.gradient = sp.gradient;
+    out.dipole = Some(sp.dipole);
+    out.terms = Some(Named::new(sp.terms.iter().map(|t| (t.name, t.value)).collect()));
+    out.timings = Some(Named::new(sp.timings));
+    out.scf = Some(Scf {
+        iterations: s.iterations,
+        guess: s.start,
+        mixer_used: s.mixer_used,
+        scf_attempts: (!s.attempts.is_empty()).then(|| {
+            s.attempts
+                .iter()
+                .map(|a| Attempt { mixer: a.mixer, iterations: a.iterations, converged: a.converged })
+                .collect()
+        }),
+        homo_lumo_gap: e.homo_lumo_gap,
+        quadrupole: e.quadrupole,
+        shell_charges: e.shell_charges,
+        atomic_dipoles: e.atomic_dipoles,
+        atomic_quadrupoles: e.atomic_quadrupoles,
+        orbital_energies_alpha: a.energies,
+        orbital_energies_beta: b.energies,
+        occupations_alpha: a.occupations,
+        occupations_beta: b.occupations,
+        bond_orders: e.bond_orders.map(|bo| Matrix { rows: nat, cols: nat, data: bo }),
+    });
+    out.charges = Some(sp.charges);
+    e.orbitals
+}
+
+/// Fill the single point of an SCF method into `out`; returns its orbitals (when kept).
 fn scf_into(
     out: &mut Response,
     sp: axtb::SinglePoint,
@@ -686,7 +712,7 @@ mod composite {
             scf_attempts: p
                 .scf_attempts
                 .iter()
-                .map(|a| Attempt { mixer: a.mixer.label(), iterations: a.iterations, converged: a.converged })
+                .map(|a| Attempt { mixer: a.mixer, iterations: a.iterations, converged: a.converged })
                 .collect(),
             etemp: p.etemp,
             max_iter: p.max_iter,

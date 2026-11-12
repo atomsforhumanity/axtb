@@ -3,6 +3,7 @@
 //! GFN2-xTB calculator with `push_term`. Its kernel and second derivatives are the traits'
 //! finite-difference defaults, so the analytic and response Hessians exercise them.
 
+use axtb::method::{Method, Want};
 use axtb::terms::{Chain, Geometry, MomentTerm, Needs, Potentials, SccMoments, TermEnergy};
 use axtb::{Calculator, Hamiltonian, HessianMethod, HessianOptions, Options};
 
@@ -82,33 +83,34 @@ fn calculator(field: Option<[f64; 3]>) -> Calculator {
 #[test]
 fn field_energy_and_decomposition() {
     let (_, pos) = molecule();
-    let e0 = calculator(None).singlepoint(&pos, false).unwrap();
-    let sp = calculator(Some(FIELD)).singlepoint(&pos, false).unwrap();
-    let minus = calculator(Some(FIELD.map(|f| -f))).singlepoint(&pos, false).unwrap();
+    let e0 = calculator(None).singlepoint(&pos, &Want::gradient(false)).unwrap();
+    let sp = calculator(Some(FIELD)).singlepoint(&pos, &Want::gradient(false)).unwrap();
+    let minus = calculator(Some(FIELD.map(|f| -f))).singlepoint(&pos, &Want::gradient(false)).unwrap();
     // the piece is -F · μ of the converged moments
-    let piece = sp.terms.other.iter().find(|(n, _)| *n == "field").expect("the field's piece").1;
+    let piece = sp.term("field").expect("the field's piece");
     assert!((piece + dot(FIELD, sp.dipole)).abs() < 1e-12, "piece {piece} vs -F.mu {}", -dot(FIELD, sp.dipole));
     // the odd part of E(F) is -F · μ(0) to third order in the field
     let odd = 0.5 * (sp.energy - minus.energy);
     assert!((odd + dot(FIELD, e0.dipole)).abs() < 1e-6, "odd part {odd} vs -F.mu0 {}", -dot(FIELD, e0.dipole));
     // and the even part is the polarization energy, negative
     assert!(sp.energy + minus.energy - 2.0 * e0.energy < 0.0);
-    assert!(sp.terms.other.len() == 1 && e0.terms.other.is_empty());
+    // GFN2-xTB's eight terms, then the added term's piece
+    assert!(sp.terms.len() == 9 && e0.terms.len() == 8 && sp.terms[8].name == "field");
 }
 
 #[test]
 fn field_gradient_against_differences() {
     let (_, pos) = molecule();
     let mut calc = calculator(Some(FIELD));
-    let g = calc.singlepoint(&pos, true).unwrap().gradient.unwrap();
+    let g = calc.singlepoint(&pos, &Want::gradient(true)).unwrap().gradient.unwrap();
     let h = 1e-4;
     for a in 0..pos.len() {
         for k in 0..3 {
             let mut p = pos.clone();
             p[a][k] += h;
-            let ep = calc.singlepoint(&p, false).unwrap().energy;
+            let ep = calc.singlepoint(&p, &Want::gradient(false)).unwrap().energy;
             p[a][k] -= 2.0 * h;
-            let em = calc.singlepoint(&p, false).unwrap().energy;
+            let em = calc.singlepoint(&p, &Want::gradient(false)).unwrap().energy;
             let fd = (ep - em) / (2.0 * h);
             assert!((fd - g[a][k]).abs() < 1e-6, "atom {a} direction {k}: analytic {} differences {fd}", g[a][k]);
         }

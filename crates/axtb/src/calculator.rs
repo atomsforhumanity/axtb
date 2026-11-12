@@ -1,5 +1,5 @@
 //! Stateful calculator: build the method once for a molecule, then evaluate energies,
-//! gradients and Hessians at any number of geometries.
+//! gradients and Hessians at any number of geometries through the [`Method`] trait.
 //!
 //! Threading: a calculator created with `threads = n > 1` owns one rayon pool of exactly
 //! `n` threads ([`Threads`]) and runs all of its parallel work inside it. Work that is
@@ -8,6 +8,11 @@
 //! spawned.
 
 use crate::hessian::{HessianMethod, HessianOptions};
+use crate::method::{
+    AnalysisConventions, AnalysisDefaults, Attempt, Electronic, Electrons, Extras, Fingerprint, HessianDefault,
+    HessianDefaults, Method, MethodInfo, QuadrupoleForm, Restart, RetryLadder, ScfData, ScfReport, ScfSettings, Term,
+    Want, Wavefunction, WavefunctionData,
+};
 use crate::molecule::Molecule;
 use crate::terms::{AnyMomentTerm, ChainLayout, MomentTerm};
 use crate::xtb::{check_scf_options, ScfGuess, ScfOptions, SinglePoint, XtbModel};
@@ -18,6 +23,9 @@ use axtb_base::threads::Threads;
 
 pub use axtb_base::method::Hessian;
 
+/// The canonical name of GFN2-xTB.
+pub const METHOD: &str = "gfn2";
+
 /// GFN2-xTB and its settings bound to one molecule (atomic numbers, charge, spin).
 pub struct Calculator {
     hamiltonian: Hamiltonian,
@@ -26,13 +34,55 @@ pub struct Calculator {
     /// The terms added to the model, in order: dispersion, solvation, the user's
     /// ([`Calculator::push_term`]).
     extra: Vec<std::sync::Arc<dyn AnyMomentTerm>>,
-    /// The settings. The SCF settings may change between calculations; the method's setup
-    /// (conventions, dispersion, solvation) and the thread count (the calculator's pool) are
-    /// fixed when the calculator is built.
+    /// The settings. The SCF settings ([`Options::scf`], [`Options::mixing`],
+    /// [`Options::initial_guess`], [`Options::trace`]) may change between calculations; the
+    /// method's setup (conventions, dispersion, solvation) and the thread count (the
+    /// calculator's pool) are fixed when the calculator is built.
     pub options: Options,
-    guess: Option<ScfGuess>,
+    /// The converged moments of the last SCF (or given ones), and whether they were given
+    /// (they start the next SCF whatever the restart policy says).
+    start: Option<ScfGuess>,
+    given: bool,
     threads: Threads,
+    info: MethodInfo,
+    fingerprint: Fingerprint,
 }
+
+/// What GFN2-xTB is and offers in `conventions`.
+fn info(conventions: crate::Conventions) -> MethodInfo {
+    MethodInfo {
+        name: METHOD,
+        conventions: conventions.label(),
+        electrons: Electrons::OneSet,
+        hessian: HessianDefaults {
+            default: HessianMethod::Analytic,
+            offered: vec![
+                HessianDefault { method: HessianMethod::Analytic, step: None, accuracy: Some(ANALYTIC_ACCURACY) },
+                HessianDefault {
+                    method: HessianMethod::Response,
+                    step: Some(RESPONSE_STEP),
+                    accuracy: Some(ANALYTIC_ACCURACY),
+                },
+                HessianDefault {
+                    method: HessianMethod::Numerical,
+                    step: Some(NUMERICAL_STEP),
+                    accuracy: Some(NUMERICAL_ACCURACY),
+                },
+            ],
+        },
+        analysis: AnalysisDefaults { conventions: AnalysisConventions::from(conventions), xtb_frequency_scale: None },
+        quadrupole: Some(QuadrupoleForm::from(conventions)),
+    }
+}
+
+/// Default step (bohr) of the numerical Hessian.
+pub const NUMERICAL_STEP: f64 = 0.005;
+/// Default step (bohr) of the response Hessian.
+pub const RESPONSE_STEP: f64 = 5e-4;
+/// Default SCF accuracy of the numerical Hessian's displacements.
+pub const NUMERICAL_ACCURACY: f64 = 0.01;
+/// Default SCF accuracy of the analytic and response Hessians' reference.
+pub const ANALYTIC_ACCURACY: f64 = 1e-3;
 
 impl Calculator {
     /// Set up `hamiltonian` for a molecule; `positions` (bohr) give the initial geometry.
@@ -44,14 +94,14 @@ impl Calculator {
         uhf: Option<usize>,
         options: Options,
     ) -> Result<Self> {
-        check_scf_options(&options.scf)?;
-        let threads = Threads::new(options.scf.threads)?;
+        check_scf_options(&options.run(options.threads, &Want::ENERGY))?;
+        let threads = Threads::new(options.threads)?;
         Self::with_threads(hamiltonian, numbers, positions, charge, uhf, options, threads)
     }
 
     /// As [`Calculator::new`], but running on `threads` (a pool shared with other
     /// calculators, e.g. the parts of a composite method, so that they use one pool) instead
-    /// of a pool of its own. It must have `options.scf.threads` threads.
+    /// of a pool of its own. It must have `options.threads` threads.
     pub fn with_threads(
         hamiltonian: Hamiltonian,
         numbers: &[usize],
@@ -61,14 +111,16 @@ impl Calculator {
         options: Options,
         threads: Threads,
     ) -> Result<Self> {
-        check_scf_options(&options.scf)?;
+        check_scf_options(&options.run(options.threads, &Want::ENERGY))?;
         let n = threads.count();
-        if n != options.scf.threads {
-            return Err(Error::Input(format!("a pool of {n} threads for a calculation on {}", options.scf.threads)));
+        if n != options.threads {
+            return Err(Error::Input(format!("a pool of {n} threads for a calculation on {}", options.threads)));
         }
         let mol = Molecule::new(numbers, positions, charge, uhf)?;
         let (model, extra) = crate::build_method(hamiltonian, &mol, &options)?;
-        Ok(Self { hamiltonian, mol, model, extra, options, guess: None, threads })
+        let info = info(options.conventions);
+        let fingerprint = Fingerprint::of(METHOD, &mol);
+        Ok(Self { hamiltonian, mol, model, extra, options, start: None, given: false, threads, info, fingerprint })
     }
 
     /// The Hamiltonian of this calculator.
@@ -83,7 +135,7 @@ impl Calculator {
 
     /// Add an energy term to the model, after its dispersion and solvation terms and the terms
     /// added before: every later single point, gradient and Hessian includes it, and its pieces
-    /// appear in [`EnergyTerms::other`](crate::EnergyTerms::other). Terms that read GFN2-xTB's
+    /// appear in the single point's terms after GFN2-xTB's own. Terms that read GFN2-xTB's
     /// coordination number find its slot in [`Calculator::layout`]. GFN2-xTB has no shell
     /// magnetizations, so a term that needs them is refused.
     pub fn push_term<T>(&mut self, term: T) -> Result<()>
@@ -104,39 +156,6 @@ impl Calculator {
         &self.model.layout
     }
 
-    /// Forget the wavefunction of the previous geometry.
-    pub fn reset_guess(&mut self) {
-        self.guess = None;
-    }
-
-    /// The wavefunction the next SCF starts from (the previous geometry's, or one given with
-    /// [`Calculator::set_guess`]).
-    pub fn guess(&self) -> Option<&ScfGuess> {
-        self.guess.as_ref()
-    }
-
-    /// Start the next SCF from given shell charges and atomic multipoles (e.g. another
-    /// program's converged moments, to check whether two programs found different SCF
-    /// solutions of the same molecule).
-    pub fn set_guess(&mut self, guess: ScfGuess) -> Result<()> {
-        let nat = self.mol.nat();
-        let nsh = self.model.basis.nsh;
-        if guess.qsh.len() != nsh || guess.dpat.len() != nat || guess.qpat.len() != nat {
-            return Err(Error::Input(format!(
-                "guess needs {nsh} shell charges and {nat} atomic dipoles/quadrupoles, got {}/{}/{}",
-                guess.qsh.len(),
-                guess.dpat.len(),
-                guess.qpat.len()
-            )));
-        }
-        let mut values = guess.qsh.iter().chain(guess.dpat.iter().flatten()).chain(guess.qpat.iter().flatten());
-        if values.any(|x| !x.is_finite()) {
-            return Err(Error::Input("guess with non-finite charges or multipoles".into()));
-        }
-        self.guess = Some(guess);
-        Ok(())
-    }
-
     fn run(&self, mol: &Molecule, scf: &ScfOptions, guess: Option<&ScfGuess>, gradient: bool) -> Result<SinglePoint> {
         let mut sp = self.model.singlepoint(mol, &self.extra, scf, guess, gradient)?;
         // xtb (6.7.1 and 6.8.0, `get_wiberg`) leaves out pairs more than 10 bohr apart
@@ -155,71 +174,78 @@ impl Calculator {
     }
 
     /// The SCF settings of a calculation, with the thread count of the calculator's pool.
-    fn scf_options(&self) -> ScfOptions {
-        ScfOptions { threads: self.threads.count(), ..self.options.scf.clone() }
+    fn scf_options(&self, want: &Want) -> ScfOptions {
+        self.options.run(self.threads.count(), want)
     }
 
-    /// Energy and optionally gradient at `positions`; starts from the previous geometry's
-    /// wavefunction when there is one.
-    pub fn singlepoint(&mut self, positions: &[[f64; 3]], gradient: bool) -> Result<SinglePoint> {
+    /// The moments the next SCF starts from (`None`: the initial guess), taken: a given
+    /// wavefunction always, the previous one when the restart policy reuses it.
+    fn take_start(&mut self) -> Option<ScfGuess> {
+        let reuse = self.given || self.options.scf.reuses(Restart::Previous);
+        self.given = false;
+        let start = self.start.take();
+        start.filter(|_| reuse)
+    }
+
+    fn singlepoint_inner(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<SinglePoint> {
+        let start = self.take_start();
         self.mol.set_positions(positions)?;
-        let scf = self.scf_options();
-        let res = self.run_pooled(&scf, self.guess.as_ref(), gradient);
-        let res = match res {
-            // a guess from a distant geometry can hurt; retry once from scratch (inside the
-            // pool: outside it the parallel kernels would run on rayon's global pool, i.e.
-            // on every core instead of the `threads` asked for)
-            Err(Error::ScfNotConverged { .. }) if self.guess.is_some() => {
-                self.guess = None;
-                self.run_pooled(&scf, None, gradient)?
-            }
-            other => other?,
-        };
-        self.guess = Some(res.guess());
+        let scf = self.scf_options(want);
+        // a guess from a distant geometry can hurt; retry once from scratch (inside the pool:
+        // outside it the parallel kernels would run on rayon's global pool, i.e. on every core
+        // instead of the `threads` asked for)
+        let ladder = RetryLadder::warm_then_fresh(start.is_some());
+        let (res, _) = ladder
+            .climb(|rung| self.run_pooled(&scf, if rung.fresh { None } else { start.as_ref() }, want.gradient))?;
+        self.start = Some(res.guess());
         Ok(res)
     }
 
-    /// Hessian at `positions` (see [`HessianMethod`] and [`HessianOptions`]).
-    ///
-    /// All methods run on the calculator's thread pool, parallel over displacements or
-    /// perturbations with every inner piece sequential, so thread counts never multiply.
-    pub fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<Hessian> {
+    fn hessian_inner(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<Hessian> {
         if let Some(step) = opts.step.filter(|s| !(*s > 0.0 && s.is_finite())) {
             return Err(Error::Input(format!("the Hessian step must be a positive number, got {step}")));
         }
         if let Some(acc) = opts.accuracy.filter(|a| !(*a > 0.0 && a.is_finite())) {
             return Err(Error::Input(format!("the Hessian's SCF accuracy must be a positive number, got {acc}")));
         }
+        let start = self.take_start();
         self.mol.set_positions(positions)?;
         let t0 = std::time::Instant::now();
         let mut out = match opts.method.unwrap_or(HessianMethod::Analytic) {
-            HessianMethod::Numerical => self.numerical_hessian(opts.step.unwrap_or(0.005), opts.accuracy),
-            m @ (HessianMethod::Response | HessianMethod::Analytic) => self.response_hessian(m, opts),
+            HessianMethod::Numerical => {
+                self.numerical_hessian(start, opts.step.unwrap_or(NUMERICAL_STEP), opts.accuracy)
+            }
+            m @ (HessianMethod::Response | HessianMethod::Analytic) => self.response_hessian(start, m, opts),
         }?;
         out.timings.push(("total", t0.elapsed().as_secs_f64()));
+        // the reference's moments start the next SCF (the single point at these positions)
+        self.given = true;
         Ok(out)
     }
 
-    fn response_hessian(&mut self, method: HessianMethod, opts: &HessianOptions) -> Result<Hessian> {
-        let mut scf = self.scf_options();
-        scf.accuracy = opts.accuracy.unwrap_or(1e-3).min(scf.accuracy);
+    fn response_hessian(
+        &mut self,
+        start: Option<ScfGuess>,
+        method: HessianMethod,
+        opts: &HessianOptions,
+    ) -> Result<Hessian> {
+        let mut scf = self.scf_options(&Want::ENERGY);
+        scf.accuracy = opts.accuracy.unwrap_or(ANALYTIC_ACCURACY).min(scf.accuracy);
         let threads = scf.threads;
         let run = || -> Result<(Hessian, ScfGuess)> {
             let extra = &self.extra;
             let t0 = std::time::Instant::now();
-            let (reference, st) =
-                match self.model.singlepoint_state(&self.mol, extra, &scf, self.guess.as_ref(), true, true) {
-                    // a guess from a distant geometry can hurt; retry once from scratch
-                    Err(Error::ScfNotConverged { .. }) if self.guess.is_some() => {
-                        self.model.singlepoint_state(&self.mol, extra, &scf, None, true, true)?
-                    }
-                    other => other?,
-                };
+            // a guess from a distant geometry can hurt; retry once from scratch
+            let ladder = RetryLadder::warm_then_fresh(start.is_some());
+            let ((reference, st), _) = ladder.climb(|rung| {
+                let guess = if rung.fresh { None } else { start.as_ref() };
+                self.model.singlepoint_state(&self.mol, extra, &scf, guess, true, true)
+            })?;
             let st = st.expect("state");
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
             let (mut h, dipd, t) = match method {
                 HessianMethod::Response => {
-                    let step = opts.step.unwrap_or(5e-4);
+                    let step = opts.step.unwrap_or(RESPONSE_STEP);
                     crate::hessian::response_hessian(&self.model, extra, &self.mol, &st, threads, step)?
                 }
                 _ => crate::analytic::analytic_hessian(&self.model, &self.mol, &st, threads)?,
@@ -230,7 +256,7 @@ impl Calculator {
             Ok((finish(reference, h, max_asymmetry, dipd, method, timings), guess))
         };
         let (res, guess) = self.threads.install(run)?;
-        self.guess = Some(guess);
+        self.start = Some(guess);
         Ok(res)
     }
 
@@ -240,12 +266,12 @@ impl Calculator {
     /// converged to `accuracy` (default 0.01 when `None`) starting from the reference
     /// wavefunction. Every SCF, the reference's too, runs sequentially, the displacements in
     /// parallel.
-    fn numerical_hessian(&mut self, step: f64, accuracy: Option<f64>) -> Result<Hessian> {
-        let mut scf = self.scf_options();
-        scf.accuracy = accuracy.unwrap_or(0.01).min(scf.accuracy);
+    fn numerical_hessian(&mut self, start: Option<ScfGuess>, step: f64, accuracy: Option<f64>) -> Result<Hessian> {
+        let mut scf = self.scf_options(&Want::ENERGY);
+        scf.accuracy = accuracy.unwrap_or(NUMERICAL_ACCURACY).min(scf.accuracy);
         scf.threads = 1;
         let t0 = std::time::Instant::now();
-        let reference = self.threads.install(|| self.run(&self.mol, &scf, self.guess.as_ref(), true))?;
+        let reference = self.threads.install(|| self.run(&self.mol, &scf, start.as_ref(), true))?;
         let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
         let guess = reference.guess();
         let point = |x: &[[f64; 3]]| -> Result<(Vec<[f64; 3]>, [f64; 3])> {
@@ -260,9 +286,159 @@ impl Calculator {
             fd::numerical_hessian(&self.mol.positions, step, fd::Displacement::ForwardBack, parallel, point)
         })?;
         timings.push(("displaced gradients", t0.elapsed().as_secs_f64()));
-        self.guess = Some(guess);
+        self.start = Some(guess);
         let dipd = Some(nh.dipole_derivatives);
         Ok(finish(reference, nh.hessian, nh.max_asymmetry, dipd, HessianMethod::Numerical, timings))
+    }
+
+    /// The single point as the trait reports it: GFN2-xTB's terms (the eight xtb prints, then
+    /// those of added terms), the molecular quadrupole in the conventions' form.
+    fn report(&self, sp: SinglePoint) -> crate::method::SinglePoint {
+        let t = &sp.terms;
+        let mut terms = vec![
+            Term::piece("repulsion", t.repulsion),
+            Term::piece("dispersion", t.dispersion),
+            // the band energy Tr(H0 P) is only inside the electronic energy
+            Term::subtotal("electronic", t.electronic),
+            Term::piece("isotropic_es", t.isotropic_es),
+            Term::piece("third_order", t.third_order),
+            Term::piece("anisotropic", t.anisotropic),
+            Term::piece("entropy", t.entropy),
+            Term::piece("solvation", t.solvation),
+        ];
+        terms.extend(t.other.iter().map(|&(n, v)| Term::piece(n, v)));
+        let form = self.info.quadrupole.unwrap_or_default();
+        let quadrupole =
+            crate::properties::molecular_quadrupole(&self.mol.positions, &sp.qat, &sp.dpat, &sp.qpat, form);
+        let attempts = sp.scf_attempts.iter().map(|a| Attempt {
+            mixer: a.mixer.label(),
+            iterations: a.iterations,
+            converged: a.converged,
+        });
+        crate::method::SinglePoint {
+            energy: sp.energy,
+            terms,
+            gradient: sp.gradient,
+            charges: sp.qat,
+            dipole: sp.dipole,
+            electronic: Some(Electronic {
+                shell_charges: sp.qsh,
+                atomic_dipoles: sp.dpat,
+                atomic_quadrupoles: sp.qpat,
+                quadrupole,
+                levels: sp.levels,
+                homo_lumo_gap: sp.homo_lumo_gap,
+                orbitals: sp.orbitals,
+                bond_orders: sp.bond_orders,
+                scf: ScfReport {
+                    iterations: sp.iterations,
+                    start: sp.guess,
+                    mixer_used: sp.mixer_used,
+                    attempts: attempts.collect(),
+                    eigensolver: sp.eigensolver,
+                },
+            }),
+            extras: Extras::default(),
+            timings: sp.timings,
+        }
+    }
+}
+
+impl Method for Calculator {
+    fn info(&self) -> &MethodInfo {
+        &self.info
+    }
+
+    /// Energy and what `want` asks for at `positions`. The SCF starts from the previous
+    /// geometry's moments when the restart policy reuses them ([`ScfSettings::restart`]; `None`:
+    /// always) or from given ones; if that SCF does not converge, it runs once more from the
+    /// initial guess.
+    fn singlepoint(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<crate::method::SinglePoint> {
+        match self.singlepoint_inner(positions, want) {
+            Ok(sp) => Ok(self.report(sp)),
+            Err(e) => {
+                self.reset_wavefunction();
+                Err(e)
+            }
+        }
+    }
+
+    /// Hessian at `positions` (see [`HessianMethod`] and [`HessianOptions`]): analytic (the
+    /// default) or response with the reference converged to `accuracy` (default 1e-3), or
+    /// numerical with every displacement converged to `accuracy` (default 0.01) from the
+    /// reference's moments. The reference's moments start the next SCF (whatever the restart
+    /// policy says), so that the single point at these positions starts from them.
+    ///
+    /// All methods run on the calculator's thread pool, parallel over displacements or
+    /// perturbations with every inner piece sequential, so thread counts never multiply.
+    fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<Hessian> {
+        let r = self.hessian_inner(positions, opts);
+        if r.is_err() {
+            self.reset_wavefunction();
+        }
+        r
+    }
+
+    fn wavefunction(&self) -> Option<Wavefunction> {
+        let m = self.start.as_ref()?;
+        let data = ScfData {
+            shell_charges: m.qsh.clone(),
+            atomic_dipoles: m.dpat.clone(),
+            atomic_quadrupoles: m.qpat.clone(),
+            ..ScfData::default()
+        };
+        Some(Wavefunction::new(self.fingerprint.clone(), WavefunctionData::Scf(data)))
+    }
+
+    /// Start the next SCF from the shell charges and atomic multipoles of `wf` (e.g. another
+    /// GFN2-xTB calculator's, or another program's converged moments).
+    fn set_wavefunction(&mut self, wf: &Wavefunction) -> Result<()> {
+        wf.check(&self.fingerprint)?;
+        let WavefunctionData::Scf(d) = wf.data() else {
+            return Err(Error::Input("the wavefunction belongs to another kind of calculation".into()));
+        };
+        let nat = self.mol.nat();
+        let nsh = self.model.basis.nsh;
+        if d.shell_charges.len() != nsh || d.atomic_dipoles.len() != nat || d.atomic_quadrupoles.len() != nat {
+            return Err(Error::Input(format!(
+                "guess needs {nsh} shell charges and {nat} atomic dipoles/quadrupoles, got {}/{}/{}",
+                d.shell_charges.len(),
+                d.atomic_dipoles.len(),
+                d.atomic_quadrupoles.len()
+            )));
+        }
+        let mut values = d
+            .shell_charges
+            .iter()
+            .chain(d.atomic_dipoles.iter().flatten())
+            .chain(d.atomic_quadrupoles.iter().flatten());
+        if values.any(|x| !x.is_finite()) {
+            return Err(Error::Input("guess with non-finite charges or multipoles".into()));
+        }
+        self.start = Some(ScfGuess {
+            qsh: d.shell_charges.clone(),
+            dpat: d.atomic_dipoles.clone(),
+            qpat: d.atomic_quadrupoles.clone(),
+        });
+        self.given = true;
+        Ok(())
+    }
+
+    fn reset_wavefunction(&mut self) {
+        self.start = None;
+        self.given = false;
+    }
+
+    fn scf_settings(&self) -> Option<&ScfSettings> {
+        Some(&self.options.scf)
+    }
+
+    fn set_scf_settings(&mut self, settings: ScfSettings) -> Result<()> {
+        let mut o = self.options.clone();
+        o.scf = settings;
+        check_scf_options(&o.run(self.threads.count(), &Want::ENERGY))?;
+        self.options.scf = o.scf;
+        Ok(())
     }
 }
 
@@ -284,5 +460,48 @@ fn finish(
         method,
         timings,
         parts: Vec::new(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::method::TermKind;
+
+    /// GFN2-xTB's pieces (repulsion, dispersion, the electrostatic and entropy terms,
+    /// solvation) sum to the energy minus the band energy Tr(H0 P), which xtb reports only
+    /// inside the electronic energy (a subtotal); with D4 and ALPB, at 300 K.
+    #[test]
+    fn pieces_sum_to_the_energy_less_the_band_energy() {
+        let numbers = [8, 1, 1, 7, 1, 1, 1];
+        let positions = [
+            [0.0, 0.0, 0.22],
+            [0.0, 1.43, -0.89],
+            [0.0, -1.43, -0.89],
+            [0.0, 0.0, 5.6],
+            [0.0, 1.77, 6.2],
+            [1.53, -0.88, 6.2],
+            [-1.53, -0.88, 6.2],
+        ];
+        let solvation = crate::SolvationSpec {
+            model: crate::SolvationModel::Alpb,
+            solvent: "water".into(),
+            state: Default::default(),
+        };
+        let o = Options { solvation: Some(solvation), ..Default::default() };
+        let mut calc = Calculator::new(Hamiltonian::Gfn2, &numbers, &positions, 0.0, None, o.clone()).unwrap();
+        let sp = calc.singlepoint(&positions, &Want::ENERGY).unwrap();
+        let kinds: Vec<TermKind> = sp.terms.iter().map(|t| t.kind).collect();
+        assert_eq!(kinds.iter().filter(|k| **k == TermKind::Subtotal).count(), 1);
+        assert_eq!(sp.terms[2].name, "electronic");
+        let scf = o.run(1, &Want::ENERGY);
+        let (_, st) = calc.model.singlepoint_state(&calc.mol, &calc.extra, &scf, None, false, true).unwrap();
+        let st = st.unwrap();
+        let (h0, p) = (&st.ints.h0, &st.density);
+        let n = h0.nrows();
+        let band: f64 = (0..n).map(|i| (0..n).map(|j| h0[(i, j)] * p[(j, i)]).sum::<f64>()).sum();
+        let gap = sp.energy - sp.pieces();
+        assert!((gap - band).abs() < 1e-10, "energy - pieces {gap} vs Tr(H0 P) {band}");
+        assert!(band.abs() > 1.0, "the band energy is a large part of the energy");
     }
 }

@@ -67,6 +67,11 @@ impl SinglePoint {
     pub fn pieces(&self) -> f64 {
         self.terms.iter().filter(|t| t.kind == TermKind::Piece).map(|t| t.value).sum()
     }
+
+    /// How the SCF went (`None` without an SCF).
+    pub fn scf(&self) -> Option<&ScfReport> {
+        self.electronic.as_ref().map(|e| &e.scf)
+    }
 }
 
 /// The electronic structure of an SCF single point.

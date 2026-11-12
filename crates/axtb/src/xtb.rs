@@ -58,9 +58,10 @@ pub enum InitialGuess {
     Eeq,
 }
 
-/// SCF settings.
+/// The SCF settings of one calculation, resolved from [`Options`](crate::Options) and the
+/// call's [`Want`](crate::method::Want).
 #[derive(Clone, Debug)]
-pub struct ScfOptions {
+pub(crate) struct ScfOptions {
     /// Accuracy multiplier: energy threshold 1e-6·acc, residual threshold 2e-5·acc (> 0).
     pub accuracy: f64,
     /// Iterations of one SCF attempt (at least 1).
@@ -82,7 +83,7 @@ pub struct ScfOptions {
     /// Starting point when no previous wavefunction is given.
     pub guess: InitialGuess,
     /// Keep the converged orbitals and their basis in [`SinglePoint::orbitals`] (e.g. for a
-    /// Molden file).
+    /// Molden file); every eigenvector is computed.
     pub keep_orbitals: bool,
     /// Compute the Mayer–Wiberg bond orders ([`SinglePoint::bond_orders`]).
     pub bond_orders: bool,
@@ -91,22 +92,12 @@ pub struct ScfOptions {
     pub trace: bool,
 }
 
-impl Default for ScfOptions {
-    fn default() -> Self {
-        Self {
-            accuracy: 1.0,
-            max_iter: 250,
-            etemp: 300.0,
-            damping: 0.4,
-            mixer: None,
-            threads: 1,
-            guess: InitialGuess::Eeq,
-            keep_orbitals: false,
-            bond_orders: false,
-            trace: false,
-        }
-    }
-}
+/// GFN2-xTB's default iteration limit of one SCF attempt.
+pub const MAX_ITER: usize = 250;
+/// GFN2-xTB's default electronic temperature (K).
+pub const ETEMP: f64 = 300.0;
+/// GFN2-xTB's default damping of the mixer.
+pub const DAMPING: f64 = 0.4;
 
 /// Energy contributions (Hartree).
 #[derive(Clone, Debug, Default)]
@@ -165,8 +156,8 @@ pub struct SinglePoint {
     pub scf_attempts: Vec<ScfAttempt>,
     /// Wall time per phase in seconds.
     pub timings: Vec<(&'static str, f64)>,
-    /// The converged orbitals with their basis, when asked for
-    /// ([`ScfOptions::keep_orbitals`]); [`ToMolden::to_molden`](crate::ToMolden::to_molden) writes a Molden file.
+    /// The converged orbitals with their basis, when asked for; [`ToMolden::to_molden`](crate::ToMolden::to_molden)
+    /// writes a Molden file.
     pub orbitals: Option<Orbitals>,
     /// Orbital energies and occupations per spin channel: one for a closed shell (occupations
     /// up to 2), alpha and beta for an open shell (GFN2-xTB: the same orbitals with the alpha
@@ -175,8 +166,8 @@ pub struct SinglePoint {
     /// HOMO–LUMO gap (Eh; `crate::properties::homo_lumo_gap` with the method's and
     /// conventions' rule); `None` without a LUMO.
     pub homo_lumo_gap: Option<f64>,
-    /// Mayer–Wiberg bond orders (N x N row-major, zero diagonal), when asked for
-    /// ([`ScfOptions::bond_orders`]; see `crate::properties`).
+    /// Mayer–Wiberg bond orders (N x N row-major, zero diagonal), when asked for (see
+    /// `crate::properties`).
     pub bond_orders: Option<Vec<f64>>,
     /// Where the SCF started: `"previous"` (a given wavefunction, usually the previous
     /// geometry's), or the method's own start: `"eeq"` (GFN2-xTB: EEQ charges), `"sad"` (neutral
@@ -192,7 +183,7 @@ pub struct SinglePoint {
 /// Starting point of an SCF: shell charges and atomic multipoles, e.g. from a previous
 /// geometry of the same molecule.
 #[derive(Clone, Debug)]
-pub struct ScfGuess {
+pub(crate) struct ScfGuess {
     pub qsh: Vec<f64>,
     pub dpat: Vec<[f64; 3]>,
     pub qpat: Vec<[f64; 6]>,
@@ -200,7 +191,7 @@ pub struct ScfGuess {
 
 impl SinglePoint {
     /// The converged moments as a guess for a nearby geometry.
-    pub fn guess(&self) -> ScfGuess {
+    pub(crate) fn guess(&self) -> ScfGuess {
         ScfGuess { qsh: self.qsh.clone(), dpat: self.dpat.clone(), qpat: self.qpat.clone() }
     }
 }
