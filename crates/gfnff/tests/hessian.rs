@@ -2,6 +2,7 @@
 //! (Richardson-extrapolated), dipole derivatives against finite differences of the EEQ
 //! dipole, and thread-count independence; the force fields of xtb 6.8.0 and 6.7.1.
 
+use axtb_gfnff::method::{HessianMethod, HessianOptions, Method, Want};
 use axtb_gfnff::{Calculator, Conventions, Options};
 
 const BOTH: [Conventions; 2] = [Conventions::Xtb680, Conventions::Xtb671];
@@ -50,11 +51,11 @@ fn analytic_hessian_matches_finite_differences() {
     ];
     for (name, conventions) in names.iter().flat_map(|n| BOTH.map(|c| (*n, c))) {
         let (numbers, pos, charge) = load(name);
-        let calc = Calculator::new(&numbers, &pos, charge, Options { conventions, ..Default::default() }).unwrap();
-        let h = calc.hessian(&pos).unwrap();
+        let mut calc = Calculator::new(&numbers, &pos, charge, Options { conventions, ..Default::default() }).unwrap();
+        let h = calc.hessian(&pos, &HessianOptions::default()).unwrap();
         let s = 2e-4;
-        let h1 = calc.numerical_hessian(&pos, s).unwrap().hessian;
-        let h2 = calc.numerical_hessian(&pos, s / 2.0).unwrap().hessian;
+        let h1 = calc.hessian(&pos, &numerical(s)).unwrap().hessian;
+        let h2 = calc.hessian(&pos, &numerical(s / 2.0)).unwrap().hessian;
         let n3 = 3 * numbers.len();
         let mut worst: f64 = 0.0;
         for i in 0..n3 {
@@ -69,19 +70,19 @@ fn analytic_hessian_matches_finite_differences() {
         assert!(h.max_asymmetry < 1e-10, "{name}: asymmetry {}", h.max_asymmetry);
         // dipole derivatives
         let mut dd: f64 = 0.0;
-        let cd = |k: usize, s: f64| -> [f64; 3] {
+        let mut cd = |k: usize, s: f64| -> [f64; 3] {
             let mut xp = pos.clone();
             let mut xm = pos.clone();
             xp[k / 3][k % 3] += s;
             xm[k / 3][k % 3] -= s;
-            let dp = calc.singlepoint(&xp, false).unwrap().dipole;
-            let dm = calc.singlepoint(&xm, false).unwrap().dipole;
+            let dp = calc.singlepoint(&xp, &Want::gradient(false)).unwrap().dipole;
+            let dm = calc.singlepoint(&xm, &Want::gradient(false)).unwrap().dipole;
             [0, 1, 2].map(|e| (dp[e] - dm[e]) / (2.0 * s))
         };
         for k in 0..n3 {
             let (a, b) = (cd(k, 4e-4), cd(k, 2e-4));
             for e in 0..3 {
-                dd = dd.max(((4.0 * b[e] - a[e]) / 3.0 - h.dipole_derivatives[k][e]).abs());
+                dd = dd.max(((4.0 * b[e] - a[e]) / 3.0 - h.dipole_derivatives.as_ref().unwrap()[k][e]).abs());
             }
         }
         assert!(dd < 1e-7, "{name} ({conventions}): dipole derivatives {dd:e}");
@@ -136,11 +137,11 @@ fn hessian_at_linear_and_planar_geometries() {
         cases.push((name.to_string(), z, x, c["charge"].as_f64().unwrap()));
     }
     for ((name, numbers, pos, charge), conventions) in cases.iter().flat_map(|c| BOTH.map(|v| (c, v))) {
-        let calc = Calculator::new(numbers, pos, *charge, Options { conventions, ..Default::default() }).unwrap();
-        let h = calc.hessian(pos).unwrap();
+        let mut calc = Calculator::new(numbers, pos, *charge, Options { conventions, ..Default::default() }).unwrap();
+        let h = calc.hessian(pos, &HessianOptions::default()).unwrap();
         let s = 1e-3;
-        let h1 = calc.numerical_hessian(pos, s).unwrap().hessian;
-        let h2 = calc.numerical_hessian(pos, s / 2.0).unwrap().hessian;
+        let h1 = calc.hessian(pos, &numerical(s)).unwrap().hessian;
+        let h2 = calc.hessian(pos, &numerical(s / 2.0)).unwrap().hessian;
         let worst = (0..h1.len()).map(|k| (h.hessian[k] - (4.0 * h2[k] - h1[k]) / 3.0).abs()).fold(0.0, f64::max);
         assert!(worst < 1e-8, "{name} ({conventions}): analytic vs finite-difference Hessian {worst:e}");
     }
@@ -149,17 +150,23 @@ fn hessian_at_linear_and_planar_geometries() {
 #[test]
 fn hessian_independent_of_threads() {
     let (numbers, pos, charge) = load("glycine-zwitterion-water");
-    let h1 = Calculator::new(&numbers, &pos, charge, Options::default()).unwrap().hessian(&pos).unwrap();
+    let h1 = Calculator::new(&numbers, &pos, charge, Options::default())
+        .unwrap()
+        .hessian(&pos, &HessianOptions::default())
+        .unwrap();
     let h4 = Calculator::new(&numbers, &pos, charge, Options { threads: 4, ..Default::default() })
         .unwrap()
-        .hessian(&pos)
+        .hessian(&pos, &HessianOptions::default())
         .unwrap();
     let d = h1.hessian.iter().zip(&h4.hessian).map(|(a, b)| (a - b).abs()).fold(0.0, f64::max);
     assert!(d < 1e-13, "threads change the Hessian by {d:e}");
-    let e1 = Calculator::new(&numbers, &pos, charge, Options::default()).unwrap().singlepoint(&pos, true).unwrap();
+    let e1 = Calculator::new(&numbers, &pos, charge, Options::default())
+        .unwrap()
+        .singlepoint(&pos, &Want::gradient(true))
+        .unwrap();
     let e4 = Calculator::new(&numbers, &pos, charge, Options { threads: 4, ..Default::default() })
         .unwrap()
-        .singlepoint(&pos, true)
+        .singlepoint(&pos, &Want::gradient(true))
         .unwrap();
     assert!((e1.energy - e4.energy).abs() < 1e-13);
 }
@@ -183,8 +190,8 @@ fn results_repeat_on_a_thread_count() {
         })
         .unzip();
     let run = |threads: usize| {
-        let calc = Calculator::new(&numbers, &pos, 0.0, Options { threads, ..Default::default() }).unwrap();
-        let r = calc.singlepoint(&pos, true).unwrap();
+        let mut calc = Calculator::new(&numbers, &pos, 0.0, Options { threads, ..Default::default() }).unwrap();
+        let r = calc.singlepoint(&pos, &Want::gradient(true)).unwrap();
         let mut bits: Vec<u64> = vec![r.energy.to_bits()];
         bits.extend(r.gradient.unwrap().iter().flatten().map(|g| g.to_bits()));
         bits.extend(calc.topology().qa.iter().map(|q| q.to_bits()));
@@ -194,4 +201,9 @@ fn results_repeat_on_a_thread_count() {
     assert_eq!(a, b, "two runs on 3 threads differ");
     let d = a.iter().zip(&one).map(|(x, y)| (f64::from_bits(*x) - f64::from_bits(*y)).abs()).fold(0.0, f64::max);
     assert!(d < 1e-11, "1 vs 3 threads: {d:e}");
+}
+
+/// Central differences of the analytic gradient with step `step` (bohr).
+fn numerical(step: f64) -> HessianOptions {
+    HessianOptions { method: Some(HessianMethod::Numerical), step: Some(step), accuracy: None }
 }

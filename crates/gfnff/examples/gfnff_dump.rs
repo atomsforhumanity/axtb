@@ -6,6 +6,7 @@
 //! "conventions": "xtb"}`; with `reference_positions` the topology is set up there and the
 //! energy evaluated at `positions`; `conventions` `xtb-6.7.1` selects xtb 6.7.1's GFN-FF.
 
+use axtb_gfnff::method::{Method, Want};
 use axtb_gfnff::{Calculator, Conventions, Options};
 use serde_json::{json, Value};
 use std::io::Read;
@@ -51,7 +52,7 @@ fn main() {
             .collect(),
         _ => positions.clone(),
     };
-    let calc = match Calculator::new(
+    let mut calc = match Calculator::new(
         &numbers,
         &refpos,
         charge,
@@ -65,7 +66,7 @@ fn main() {
     };
     let t_setup = t0.elapsed().as_secs_f64();
     let t1 = std::time::Instant::now();
-    let res = match calc.singlepoint(&positions, grad) {
+    let res = match calc.singlepoint(&positions, &Want::gradient(grad)) {
         Ok(r) => r,
         Err(e) => {
             println!("{}", json!({"error": e.to_string()}));
@@ -73,12 +74,13 @@ fn main() {
         }
     };
     let t_sp = t1.elapsed().as_secs_f64();
+    let hb = res.extras.gfnff.as_ref().expect("GFN-FF's report");
     let mut out = json!({
         "energy": res.energy,
-        "terms": res.energies.named().into_iter().collect::<std::collections::BTreeMap<_, _>>(),
+        "terms": res.terms.iter().map(|t| (t.name, t.value)).collect::<std::collections::BTreeMap<_, _>>(),
         "gradient": res.gradient,
         "charges": res.charges,
-        "nhb1": res.nhb1, "nhb2": res.nhb2, "nxb": res.nxb,
+        "nhb1": hb.n_hbonds[0], "nhb2": hb.n_hbonds[1], "nxb": hb.n_xbonds,
         "time_setup": t_setup, "time_singlepoint": t_sp,
         "timings": res.timings,
     });

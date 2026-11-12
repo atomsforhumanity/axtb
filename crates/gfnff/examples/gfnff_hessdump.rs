@@ -1,6 +1,7 @@
 //! Analytic GFN-FF Hessian as JSON: stdin `{"numbers", "positions" (bohr), "charge",
 //! "threads", "conventions"}`, stdout `{"energy", "hessian" (row-major 3N x 3N), "seconds"}`.
 
+use axtb_gfnff::method::{HessianOptions, Method};
 use axtb_gfnff::{Calculator, Conventions, Options};
 use serde_json::{json, Value};
 use std::io::Read;
@@ -30,14 +31,14 @@ fn main() {
         .collect();
     let threads = req["threads"].as_u64().unwrap_or(1) as usize;
     let t = std::time::Instant::now();
-    let calc = Calculator::new(
+    let mut calc = Calculator::new(
         &numbers,
         &pos,
         req["charge"].as_f64().unwrap_or(0.0),
         Options { threads, conventions: conventions(&req), ..Default::default() },
     )
     .unwrap();
-    let h = calc.hessian(&pos).unwrap();
+    let h = calc.hessian(&pos, &HessianOptions::default()).unwrap();
     println!(
         "{}",
         json!({"energy": h.energy, "hessian": h.hessian, "seconds": t.elapsed().as_secs_f64(), "timings": h.timings,

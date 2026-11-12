@@ -3,6 +3,7 @@
 //! 6.7.1), the Hessian in xtb's conventions reproduces `xtb --gfnff --hess` thermochemistry, a
 //! reference structure fixes the topology, and SCF settings are rejected.
 
+use axtb_gfnff::method::{HessianOptions, Method, Want};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -47,8 +48,8 @@ fn read(name: &str) -> (Vec<usize>, Vec<[f64; 3]>) {
 #[test]
 fn cli_equals_rust_api() {
     let (numbers, pos) = read("caffeine.xyz");
-    let calc = axtb_gfnff::Calculator::new(&numbers, &pos, 0.0, Default::default()).unwrap();
-    let rust = calc.singlepoint(&pos, true).unwrap();
+    let mut calc = axtb_gfnff::Calculator::new(&numbers, &pos, 0.0, Default::default()).unwrap();
+    let rust = calc.singlepoint(&pos, &Want::GRADIENT).unwrap();
     let req = serde_json::json!({"numbers": numbers, "positions": pos, "method": "gfnff", "gradient": true});
     let (ok, out, err) = cli_json(&req);
     assert!(ok, "{err}");
@@ -58,7 +59,7 @@ fn cli_equals_rust_api() {
     assert_eq!(&grad, rust.gradient.as_ref().unwrap());
     let q: Vec<f64> = serde_json::from_value(r["charges"].clone()).unwrap();
     assert_eq!(q, rust.charges);
-    assert_eq!(r["terms"]["bond"].as_f64().unwrap(), rust.energies.bond);
+    assert_eq!(r["terms"]["bond"].as_f64().unwrap(), rust.term("bond").unwrap());
     let bonds: Vec<[usize; 2]> = serde_json::from_value(r["topology"]["bonds"].clone()).unwrap();
     let expect: Vec<[usize; 2]> = calc.topology().bond_pairs().iter().map(|&(i, j)| [i, j]).collect();
     assert_eq!(bonds, expect);
@@ -70,12 +71,12 @@ fn cli_equals_rust_api() {
     let (ok, out, err) = cli_json(&hreq);
     assert!(ok, "{err}");
     let r: serde_json::Value = serde_json::from_str(&out).unwrap();
-    let h = calc.hessian(&pos).unwrap();
+    let h = calc.hessian(&pos, &HessianOptions::default()).unwrap();
     let n3 = 3 * numbers.len();
     let rows: Vec<Vec<f64>> = serde_json::from_value(r["hessian"].clone()).unwrap();
     assert!(rows.iter().enumerate().all(|(i, row)| row[..] == h.hessian[i * n3..(i + 1) * n3]));
     let dd: Vec<[f64; 3]> = serde_json::from_value(r["dipole_derivatives"].clone()).unwrap();
-    assert_eq!(dd, h.dipole_derivatives);
+    assert_eq!(Some(dd), h.dipole_derivatives);
     assert_eq!(r["hessian_method"], "analytic");
 }
 
@@ -135,8 +136,8 @@ fn reference_topology_and_fragment_charges() {
     let (numbers, pos) = read("caffeine.xyz");
     let moved: Vec<[f64; 3]> =
         pos.iter().enumerate().map(|(i, p)| [p[0] + 0.01 * (i % 3) as f64, p[1], p[2] - 0.02]).collect();
-    let calc = axtb_gfnff::Calculator::new(&numbers, &pos, 0.0, Default::default()).unwrap();
-    let rust = calc.singlepoint(&moved, true).unwrap();
+    let mut calc = axtb_gfnff::Calculator::new(&numbers, &pos, 0.0, Default::default()).unwrap();
+    let rust = calc.singlepoint(&moved, &Want::GRADIENT).unwrap();
     let req = serde_json::json!({"numbers": numbers, "positions": moved, "topology_positions": pos, "method": "gfnff",
                                  "gradient": true});
     let (ok, out, err) = cli_json(&req);

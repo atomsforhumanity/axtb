@@ -2,6 +2,7 @@
 //! from steps h and h/2; env STEP, default 2e-3 bohr) for reference structures
 //! (`tests/reference-xtb-6.7.1/*.json`) given as arguments.
 
+use axtb_gfnff::method::{HessianMethod, HessianOptions, Method, Want};
 use axtb_gfnff::{Calculator, Options};
 use serde_json::Value;
 
@@ -21,7 +22,7 @@ fn main() {
                 [a[0].as_f64().unwrap(), a[1].as_f64().unwrap(), a[2].as_f64().unwrap()]
             })
             .collect();
-        let calc =
+        let mut calc =
             Calculator::new(&numbers, &pos, c["charge"].as_f64().unwrap(), Options { threads, ..Default::default() })
                 .unwrap();
         // evaluate at a randomly displaced geometry (PERTURB bohr; default 0.05): exactly
@@ -36,10 +37,10 @@ fn main() {
         let pos: Vec<[f64; 3]> =
             pos.iter().map(|p| [p[0] + amp * rnd(), p[1] + amp * rnd(), p[2] + amp * rnd()]).collect();
         let t = std::time::Instant::now();
-        let ha = calc.hessian(&pos).unwrap();
+        let ha = calc.hessian(&pos, &HessianOptions::default()).unwrap();
         let ta = t.elapsed().as_secs_f64();
-        let h1 = calc.numerical_hessian(&pos, h).unwrap().hessian;
-        let h2 = calc.numerical_hessian(&pos, h / 2.0).unwrap().hessian;
+        let h1 = calc.hessian(&pos, &numerical(h)).unwrap().hessian;
+        let h2 = calc.hessian(&pos, &numerical(h / 2.0)).unwrap().hessian;
         let n3 = 3 * numbers.len();
         let (mut dmax, mut hmax, mut arg) = (0.0f64, 0.0f64, 0);
         for k in 0..n3 * n3 {
@@ -60,10 +61,10 @@ fn main() {
             let mut xm = pos.clone();
             xp[k / 3][k % 3] += 1e-4;
             xm[k / 3][k % 3] -= 1e-4;
-            let dp = calc.singlepoint(&xp, false).unwrap().dipole;
-            let dm = calc.singlepoint(&xm, false).unwrap().dipole;
+            let dp = calc.singlepoint(&xp, &Want::gradient(false)).unwrap().dipole;
+            let dm = calc.singlepoint(&xm, &Want::gradient(false)).unwrap().dipole;
             for e in 0..3 {
-                ddmax = ddmax.max(((dp[e] - dm[e]) / 2e-4 - ha.dipole_derivatives[k][e]).abs());
+                ddmax = ddmax.max(((dp[e] - dm[e]) / 2e-4 - ha.dipole_derivatives.as_ref().unwrap()[k][e]).abs());
             }
         }
         println!("   dipole derivatives: max|an - fd| {ddmax:.1e}");
@@ -98,4 +99,9 @@ fn main() {
             ta
         );
     }
+}
+
+/// Central differences of the analytic gradient with step `step` (bohr).
+fn numerical(step: f64) -> HessianOptions {
+    HessianOptions { method: Some(HessianMethod::Numerical), step: Some(step), accuracy: None }
 }

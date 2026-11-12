@@ -3,6 +3,7 @@
 //! `tests/reference-xtb-6.7.1/` (xtb 6.7.1, the g-xTB 2.0.1 build; conventions `Xtb671`), written by
 //! `scripts/make_reference.py`.
 
+use axtb_gfnff::method::{Method, Want};
 use axtb_gfnff::{Calculator, Conventions, Options, Topology};
 use serde_json::Value;
 use std::path::PathBuf;
@@ -121,8 +122,8 @@ fn reproduces(dir: &str, conventions: Conventions, program: &str) {
         let pos = positions(&c["positions"]);
         let charge = c["charge"].as_f64().unwrap();
         let eval_pos = if c["positions_eval"].is_null() { pos.clone() } else { positions(&c["positions_eval"]) };
-        let calc = Calculator::new(&numbers, &pos, charge, Options { conventions, ..Default::default() }).unwrap();
-        let res = calc.singlepoint(&eval_pos, true).unwrap();
+        let mut calc = Calculator::new(&numbers, &pos, charge, Options { conventions, ..Default::default() }).unwrap();
+        let res = calc.singlepoint(&eval_pos, &Want::gradient(true)).unwrap();
         // topology: integer lists identical
         let t = calc.topology();
         let ours = ours_topology(t);
@@ -168,7 +169,7 @@ fn reproduces(dir: &str, conventions: Conventions, program: &str) {
         let dqe = maxdiff(&reals(&c["charges"]), &res.charges);
         assert!(dqe < 1e-10, "{name}: EEQ charges differ by {dqe:e}");
         let terms = c["terms"].as_object().unwrap();
-        let named: std::collections::HashMap<&str, f64> = res.energies.named().into_iter().collect();
+        let named: std::collections::HashMap<&str, f64> = res.terms.iter().map(|t| (t.name, t.value)).collect();
         let mut de: f64 = 0.0;
         for (k, v) in terms {
             let ours = if k == "total" { res.energy } else { named[k.as_str()] };

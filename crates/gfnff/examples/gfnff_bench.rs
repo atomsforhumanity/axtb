@@ -4,6 +4,7 @@
 //! stdout `{"natoms", "energy", "gnorm", "setup_s", "eval_s", "timings", ...}` plus the
 //! gradient in "grad" mode (the Hessian is not printed; peak memory is measured from outside).
 
+use axtb_gfnff::method::{HessianOptions, Method, Want};
 use axtb_gfnff::{Calculator, Conventions, Options};
 use serde_json::{json, Value};
 use std::io::Read;
@@ -39,18 +40,19 @@ fn main() {
     let conventions = conventions(&req);
     drop(req);
     let t = Instant::now();
-    let calc = Calculator::new(&numbers, &pos, charge, Options { threads, conventions, ..Default::default() }).unwrap();
+    let mut calc =
+        Calculator::new(&numbers, &pos, charge, Options { threads, conventions, ..Default::default() }).unwrap();
     let setup_s = t.elapsed().as_secs_f64();
     let t = Instant::now();
     let out = if mode == "hess" {
-        let h = calc.hessian(&pos).unwrap();
+        let h = calc.hessian(&pos, &HessianOptions::default()).unwrap();
         let n3 = 3 * numbers.len();
         let trace: f64 = (0..n3).map(|i| h.hessian[i * n3 + i]).sum();
         let gnorm = h.gradient.iter().flatten().map(|g| g * g).sum::<f64>().sqrt();
         json!({"energy": h.energy, "gnorm": gnorm, "trace": trace, "max_asymmetry": h.max_asymmetry,
                "timings": h.timings})
     } else {
-        let r = calc.singlepoint(&pos, true).unwrap();
+        let r = calc.singlepoint(&pos, &Want::gradient(true)).unwrap();
         let gnorm = r.gradient.as_ref().unwrap().iter().flatten().map(|g| g * g).sum::<f64>().sqrt();
         json!({"energy": r.energy, "gnorm": gnorm, "timings": r.timings, "gradient": r.gradient})
     };

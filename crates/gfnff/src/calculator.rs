@@ -1,6 +1,7 @@
 //! Stateful GFN-FF calculator: the topology is set up once (from the first structure, or
 //! from a reference structure) and reused for every later geometry, as xtb does within an
-//! optimization.
+//! optimization. It implements [`Method`]: energies, gradients and EEQ charges
+//! ([`Method::singlepoint`]), analytic and numerical Hessians ([`Method::hessian`]).
 //!
 //! Threading: `threads > 1` creates one rayon pool of exactly that size owned by the
 //! calculator ([`Threads`]); all parallel work (pair loops, EEQ solve, Hessian) runs inside
@@ -8,11 +9,16 @@
 //! count (see the crate documentation for different thread counts).
 
 use crate::conventions::Conventions;
-use crate::energy::{self, Energies, Model};
+use crate::energy::{self, Model};
 use crate::error::{Error, Result};
-use crate::hessian::{self, Hessian};
+use crate::hessian::{self, FfHessian};
 use crate::setup::{check_positions, setup, SetupOptions};
 use crate::topology::Topology;
+use axtb_base::method::{
+    AnalysisConventions, AnalysisDefaults, Electrons, Extras, Fingerprint, GfnffReport, GfnffTopology, Hessian,
+    HessianDefault, HessianDefaults, HessianMethod, HessianOptions, Method, MethodInfo, SinglePoint, Term, Want,
+    Wavefunction,
+};
 use axtb_base::threads::Threads;
 
 /// Options of a calculator.
@@ -20,52 +26,35 @@ use axtb_base::threads::Threads;
 pub struct Options {
     /// Threads of the calculator's own pool (at least 1; 1 = no threads).
     pub threads: usize,
-    /// Accuracy of the cutoffs, in (0, 10] (default: xtb's, 0.1; 2.0 above 10000 atoms).
-    pub accuracy: Option<f64>,
+    /// Accuracy of the cutoffs (xtb's GFN-FF `acc`), in (0, 10] (default: xtb's, 0.1; 2.0
+    /// above 10000 atoms). Not an SCF accuracy: GFN-FF has no SCF.
+    pub cutoff_accuracy: Option<f64>,
     /// Charges of the molecular fragments (the bonded molecules of the setup structure) in
     /// the order of their first atoms, as the second line of xtb's `.CHRG` file: one per
     /// fragment, adding up to the total charge, else an input error (xtb ignores extra
     /// charges and zeroes inconsistent ones). Default: the total charge on the fragment of
     /// atom 1, all others neutral.
     pub fragment_charges: Option<Vec<f64>>,
-    /// xtb version of the force field (default: 6.8.0).
+    /// The conventions (default: axtb's, the force field of xtb 6.8.0).
     pub conventions: Conventions,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Options { threads: 1, accuracy: None, fragment_charges: None, conventions: Conventions::default() }
+        Options { threads: 1, cutoff_accuracy: None, fragment_charges: None, conventions: Conventions::default() }
     }
 }
 
-/// Results of a single point.
-#[derive(Clone, Debug)]
-pub struct Results {
-    /// Total energy (Eh).
-    pub energy: f64,
-    /// The energy terms (Eh).
-    pub energies: Energies,
-    /// Eh/bohr, if requested.
-    pub gradient: Option<Vec<[f64; 3]>>,
-    /// EEQ charges at this geometry (e).
-    pub charges: Vec<f64>,
-    /// Dipole moment of the EEQ charges about the origin (e bohr).
-    pub dipole: [f64; 3],
-    /// Hydrogen bonds of case 1 (H not bonded to A) at this geometry.
-    pub nhb1: usize,
-    /// Hydrogen bonds of cases 2 and 3 (A-H...B, carbonyl and pyridine-type B) at this geometry.
-    pub nhb2: usize,
-    /// Halogen, chalcogen and pnictogen bonds at this geometry.
-    pub nxb: usize,
-    /// Wall time of the steps (s).
-    pub timings: Vec<(&'static str, f64)>,
-}
+/// The step (bohr) of GFN-FF's numerical Hessian, xtb's `--hess` step.
+pub const NUMERICAL_STEP: f64 = 0.005;
 
 /// GFN-FF with a fixed topology.
 pub struct Calculator {
     topo: Topology,
     model: Model,
     threads: Threads,
+    info: MethodInfo,
+    fingerprint: Fingerprint,
 }
 
 impl Calculator {
@@ -74,16 +63,19 @@ impl Calculator {
     /// finite and no two atoms closer than 0.1 bohr (also at every later geometry).
     pub fn new(numbers: &[usize], positions: &[[f64; 3]], charge: f64, options: Options) -> Result<Self> {
         let threads = Threads::new(options.threads)?;
+        let conventions = options.conventions;
         let sopts = SetupOptions {
-            accuracy: options.accuracy,
+            accuracy: options.cutoff_accuracy,
             fragment_charges: options.fragment_charges,
             par: Some(threads.par()),
-            conventions: options.conventions,
+            conventions,
         };
         let topo = threads.install(|| setup(numbers, positions, charge, &sopts))?;
         check_topology(&topo)?;
         let model = Model::new(&topo);
-        Ok(Calculator { topo, model, threads })
+        let info = info(conventions);
+        let fingerprint = Fingerprint::new(info.name, numbers, charge, None);
+        Ok(Calculator { topo, model, threads, info, fingerprint })
     }
 
     /// The topology (set up once, used for every geometry).
@@ -96,57 +88,140 @@ impl Calculator {
         self.threads.count()
     }
 
-    /// Energy (and gradient) at `positions` (bohr) with the calculator's topology.
-    pub fn singlepoint(&self, positions: &[[f64; 3]], gradient: bool) -> Result<Results> {
+    /// The topology as the single point reports it.
+    fn topology_report(&self) -> GfnffTopology {
+        let t = &self.topo;
+        GfnffTopology {
+            bonds: t.bond_pairs().iter().map(|&(i, j)| [i, j]).collect(),
+            pi_bond_orders: t.bonds.iter().map(|b| b.pibo).collect(),
+            bond_types: t.bonds.iter().map(|b| b.btyp).collect(),
+            hybridization: t.hyb.clone(),
+            pi_atoms: t.pi.clone(),
+            fragments: t.fragments(),
+            fragment_charges: t.qfrag.clone(),
+            topology_charges: t.qa.clone(),
+            n_angles: t.angles.len(),
+            n_torsions: t.torsions.len(),
+        }
+    }
+}
+
+/// What GFN-FF is and offers in `conventions`.
+fn info(conventions: Conventions) -> MethodInfo {
+    MethodInfo {
+        name: crate::METHOD,
+        conventions: conventions.label(),
+        electrons: Electrons::None,
+        hessian: HessianDefaults {
+            default: HessianMethod::Analytic,
+            offered: vec![
+                HessianDefault { method: HessianMethod::Analytic, step: None, accuracy: None },
+                HessianDefault { method: HessianMethod::Numerical, step: Some(NUMERICAL_STEP), accuracy: None },
+            ],
+        },
+        analysis: AnalysisDefaults {
+            conventions: match conventions {
+                Conventions::Axtb => AnalysisConventions::Axtb,
+                Conventions::Xtb680 => AnalysisConventions::Xtb,
+                Conventions::Xtb671 => AnalysisConventions::Xtb671,
+            },
+            // xtb scales GFN-FF's frequencies by 1.03 in its thermochemistry
+            xtb_frequency_scale: Some(1.03),
+        },
+        quadrupole: None,
+    }
+}
+
+impl Method for Calculator {
+    fn info(&self) -> &MethodInfo {
+        &self.info
+    }
+
+    /// GFN-FF has no orbitals and no SCF: no Molden file or bond orders, no response Hessian, no
+    /// Hessian accuracy.
+    fn check(&self, want: &Want, hessian: Option<&HessianOptions>) -> Result<()> {
+        if let Some(h) = hessian {
+            if h.method == Some(HessianMethod::Response) {
+                return Err(Error::Input("gfnff Hessians are analytic or numerical (no SCF response)".into()));
+            }
+            if h.accuracy.is_some() {
+                return Err(Error::Input("gfnff Hessians take no hessian_accuracy (no SCF)".into()));
+            }
+        }
+        if want.orbitals || want.bond_orders {
+            return Err(Error::Input("gfnff has no orbitals (no Molden file, no bond orders; see topology)".into()));
+        }
+        Ok(())
+    }
+
+    /// Energy (and gradient) at `positions` (bohr) with the calculator's topology; the EEQ
+    /// charges and their dipole; the topology and this geometry's hydrogen and halogen bonds in
+    /// [`Extras::gfnff`].
+    fn singlepoint(&mut self, positions: &[[f64; 3]], want: &Want) -> Result<SinglePoint> {
+        self.check(want, None)?;
         check_positions(positions, self.topo.natoms())?;
-        let ev =
-            self.threads.install(|| energy::evaluate(&self.topo, &self.model, positions, gradient, &self.threads))?;
+        let ev = self
+            .threads
+            .install(|| energy::evaluate(&self.topo, &self.model, positions, want.gradient, &self.threads))?;
         let mut dipole = [0.0; 3];
         for (i, q) in ev.charges.iter().enumerate() {
             for c in 0..3 {
                 dipole[c] += positions[i][c] * q;
             }
         }
-        let terms = ev.energies.named();
-        finite("energy", terms.iter().map(|(_, e)| e).chain([&ev.energies.total]))?;
+        let terms: Vec<Term> = ev.energies.named().into_iter().map(|(n, v)| Term::piece(n, v)).collect();
+        finite("energy", terms.iter().map(|t| &t.value).chain([&ev.energies.total]))?;
         finite("gradient", ev.gradient.iter().flatten().flatten())?;
         finite("EEQ charge vector", &ev.charges)?;
-        Ok(Results {
+        let report = GfnffReport { n_hbonds: [ev.nhb1, ev.nhb2], n_xbonds: ev.nxb, topology: self.topology_report() };
+        Ok(SinglePoint {
             energy: ev.energies.total,
-            energies: ev.energies,
+            terms,
             gradient: ev.gradient,
             charges: ev.charges,
             dipole,
-            nhb1: ev.nhb1,
-            nhb2: ev.nhb2,
-            nxb: ev.nxb,
+            electronic: None,
+            extras: Extras { gfnff: Some(report), ..Extras::default() },
             timings: ev.timings,
         })
     }
 
-    /// Analytic Hessian at `positions` (bohr) with the calculator's topology, with dipole
-    /// derivatives. A numerical error where it is not defined (a hydrogen bond exactly along a
-    /// C=O axis, grimme-lab/xtb#1516), where [`Calculator::numerical_hessian`] is.
-    pub fn hessian(&self, positions: &[[f64; 3]]) -> Result<Hessian> {
+    /// The analytic Hessian (default; a numerical error where it is not defined, a hydrogen
+    /// bond exactly along a C=O axis, grimme-lab/xtb#1516) or central differences of the
+    /// analytic gradient (`step` bohr, default [`NUMERICAL_STEP`]), symmetrized, with dipole
+    /// derivatives of the EEQ dipole.
+    fn hessian(&mut self, positions: &[[f64; 3]], opts: &HessianOptions) -> Result<Hessian> {
+        self.check(&Want::ENERGY, Some(opts))?;
         check_positions(positions, self.topo.natoms())?;
-        let h = self.threads.install(|| hessian::hessian(&self.topo, &self.model, positions, &self.threads))?;
+        let method = opts.method.unwrap_or(HessianMethod::Analytic);
+        let h = match method {
+            HessianMethod::Numerical => {
+                let step = opts.step.unwrap_or(NUMERICAL_STEP);
+                if !(step.is_finite() && step > 0.0) {
+                    return Err(Error::Input(format!("the finite-difference step must be positive, not {step}")));
+                }
+                self.threads
+                    .install(|| hessian::numerical_hessian(&self.topo, &self.model, positions, step, &self.threads))?
+            }
+            _ => self.threads.install(|| hessian::hessian(&self.topo, &self.model, positions, &self.threads))?,
+        };
         check_hessian(&h)?;
-        Ok(h)
+        Ok(Hessian {
+            energy: h.energy,
+            gradient: h.gradient,
+            hessian: h.hessian,
+            max_asymmetry: h.max_asymmetry,
+            dipole_derivatives: Some(h.dipole_derivatives),
+            method,
+            timings: h.timings,
+            parts: Vec::new(),
+        })
     }
 
-    /// Hessian by central differences (`step` bohr; xtb uses 0.005) of the analytic gradient
-    /// with the calculator's topology, symmetrized, with dipole derivatives from the
-    /// displaced structures' EEQ dipoles.
-    pub fn numerical_hessian(&self, positions: &[[f64; 3]], step: f64) -> Result<Hessian> {
-        check_positions(positions, self.topo.natoms())?;
-        if !(step.is_finite() && step > 0.0) {
-            return Err(Error::Input(format!("the finite-difference step must be positive, not {step}")));
-        }
-        let h = self
-            .threads
-            .install(|| hessian::numerical_hessian(&self.topo, &self.model, positions, step, &self.threads))?;
-        check_hessian(&h)?;
-        Ok(h)
+    /// GFN-FF has no SCF: every wavefunction is refused.
+    fn set_wavefunction(&mut self, wf: &Wavefunction) -> Result<()> {
+        wf.check(&self.fingerprint)?;
+        Err(Error::Input("gfnff has no SCF; starting moments are GFN2-only".into()))
     }
 }
 
@@ -159,7 +234,7 @@ fn finite<'a>(what: &str, values: impl IntoIterator<Item = &'a f64>) -> Result<(
     }
 }
 
-fn check_hessian(h: &Hessian) -> Result<()> {
+fn check_hessian(h: &FfHessian) -> Result<()> {
     finite("energy", [&h.energy])?;
     finite("gradient", h.gradient.iter().flatten())?;
     finite("Hessian", &h.hessian)?;

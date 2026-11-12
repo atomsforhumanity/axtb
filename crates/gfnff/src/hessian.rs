@@ -29,7 +29,7 @@ use faer::Mat;
 
 /// A nuclear Hessian.
 #[derive(Clone, Debug)]
-pub struct Hessian {
+pub(crate) struct FfHessian {
     /// Energy at the geometry (Eh).
     pub energy: f64,
     /// Gradient at the geometry (Eh/bohr).
@@ -594,7 +594,7 @@ impl<'a> Ctx<'a> {
 }
 
 /// Analytic Hessian at `xyz` (bohr).
-pub fn hessian(topo: &Topology, model: &Model, xyz: &[[f64; 3]], threads: &Threads) -> Result<Hessian> {
+pub(crate) fn hessian(topo: &Topology, model: &Model, xyz: &[[f64; 3]], threads: &Threads) -> Result<FfHessian> {
     let n = topo.natoms();
     let n3 = 3 * n;
     let mut timings = Vec::new();
@@ -648,7 +648,7 @@ pub fn hessian(topo: &Topology, model: &Model, xyz: &[[f64; 3]], threads: &Threa
     if hbuf.iter().any(|v| !v.is_finite()) {
         return Err(not_finite(&ctx, &hbuf));
     }
-    Ok(Hessian {
+    Ok(FfHessian {
         energy: ev.energies.total,
         gradient: ev.gradient.unwrap(),
         hessian: hbuf,
@@ -701,13 +701,13 @@ fn not_finite(ctx: &Ctx, h: &[f64]) -> Error {
 /// derivatives from the EEQ dipoles of the displaced structures. 6N gradient evaluations
 /// ([`fd::numerical_hessian`], each coordinate moved to x + h and x - h), parallel over the
 /// displacements, each column written straight into the result.
-pub fn numerical_hessian(
+pub(crate) fn numerical_hessian(
     topo: &Topology,
     model: &Model,
     xyz: &[[f64; 3]],
     step: f64,
     threads: &Threads,
-) -> Result<Hessian> {
+) -> Result<FfHessian> {
     let t0 = std::time::Instant::now();
     let reference = energy::evaluate(topo, model, xyz, true, threads)?;
     let mut timings = vec![("energy+gradient", t0.elapsed().as_secs_f64())];
@@ -726,7 +726,7 @@ pub fn numerical_hessian(
     let parallel = threads.parallel();
     let nh = threads.install(|| fd::numerical_hessian(xyz, step, fd::Displacement::FromReference, parallel, point))?;
     timings.push(("displacements", t1.elapsed().as_secs_f64()));
-    Ok(Hessian {
+    Ok(FfHessian {
         energy: reference.energies.total,
         gradient: reference.gradient.unwrap(),
         hessian: nh.hessian,

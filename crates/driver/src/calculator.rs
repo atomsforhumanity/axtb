@@ -6,6 +6,7 @@ use crate::names::{self, Method};
 use crate::request::Request;
 use crate::response::{self, Attempt, Gfnff, HessianPart, Matrix, Named, Response, Scf, Topology, Vibrations};
 use crate::task::Task;
+use axtb::method::{Method as _, Want};
 use axtb::vibrations::Conventions as VibConventions;
 use axtb::ToMolden;
 use std::time::Instant;
@@ -371,48 +372,34 @@ impl Calculator {
             Engine::Gfnff(calc) => {
                 let hess = match &task.hessian {
                     Some(h) => {
-                        let method = h.method.unwrap_or(axtb::HessianMethod::Analytic);
-                        let r = match method {
-                            axtb::HessianMethod::Analytic => calc.hessian(positions)?,
-                            axtb::HessianMethod::Numerical => {
-                                calc.numerical_hessian(positions, h.step.unwrap_or(0.005))?
-                            }
-                            axtb::HessianMethod::Response => {
-                                return Err(input("gfnff Hessians are analytic or numerical (no SCF response)"))
-                            }
-                        };
-                        Some(HessianPart {
-                            hessian: Matrix::square(r.hessian),
-                            hessian_method: names::hessian_method_label(method),
-                            hessian_max_asymmetry: r.max_asymmetry,
-                            hessian_timings: Named::new(r.timings),
-                            dipole_derivatives: Some(r.dipole_derivatives),
-                        })
+                        let o = axtb::HessianOptions { method: h.method, step: h.step, accuracy: h.accuracy };
+                        Some(hessian_part(calc.hessian(positions, &o)?))
                     }
                     None => None,
                 };
-                let r = calc.singlepoint(positions, task.gradient || hess.is_some())?;
-                let t = calc.topology();
+                let r = calc.singlepoint(positions, &Want::gradient(task.gradient || hess.is_some()))?;
+                let g = r.extras.gfnff.expect("GFN-FF reports its topology");
+                let t = g.topology;
                 out.energy = Some(r.energy);
                 out.gradient = r.gradient;
                 out.charges = Some(r.charges);
                 out.dipole = Some(r.dipole);
-                out.terms = Some(Named::new(r.energies.named()));
+                out.terms = Some(Named::new(r.terms.iter().map(|t| (t.name, t.value)).collect()));
                 out.timings = Some(Named::new(r.timings));
                 out.gfnff = Some(Gfnff {
-                    n_hbonds: r.nhb1 + r.nhb2,
-                    n_xbonds: r.nxb,
+                    n_hbonds: g.n_hbonds[0] + g.n_hbonds[1],
+                    n_xbonds: g.n_xbonds,
                     topology: Topology {
-                        bonds: t.bond_pairs().iter().map(|&(i, j)| [i, j]).collect(),
-                        pi_bond_orders: t.bonds.iter().map(|b| b.pibo).collect(),
-                        bond_types: t.bonds.iter().map(|b| b.btyp).collect(),
-                        hybridization: t.hyb.clone(),
-                        pi_atoms: t.pi.clone(),
-                        fragments: t.fragments(),
-                        fragment_charges: t.qfrag.clone(),
-                        topology_charges: t.qa.clone(),
-                        n_angles: t.angles.len(),
-                        n_torsions: t.torsions.len(),
+                        bonds: t.bonds,
+                        pi_bond_orders: t.pi_bond_orders,
+                        bond_types: t.bond_types,
+                        hybridization: t.hybridization,
+                        pi_atoms: t.pi_atoms,
+                        fragments: t.fragments,
+                        fragment_charges: t.fragment_charges,
+                        topology_charges: t.topology_charges,
+                        n_angles: t.n_angles,
+                        n_torsions: t.n_torsions,
                     },
                 });
                 out.hessian = hess;

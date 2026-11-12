@@ -123,7 +123,7 @@ pub(crate) fn gxtb_conventions_label(c: axtb_gxtb::Conventions) -> &'static str 
 pub(crate) fn gfnff_conventions(name: &str) -> Result<(axtb_gfnff::Conventions, VibConventions, &'static str)> {
     use axtb_gfnff::Conventions as Ff;
     match key(name).as_str() {
-        "axtb" | "default" => Ok((Ff::Xtb680, VibConventions::Axtb, "axtb")),
+        "axtb" | "default" => Ok((Ff::Axtb, VibConventions::Axtb, "axtb")),
         "xtb" | "xtb680" => Ok((Ff::Xtb680, VibConventions::Xtb, "xtb")),
         "xtb671" => Ok((Ff::Xtb671, VibConventions::Xtb671, "xtb-6.7.1")),
         _ => Err(Error::Input(format!(
