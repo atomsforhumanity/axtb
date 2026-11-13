@@ -62,8 +62,9 @@ pub fn add_charge_potential(n: usize, s: &[f64], v: &[f64], f: &mut [f64], scale
     }
 }
 
-/// The multipole potentials' row part G_mk = vd(A(m)).D_mk + vq(A(m)).Q_mk (all nine products in
-/// one sum), rows in parallel with `parallel`.
+/// The multipole potentials' row part G_mk = vd(A(m)).D_mk + vq(A(m)).Q_mk (the nine products
+/// summed in this order from the first, one component at a time over a row), rows in parallel
+/// with `parallel`.
 fn multipole_rows(
     n: usize,
     ao_atom: &[usize],
@@ -74,20 +75,17 @@ fn multipole_rows(
     parallel: bool,
 ) -> Vec<f64> {
     let mut g = vec![0.0; n * n];
-    let ([d0, d1, d2], [q0, q1, q2, q3, q4, q5]) = (dpint, qpint);
     axtb_base::threads::for_slices(&mut g, n, parallel, |m, row| {
         let (vdm, vqm) = (vd[ao_atom[m]], vq[ao_atom[m]]);
-        for (k, x) in row.iter_mut().enumerate() {
-            let mk = m * n + k;
-            *x = vdm[0] * d0[mk]
-                + vdm[1] * d1[mk]
-                + vdm[2] * d2[mk]
-                + vqm[0] * q0[mk]
-                + vqm[1] * q1[mk]
-                + vqm[2] * q2[mk]
-                + vqm[3] * q3[mk]
-                + vqm[4] * q4[mk]
-                + vqm[5] * q5[mk];
+        let r = m * n..(m + 1) * n;
+        for (x, d) in row.iter_mut().zip(&dpint[0][r.clone()]) {
+            *x = vdm[0] * d;
+        }
+        let rest = [(vdm[1], &dpint[1]), (vdm[2], &dpint[2])].into_iter().chain((0..6).map(|c| (vqm[c], &qpint[c])));
+        for (c, a) in rest {
+            for (x, d) in row.iter_mut().zip(&a[r.clone()]) {
+                *x += c * d;
+            }
         }
     });
     g
