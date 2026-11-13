@@ -256,7 +256,22 @@ fn info(version: Version, conventions: Conventions) -> MethodInfo {
                 numerical,
             ],
         },
-        Version::V1_1 => HessianDefaults { default: HessianMethod::Numerical, offered: vec![numerical] },
+        // v1.1: the response Hessian in the default conventions, where its Fock matrix is the
+        // derivative of its energy (the program's is not: numerical only)
+        Version::V1_1 => HessianDefaults {
+            default: HessianMethod::Numerical,
+            offered: match conventions {
+                Conventions::Axtb => vec![
+                    numerical,
+                    HessianDefault {
+                        method: HessianMethod::Response,
+                        step: Some(RESPONSE_STEP),
+                        accuracy: Some(ANALYTIC_ACCURACY),
+                    },
+                ],
+                Conventions::Gxtb => vec![numerical],
+            },
+        },
     };
     MethodInfo {
         name: version.method(),
@@ -405,6 +420,9 @@ impl Calculator {
             (m @ (HessianMethod::Response | HessianMethod::Analytic), Version::V2_0_1) => {
                 self.response_hessian(positions, opts, m)
             }
+            (HessianMethod::Response, Version::V1_1) if self.options.conventions == Conventions::Axtb => {
+                self.response_hessian(positions, opts, HessianMethod::Response)
+            }
             (m, v) => Err(unavailable(m, v)),
         }?;
         out.timings.push(("total", t0.elapsed().as_secs_f64()));
@@ -479,11 +497,13 @@ impl Calculator {
         let accuracy = self.hessian_accuracy(opts.accuracy, ANALYTIC_ACCURACY)?;
         self.check_options()?;
         self.move_to(positions)?;
-        // the reference SCF starts where a single point would
+        // the reference SCF starts where a single point would (v1.1: from the densities)
         let start = match self.take_start() {
             Some(Start::V2_0_1(s)) => Some(*s),
-            _ => None,
+            Some(Start::V1_1(p)) => Some(v2::scf::State::densities(p)),
+            None => None,
         };
+        let version = self.version;
         // the response needs every orbital
         let sopts = ScfOptions { accuracy, ..self.options.run(true) };
         // the setup of this geometry, when the calculator holds one (move_to dropped it otherwise)
@@ -493,10 +513,13 @@ impl Calculator {
             let t0 = Instant::now();
             let mut setup = match cached {
                 Some(s) => s,
-                None => v2::scf::Setup::with_threads(mol, crate::v2::Model::v2_0_1(sopts.conventions), sopts.threads)?,
+                None => {
+                    v2::scf::Setup::with_threads(mol, crate::v2::Model::new(version, sopts.conventions), sopts.threads)?
+                }
             };
             let ladder = RetryLadder::warm_then_fresh(start.is_some());
             let (r, _) = ladder.climb(|rung| match rung.fresh {
+                false if version == Version::V1_1 => setup.scf_from(&sopts, start.as_ref()),
                 false => setup.scf_from(&v2_options(&sopts, start.is_some()), start.as_ref()),
                 true => setup.scf(&sopts),
             })?;
