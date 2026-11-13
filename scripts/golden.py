@@ -212,7 +212,12 @@ def corpus():
         add(f"gxtb2-o2s-hessian-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, etemp=t)
         add(f"gxtb2-o2s-hessian-response-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, hessian_method="response",
             etemp=t)
-        add(f"gxtb11-o2s-grad-gxtb-etemp{t:.0f}", s0, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=t)
+        # at 300 K and the default accuracy the program's SCF stops on a symmetry-broken intermediate
+        # (pi* split 2.9e-6 Eh, Qxx/Qyy 0.39148/0.39279), so round-off decides the moments; at accuracy
+        # 1e-4 it reaches the symmetric state (803e316 and step 17's C9 agree to 2.3e-12 in Q)
+        pin = {"accuracy": 1e-4} if t == 300.0 else {}
+        add(f"gxtb11-o2s-grad-gxtb-etemp{t:.0f}", s0, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=t,
+            **pin)
     add("gxtb11-o2s-hessian-gxtb-etemp5000", s0, method="gxtb-v1.1", conventions="gxtb", hessian=True, etemp=5000.0)
     # SCF paths: mixers, convergence rules, failures
     # GFN2-xTB's mixer ladder (axtb conventions, `auto`): Broyden runs out of iterations (H2O; DIIS restarts
@@ -299,7 +304,9 @@ def corpus():
     add("traj-gfn2-water-stretch-retry-hessian", jump, method="gfn2", accuracy=1e-4, max_iter=60, hessian=True)
     add("traj-gxtb2-water-stretch-retry", jump, method="gxtb-v2.0.1", max_iter=40, gradient=True)
     add("traj-gxtb2-water-stretch-retry-hessian", jump, method="gxtb-v2.0.1", max_iter=40, hessian=True)
-    add("traj-gxtb11-water-stretch-retry", jump, method="gxtb-v1.1", max_iter=60, gradient=True)
+    # v1.1: max_iter 70 leaves both rungs a margin (803e316: the warm start would converge after 84
+    # iterations, on another state; the fresh one converges after 52), compared as a ladder case
+    add("traj-gxtb11-water-stretch-retry", jump, method="gxtb-v1.1", max_iter=70, gradient=True)
     return c
 
 
@@ -390,9 +397,89 @@ THRESHOLDS = {
     "orbital_energies_alpha": 1e-9, "orbital_energies_beta": 1e-9, "homo_lumo_gap": 1e-9,
     "hessian": 1e-7, "dipole_derivatives": 1e-7, "frequencies": 0.01,
     "error.energy_change": 1e-10, "error.residual": 1e-9,
+    # fractional occupations (finite temperature) move with the orbital energies; the numbers of a
+    # Molden file (orbital energies, occupations, coefficients) as the orbitals'
+    "occupations_alpha": 1e-9, "occupations_beta": 1e-9, "molden": 1e-9,
 }
-EXACT = ("iterations", "occupations_alpha", "occupations_beta", "n_imaginary", "hessian_method", "method",
-         "conventions", "guess", "linear", "error.iterations", "error.kind")
+# Ladder cases: the retry ladders' outcome is the point (which start gave each result, whether it
+# converged), not the converged numbers of a slowly converging SCF, whose path round-off decides.
+# Exact: the exit code, the start of every result (`guess`), the error kinds; energy 1e-10, gradient
+# 1e-7; the other quantities within what the SCF's own convergence test leaves at accuracy 1 (v1.1:
+# RMS density change 2e-5, energy change 1e-8 Eh): charges 2e-5, atomic and molecular dipoles 1e-4
+# (x 5 bohr), quadrupoles 2e-4 (x 10 bohr^2), terms, orbital energies and the gap 1e-5 Eh (x 0.5 Eh);
+# the iteration counts may differ and are always printed. (The gfn2 and gxtb2 stretch-retry cases can
+# join once their numbers may move.)
+LADDER_CASES = ("traj-gxtb11-water-stretch-retry",)
+LADDER_THRESHOLDS = {
+    "energy": 1e-10, "gradient": 1e-7, "charges": 2e-5, "shell_charges": 2e-5, "atomic_dipoles": 1e-4,
+    "dipole": 1e-4, "atomic_quadrupoles": 2e-4, "quadrupole": 2e-4, "terms": 1e-5, "orbital_energies_alpha": 1e-5,
+    "orbital_energies_beta": 1e-5, "homo_lumo_gap": 1e-5, "occupations_alpha": 1e-5, "occupations_beta": 1e-5,
+}
+EXACT = ("iterations", "n_imaginary", "hessian_method", "method", "conventions", "guess", "linear",
+         "error.iterations", "error.kind")
+
+
+def molden_orbitals(text):
+    """(spin, energy, occupation, coefficients) of every orbital of a Molden file's [MO] section."""
+    mo = text.split("[MO]", 1)[1] if "[MO]" in text else ""
+    out, cur = [], None
+    for line in mo.splitlines():
+        t = line.split()
+        if not t:
+            continue
+        if t[0].startswith("Sym="):
+            cur = {"spin": "", "ene": 0.0, "occ": 0.0, "c": []}
+            out.append(cur)
+        elif t[0] == "Ene=":
+            cur["ene"] = float(t[1])
+        elif t[0] == "Spin=":
+            cur["spin"] = t[1]
+        elif t[0] == "Occup=":
+            cur["occ"] = float(t[1])
+        elif cur is not None and len(t) == 2:
+            cur["c"].append(float(t[1].replace("D", "E")))
+    return out
+
+
+def molden_subspaces(a, b, tol=1e-9, degenerate=1e-6):
+    """Whether two Molden files differ only by rotations inside degenerate sets of orbitals (levels within
+    `degenerate` Eh) or eigenvector signs: the largest difference of the sets' projectors C C^T, or None
+    when the orbitals differ otherwise (energies or occupations beyond `tol`, other layouts)."""
+    oa, ob = molden_orbitals(a), molden_orbitals(b)
+    if len(oa) != len(ob) or any(len(x["c"]) != len(y["c"]) or x["spin"] != y["spin"] for x, y in zip(oa, ob)):
+        return None
+    if any(abs(x["ene"] - y["ene"]) > tol or abs(x["occ"] - y["occ"]) > tol for x, y in zip(oa, ob)):
+        return None
+    worst, k = 0.0, 0
+    while k < len(oa):
+        j = k + 1
+        while j < len(oa) and oa[j]["spin"] == oa[k]["spin"] and abs(oa[j]["ene"] - oa[k]["ene"]) <= degenerate:
+            j += 1
+        n = len(oa[k]["c"])
+        for mu in range(n):
+            for nu in range(n):
+                pa = sum(oa[i]["c"][mu] * oa[i]["c"][nu] for i in range(k, j))
+                pb = sum(ob[i]["c"][mu] * ob[i]["c"][nu] for i in range(k, j))
+                worst = max(worst, abs(pa - pb))
+        k = j
+    return worst
+
+
+def text_numbers(a, b):
+    """The largest difference of the numbers of two texts that differ in numbers only, else None."""
+    ta, tb = a.split(), b.split()
+    if len(ta) != len(tb):
+        return None
+    worst = 0.0
+    for x, y in zip(ta, tb):
+        if x == y:
+            continue
+        try:
+            fx, fy = float(x.replace("D", "E")), float(y.replace("D", "E"))
+        except ValueError:
+            return None
+        worst = max(worst, abs(fx - fy))
+    return worst
 
 
 def numeric_leaves(x, path=""):
@@ -415,9 +502,14 @@ def quantity(path):
     return parts[0]
 
 
-def report(gold, new):
-    """Per quantity: the largest change (numbers), or 'differs' (anything else); and whether the case
-    stays within the thresholds. Trajectories (lists of responses) are taken over all steps."""
+def report(gold, new, ladder=False):
+    """Per quantity: the largest change (numbers), or 'differs' (anything else); whether the case stays
+    within the thresholds (`ladder`: a ladder case, LADDER_THRESHOLDS); and whether it needs review (a
+    Molden file whose orbitals differ by rotations inside degenerate sets or signs). Trajectories (lists
+    of responses) are taken over all steps."""
+    thresholds = LADDER_THRESHOLDS if ladder else THRESHOLDS
+    exact = tuple(q for q in EXACT if not (ladder and q == "iterations"))
+    review = False
     go, no = gold.get("output"), new.get("output")
     steps = (list(zip(go, no)) if isinstance(go, list) and isinstance(no, list) and len(go) == len(no)
              else [(go, no)])
@@ -434,19 +526,39 @@ def report(gold, new):
                 rows.setdefault(q, 0.0)
                 continue
             num = isinstance(x, (int, float)) and isinstance(y, (int, float)) and not isinstance(x, bool)
-            if q in EXACT or not num:
+            if q == "molden" and isinstance(x, str) and isinstance(y, str):
+                d = text_numbers(x, y)
+                if d is not None and d > THRESHOLDS["molden"]:
+                    # a rotation inside a degenerate set or a sign flip: reported for review, neither
+                    # a pass nor a failure
+                    sub = molden_subspaces(x, y)
+                    if sub is not None and sub <= THRESHOLDS["molden"]:
+                        rows["molden (degenerate sets or signs; projectors agree)"] = f"{sub:.1e}, numbers {d:.1e}"
+                        review = True
+                        continue
+                if d is not None:
+                    prev = rows.get(q, 0.0)
+                    rows[q] = max(prev if isinstance(prev, float) else 0.0, d)
+                    continue
+            if q in exact or not num:
                 if q == "error.message":
                     rows[q] = "differs"  # carries the numbers of energy_change and residual
                     continue
-                rows[q] = f"{x!r} -> {y!r}" if num or q in EXACT else "differs"
+                rows[q] = f"{x!r} -> {y!r}" if num or q in exact else "differs"
                 ok = False
+                continue
+            if q == "iterations" and ladder:
                 continue
             prev = rows.get(q, 0.0)
             rows[q] = max(prev if isinstance(prev, float) else 0.0, abs(x - y))
     for q, v in rows.items():
-        if isinstance(v, float) and q in THRESHOLDS and v > THRESHOLDS[q]:
+        if isinstance(v, float) and q in thresholds and v > thresholds[q]:
             ok = False
-    return {q: v for q, v in rows.items() if v != 0.0}, ok
+    if ladder:
+        # the iteration counts of every step, compared or not
+        its = lambda o: [s.get("iterations") for s in (o if isinstance(o, list) else [o]) if isinstance(s, dict)]
+        rows["iterations (ladder: printed, not compared)"] = f"{its(go)} -> {its(no)}"
+    return {q: v for q, v in rows.items() if v != 0.0}, ok, review
 
 
 def flatten(x):
@@ -508,7 +620,7 @@ def main():
             meta = {**entry, "cases": len(cases)}
         meta_path.write_text(json.dumps(meta))
         return
-    failed, changed, over = 0, 0, 0
+    failed, changed, over, review = 0, 0, 0, 0
     allowed = [k for k in a.allow.split(",") if k] if a.report else []
     summary = []
     for name, req, env in cases:
@@ -517,12 +629,15 @@ def main():
         ds = diff(gold, new)
         if ds and any(k in name for k in allowed):
             changed += 1
-            rows, ok = report(gold, new)
+            ladder = name in LADDER_CASES
+            rows, ok, rev = report(gold, new, ladder)
             over += not ok
-            flag = "" if ok else "  OVER THRESHOLD OR STRUCTURE"
+            review += rev
+            flag = ("" if ok else "  OVER THRESHOLD OR STRUCTURE") + ("  REVIEW" if rev else "") + \
+                ("  (ladder case)" if ladder else "")
             print(f"CHANGED {name}{flag}")
             for q, v in sorted(rows.items()):
-                lim = THRESHOLDS.get(q)
+                lim = (LADDER_THRESHOLDS if ladder else THRESHOLDS).get(q)
                 shown = f"{v:.3e}" if isinstance(v, float) else v
                 print(f"     {q}: {shown}" + (f" (threshold {lim:.0e})" if lim is not None else ""))
             summary.append((name, rows, ok))
@@ -542,12 +657,13 @@ def main():
                     tot[q] = max(tot.get(q, 0.0), v)
                 else:
                     tot.setdefault(q, v)
-        print(f"summary: {changed} allowed cases changed ({over} over a threshold); largest changes:")
+        print(f"summary: {changed} allowed cases changed ({over} over a threshold, {review} to review); "
+              "largest changes:")
         for q, v in sorted(tot.items()):
             print(f"     {q}: {v:.3e}" if isinstance(v, float) else f"     {q}: {v}")
     print(f"{len(cases) - failed - changed} of {len(cases)} identical, {changed} allowed changes, "
           f"{failed} other differences (binary {sha})")
-    sys.exit(1 if failed or over else 0)
+    sys.exit(1 if failed or over else 3 if review else 0)
 
 
 if __name__ == "__main__":
