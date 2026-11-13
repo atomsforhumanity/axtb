@@ -37,9 +37,28 @@ use faer::Par;
 use std::time::Instant;
 
 impl v2::scf::Energies {
-    /// The terms with their names as the axtb front ends report them for g-xTB 2.0.1: every
-    /// term a piece of the energy but `electronic`, the SCF energy (a subtotal).
+    /// The terms with their names as the axtb front ends report them: every term a piece of the
+    /// energy but `electronic`, the SCF energy (a subtotal). v1.1 has `es1` (first order) and
+    /// `es2_3` (second to fourth order) and splits the exchange into `exchange_mulliken` and
+    /// `exchange_onsite`, as the 1.1.0 program prints them.
     pub fn terms(&self) -> Vec<Term> {
+        if self.version == Version::V1_1 {
+            return vec![
+                Term::piece("one_electron", self.one_electron),
+                Term::piece("es1", self.first_order),
+                Term::piece("es2_3", self.second_order + self.third_order + self.fourth_order),
+                Term::piece("es_multipole", self.aes),
+                Term::piece("exchange_mulliken", self.exchange),
+                Term::piece("exchange_onsite", self.exchange_onsite),
+                Term::piece("spin_polarization", self.spin),
+                Term::piece("entropy", self.entropy),
+                Term::subtotal("electronic", self.electronic),
+                Term::piece("increments", self.increments),
+                Term::piece("dispersion", self.dispersion),
+                Term::piece("dispersion_three_body", self.dispersion_three_body),
+                Term::piece("repulsion", self.repulsion),
+            ];
+        }
         vec![
             Term::piece("one_electron", self.one_electron),
             Term::piece("first_order", self.first_order),
@@ -208,21 +227,22 @@ pub struct Calculator {
     fingerprint: Fingerprint,
 }
 
+/// Whether `version` runs on the engine ([`crate::v2`]) in `conventions`: 2.0.1 and v1.1 in the
+/// default conventions.
+fn on_engine(version: Version, conventions: Conventions) -> bool {
+    version == Version::V2_0_1 || conventions == Conventions::Axtb
+}
+
 /// The setup of `mol` for `version` in the conventions of `opts`, on `opts.threads` threads
 /// (inside the caller's pool).
 fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<AnySetup> {
-    Ok(match version {
-        Version::V2_0_1 => AnySetup::V2(Box::new(v2::scf::Setup::with_threads(
-            mol,
-            crate::v2::Model::v2_0_1(opts.conventions),
-            opts.threads,
-        )?)),
-        Version::V1_1 => {
-            let mut s = Setup::new(mol)?;
-            s.set_threads(opts.threads)?;
-            AnySetup::V1(Box::new(s))
-        }
-    })
+    if on_engine(version, opts.conventions) {
+        let model = crate::v2::Model::new(version, opts.conventions);
+        return Ok(AnySetup::V2(Box::new(v2::scf::Setup::with_threads(mol, model, opts.threads)?)));
+    }
+    let mut s = Setup::new(mol)?;
+    s.set_threads(opts.threads)?;
+    Ok(AnySetup::V1(Box::new(s)))
 }
 
 /// Factor on the 2.0.1 convergence thresholds of an SCF that starts from a previous state in
@@ -387,7 +407,13 @@ impl Calculator {
             self.mol.set_positions(positions)?;
             self.setup = None;
         }
-        if matches!(&self.setup, Some(AnySetup::V2(s)) if s.model.conventions != self.options.conventions) {
+        // the setups depend on the conventions
+        let stale = match &self.setup {
+            Some(AnySetup::V2(s)) => s.model.conventions != self.options.conventions,
+            Some(AnySetup::V1(_)) => on_engine(self.version, self.options.conventions),
+            None => false,
+        };
+        if stale {
             self.setup = None;
         }
         Ok(())
@@ -452,14 +478,14 @@ impl Calculator {
         let version = self.version;
         // energy, gradient and dipole of one geometry
         let point = |m: &Molecule| -> Result<(f64, Vec<[f64; 3]>, [f64; 3])> {
-            let (energy, g, qa, dip) = match version {
-                Version::V2_0_1 => {
-                    let setup = v2::scf::Setup::new(m, crate::v2::Model::v2_0_1(opts.conventions))?;
+            let (energy, g, qa, dip) = match on_engine(version, opts.conventions) {
+                true => {
+                    let setup = v2::scf::Setup::new(m, crate::v2::Model::new(version, opts.conventions))?;
                     let r = setup.scf(&opts)?;
                     let g = setup.gradient(&r)?;
                     (r.energies.total, g, r.atom_charges.clone(), r.state.dip.clone())
                 }
-                Version::V1_1 => {
+                false => {
                     let setup = Setup::new(m)?;
                     let r = setup.scf(&opts)?;
                     let g = setup.gradient(&r)?;
@@ -725,12 +751,22 @@ fn run(
             })
         }
         AnySetup::V2(setup) => {
-            let s0 = match start {
-                Some(Start::V2_0_1(s)) => Ok(Some(s.as_ref())),
-                Some(_) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
-                None => Ok(None),
+            let v1 = setup.model.version == Version::V1_1;
+            // v1.1 starts from the densities (`gxtbrestart`), 2.0.1 from the state (`xtbrestart`)
+            let densities;
+            let s0 = match (start, v1) {
+                (Some(Start::V2_0_1(s)), false) => Ok(Some(s.as_ref())),
+                (Some(Start::V1_1(p)), true) => {
+                    densities = v2::scf::State::densities(p.clone());
+                    Ok(Some(&densities))
+                }
+                (Some(_), false) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
+                (Some(_), true) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
+                (None, _) => Ok(None),
             };
-            let vo = v2_options(opts, start.is_some());
+            // 2.0.1's restarts in the default conventions at RESTART_ACCURACY; v1.1 restarts at its
+            // own thresholds
+            let vo = if v1 { opts.clone() } else { v2_options(opts, start.is_some()) };
             // the setup's phases (once: a reused setup reports none)
             let setup_laps = std::mem::take(&mut setup.timings);
             let t_setup =
@@ -883,6 +919,7 @@ fn results_v2(
         want.bond_orders.then(|| bond_orders(setup.mol.nat(), &setup.basis.scf.ao2at, &setup.s, &r.state.p, setup.par));
     let (dpat, qpat) = (r.state.dip.clone(), r.state.qp.clone());
     let positions = &setup.mol.positions;
+    let v1 = setup.model.version == Version::V1_1;
     let sp = SinglePoint {
         energy: r.energies.total,
         terms: r.energies.terms(),
@@ -909,5 +946,6 @@ fn results_v2(
         extras: Extras::default(),
         timings,
     };
-    (sp, Start::V2_0_1(Box::new(r.state)))
+    let start = if v1 { Start::V1_1(r.state.p) } else { Start::V2_0_1(Box::new(r.state)) };
+    (sp, start)
 }

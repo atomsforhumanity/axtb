@@ -88,7 +88,7 @@ fn calculator_matches_scf_and_program() {
             Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, Options::default())
                 .unwrap();
         let e = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap().energy;
-        let exact = Setup::new(&mol)
+        let exact = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(Conventions::Axtb))
             .unwrap()
             .scf(&ScfOptions { conventions: Conventions::Axtb, ..Default::default() })
             .unwrap();
@@ -116,7 +116,13 @@ fn gradient_and_hessian() {
     for (conventions, threads) in
         [(Conventions::Axtb, 1), (Conventions::Axtb, 2), (Conventions::Gxtb, 1), (Conventions::Gxtb, 2)]
     {
-        let direct = st.gradient(&st.scf(&ScfOptions { conventions, ..Default::default() }).unwrap()).unwrap();
+        let opts = ScfOptions { conventions, ..Default::default() };
+        let direct = if conventions == Conventions::Axtb {
+            let st = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(conventions)).unwrap();
+            st.gradient(&st.scf(&opts).unwrap()).unwrap()
+        } else {
+            st.gradient(&st.scf(&opts).unwrap()).unwrap()
+        };
         let opts = Options { threads, conventions, ..Default::default() };
         let mut calc = Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts).unwrap();
         let sp = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();

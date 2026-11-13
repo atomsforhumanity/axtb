@@ -165,6 +165,13 @@ pub struct State {
 }
 
 impl State {
+    /// A start of a v1.1 SCF: the spin densities (closed shell: the total density), whose
+    /// charges and moments the SCF computes at its geometry ([`Setup::scf_from`] reads only
+    /// the densities of a v1.1 start).
+    pub fn densities(p: Vec<Vec<f64>>) -> Self {
+        Self { p, q: Vec::new(), qa: Vec::new(), dip: Vec::new(), qp: Vec::new(), mag: None }
+    }
+
     /// The SCC moments as the terms read them.
     pub fn moments(&self) -> SccMoments<'_> {
         SccMoments { qsh: &self.q, qat: &self.qa, dip: &self.dip, quad: &self.qp, mag: self.mag.as_deref() }
@@ -797,7 +804,12 @@ impl Setup {
             (None, Version::V2_0_1) => self.guess_state(),
             // v1.1: the densities of the start (the program's `gxtbrestart` carries them), or the
             // program's start density, analysed at this geometry
-            (Some(s), Version::V1_1) => self.state(&self.restart_state(s)?.p),
+            (Some(s), Version::V1_1) => {
+                if s.p.len() != ns || s.p.iter().any(|x| x.len() != n * n) {
+                    return Err(Error::Input("g-xTB: the start density does not fit this molecule".into()));
+                }
+                self.state(&s.p)
+            }
             (None, Version::V1_1) => self.state_of(crate::program110::guess_density(self)),
         };
         // v1.1 in the program's conventions: every eigenpair, as the program (and its cap) needs
