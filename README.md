@@ -8,8 +8,7 @@ found on the way. It runs faster than the programs and is safe to run many at on
 calculation runs on exactly the threads it is given. axtb is a Rust library, a command-line
 program (JSON in and out), a Python package and a codec for qccompute.
 
-License: LGPL-3.0-or-later for the core crates; GPL-3.0-only for g-xTB and for the default
-builds of the CLI and the Python package, which include it ([License](#license)).
+License: LGPL-3.0-or-later, every crate, the CLI and the Python package ([License](#license)).
 
 ## Status
 
@@ -103,11 +102,6 @@ RUSTFLAGS="-C target-cpu=x86-64" maturin build --release --compatibility linux -
 (an explicit `RUSTFLAGS` replaces the setting in `.cargo/config.toml`). `cargo install
 axtb-cli` from crates.io does not see `.cargo/config.toml` and builds for the baseline x86-64
 unless you ask for more: `RUSTFLAGS="-C target-cpu=x86-64-v3" cargo install axtb-cli`.
-
-**Without g-xTB.** `--no-default-features` leaves out g-xTB and gives an LGPL-3.0-or-later
-build: `cargo build --release -p axtb-cli --no-default-features`,
-`cargo install axtb-cli --no-default-features`, and
-`maturin build --release --compatibility linux --no-default-features -m crates/axtb-py/Cargo.toml -o dist`.
 
 **As a Rust library.** Depend on the crates from crates.io: `axtb` (GFN2-xTB), `axtb-gxtb`
 (g-xTB), `axtb-gfnff` (GFN-FF), or `axtb-driver` (the request/response layer of the front
@@ -965,10 +959,11 @@ build paths (panic messages, maturin's SBOM), so the released files come from th
 ## Layout
 
 ```
+crates/base        `axtb-base`: the shared foundation (molecules, errors, units, threads, linear algebra, EEQ)
 crates/axtb        core library: basis, integrals, Hamiltonian, electrostatics, SCF, gradients, Hessians
 crates/d4          DFT-D4 dispersion (bit-identical to dftd4 4.3.1)
 crates/solvation   ALPB/GBSA implicit solvation (xtb 6.8.0 and 6.7.1 compatible)
-crates/gxtb        g-xTB v1.1 and 2.0.1 (GPL-3.0-only because it embeds the GPL parameters)
+crates/gxtb        g-xTB v1.1 and 2.0.1, with their parameters (NOTICE)
 crates/gfnff       GFN-FF force field (port of xtb's src/gfnff; spec in docs/gfnff-spec.md)
 crates/driver      `axtb-driver`: the request/response layer of the front ends (checks, dispatch, response)
 crates/axtb-cli    `axtb` command-line driver (JSON in/out)
@@ -982,12 +977,11 @@ reference/         upstream sources and programs (git-ignored; see reference/REA
 
 ## License
 
-The core crates `axtb`, `axtb-d4`, `axtb-solvation` and `axtb-gfnff` are LGPL-3.0-or-later
-(`COPYING.LESSER` with `COPYING`): they reproduce xtb, tblite and dftd4 (LGPL-3.0-or-later) and
-data of mctc-lib and multicharge (Apache-2.0). `axtb-gxtb` is GPL-3.0-only (`COPYING`) because it
-embeds the g-xTB parameters (grimme-lab/g-xtb, GPL-3.0), and so are the crates that build it in
-by default: `axtb-driver`, `axtb-cli` (the `axtb` program) and `axtb-py` (the Python package and
-its wheels). Built with `--no-default-features` they leave g-xTB out and are LGPL-3.0-or-later
-([Install](#install)). [LICENSE](LICENSE) lists which crate is under which license and why,
-[NOTICE](NOTICE) credits the upstream work that axtb reproduces, and every published crate and
-wheel carries the license texts it needs.
+Every crate of axtb is LGPL-3.0-or-later (`COPYING.LESSER` with `COPYING`), and so are the
+`axtb` program and the Python package and its wheels. The crates reproduce xtb, tblite and
+dftd4 (LGPL-3.0-or-later) and data of mctc-lib and multicharge (Apache-2.0). `axtb-gxtb` embeds
+the g-xTB parameters: g-xTB itself is GPL-3.0 (grimme-lab/g-xtb), and its authors gave explicit
+permission to include them and to distribute axtb's g-xTB implementation under
+LGPL-3.0-or-later. [LICENSE](LICENSE) lists the crates, [NOTICE](NOTICE) quotes the permission
+and credits the upstream work that axtb reproduces, and every published crate and wheel carries
+the license texts it needs.

@@ -4,9 +4,7 @@ description = "The axtb command-line program: GFN2-xTB, g-xTB and GFN-FF energie
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-# GPL-3.0-only as built by default (includes the GPL crate axtb-gxtb, feature `gxtb`);
-# LGPL-3.0-or-later with --no-default-features (LICENSE)
-license = "GPL-3.0-only"
+license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
@@ -25,8 +23,8 @@ doc = false
 
 [features]
 default = ["gxtb"]
-# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") from the GPL-3.0 crate axtb-gxtb; a build with it is
-# GPL-3.0 as a whole, `--no-default-features` gives an LGPL-only binary (GFN2-xTB, GFN-FF).
+# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") from axtb-gxtb; `--no-default-features` builds a
+# binary without it (GFN2-xTB, GFN-FF).
 gxtb = ["axtb-driver/gxtb"]
 
 [dependencies]

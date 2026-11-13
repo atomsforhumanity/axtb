@@ -5,8 +5,9 @@ version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 # Embeds the g-xTB 1.1.0 parameter files and tables extracted from the g-xTB 1.1.0 and 2.0.1
-# programs, distributed under GPL-3.0 (grimme-lab/g-xtb).
-license = "GPL-3.0-only"
+# programs (grimme-lab/g-xtb, GPL-3.0), distributed here under LGPL-3.0-or-later with the g-xTB
+# authors' permission (NOTICE).
+license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
@@ -15,7 +16,7 @@ readme = "README.md"
 keywords = ["g-xtb", "tight-binding", "quantum-chemistry", "chemistry", "xtb"]
 categories = ["science", "simulation"]
 # the tests read data of the repository; the package is the library with its parameter files
-include = ["/src", "/param", "/Cargo.toml", "/README.md", "/COPYING", "/NOTICE"]
+include = ["/src", "/param", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "/NOTICE"]
 
 [lib]
 name = "axtb_gxtb"

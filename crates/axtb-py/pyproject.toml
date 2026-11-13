@@ -7,9 +7,8 @@ name = "axtb"
 description = "Extended tight binding (GFN2-xTB, g-xTB) and the GFN-FF force field: energies, gradients, Hessians, vibrational analysis"
 readme = "README.md"
 requires-python = ">=3.10"
-# GPL-3.0-only because the default build includes g-xTB (crates/gxtb, GPL parameter files);
-# an LGPL-3.0-or-later build without g-xTB: maturin build --no-default-features (LICENSE)
-license = "GPL-3.0-only"
+# every part, g-xTB included (LICENSE, NOTICE)
+license = "LGPL-3.0-or-later"
 license-files = ["COPYING", "COPYING.LESSER", "LICENSE", "NOTICE"]
 authors = [{ name = "Colton Hicks" }]
 keywords = ["quantum chemistry", "tight binding", "xtb", "g-xtb", "gfn-ff"]

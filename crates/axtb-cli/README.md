@@ -20,6 +20,6 @@ x86-64-v3 (AVX2, FMA) and carry a patch of two dependencies that speeds up start
 with many CPUs; cargo does not apply either to crates.io installs (the repository's README,
 "Install", and `third_party/README.md`).
 
-License: GPL-3.0-only (`COPYING`) as built by default, which includes g-xTB (feature `gxtb`,
-the GPL crate axtb-gxtb). `cargo install axtb-cli --no-default-features` builds a program
-without g-xTB that is LGPL-3.0-or-later (`COPYING.LESSER`). `NOTICE` credits the upstream work.
+License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`), g-xTB included: g-xTB itself is
+GPL-3.0, and its authors gave explicit permission to distribute axtb's implementation under
+LGPL-3.0-or-later. `NOTICE` quotes the permission and credits the upstream work.

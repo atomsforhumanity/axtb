@@ -6,7 +6,7 @@ members = ["crates/base", "crates/axtb", "crates/axtb-py", "crates/axtb-cli", "c
 version = "0.1.1"
 edition = "2021"
 rust-version = "1.89"
-# the core crates; axtb-gxtb, axtb-driver, axtb-cli and axtb-py set GPL-3.0-only (LICENSE)
+# every crate (LICENSE, NOTICE)
 license = "LGPL-3.0-or-later"
 authors = ["Colton Hicks"]
 repository = "https://github.com/atomsforhumanity/axtb"

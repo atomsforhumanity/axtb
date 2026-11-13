@@ -78,8 +78,7 @@ license_files() {
   # cargo packages only the files inside a crate's directory, and the wheel only those next to
   # pyproject.toml, so each crate keeps copies of the texts it needs; they must equal the top level
   local need=(
-    "base axtb d4 solvation gfnff driver axtb-cli axtb-py|COPYING COPYING.LESSER NOTICE"
-    "gxtb|COPYING NOTICE"
+    "base axtb d4 solvation gfnff gxtb driver axtb-cli axtb-py|COPYING COPYING.LESSER NOTICE"
     "axtb-py|LICENSE"
   )
   local entry crates files c f bad=0

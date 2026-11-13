@@ -113,7 +113,7 @@ def machine_rows(res: dict) -> None:
         {"item": "tblite", "value": f"tblite {res['laptop']['meta']['tblite']} (PyPI wheel), dftd4 4.3.1",
          "reference": "github.com/tblite/tblite", "license": "LGPL-3.0"},
         {"item": "axtb", "value": f"axtb {res['laptop']['meta']['axtb']}" + (f" (commit {', '.join(sorted(fv['commits']))} in the final timings)" if fv["commits"] else "") + ", Rust, faer 0.22",
-         "reference": "github.com/atomsforhumanity/axtb", "license": "LGPL-3.0-or-later; GPL-3.0-only with g-xTB"},
+         "reference": "github.com/atomsforhumanity/axtb", "license": "LGPL-3.0-or-later"},
         {"item": "GFN2-xTB", "value": "self-consistent D4 dispersion; ALPB/GBSA implicit solvation",
          "reference": "Bannwarth, Ehlert, Grimme, JCTC 15, 1652 (2019), doi:10.1021/acs.jctc.8b01176; Ehlert et al., JCTC 17, 4250 (2021), doi:10.1021/acs.jctc.1c00471",
          "license": ""},

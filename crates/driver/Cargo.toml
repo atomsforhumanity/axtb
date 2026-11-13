@@ -4,9 +4,7 @@ description = "One request/response layer for the axtb front ends (CLI, Python):
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
-# GPL-3.0-only as built by default (includes the GPL crate axtb-gxtb, feature `gxtb`);
-# LGPL-3.0-or-later with --no-default-features (LICENSE)
-license = "GPL-3.0-only"
+license.workspace = true
 authors.workspace = true
 repository.workspace = true
 homepage.workspace = true
@@ -23,14 +21,13 @@ path = "src/lib.rs"
 
 [features]
 default = ["gxtb"]
-# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") and its solvation composite from the GPL-3.0 crate
-# axtb-gxtb; a build with it is GPL-3.0 as a whole, `--no-default-features` gives an LGPL-only
-# driver (GFN2-xTB and GFN-FF).
+# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") and its solvation composite from axtb-gxtb;
+# `--no-default-features` builds a driver without it (GFN2-xTB and GFN-FF).
 gxtb = ["dep:axtb-gxtb"]
 
 [dependencies]
 axtb = { workspace = true }
-# GFN-FF (method "gfnff"), LGPL-3.0-or-later
+# GFN-FF (method "gfnff")
 axtb-gfnff = { workspace = true }
 axtb-gxtb = { workspace = true, optional = true }
 serde = { version = "1", features = ["derive"] }

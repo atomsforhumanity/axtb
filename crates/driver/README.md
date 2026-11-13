@@ -9,6 +9,5 @@ analysis. A stateful `Calculator` runs one geometry after another.
 
 Features: `gxtb` (default) adds g-xTB from [`axtb-gxtb`](https://crates.io/crates/axtb-gxtb).
 
-License: GPL-3.0-only (`COPYING`) as built by default, because the feature `gxtb` includes the
-GPL crate axtb-gxtb. Built with `--no-default-features` it contains no g-xTB and is
-LGPL-3.0-or-later (`COPYING.LESSER`). `NOTICE` credits the upstream work.
+License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`). `NOTICE` credits the upstream
+work.

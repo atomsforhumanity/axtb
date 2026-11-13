@@ -37,8 +37,8 @@ has the agreement with each program; the
 [changelog](https://github.com/atomsforhumanity/axtb/blob/main/CHANGELOG.md) lists what each
 release contains.
 
-**License.** GPL-3.0-only (`COPYING`), because the package includes g-xTB, whose parameters are
-GPL-3.0 (grimme-lab/g-xtb). The rest of axtb is LGPL-3.0-or-later (`COPYING.LESSER`), and a
-build without g-xTB (`maturin build --no-default-features`) is LGPL-3.0-or-later. `LICENSE`
-explains the split; `NOTICE` credits the upstream work (xtb, tblite, dftd4, mctc-lib,
+**License.** LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`), g-xTB included: g-xTB itself
+is GPL-3.0 (grimme-lab/g-xtb), and its authors gave explicit permission to distribute axtb's
+implementation, with the g-xTB parameters, under LGPL-3.0-or-later. `LICENSE` lists the parts;
+`NOTICE` quotes the permission and credits the upstream work (xtb, tblite, dftd4, mctc-lib,
 multicharge, g-xTB).

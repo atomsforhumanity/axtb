@@ -19,6 +19,8 @@ Part of [axtb](https://github.com/atomsforhumanity/axtb); the specifications
 [docs/gxtb-v2.0.1-spec.md](https://github.com/atomsforhumanity/axtb/blob/main/docs/gxtb-v2.0.1-spec.md))
 document every term and where it comes from.
 
-License: GPL-3.0-only (`COPYING`). The crate embeds the parameter files of the g-xTB 1.1.0
-release (`param/`) and tables taken from the g-xTB 1.1.0 and 2.0.1 programs (grimme-lab/g-xtb,
-GPL-3.0). `NOTICE` credits the upstream work.
+License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`). The crate embeds the parameter
+files of the g-xTB 1.1.0 release (`param/`) and tables taken from the g-xTB 1.1.0 and 2.0.1
+programs. g-xTB itself is GPL-3.0 (grimme-lab/g-xtb); its authors gave explicit permission to
+include its parameters and to distribute this implementation under LGPL-3.0-or-later. `NOTICE`
+quotes the permission and credits the upstream work.

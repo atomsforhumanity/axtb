@@ -43,10 +43,16 @@ multicharge (https://github.com/grimme-lab/multicharge), Apache-2.0
 
 g-xTB (https://github.com/grimme-lab/g-xtb), GPL-3.0
   crates/gxtb/param holds the parameter files of the g-xTB 1.1.0 release (gxtb_parameters,
-  basisq, eeq). crates/gxtb/src/data.rs and data_runtime.rs hold tables read from the g-xTB
-  1.1.0 program; crates/gxtb/src/data_v2.rs holds the g-xTB 2.0.1 parameters read from the
-  2.0.1 release binary (docs/gxtb-v2.0.1-spec.md says how). These make axtb-gxtb, and the
-  builds that include it, GPL-3.0-only (LICENSE).
+  basisq, eeq). crates/gxtb/src/data/v1_1.rs and data/runtime.rs hold tables read from the
+  g-xTB 1.1.0 program; crates/gxtb/src/data/v2_0_1.rs holds the g-xTB 2.0.1 parameters read
+  from the 2.0.1 release binary (docs/gxtb-v2.0.1-spec.md says how).
+  g-xTB is distributed under GPL-3.0. axtb distributes its g-xTB parts (crates/gxtb, these
+  parameters included) under LGPL-3.0-or-later, with the explicit permission the g-xTB
+  authors gave in November 2026:
+    "In the meantime, you have our explicit permission to use g-xTB, including its
+    parameters (1.1 and 2.0.1), in your axtb implementation and to distribute your
+    implementation under LGPL-3.0-or-later."
+    (Thomas Froitzheim and Stefan Grimme)
   T. Froitzheim, M. Mueller, A. Hansen, S. Grimme, ChemRxiv 2025,
   doi:10.26434/chemrxiv-2025-bjxvt.
 
