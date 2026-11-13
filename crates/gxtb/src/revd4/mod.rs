@@ -22,6 +22,7 @@
 
 pub mod reference;
 
+use crate::data::v1_1::D4_RCOV as D4_RCOV_V1_1;
 use crate::data::v2_0_1::{D4_REFH, D4_REFQ};
 use crate::model::{Model, SQRTPI};
 use crate::options::Version;
@@ -59,38 +60,33 @@ pub fn charge_function_d2(z: usize, q: f64) -> f64 {
 }
 
 /// The revD4 coordination number of `mol` (`axtb-base`'s [`CnModel`]): dftd4's count
-/// ([`Erf::D4`]: erf, 7.5) without the electronegativity factor, Rc = R_A + R_B of
-/// `covalent_rad_d3`, times the cutoff factor [`Model::cut`] (product rule in the gradient);
-/// pairs with R beyond [`Model::reach`] or R² < 1e-12 bohr² skipped, and in the gradient the
-/// pairs whose dE/dCN sum to zero.
+/// ([`Erf::D4`]: erf, 7.5) without the electronegativity factor, Rc = R_A + R_B, times a cutoff
+/// factor (product rule in the gradient); pairs with R beyond the cutoff or R² < 1e-12 bohr²
+/// skipped, and in the gradient the pairs whose dE/dCN sum to zero. 2.0.1: the radii of
+/// `covalent_rad_d3` and the factor [`Model::cut`] up to [`Model::reach`]; v1.1: the 1.1.0
+/// program's radii and a hard 30-bohr cutoff (factor 1) in both conventions.
 #[allow(clippy::type_complexity)] // the parts are closures, which have no nameable type
 fn revd4_cn<'a>(
     model: &'a Model,
     mol: &'a Molecule,
 ) -> CnModel<Erf, impl Fn(usize, usize) -> f64 + 'a, Unweighted, Smooth<impl Fn(f64) -> (f64, f64) + 'a>> {
-    CnModel::new(Erf::D4, move |i: usize, j: usize| {
-        model.covalent_rad_d3(mol.numbers[i]) + model.covalent_rad_d3(mol.numbers[j])
-    })
-    .with_cutoff(Cutoff::Squared(model.reach(CUTOFF_CN).powi(2)))
-    .with_min_r2(1e-12)
-    .with_switch(Smooth(move |r: f64| model.cut(r, CUTOFF_CN)))
-    .skipping_zero_weights()
+    let v1 = model.version == Version::V1_1;
+    let rad = move |z: usize| if v1 { D4_RCOV_V1_1[z - 1] } else { model.covalent_rad_d3(z) };
+    let reach = if v1 { CUTOFF_CN } else { model.reach(CUTOFF_CN) };
+    CnModel::new(Erf::D4, move |i: usize, j: usize| rad(mol.numbers[i]) + rad(mol.numbers[j]))
+        .with_cutoff(Cutoff::Squared(reach.powi(2)))
+        .with_min_r2(1e-12)
+        .with_switch(Smooth(move |r: f64| if v1 { (1.0, 0.0) } else { model.cut(r, CUTOFF_CN) }))
+        .skipping_zero_weights()
 }
 
-/// revD4 coordination numbers (erf, 7.5, Rc = R_A + R_B of `covalent_rad_d3`, cutoff factor;
-/// v1.1: its radii, a hard 30-bohr cutoff).
+/// revD4 coordination numbers (erf, 7.5, Rc = R_A + R_B, cutoff factor; [`revd4_cn`]).
 pub fn coordination_numbers(model: &Model, mol: &Molecule) -> Vec<f64> {
-    if model.version == Version::V1_1 {
-        return reference::coordination_numbers(mol);
-    }
     revd4_cn(model, mol).compute(&mol.positions)
 }
 
 /// Adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `g`.
 pub fn add_cn_gradient(model: &Model, mol: &Molecule, dedcn: &[f64], g: &mut [[f64; 3]]) {
-    if model.version == Version::V1_1 {
-        return reference::add_cn_gradient_v1_1(mol, dedcn, g);
-    }
     revd4_cn(model, mol).add_gradient(&mol.positions, dedcn, g);
 }
 

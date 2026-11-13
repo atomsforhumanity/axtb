@@ -6,8 +6,9 @@
 //! The model is DFT-D4S-like with g-xTB modifications:
 //!
 //! - **CN** (`ncoord_erf`): CN_A = sum_B 1/2 [1 + erf(-7.5 (R - Rc)/Rc)], Rc = R_A + R_B with
-//!   the dftd4 3.x covalent radii ([`D4_RCOV`]); no electronegativity factor, pairs beyond
-//!   30 bohr skipped.
+//!   the dftd4 3.x covalent radii ([`crate::data::v1_1::D4_RCOV`]); no electronegativity
+//!   factor, pairs beyond 30 bohr skipped ([`crate::revd4::coordination_numbers`]: one CN model
+//!   for both versions).
 //! - **Reference systems**: dftd4's polarizabilities and secondary systems, but the program's
 //!   own reference CNs ([`D4_REFCOVCN`] for the weights, [`D4_REFCN`] counted for the number of
 //!   Gaussians), reference charges [`D4_REFQ`] and secondary-system charges [`D4_REFH`]. The
@@ -33,24 +34,20 @@
 //! The mechanisms that are dftd4's come from [`axtb_d4`]: the hydrogen-subtracted reference
 //! polarizabilities ([`axtb_d4::reference_alpha`], with the tanh ratio as the secondary
 //! scaling), the Gaussian counts ([`axtb_d4::reference_ngw`]), the reference C6 and their
-//! contraction with the weights ([`D4Model::pair_c6_from_weights`]), the two-body pair list and
-//! the three-body kernel ([`axtb_d4::D4Dispersion`]). The tables, the CN, the pair-specific weights and
-//! the two-body gradient (its damping derivative in its own order, which differs from
+//! contraction with the weights ([`D4Model::pair_c6_from_weights`]). The tables, the
+//! pair-specific weights and the two-body gradient (its damping derivative in its own order, which differs from
 //! `axtb_d4`'s in the last bits) are g-xTB's and stay here; the term ([`crate::revd4`]) uses
 //! the same reference data for both versions, each with its [`ReferenceCharges`].
 
-use crate::data::v1_1::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
-use axtb::{Error, Molecule, Result};
-use axtb_base::ncoord::{CnModel, Cutoff, Erf};
+use crate::data::v1_1::{D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
+use axtb::{Error, Result};
 use axtb_d4::data::{NFREQ, REFN};
-use axtb_d4::{ChargeModel, D4Model, ElementReferences, RealspaceCutoff, MAX_REF};
+use axtb_d4::{ChargeModel, D4Model, ElementReferences, MAX_REF};
 
 /// Three-body scaling s9.
 pub const S9: f64 = 1.75;
 /// Exponent of the three-body zero damping.
 pub const ALP: f64 = 16.0;
-/// Real-space cutoffs (bohr): CN 30, two-body 60, three-body 20, all hard.
-pub const CUTOFF: RealspaceCutoff = RealspaceCutoff { cn: 30.0, disp2: 60.0, disp3: 20.0, width2: 0.0, width3: 0.0 };
 /// Largest element of the program's tables of the CN weighting factors.
 const MAX_Z: usize = 103;
 
@@ -157,20 +154,6 @@ pub(crate) fn k_matrices(model: &D4Model, cn: &[f64], refq: &[f64; 826], paralle
     (kmat, dkmat)
 }
 
-/// The revD4 coordination number of `mol`: dftd4's count ([`Erf::D4`]) without the
-/// electronegativity factor, radii [`D4_RCOV`], pairs with R² > 30² or R² < 1e-12 bohr² skipped
-/// (`axtb-base`'s [`CnModel`]).
-fn revd4_cn(mol: &Molecule) -> CnModel<Erf, impl Fn(usize, usize) -> f64 + '_> {
-    CnModel::new(Erf::D4, |i: usize, j: usize| D4_RCOV[mol.numbers[i] - 1] + D4_RCOV[mol.numbers[j] - 1])
-        .with_cutoff(Cutoff::Squared(CUTOFF.cn * CUTOFF.cn))
-        .with_min_r2(1e-12)
-}
-
-/// revD4 coordination numbers (no electronegativity factor, 30 bohr cutoff).
-pub fn coordination_numbers(mol: &Molecule) -> Vec<f64> {
-    revd4_cn(mol).compute(&mol.positions)
-}
-
 /// Charge-independent Gaussian CN weights of the references of an atom (element `z`,
 /// coordination number `cn`) for pair factor `wf`, divided by n(qref_r)
 /// (`weight_references_pair` without the charge numerator).
@@ -207,9 +190,4 @@ pub(crate) fn scaled_cn_weights(z: usize, cn: f64, wf: f64, refq: &[f64]) -> ([f
         dw[r] = dgwk / den;
     }
     (w, dw)
-}
-
-/// v1.1: adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `grad`.
-pub fn add_cn_gradient_v1_1(mol: &Molecule, dedcn: &[f64], grad: &mut [[f64; 3]]) {
-    revd4_cn(mol).add_gradient(&mol.positions, dedcn, grad);
 }
