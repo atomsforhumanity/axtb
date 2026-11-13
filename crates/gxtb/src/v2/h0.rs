@@ -292,6 +292,8 @@ pub struct AcpSet {
     /// The pair cutoff (bohr) and primitive screening of the projector overlaps.
     pub cutoff: f64,
     pub intcut: f64,
+    /// The version of the weights.
+    pub version: Version,
 }
 
 impl AcpSet {
@@ -312,7 +314,7 @@ impl AcpSet {
                         }
                     }
                 }
-                Self { list, dw, nrow, cutoff, intcut: model.intcut_h0() }
+                Self { list, dw, nrow, cutoff, intcut: model.intcut_h0(), version: model.version }
             }
             Version::V1_1 => {
                 // `setupcbas_`: w = acp_coeff_l (1 + acpcn sqrt(CN)), one projector per l
@@ -329,7 +331,7 @@ impl AcpSet {
                         }
                     }
                 }
-                Self { list, dw, nrow, cutoff: ACP_CUTOFF_V1_1, intcut: model.intcut_h0() }
+                Self { list, dw, nrow, cutoff: ACP_CUTOFF_V1_1, intcut: model.intcut_h0(), version: model.version }
             }
         }
     }
@@ -368,8 +370,14 @@ pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, parallel: bool)
     blocks.concat()
 }
 
+/// Basis size up to which v1.1's ACP product runs as plain loops: the first product of faer's
+/// matrix multiplication detects the CPU's caches (~0.45 ms, once per process), which the small
+/// products of such a basis otherwise never pay (they take faer's small-matrix kernels).
+const ACP_LOOPS_MAX_AO: usize = 16;
+
 /// Adds H^ACP = S_p^T diag(w) S_p of the projectors `set` to the lower triangle of `h`
-/// (nao x nao) as one matrix product.
+/// (nao x nao) as one matrix product (v1.1 with at most [`ACP_LOOPS_MAX_AO`] basis functions:
+/// as loops over the rows).
 pub fn add_acp(mol: &Molecule, bas: &AoBasis, set: &AcpSet, h: &mut [f64], par: Par, parallel: bool) {
     let n = bas.nao;
     if set.nrow == 0 {
@@ -379,6 +387,17 @@ pub fn add_acp(mol: &Molecule, bas: &AoBasis, set: &AcpSet, h: &mut [f64], par: 
     let mut wsp = sp.clone();
     for (r, w) in set.row_weights().into_iter().enumerate() {
         wsp[r * n..(r + 1) * n].iter_mut().for_each(|x| *x *= w);
+    }
+    if set.version == Version::V1_1 && n <= ACP_LOOPS_MAX_AO {
+        for r in 0..set.nrow {
+            let (s, ws) = (&sp[r * n..(r + 1) * n], &wsp[r * n..(r + 1) * n]);
+            for i in 0..n {
+                for j in 0..=i {
+                    h[i * n + j] += s[i] * ws[j];
+                }
+            }
+        }
+        return;
     }
     faer::linalg::matmul::triangular::matmul(
         MatMut::from_row_major_slice_mut(h, n, n),

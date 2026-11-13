@@ -707,6 +707,9 @@ pub const MAX_ITER: usize = 250;
 /// The 2.0.1 program's damping factor (iterations 2 and 3) and number of stored DIIS vectors.
 pub const DAMPING: f64 = 0.2;
 pub const DIIS_SIZE: usize = 7;
+/// Basis size up to which v1.1's SCF in the default conventions computes every eigenpair (the
+/// full solver is cheaper than the occupied eigenvectors alone for such small bases).
+const FULL_SOLVE_MAX_AO: usize = 16;
 
 /// Converged SCF.
 #[derive(Clone, Debug)]
@@ -812,8 +815,10 @@ impl Setup {
             }
             (None, Version::V1_1) => self.state_of(crate::program110::guess_density(self)),
         };
-        // v1.1 in the program's conventions: every eigenpair, as the program (and its cap) needs
-        let every = version == Version::V1_1 && self.model.program();
+        // v1.1 in the program's conventions: every eigenpair, as the program (and its cap) needs;
+        // in the default conventions also for the smallest bases, where the full solver is the
+        // cheaper one
+        let every = version == Version::V1_1 && (self.model.program() || n <= FULL_SOLVE_MAX_AO);
         let mut scf = Scf201 {
             setup: self,
             solver,
