@@ -712,12 +712,13 @@ impl Setup {
 
     /// [`Setup::gradient`] and the wall time of its phases.
     pub fn gradient_timed(&self, r: &ScfResult) -> Result<(Vec<[f64; 3]>, crate::timing::Timings)> {
-        if self.program.is_some() {
-            return Err(axtb::Error::Input(
-                "g-xTB v1.1: the program's Fock matrix needs the Z-vector gradient (not on the engine yet)".into(),
-            ));
-        }
         let mut t = Laps::new();
+        if self.program.is_some() {
+            // v1.1 in the program's conventions: the response of its Fock matrix
+            let g = self.program_gradient(r)?;
+            t.lap("gradient: z-vector");
+            return Ok((g, t.laps));
+        }
         let mut w = self.energy_weighted_density(r);
         w.iter_mut().for_each(|x| *x = -*x);
         t.lap("gradient: energy-weighted density");

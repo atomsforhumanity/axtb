@@ -17,8 +17,13 @@
 //!   eigenpairs only (DSYGVX) and sets the other eigenvalues to 100 Eh, so those levels stay
 //!   empty at any electronic temperature.
 //!
+//! - **The gradient** ([`zvector`]): the program's Fock matrix is not the derivative of its
+//!   energy, so its analytic gradient needs the response of the density (the Z-vector method).
+//!
 //! The program's Fermi smearing (`fermismear_`) is one of the shared rules of
 //! [`crate::occupations`].
+
+pub(crate) mod zvector;
 
 use crate::v2::coulomb::{potentials_with, AesCache};
 use crate::v2::exchange::Products;
