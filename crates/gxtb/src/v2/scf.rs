@@ -22,7 +22,7 @@
 
 use super::basis::Basis;
 use super::cn::gxtb_cn;
-use super::coulomb::{Coulomb, Shell};
+use super::coulomb::{AesCache, IsotropicCache, Shell};
 use super::disp::RevD4;
 use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
@@ -72,7 +72,9 @@ pub struct Setup {
     pub aniso: Vec<[f64; 3]>,
     /// Reference shell occupations n0_l.
     pub ref_occ: Vec<f64>,
-    pub coulomb: Coulomb,
+    /// The isotropic and anisotropic electrostatics.
+    pub isotropic: IsotropicCache,
+    pub aes: AesCache,
     pub rep: Repulsion,
     pub disp: RevD4,
     pub exch: Exchange,
@@ -195,7 +197,8 @@ impl Setup {
         mirror_add_anisotropy(nao, &basis.scf.ao2at, &dpint, &aniso, &mut h, parallel);
         t.lap("setup: anisotropy");
         let ref_occ: Vec<f64> = shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect();
-        let coulomb = Coulomb::new_par(&model, mol, &shells, &cn, parallel);
+        let isotropic = IsotropicCache::new_par(&model, mol, &shells, &cn, parallel);
+        let aes = AesCache::new_par(&model, mol, &cn, parallel);
         let rep = Repulsion::new_par(&model, mol, &cn, parallel);
         t.lap("setup: coulomb+repulsion");
         let disp = RevD4::new_par(&model, mol, parallel)?;
@@ -263,7 +266,8 @@ impl Setup {
             h,
             aniso,
             ref_occ,
-            coulomb,
+            isotropic,
+            aes,
             rep,
             disp,
             exch,
@@ -351,7 +355,7 @@ impl Setup {
         let (pop, dip, qp) = self.mulliken(&ptot);
         drop(ptot);
         let q: Vec<f64> = self.ref_occ.iter().zip(&pop).map(|(r, x)| r - x).collect();
-        let qa = self.coulomb.atom_charges(&q);
+        let qa = self.isotropic.atom_charges(&q);
         let mag = crate::mulliken::magnetizations(&self.basis.scf, &self.s, &p, self.parallel);
         State { p, q, qa, dip, qp, mag }
     }
@@ -370,7 +374,7 @@ impl Setup {
             .enumerate()
             .map(|(k, &(iat, _, _))| self.ref_occ[k] / n0[iat] * self.eeq.charges[iat])
             .collect();
-        let qa = self.coulomb.atom_charges(&q);
+        let qa = self.isotropic.atom_charges(&q);
         let n = self.nao;
         State {
             p: vec![vec![0.0; n * n]; self.nspin],
@@ -401,8 +405,8 @@ impl Setup {
         // the terms' energies (the dispersion's potential from the same pass)
         let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
         let (mut eiso, mut e_aes, mut e_spin, mut e_disp, mut e_rep) = ([0.0; 4], [0.0], [0.0], [0.0], [0.0]);
-        terms.iso.energy(&tg, &self.coulomb, &s, &mut totals(&mut eiso));
-        terms.aes.energy(&tg, &self.coulomb, &s, &mut totals(&mut e_aes));
+        terms.iso.energy(&tg, &self.isotropic, &s, &mut totals(&mut eiso));
+        terms.aes.energy(&tg, &self.aes, &s, &mut totals(&mut e_aes));
         terms.spin.energy(&tg, &(), &s, &mut totals(&mut e_spin));
         let (nsh, nat) = (self.shells.len(), mol.nat());
         let mut pdisp = buffer(&terms.disp, nsh, nat);
@@ -439,8 +443,8 @@ impl Setup {
         // and dispersion of the shell's atom (the program's sum)
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pspin) = (buffer(&terms.rep, nsh, nat), buffer(&terms.spin, nsh, nat));
-        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
-        terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
+        terms.iso.potential(&tg, &self.isotropic, &s, &mut piso);
+        terms.aes.potential(&tg, &self.aes, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);
         let mut vsh = piso.shell;
         for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
@@ -617,7 +621,7 @@ impl Setup {
             return Err(Error::Input("g-xTB 2.0.1: the start wavefunction does not fit this molecule".into()));
         }
         let mut st = start.clone();
-        st.qa = self.coulomb.atom_charges(&st.q);
+        st.qa = self.isotropic.atom_charges(&st.q);
         if self.nspin == 2 && st.mag.is_none() {
             st.mag = Some(vec![0.0; nsh]);
         }

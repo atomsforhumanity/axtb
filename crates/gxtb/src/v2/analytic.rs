@@ -31,7 +31,7 @@
 //! and dE/dS is linear in S.
 
 use super::cn::gxtb_cn;
-use super::coulomb::Coulomb;
+use super::coulomb::{AesCache, IsotropicCache};
 use super::disp::RevD4;
 use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
 use super::explicit::STEP;
@@ -59,7 +59,8 @@ pub struct Kernels<'a> {
     pub mol: Molecule,
     pub model: Model,
     pub cn: Vec<f64>,
-    pub coulomb: Coulomb,
+    pub isotropic: IsotropicCache,
+    pub aes: AesCache,
     pub rep: Repulsion,
     pub disp: RevD4,
     pub exch: &'a Exchange,
@@ -90,7 +91,8 @@ impl<'a> Kernels<'a> {
         Ok(Self {
             mol: mol.clone(),
             model: *model,
-            coulomb: Coulomb::new(model, mol, &exch.shells, &cn),
+            isotropic: IsotropicCache::new(model, mol, &exch.shells, &cn),
+            aes: AesCache::new(model, mol, &cn),
             rep: Repulsion::new(model, mol, &cn),
             disp,
             exch,
@@ -114,15 +116,15 @@ impl<'a> Kernels<'a> {
     pub fn potentials(&self, st: &State, lay: &ScfVariables) -> Vec<f64> {
         let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
         use super::terms::buffer;
-        let (nsh, nat) = (self.coulomb.shells.len(), self.mol.nat());
+        let (nsh, nat) = (self.isotropic.shells.len(), self.mol.nat());
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
-        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
-        terms.aes.potential(&tg, &self.coulomb, &s, &mut paes);
+        terms.iso.potential(&tg, &self.isotropic, &s, &mut piso);
+        terms.aes.potential(&tg, &self.aes, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);
         terms.disp.potential(&tg, &self.disp, &s, &mut pdisp);
         let (mut v, mut vd, vq) = (piso.shell, paes.dipole, paes.quadrupole);
-        for (ish, &(iat, _, _)) in self.coulomb.shells.iter().enumerate() {
+        for (ish, &(iat, _, _)) in self.isotropic.shells.iter().enumerate() {
             v[ish] += paes.atom[iat] + prep.atom[iat] + pdisp.atom[iat];
         }
         for (d, a) in vd.iter_mut().zip(&self.aniso) {
@@ -144,8 +146,8 @@ impl<'a> Kernels<'a> {
         let nat = mol.nat();
         let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
         let mut ch = Chain::new(self.layout, nat);
-        terms.iso.gradient(&tg, &self.coulomb, &s, &mut ch);
-        terms.aes.gradient(&tg, &self.coulomb, &s, &mut ch);
+        terms.iso.gradient(&tg, &self.isotropic, &s, &mut ch);
+        terms.aes.gradient(&tg, &self.aes, &s, &mut ch);
         terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
         terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
         anisotropy_gradient(&self.model, mol, &st.dip, &mut ch.g);
@@ -563,7 +565,7 @@ impl<'a> Analytic<'a> {
         let (mut q, mut dip, mut qp) = (vec![0.0; lay.nsh], vec![[0.0; 3]; lay.nat], vec![[0.0; 6]; lay.nat]);
         let mut mag = lay.magnetization.then(|| vec![0.0; lay.nsh]);
         lay.unpack(&b, &mut q, &mut dip, &mut qp, mag.as_deref_mut());
-        let qa = s.coulomb.atom_charges(&q);
+        let qa = s.isotropic.atom_charges(&q);
         let ds = State { p: Vec::new(), q, qa, dip, qp, mag };
         let mut dmu = [0.0; 3];
         dmu[x % 3] += self.st.qa[x / 3];

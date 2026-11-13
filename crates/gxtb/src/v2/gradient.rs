@@ -118,8 +118,8 @@ impl Setup {
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
         let mut pspin = buffer(&terms.spin, nsh, nat);
-        terms.iso.potential(&tg, &self.coulomb, &s, &mut piso);
-        let vd_scaled = terms.aes.potential_scaled(&tg, &self.coulomb, &s, &mut paes);
+        terms.iso.potential(&tg, &self.isotropic, &s, &mut piso);
+        let vd_scaled = terms.aes.potential_scaled(&tg, &self.aes, &s, &mut paes);
         terms.rep.potential(&tg, &self.rep, &s, &mut prep);
         terms.disp.potential(&tg, &self.disp, &s, &mut pdisp);
         let (_, _, vx) = self.exch.evaluate_with(&self.s, &st.p, pr, &st.q, false, self.par, self.parallel);
@@ -584,8 +584,8 @@ impl Setup {
         self.add_acp(&ptot, &dsh, &mut ch)?;
         t.lap("gradient: acp");
         let (tg, s) = (self.term_geometry(), st.moments());
-        self.terms.iso.gradient(&tg, &self.coulomb, &s, &mut ch);
-        self.terms.aes.gradient_with(&tg, &self.coulomb, &s, &pot_now.vd_scaled, &mut ch);
+        self.terms.iso.gradient(&tg, &self.isotropic, &s, &mut ch);
+        self.terms.aes.gradient_with(&tg, &self.aes, &s, &pot_now.vd_scaled, &mut ch);
         t.lap("gradient: electrostatics");
         let (tsh, tat) = self.exch.kernel_weights_with(&st.p, &pr, self.parallel);
         self.exch.add_kernel_gradient(&self.model, &tg, &tsh, &tat, &mut ch);

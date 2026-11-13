@@ -157,7 +157,7 @@ impl Setup {
         };
         let pop = pops(&ptot);
         let q: Vec<f64> = pop.iter().map(|x| -x).collect();
-        let qa = self.coulomb.atom_charges(&q);
+        let qa = self.isotropic.atom_charges(&q);
         let mut dip = vec![[0.0; 3]; nat];
         let mut qp = vec![[0.0; 6]; nat];
         for mu in 0..n {
@@ -197,8 +197,8 @@ impl Setup {
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
         let mut pspin = buffer(&terms.spin, nsh, nat);
-        terms.iso.kernel_apply(&tg, &self.coulomb, &s, &d, &mut piso);
-        terms.aes.kernel_apply(&tg, &self.coulomb, &s, &d, &mut paes);
+        terms.iso.kernel_apply(&tg, &self.isotropic, &s, &d, &mut piso);
+        terms.aes.kernel_apply(&tg, &self.aes, &s, &d, &mut paes);
         terms.rep.kernel_apply(&tg, &self.rep, &s, &d, &mut prep);
         terms.disp.kernel_apply(&tg, &self.disp, &s, &d, &mut pdisp);
         let mut dv = piso.shell;

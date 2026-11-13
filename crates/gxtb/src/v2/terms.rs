@@ -7,14 +7,15 @@
 //! [`Setup`]: super::scf::Setup
 
 use super::coulomb::{
-    aes_kernel, first_order_g, gamma_kernel, spin_energy, spin_potential, tau_kernel, Coulomb, Shell,
+    first_order_g, gamma_kernel, spin_energy, spin_potential, tau_kernel, AesCache, IsotropicCache, Shell, ThirdOrder,
 };
 use super::disp::RevD4;
 use super::gradient::{add_pair, chain_rows};
 use super::intermediates::Slots;
 use super::repulsion::Repulsion;
-use super::{sqrt_cn, Model};
-use crate::data_v2::{AES_DIP_SCALE, HUBBARD, HUBBARD_CN, INCREMENT, IPEA, IPEA_CN, SHELL_HUBBARD};
+use super::Model;
+use crate::data_v2::INCREMENT;
+use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::terms::{Chain, Chain2, Geometry, GeometryTerm, MomentTerm, Needs, Potentials, SccMoments, Slot, TermEnergy};
 use axtb::Result;
@@ -37,8 +38,8 @@ impl Terms {
         Self {
             increments: Increments,
             iso: Isotropic { model: *model, shells: shells.to_vec(), cn: [slots.cn] },
-            aes: Aes { model: *model, shells: shells.to_vec(), cn: [slots.cn] },
-            spin: Spin { shells: shells.to_vec() },
+            aes: Aes { model: *model, cn: [slots.cn] },
+            spin: Spin { model: *model, shells: shells.to_vec() },
             rep: RepulsionTerm { model: *model, cn: [slots.cn] },
             disp: RevD4Term { model: *model, cnd4: [slots.cnd4] },
         }
@@ -187,7 +188,7 @@ fn add(out: &mut [f64], x: &[f64]) {
 /// First- to fourth-order isotropic electrostatics ([`super::coulomb`]): the four energies from
 /// one pass over the shells, the shell potential, the gradient at fixed charges (kernels and
 /// the CN-dependent parameters, dE/dCN of the g-xTB CN), the kernel product. The cache is the
-/// setup's [`Coulomb`] (shared with [`Aes`]).
+/// setup's [`IsotropicCache`].
 #[derive(Clone, Debug)]
 pub struct Isotropic {
     model: Model,
@@ -196,8 +197,10 @@ pub struct Isotropic {
 }
 
 impl MomentTerm for Isotropic {
-    type Cache = Coulomb;
+    type Cache = IsotropicCache;
 
+    /// The pieces: first to fourth order (v1.1: its ES1, with the reference-charge cross term,
+    /// then E2, E3, E4).
     fn names(&self) -> &[&'static str] {
         &["first_order", "second_order", "third_order", "fourth_order"]
     }
@@ -210,31 +213,31 @@ impl MomentTerm for Isotropic {
         &self.cn
     }
 
-    fn update(&self, geo: &Geometry<'_>) -> Result<Coulomb> {
-        Ok(Coulomb::new_par(&self.model, geo.mol, &self.shells, geo.value(self.cn[0]), geo.parallel))
+    fn update(&self, geo: &Geometry<'_>) -> Result<IsotropicCache> {
+        Ok(IsotropicCache::new_par(&self.model, geo.mol, &self.shells, geo.value(self.cn[0]), geo.parallel))
     }
 
-    fn energy(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
-        e.pieces.copy_from_slice(&c.isotropic_energies(s.qsh, geo.parallel));
+    fn energy(&self, geo: &Geometry<'_>, c: &IsotropicCache, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        e.pieces.copy_from_slice(&c.energies(s.qsh, geo.parallel));
     }
 
-    fn potential(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, v: &mut Potentials) {
-        add(&mut v.shell, &c.isotropic_potential(s.qsh, geo.parallel));
+    fn potential(&self, geo: &Geometry<'_>, c: &IsotropicCache, s: &SccMoments<'_>, v: &mut Potentials) {
+        add(&mut v.shell, &c.potential(s.qsh, geo.parallel));
     }
 
-    fn gradient(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, chain: &mut Chain) {
+    fn gradient(&self, geo: &Geometry<'_>, c: &IsotropicCache, s: &SccMoments<'_>, chain: &mut Chain) {
         add_isotropic(geo, self.cn[0], c, s.qsh, chain);
     }
 
     fn kernel_apply(
         &self,
         _geo: &Geometry<'_>,
-        c: &Coulomb,
+        c: &IsotropicCache,
         s: &SccMoments<'_>,
         ds: &SccMoments<'_>,
         dv: &mut Potentials,
     ) {
-        add(&mut dv.shell, &c.isotropic_hessian_vec(s.qsh, ds.qsh));
+        add(&mut dv.shell, &c.hessian_vec(s.qsh, ds.qsh));
     }
 }
 
@@ -242,11 +245,10 @@ impl MomentTerm for Isotropic {
 /// needs dE/d(c d), the potential of the scaled dipoles: the trait's `gradient` computes it
 /// again; the setup, which has it from the potential pass at the same state, uses
 /// [`Aes::potential_scaled`] and [`Aes::gradient_with`] instead (the same bits). The cache is
-/// the setup's [`Coulomb`].
+/// the setup's [`AesCache`] (v1.1: no dipole scaling).
 #[derive(Clone, Debug)]
 pub struct Aes {
     model: Model,
-    shells: Vec<Shell>,
     cn: [Slot; 1],
 }
 
@@ -255,11 +257,11 @@ impl Aes {
     pub fn potential_scaled(
         &self,
         geo: &Geometry<'_>,
-        c: &Coulomb,
+        c: &AesCache,
         s: &SccMoments<'_>,
         v: &mut Potentials,
     ) -> Vec<[f64; 3]> {
-        let (vs, vd_scaled, vq) = c.aes_potentials_raw(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
+        let (vs, vd_scaled, vq) = c.potentials_raw(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
         add(&mut v.atom, &vs);
         add(v.dipole.as_flattened_mut(), c.scaled_dipoles(&vd_scaled).as_flattened());
         add(v.quadrupole.as_flattened_mut(), vq.as_flattened());
@@ -270,17 +272,17 @@ impl Aes {
     pub fn gradient_with(
         &self,
         geo: &Geometry<'_>,
-        c: &Coulomb,
+        c: &AesCache,
         s: &SccMoments<'_>,
         vd_scaled: &[[f64; 3]],
         chain: &mut Chain,
     ) {
-        add_aes(geo, &self.model, self.cn[0], c, s.qat, s.dip, s.quad, vd_scaled, chain);
+        add_aes(geo, self.cn[0], c, s.qat, s.dip, s.quad, vd_scaled, true, chain);
     }
 }
 
 impl MomentTerm for Aes {
-    type Cache = Coulomb;
+    type Cache = AesCache;
 
     fn names(&self) -> &[&'static str] {
         &["aes"]
@@ -294,20 +296,20 @@ impl MomentTerm for Aes {
         &self.cn
     }
 
-    fn update(&self, geo: &Geometry<'_>) -> Result<Coulomb> {
-        Ok(Coulomb::new_par(&self.model, geo.mol, &self.shells, geo.value(self.cn[0]), geo.parallel))
+    fn update(&self, geo: &Geometry<'_>) -> Result<AesCache> {
+        Ok(AesCache::new_par(&self.model, geo.mol, geo.value(self.cn[0]), geo.parallel))
     }
 
-    fn energy(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
-        e.pieces[0] = c.aes_energy(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
+    fn energy(&self, geo: &Geometry<'_>, c: &AesCache, s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
+        e.pieces[0] = c.energy(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
     }
 
-    fn potential(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, v: &mut Potentials) {
+    fn potential(&self, geo: &Geometry<'_>, c: &AesCache, s: &SccMoments<'_>, v: &mut Potentials) {
         self.potential_scaled(geo, c, s, v);
     }
 
-    fn gradient(&self, geo: &Geometry<'_>, c: &Coulomb, s: &SccMoments<'_>, chain: &mut Chain) {
-        let (_, vd_scaled, _) = c.aes_potentials_raw(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
+    fn gradient(&self, geo: &Geometry<'_>, c: &AesCache, s: &SccMoments<'_>, chain: &mut Chain) {
+        let (_, vd_scaled, _) = c.potentials_raw(geo.mol, s.qat, s.dip, s.quad, geo.parallel);
         self.gradient_with(geo, c, s, &vd_scaled, chain);
     }
 
@@ -316,12 +318,12 @@ impl MomentTerm for Aes {
     fn kernel_apply(
         &self,
         geo: &Geometry<'_>,
-        c: &Coulomb,
+        c: &AesCache,
         _s: &SccMoments<'_>,
         ds: &SccMoments<'_>,
         dv: &mut Potentials,
     ) {
-        let (vs, vd, vq) = c.aes_potentials(geo.mol, ds.qat, ds.dip, ds.quad, false);
+        let (vs, vd, vq) = c.potentials(geo.mol, ds.qat, ds.dip, ds.quad, false);
         add(&mut dv.atom, &vs);
         add(dv.dipole.as_flattened_mut(), vd.as_flattened());
         add(dv.quadrupole.as_flattened_mut(), vq.as_flattened());
@@ -331,6 +333,7 @@ impl MomentTerm for Aes {
 /// Spin polarization of the shell magnetizations (open shells; no geometry dependence).
 #[derive(Clone, Debug)]
 pub struct Spin {
+    model: Model,
     shells: Vec<Shell>,
 }
 
@@ -351,12 +354,12 @@ impl MomentTerm for Spin {
 
     /// Zero for a closed shell (no magnetizations).
     fn energy(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, e: &mut TermEnergy<'_>) {
-        e.pieces[0] = s.mag.map_or(0.0, |m| spin_energy(geo.mol, &self.shells, m));
+        e.pieces[0] = s.mag.map_or(0.0, |m| spin_energy(&self.model, geo.mol, &self.shells, m));
     }
 
     fn potential(&self, geo: &Geometry<'_>, _c: &(), s: &SccMoments<'_>, v: &mut Potentials) {
         if let Some(m) = s.mag {
-            add(&mut v.magnetization, &spin_potential(geo.mol, &self.shells, m));
+            add(&mut v.magnetization, &spin_potential(&self.model, geo.mol, &self.shells, m));
         }
     }
 
@@ -364,7 +367,7 @@ impl MomentTerm for Spin {
 
     fn kernel_apply(&self, geo: &Geometry<'_>, _c: &(), _s: &SccMoments<'_>, ds: &SccMoments<'_>, dv: &mut Potentials) {
         if let Some(m) = ds.mag {
-            add(&mut dv.magnetization, &spin_potential(geo.mol, &self.shells, m));
+            add(&mut dv.magnetization, &spin_potential(&self.model, geo.mol, &self.shells, m));
         }
     }
 
@@ -436,42 +439,83 @@ impl MomentTerm for RepulsionTerm {
 
 /// First- to fourth-order terms at fixed shell charges: kernels (distances, Hubbard
 /// parameters through the CN) and the CN-dependent first-order potentials.
-pub(crate) fn add_isotropic(geo: &Geometry<'_>, cn_slot: Slot, c: &Coulomb, q: &[f64], ch: &mut Chain) {
+pub(crate) fn add_isotropic(geo: &Geometry<'_>, cn_slot: Slot, c: &IsotropicCache, q: &[f64], ch: &mut Chain) {
+    let sh = &c.shells;
+    let qa = c.atom_charges(q);
+    let dcn = ch.slot(cn_slot);
+    for (i, &(iat, _, _)) in sh.iter().enumerate() {
+        let g = first_order_g(qa[iat], c.form.k1).0;
+        dcn[iat] += c.dmu[i] * g * q[i];
+    }
+    match c.form.version {
+        Version::V2_0_1 => isotropic_pairs(
+            geo,
+            cn_slot,
+            c,
+            ch,
+            // dE/dgamma_ij and dE/dtau_ij of the symmetric pair
+            |i, j, same| {
+                if i == j {
+                    (0.5 * q[i] * q[i], q[i] * q[i] * q[i] * c.gam3[i] / 3.0)
+                } else {
+                    let mut wg = q[i] * q[j];
+                    if !same {
+                        wg += q[i] * c.rref[j] + q[j] * c.rref[i];
+                    }
+                    (wg, (q[i] * q[i] * c.gam3[i] * q[j] + q[j] * q[j] * c.gam3[j] * q[i]) / 3.0)
+                }
+            },
+            |r, eta, same| (gamma_kernel(r, eta), tau_kernel(r, eta, same)),
+        ),
+        Version::V1_1 => {
+            // the third order's c_l = q_A(l) Gamma_l
+            assert_eq!(c.form.third, ThirdOrder::Atomic);
+            let gfac: Vec<f64> = sh.iter().enumerate().map(|(i, &(iat, _, _))| qa[iat] * c.gam3[i]).collect();
+            isotropic_pairs(
+                geo,
+                cn_slot,
+                c,
+                ch,
+                |i, j, same| {
+                    let mult = if i == j { 1.0 } else { 2.0 };
+                    let mut wg = mult * 0.5 * q[i] * q[j];
+                    if !same {
+                        wg += q[i] * c.rref[j] + q[j] * c.rref[i];
+                    }
+                    let wt = if i == j { q[i] * q[j] * gfac[i] / 3.0 } else { q[i] * q[j] * (gfac[i] + gfac[j]) / 3.0 };
+                    (wg, wt)
+                },
+                |r, eta, same| c.form.kernels(r, eta, same),
+            )
+        }
+    }
+}
+
+/// The pair part of [`add_isotropic`]: dE/dR and dE/dCN (through U) of every shell pair with
+/// the weights dE/dgamma, dE/dtau of `weights(i, j, same atom)` and the kernels with their
+/// derivatives of `kernels(R, eta, same atom)`.
+#[allow(clippy::type_complexity)]
+fn isotropic_pairs(
+    geo: &Geometry<'_>,
+    cn: Slot,
+    c: &IsotropicCache,
+    ch: &mut Chain,
+    weights: impl Fn(usize, usize, bool) -> (f64, f64) + Sync + Send,
+    kernels: impl Fn(f64, f64, bool) -> ((f64, f64, f64), (f64, f64, f64)) + Sync + Send,
+) {
     let mol = geo.mol;
-    let cn_values = geo.value(cn_slot);
     let sh = &c.shells;
     let ns = sh.len();
-    let qa = c.atom_charges(q);
-    let cn = cn_slot;
-    let mut du = vec![0.0; ns];
-    let dcn = ch.slot(cn);
-    for (i, &(iat, ish, _)) in sh.iter().enumerate() {
-        let z = mol.numbers[iat] - 1;
-        let df = sqrt_cn(cn_values[iat]).1;
-        du[i] = SHELL_HUBBARD[z][ish] * HUBBARD[z] * HUBBARD_CN[z] * df;
-        let g = first_order_g(qa[iat]).0;
-        dcn[iat] += IPEA[z][ish] * IPEA_CN[z] * df * g * q[i];
-    }
-    let u = &c.u;
+    let (u, du) = (&c.u, &c.du);
     let acc = chain_rows(ns, ch, geo.parallel, |i, ch| {
         let (g, dcn) = ch.g_and_slot(cn);
         for j in 0..=i {
             let (ia, ja) = (sh[i].0, sh[j].0);
             let same = ia == ja;
-            // dE/dgamma_ij and dE/dtau_ij of the symmetric pair
-            let (wg, wt) = if i == j {
-                (0.5 * q[i] * q[i], q[i] * q[i] * q[i] * c.gam3[i] / 3.0)
-            } else {
-                let mut wg = q[i] * q[j];
-                if !same {
-                    wg += q[i] * c.rref[j] + q[j] * c.rref[i];
-                }
-                (wg, (q[i] * q[i] * c.gam3[i] * q[j] + q[j] * q[j] * c.gam3[j] * q[i]) / 3.0)
-            };
+            let (wg, wt) = weights(i, j, same);
             let r = if same { 0.0 } else { norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt() };
             let eta = 2.0 / (1.0 / u[i] + 1.0 / u[j]);
-            let (_, dgdr, dgde) = gamma_kernel(r, eta);
-            let (_, dtdr, dtde) = tau_kernel(r, eta, same);
+            let ((_, dgdr, dgde), (_, dtdr, dtde)) = kernels(r, eta, same);
             let dede = wg * dgde + wt * dtde;
             let s2 = (u[i] + u[j]) * (u[i] + u[j]);
             dcn[ia] += dede * 2.0 * u[j] * u[j] / s2 * du[i];
@@ -491,24 +535,24 @@ pub(crate) fn add_isotropic(geo: &Geometry<'_>, cn_slot: Slot, c: &Coulomb, q: &
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn add_aes(
     geo: &Geometry<'_>,
-    model: &Model,
     cn_slot: Slot,
-    c: &Coulomb,
+    c: &AesCache,
     qa: &[f64],
     dip: &[[f64; 3]],
     qp: &[[f64; 6]],
     vd_scaled: &[[f64; 3]],
+    full: bool,
     ch: &mut Chain,
 ) {
     let mol = geo.mol;
-    let cn_values = geo.value(cn_slot);
     let n = mol.nat();
     let d = c.scaled_dipoles(dip);
-    let dcn = ch.slot(cn_slot);
-    for i in 0..n {
-        let z = mol.numbers[i] - 1;
-        let dc = AES_DIP_SCALE[z] * sqrt_cn(cn_values[i]).1;
-        dcn[i] += dc * (0..3).map(|x| dip[i][x] * vd_scaled[i][x]).sum::<f64>();
+    if c.scales_dipoles() {
+        let dcn = ch.slot(cn_slot);
+        for i in 0..n {
+            let dc = c.ddip_scale[i];
+            dcn[i] += dc * (0..3).map(|x| dip[i][x] * vd_scaled[i][x]).sum::<f64>();
+        }
     }
     let dot = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
     let qm = |q: &[f64; 6]| [[q[0], q[1], q[3]], [q[1], q[2], q[4]], [q[3], q[4], q[5]]];
@@ -519,11 +563,10 @@ pub(crate) fn add_aes(
             let r = sub3(mol.positions[j], mol.positions[i]);
             let r2 = dot(r, r);
             let rr = r2.sqrt();
-            let r0 = model.rvdw(mol.numbers[i], mol.numbers[j]);
-            let (g3, dg3) = aes_kernel(0, rr, r0);
-            let (g5, dg5) = aes_kernel(1, rr, r0);
-            let (g7, dg7) = aes_kernel(2, rr, r0);
-            let (g9, dg9) = aes_kernel(3, rr, r0);
+            let [(g3, dg3), (g5, dg5), k7, k9] = c.pair_kernels(mol.numbers[i], mol.numbers[j], rr);
+            // without `full`: the derivative of E_AES' (the qd, qQ and dd parts), whose potentials
+            // the 1.1.0 program's Fock matrix holds
+            let ((g7, dg7), (g9, dg9)) = if full { (k7, k9) } else { ((0.0, 0.0), (0.0, 0.0)) };
             let (qi, qj) = (qm(&qp[i]), qm(&qp[j]));
             let (di, dj) = (d[i], d[j]);
             let (qir, qjr) = (mv(&qi, r), mv(&qj, r));
@@ -602,13 +645,13 @@ mod tests {
             setup.set_threads(threads).unwrap();
             let (tg, s, aes) = (setup.term_geometry(), r.state.moments(), &setup.terms.aes);
             let mut v = Potentials::new(setup.shells.len(), mol.nat(), false);
-            let vd_scaled = aes.potential_scaled(&tg, &setup.coulomb, &s, &mut v);
+            let vd_scaled = aes.potential_scaled(&tg, &setup.aes, &s, &mut v);
             let mut w = Potentials::new(setup.shells.len(), mol.nat(), false);
-            aes.potential(&tg, &setup.coulomb, &s, &mut w);
+            aes.potential(&tg, &setup.aes, &s, &mut w);
             assert_eq!(v, w);
             let (mut a, mut b) = (Chain::new(&setup.layout, mol.nat()), Chain::new(&setup.layout, mol.nat()));
-            aes.gradient_with(&tg, &setup.coulomb, &s, &vd_scaled, &mut a);
-            aes.gradient(&tg, &setup.coulomb, &s, &mut b);
+            aes.gradient_with(&tg, &setup.aes, &s, &vd_scaled, &mut a);
+            aes.gradient(&tg, &setup.aes, &s, &mut b);
             assert_eq!(bits(&setup, &a), bits(&setup, &b));
             assert!(a.g.iter().flatten().any(|&x| x != 0.0));
         }

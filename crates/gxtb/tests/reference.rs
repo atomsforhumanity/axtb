@@ -925,3 +925,130 @@ fn extra_singlepoints_match_program() {
     }
     eprintln!("extra single points: max total-energy deviation {worst:e} Eh");
 }
+
+// ---- the same checks on the engine's v1.1 model (step 17) ----
+
+/// The engine's v1.1 model in the program's conventions.
+fn v11() -> axtb_gxtb::v2::Model {
+    axtb_gxtb::v2::Model::v1_1(axtb_gxtb::Conventions::Gxtb)
+}
+
+#[test]
+fn isotropic_engine_matches_program() {
+    use axtb_gxtb::classical::gxtb_cn;
+    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
+    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
+    use axtb_gxtb::params::GxtbParams;
+    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    let p = GxtbParams::v1_1();
+    let basis = QvszpParams::v1_1();
+    let (mut w1, mut w23) = (0.0f64, 0.0f64);
+    for c in cases() {
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let ao = ao_list(&qb.scf);
+        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
+        let s = overlap_matrix(&c.mol, &qb.scf);
+        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &program_densities(&c, &map));
+        let cn = gxtb_cn(&p, &c.mol).unwrap();
+        let sh = shell_list(&qb.scf);
+        let iso = IsotropicCache::new(&v11(), &c.mol, &sh, &cn);
+        // the kernels and Hubbard parameters are the program's expressions: the same bits
+        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
+        let g2 = gamma2(&p, &c.mol, &sh, &u);
+        assert_eq!(iso.u, u, "{}: Hubbard parameters", c.name);
+        assert_eq!(iso.gamma, g2, "{}: gamma", c.name);
+        assert_eq!(iso.tau, tau3(&c.mol, &sh, &u, &g2), "{}: tau", c.name);
+        let [e1, e2, e3, e4] = iso.energies(&q, false);
+        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
+        let d1 = (e1 - fe["es1"].as_f64().unwrap()).abs();
+        let d23 = (e2 + e3 + e4 - fe["es2_3"].as_f64().unwrap()).abs();
+        w1 = w1.max(d1);
+        w23 = w23.max(d23);
+        assert!(d1 < 1e-12, "{}: ES1 {e1} vs {}", c.name, fe["es1"]);
+        assert!(d23 < 1e-12, "{}: ES2+3 {} vs {}", c.name, e2 + e3 + e4, fe["es2_3"]);
+    }
+    eprintln!("engine isotropic ES at the program's density: ES1 {w1:e}, ES2+3 {w23:e} Eh");
+}
+
+/// The engine's v1.1 isotropic potential and kernel against the old tree's potential and
+/// central differences of the engine's potential, at the program's charges.
+#[test]
+fn isotropic_engine_potential_and_kernel() {
+    use axtb_gxtb::classical::gxtb_cn;
+    use axtb_gxtb::fock::isotropic_shell_potential;
+    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
+    use axtb_gxtb::params::GxtbParams;
+    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    let p = GxtbParams::v1_1();
+    let basis = QvszpParams::v1_1();
+    let (mut wv, mut wk) = (0.0f64, 0.0f64);
+    for c in cases() {
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let q = floats(&json(&c.dir.join("scf.json"))["shell_charges"]);
+        let cn = gxtb_cn(&p, &c.mol).unwrap();
+        let sh = shell_list(&qb.scf);
+        let iso = IsotropicCache::new(&v11(), &c.mol, &sh, &cn);
+        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
+        let g2 = gamma2(&p, &c.mol, &sh, &u);
+        let tau = tau3(&c.mol, &sh, &u, &g2);
+        let old = isotropic_shell_potential(&p, &c.mol, &sh, &cn, &q, &g2, &tau).unwrap();
+        let new = iso.potential(&q, false);
+        let scale = old.iter().fold(1.0f64, |m, v| m.max(v.abs()));
+        wv = wv.max(max_abs_diff(&old, &new) / scale);
+        assert!(max_abs_diff(&old, &new) < 1e-13 * scale, "{}: potential", c.name);
+        // the kernel (Hessian-vector product) against central differences of the potential
+        let dq: Vec<f64> = (0..q.len()).map(|i| ((7 * i + 3) % 11) as f64 / 11.0 - 0.5).collect();
+        let h = 1e-5;
+        let at = |s: f64| iso.potential(&q.iter().zip(&dq).map(|(a, b)| a + s * b).collect::<Vec<_>>(), false);
+        let (vp, vm) = (at(h), at(-h));
+        let fd: Vec<f64> = vp.iter().zip(&vm).map(|(a, b)| (a - b) / (2.0 * h)).collect();
+        let k = iso.hessian_vec(&q, &dq);
+        wk = wk.max(max_abs_diff(&fd, &k));
+        assert!(max_abs_diff(&fd, &k) < 1e-7, "{}: kernel vs FD {:e}", c.name, max_abs_diff(&fd, &k));
+    }
+    eprintln!("engine isotropic potential: rel {wv:e}; kernel vs FD {wk:e}");
+}
+
+#[test]
+fn aes_and_spin_engine_match_program() {
+    use axtb_gxtb::aes::{aes_kernels, atomic_moments};
+    use axtb_gxtb::classical::gxtb_cn;
+    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
+    use axtb_gxtb::params::GxtbParams;
+    use axtb_gxtb::v2::coulomb::{spin_energy, AesCache};
+    let p = GxtbParams::v1_1();
+    let basis = QvszpParams::v1_1();
+    let mut we = 0.0f64;
+    let mut n_open = 0;
+    for c in cases() {
+        let kr = json(&c.dir.join("kernels.json"));
+        let cn = gxtb_cn(&p, &c.mol).unwrap();
+        let aes = AesCache::new(&v11(), &c.mol, &cn);
+        assert_eq!(aes.aes, aes_kernels(&p, &c.mol), "{}: AES kernels", c.name);
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let ao = ao_list(&qb.scf);
+        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
+        let dens = program_densities(&c, &map);
+        let nao = ao.len();
+        let ptot: Vec<f64> = (0..nao * nao).map(|x| dens.iter().map(|d| d[x]).sum()).collect();
+        let (dip, qp) = atomic_moments(&c.mol, &qb.scf.cgto, &ptot);
+        let qa = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
+        let e = aes.energy(&c.mol, &qa, &dip, &qp, false);
+        let e_ref = kr["final_energies"]["aes"].as_f64().unwrap();
+        we = we.max((e - e_ref).abs());
+        assert!((e - e_ref).abs() < 1e-13, "{}: E_AES {e} vs {e_ref}", c.name);
+        let Some(e_ref) = kr["final_energies"].get("spin").and_then(|v| v.as_f64()) else { continue };
+        let s = overlap_matrix(&c.mol, &qb.scf);
+        let qalpha = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens[..1]);
+        let qbeta = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens[1..]);
+        let mag: Vec<f64> = qalpha.iter().zip(&qbeta).map(|(a, b)| b - a).collect();
+        let e = spin_energy(&v11(), &c.mol, &shell_list(&qb.scf), &mag);
+        assert!((e - e_ref).abs() < 1e-14, "{}: E_spin {e} vs {e_ref}", c.name);
+        n_open += 1;
+    }
+    assert_eq!(n_open, 2);
+    eprintln!("engine AES energy at the program's density: {we:e} Eh");
+}
