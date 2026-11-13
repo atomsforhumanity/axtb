@@ -38,8 +38,9 @@
 //! - Tr(Z dF_x/dR|_P) and the dS terms, contracted analytically with the overlap derivative.
 //!
 //! In the Z-vector equations (restarted GMRES, diagonal preconditioner: [`crate::krylov::gmres`])
-//! dF_used(D) is the exchange part (linear in D) plus the potentials differentiated by central
-//! differences of the potential functions of the charges and moments.
+//! dF_used(D) is the exchange of D (linear in D, with the program's extra onsite part) plus the
+//! engine's analytic SCC kernels applied to the charges and moments of D, with the AES'
+//! potentials of those changes for the program's AES ([`Setup::program_kernel`]).
 //!
 //! At a finite electronic temperature the divided differences of the occupations come from
 //! `axtb::response::OccupationResponse` (every orbital a row, levels within 1e-10 Eh
@@ -317,50 +318,58 @@ impl Setup {
         self.fock_of(&pot, &[vec![0.0; n * n]]).pop().expect("one Fock matrix")
     }
 
+    /// The program's SCC kernel applied to SCC-variable changes `ds` at the state `st`: the
+    /// isotropic, repulsion, revD4 and spin kernels of the engine's terms and the AES' potentials
+    /// of the changes (E_AES' is bilinear in the moments: its potentials of the changes are its
+    /// kernel), with the exchange's shell potential change `vx`.
+    #[allow(clippy::type_complexity)]
+    fn program_kernel(
+        &self,
+        pf: &ProgramFock,
+        st: &State,
+        ds: &State,
+        vx: &[f64],
+    ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>, Option<Vec<f64>>) {
+        let (tg, s, d, terms) = (self.term_geometry(), st.moments(), ds.moments(), &self.terms);
+        let (nsh, nat) = (self.shells.len(), self.mol.nat());
+        let (mut piso, mut prep) = (buffer(&terms.iso, nsh, nat), buffer(&terms.rep, nsh, nat));
+        let (mut pdisp, mut pspin) = (buffer(&terms.disp, nsh, nat), buffer(&terms.spin, nsh, nat));
+        terms.iso.kernel_apply(&tg, &self.isotropic, &s, &d, &mut piso);
+        let (va, vd, vq) = pf.aes_potentials(&self.mol, d.qat, d.dip, d.quad, self.parallel);
+        terms.rep.kernel_apply(&tg, &self.rep, &s, &d, &mut prep);
+        terms.disp.kernel_apply(&tg, &self.disp, &s, &d, &mut pdisp);
+        let mut dv = piso.shell;
+        for (ish, &(iat, _, _)) in self.shells.iter().enumerate() {
+            dv[ish] += vx[ish] + va[iat] + prep.atom[iat] + pdisp.atom[iat];
+        }
+        let w = ds.mag.is_some().then(|| {
+            terms.spin.kernel_apply(&tg, &(), &s, &d, &mut pspin);
+            pspin.magnetization
+        });
+        (dv, vd, vq, w)
+    }
+
     /// Linear response of the program's Fock matrices to the spin-density changes `d` at the
-    /// state `st`: the exchange (with the program's extra onsite part) is linear in the
-    /// density, the potentials are differentiated by central differences of the potential
-    /// functions (cheap: charges and moments are linear in the density; exact for the terms up
-    /// to third order in the charges).
+    /// state `st`: the engine's analytic kernels applied to the charges and moments of `d`, with
+    /// the program's AES' ([`Setup::program_kernel`]), and the exchange of `d` with the program's
+    /// extra onsite part (both linear in the density).
     fn program_fock_response(&self, pf: &ProgramFock, st: &State, d: &[Vec<f64>]) -> Vec<Vec<f64>> {
         let n = self.nao;
-        let dmax = d.iter().flatten().fold(0.0_f64, |m, v| m.max(v.abs()));
-        if dmax == 0.0 {
+        if d.iter().flatten().all(|&v| v == 0.0) {
             return vec![vec![0.0; n * n]; d.len()];
         }
-        let h = FD_STEP / dmax;
         // charges and moments of d (no reference occupations)
         let dt = self.state(d);
         let dq: Vec<f64> = dt.q.iter().zip(&self.ref_occ).map(|(q, r)| q - r).collect();
         let dqa = self.isotropic.atom_charges(&dq);
-        let shifted = |sgn: f64| -> State {
-            let f = sgn * h;
-            State {
-                p: Vec::new(),
-                q: st.q.iter().zip(&dq).map(|(a, b)| a + f * b).collect(),
-                qa: st.qa.iter().zip(&dqa).map(|(a, b)| a + f * b).collect(),
-                dip: st.dip.iter().zip(&dt.dip).map(|(a, b)| std::array::from_fn(|k| a[k] + f * b[k])).collect(),
-                qp: st.qp.iter().zip(&dt.qp).map(|(a, b)| std::array::from_fn(|k| a[k] + f * b[k])).collect(),
-                mag: st.mag.as_ref().map(|m| m.iter().zip(dt.mag.as_ref().unwrap()).map(|(a, b)| a + f * b).collect()),
-            }
-        };
-        let pp = self.program_potentials(pf, &shifted(1.0));
-        let pm = self.program_potentials(pf, &shifted(-1.0));
-        let f = 1.0 / (2.0 * h);
-        let vd: Vec<[f64; 3]> =
-            pp.vd.iter().zip(&pm.vd).map(|(a, b)| std::array::from_fn(|k| f * (a[k] - b[k]))).collect();
-        let dpot = Potentials {
-            vsh: pp.vsh.iter().zip(&pm.vsh).map(|(a, b)| f * (a - b)).collect(),
-            vd_scaled: vd.clone(),
-            vd,
-            vq: pp.vq.iter().zip(&pm.vq).map(|(a, b)| std::array::from_fn(|k| f * (a[k] - b[k]))).collect(),
-            w: pp.w.as_ref().map(|w| w.iter().zip(pm.w.as_ref().unwrap()).map(|(a, b)| f * (a - b)).collect()),
-        };
+        let ds = State { p: Vec::new(), q: dq, qa: dqa, dip: dt.dip, qp: dt.qp, mag: dt.mag };
         // the exchange of d, with the program's extra onsite part
         let pr = self.exch.products(&self.s, d, self.par);
-        let (_, _, mut fx, _) = self.exch.evaluate_parts(&self.s, d, &pr, &dt.q, true, self.par, self.parallel);
+        let (_, _, mut fx, vx) = self.exch.evaluate_parts(&self.s, d, &pr, &ds.q, true, self.par, self.parallel);
         pf.add_ofx_extra(self, &pr, &mut fx);
-        self.fock_of(&dpot, &fx)
+        let (vsh, vd, vq, w) = self.program_kernel(pf, st, &ds, &vx);
+        let pot = Potentials { vsh, vd_scaled: vd.clone(), vd, vq, w };
+        self.fock_of(&pot, &fx)
     }
 
     /// Adjoint response G = dF_used^T[d]: Tr(d dF_used[E]) = Tr(G E) for symmetric E (per spin).
