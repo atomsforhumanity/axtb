@@ -133,7 +133,7 @@ impl Default for Options {
 }
 
 impl Options {
-    /// The settings of one SCF; `all_orbitals`: every orbital (2.0.1).
+    /// The settings of one SCF; `all_orbitals`: every orbital.
     pub fn run(&self, all_orbitals: bool) -> ScfOptions {
         let c = &self.converger;
         ScfOptions {

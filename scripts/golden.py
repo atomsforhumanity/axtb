@@ -304,9 +304,11 @@ def corpus():
     add("traj-gfn2-water-stretch-retry-hessian", jump, method="gfn2", accuracy=1e-4, max_iter=60, hessian=True)
     add("traj-gxtb2-water-stretch-retry", jump, method="gxtb-v2.0.1", max_iter=40, gradient=True)
     add("traj-gxtb2-water-stretch-retry-hessian", jump, method="gxtb-v2.0.1", max_iter=40, hessian=True)
-    # v1.1: max_iter 70 leaves both rungs a margin (803e316: the warm start would converge after 84
-    # iterations, on another state; the fresh one converges after 52), compared as a ladder case
-    add("traj-gxtb11-water-stretch-retry", jump, method="gxtb-v1.1", max_iter=70, gradient=True)
+    # v1.1, compared as a ladder case: at accuracy 1 the stretched SCF stops where round-off decides
+    # (charges ~1e-5 apart between builds), at 1e-4 builds agree to 1e-11 (step 17, C10); max_iter
+    # 100 leaves both rungs a margin there (the warm start would converge after 181 iterations with
+    # 803e316 and 144 at C10, on a state 0.0099 Eh lower; the fresh start converges after 56 and 61)
+    add("traj-gxtb11-water-stretch-retry", jump, method="gxtb-v1.1", accuracy=1e-4, max_iter=100, gradient=True)
     return c
 
 
@@ -404,7 +406,8 @@ THRESHOLDS = {
 # Ladder cases: the retry ladders' outcome is the point (which start gave each result, whether it
 # converged), not the converged numbers of a slowly converging SCF, whose path round-off decides.
 # Exact: the exit code, the start of every result (`guess`), the error kinds; energy 1e-10, gradient
-# 1e-7; the other quantities within what the SCF's own convergence test leaves at accuracy 1 (v1.1:
+# 1e-7; the other quantities within what the SCF's own convergence test leaves at accuracy 1 (a case
+# at a tighter accuracy stays well inside; v1.1:
 # RMS density change 2e-5, energy change 1e-8 Eh): charges 2e-5, atomic and molecular dipoles 1e-4
 # (x 5 bohr), quadrupoles 2e-4 (x 10 bohr^2), terms, orbital energies and the gap 1e-5 Eh (x 0.5 Eh);
 # the iteration counts may differ and are always printed. (The gfn2 and gxtb2 stretch-retry cases can

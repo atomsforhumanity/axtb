@@ -564,6 +564,7 @@ impl Setup {
             solver,
             conventions: opts.conventions,
             program,
+            lowest: !program && !opts.all_orbitals,
             kt,
             occ: aufbau,
             efermi: [None, None],
@@ -633,8 +634,9 @@ impl Setup {
 }
 
 /// One v1.1 SCF of [`Setup::scf_from`] as the core's SCF model (the 1.1.0 program's iteration,
-/// see [`ScfOptions`]): every eigenpair of the mixed (in the last iteration the unmixed) Fock
-/// matrices, the Aufbau or Fermi occupations (the program's eigenvalue cap at N_alpha + 10 in
+/// see [`ScfOptions`]): the eigenpairs of the mixed (in the last iteration the unmixed) Fock
+/// matrices (every one in the program's conventions or with `all_orbitals`, otherwise the
+/// eigenvalues and the occupied eigenvectors), the Aufbau or Fermi occupations (the program's eigenvalue cap at N_alpha + 10 in
 /// its conventions), the density as one matrix product
 /// ([`crate::v2::scf::weighted_density`]), its RMS change, and the evaluation of the density
 /// with the next Fock matrices (none in the last iteration).
@@ -643,6 +645,9 @@ struct Scf110<'a> {
     solver: GenEigSolver,
     conventions: Conventions,
     program: bool,
+    /// Only the eigenvectors of the orbitals with nonzero occupation (the default conventions
+    /// without `all_orbitals`); otherwise every eigenpair.
+    lowest: bool,
     kt: f64,
     /// Occupations per channel (at 0 K the Aufbau ones throughout), Fermi levels and the
     /// entropy term -TS of the last iteration.
@@ -650,7 +655,8 @@ struct Scf110<'a> {
     efermi: [Option<f64>; 2],
     ts: f64,
     c: Mat<f64>,
-    /// Orbital energies and coefficients (row-major) per channel of the last iteration.
+    /// Orbital energies and coefficients (row-major; with `lowest` the columns of the orbitals
+    /// without occupation zero) per channel of the last iteration.
     eps: Vec<Vec<f64>>,
     coef: Vec<Vec<f64>>,
     /// The densities of the last iteration, until the state takes them.
@@ -666,11 +672,42 @@ impl ScfModel for Scf110<'_> {
     type State = Vec<Vec<f64>>;
 
     fn diagonalize(&mut self, fock: FockSource<'_>) -> Result<ControlFlow<Error>> {
-        let n = self.setup.nao;
-        for s in 0..self.eps.len() {
+        let setup = self.setup;
+        let (n, ns, kt) = (setup.nao, self.eps.len(), self.kt);
+        for s in 0..ns {
             let fs = fock.matrix(s).expect("the v1.1 SCF diagonalizes row-major Fock matrices");
-            self.solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut self.eps[s], &mut self.c)?;
-            MatMut::from_row_major_slice_mut(&mut self.coef[s], n, n).copy_from(&self.c);
+            if !self.lowest {
+                self.solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut self.eps[s], &mut self.c)?;
+                MatMut::from_row_major_slice_mut(&mut self.coef[s], n, n).copy_from(&self.c);
+                continue;
+            }
+            // the eigenvectors of the orbitals with nonzero occupation (at a finite temperature
+            // the occupations follow from the eigenvalues, as in `density`)
+            let occ = &self.occ;
+            let need = |e: &[f64]| -> usize {
+                let o = if kt > 0.0 {
+                    let nel = if s == 0 { setup.nalpha } else { setup.nbeta };
+                    let (a, _, _) = crate::fermi::fill_channel(nel, kt, e, false);
+                    if ns == 1 {
+                        let (b, _, _) = crate::fermi::fill_channel(setup.nbeta, kt, e, false);
+                        a.iter().zip(&b).map(|(x, y)| x + y).collect()
+                    } else {
+                        a
+                    }
+                } else {
+                    occ[s].clone()
+                };
+                o.iter().rposition(|&x| x != 0.0).map_or(0, |i| i + 1)
+            };
+            let k = self.solver.solve_lowest(
+                MatRef::from_row_major_slice(fs, n, n),
+                &mut self.eps[s],
+                &mut self.c,
+                need,
+            )?;
+            let mut cm = MatMut::from_row_major_slice_mut(&mut self.coef[s], n, n);
+            cm.as_mut().subcols_mut(0, k).copy_from(self.c.as_ref().subcols(0, k));
+            cm.subcols_mut(k, n - k).fill(0.0);
         }
         Ok(ControlFlow::Continue(()))
     }
