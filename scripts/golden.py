@@ -17,6 +17,9 @@ round-off step of one method): each is summarized per quantity (energy and terms
 Hessian, charges, orbital energies, iterations, ...; trajectories over all their steps) against
 the thresholds in `THRESHOLDS`, and the run fails only if one is exceeded, an iteration count
 changes, or a case differs in anything but numbers. Every other case must stay identical.
+Normal modes count per set of degenerate frequencies (the spans, not the vectors). Flagged REVIEW
+(exit 3): a Molden file that differs only by rotations inside degenerate orbital sets or signs, and
+a set of modes whose span moves by more than MODES_REVIEW.
 
 Trajectory cases (warm starts: each SCF from the previous geometry's wavefunction) run the
 dev-only example of axtb-driver (`cargo build --release -p axtb-driver --example
@@ -207,15 +210,16 @@ def corpus():
     # singlet O2 (closed shell): a half-filled degenerate pi* pair, strongly fractional at any etemp
     s0 = mol(O2, 0.0, 0)
     for t in (300.0, 5000.0):
+        # at 300 K and the default accuracy the g-xTB SCFs stop on a symmetry-broken intermediate (the
+        # 1.1.0 program: pi* split 2.9e-6 Eh, Qxx/Qyy 0.39148/0.39279), so round-off decides the moments;
+        # at accuracy 1e-4 they reach the symmetric state (v1.1: 803e316 and step 17's C9 agree to 2.3e-12
+        # in Q; 2.0.1: 62f3ecc and the R phase's one-order potentials agree to 8.1e-11, 1.8e-8 at accuracy 1)
+        pin = {"accuracy": 1e-4} if t == 300.0 else {}
         add(f"gfn2-o2s-hessian-etemp{t:.0f}", s0, method="gfn2", hessian=True, etemp=t)
         add(f"gfn2-o2s-hessian-response-etemp{t:.0f}", s0, method="gfn2", hessian=True, hessian_method="response", etemp=t)
-        add(f"gxtb2-o2s-hessian-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, etemp=t)
+        add(f"gxtb2-o2s-hessian-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, etemp=t, **pin)
         add(f"gxtb2-o2s-hessian-response-etemp{t:.0f}", s0, method="gxtb-v2.0.1", hessian=True, hessian_method="response",
             etemp=t)
-        # at 300 K and the default accuracy the program's SCF stops on a symmetry-broken intermediate
-        # (pi* split 2.9e-6 Eh, Qxx/Qyy 0.39148/0.39279), so round-off decides the moments; at accuracy
-        # 1e-4 it reaches the symmetric state (803e316 and step 17's C9 agree to 2.3e-12 in Q)
-        pin = {"accuracy": 1e-4} if t == 300.0 else {}
         add(f"gxtb11-o2s-grad-gxtb-etemp{t:.0f}", s0, method="gxtb-v1.1", conventions="gxtb", gradient=True, etemp=t,
             **pin)
     add("gxtb11-o2s-hessian-gxtb-etemp5000", s0, method="gxtb-v1.1", conventions="gxtb", hessian=True, etemp=5000.0)
@@ -302,7 +306,11 @@ def corpus():
     jump = {**w, "trajectory": [w["positions"], h3w], "guess": "previous"}
     add("traj-gfn2-water-stretch-retry", jump, method="gfn2", accuracy=1e-4, max_iter=60, gradient=True)
     add("traj-gfn2-water-stretch-retry-hessian", jump, method="gfn2", accuracy=1e-4, max_iter=60, hessian=True)
-    add("traj-gxtb2-water-stretch-retry", jump, method="gxtb-v2.0.1", max_iter=40, gradient=True)
+    # 2.0.1, ladder cases: at accuracy 1 the stretched SCF converges where round-off decides (energies 9e-9
+    # apart between builds), at 1e-3 the iteration counts differ, at 1e-4 it sits on the Fock residual's
+    # round-off floor (~3e-9); at 1e-2 builds agree to 1e-10 in the energy. The Hessian's reference SCF
+    # (accuracy 1e-5) at 3 Å never reaches its thresholds: an error whose numbers round-off decides
+    add("traj-gxtb2-water-stretch-retry", jump, method="gxtb-v2.0.1", accuracy=1e-2, max_iter=40, gradient=True)
     add("traj-gxtb2-water-stretch-retry-hessian", jump, method="gxtb-v2.0.1", max_iter=40, hessian=True)
     # v1.1, compared as a ladder case: at accuracy 1 the stretched SCF stops where round-off decides
     # (charges ~1e-5 apart between builds), at 1e-4 builds agree to 1e-11 (step 17, C10); max_iter
@@ -410,14 +418,23 @@ THRESHOLDS = {
 # at a tighter accuracy stays well inside; v1.1:
 # RMS density change 2e-5, energy change 1e-8 Eh): charges 2e-5, atomic and molecular dipoles 1e-4
 # (x 5 bohr), quadrupoles 2e-4 (x 10 bohr^2), terms, orbital energies and the gap 1e-5 Eh (x 0.5 Eh);
-# the iteration counts may differ and are always printed. (The gfn2 and gxtb2 stretch-retry cases can
-# join once their numbers may move.)
-LADDER_CASES = ("traj-gxtb11-water-stretch-retry",)
+# the iteration counts may differ and are always printed; the numbers in an error's message (energy change,
+# residual) within the SCF test's scale, 1e-8. (The gfn2 stretch-retry cases can join once their numbers
+# may move.)
+LADDER_CASES = ("traj-gxtb11-water-stretch-retry", "traj-gxtb2-water-stretch-retry",
+                "traj-gxtb2-water-stretch-retry-hessian")
 LADDER_THRESHOLDS = {
     "energy": 1e-10, "gradient": 1e-7, "charges": 2e-5, "shell_charges": 2e-5, "atomic_dipoles": 1e-4,
     "dipole": 1e-4, "atomic_quadrupoles": 2e-4, "quadrupole": 2e-4, "terms": 1e-5, "orbital_energies_alpha": 1e-5,
     "orbital_energies_beta": 1e-5, "homo_lumo_gap": 1e-5, "occupations_alpha": 1e-5, "occupations_beta": 1e-5,
+    "error.energy_change": 1e-8, "error.residual": 1e-8,
 }
+# Normal modes are compared per set of degenerate frequencies (within DEGENERATE_CM cm^-1 of each other):
+# the distance of the spans, |P_a - P_b|_F of the sets' orthonormalized projectors, so that rotations inside
+# a degenerate set and signs do not count; IR intensities, reduced masses and force constants as sums over
+# each set. A distance above MODES_REVIEW is flagged for review (exit 3), like a Molden file.
+DEGENERATE_CM, MODES_REVIEW = 1e-3, 1e-7
+MODE_SETS = ("normal_modes", "ir_intensities", "reduced_masses", "force_constants")
 EXACT = ("iterations", "n_imaginary", "hessian_method", "method", "conventions", "guess", "linear",
          "error.iterations", "error.kind")
 
@@ -466,6 +483,53 @@ def molden_subspaces(a, b, tol=1e-9, degenerate=1e-6):
                 worst = max(worst, abs(pa - pb))
         k = j
     return worst
+
+
+def orthonormal(vectors):
+    """An orthonormal basis of the span of `vectors` (modified Gram-Schmidt), or None if they are dependent."""
+    out = []
+    for v in vectors:
+        w = list(v)
+        for u in out:
+            c = sum(x * y for x, y in zip(u, w))
+            w = [x - c * y for x, y in zip(w, u)]
+        n = math.sqrt(sum(x * x for x in w))
+        if n < 1e-12:
+            return None
+        out.append([x / n for x in w])
+    return out
+
+
+def mode_sets(a, b):
+    """Normal modes of two responses per set of degenerate frequencies (DEGENERATE_CM): the largest distance
+    of the sets' spans, |P_a - P_b|_F, and the largest change of the sets' sums of IR intensities, reduced
+    masses and force constants; None when the responses do not both carry modes of the same shape."""
+    if not (isinstance(a, dict) and isinstance(b, dict) and "normal_modes" in a and "normal_modes" in b):
+        return None
+    fa, ma, mb = a.get("frequencies") or [], a["normal_modes"], b["normal_modes"]
+    if not fa or len(ma) != len(fa) or len(mb) != len(fa) or len(b.get("frequencies") or []) != len(fa):
+        return None
+    vec = lambda m: [x for atom in m for x in atom]
+    rows, k = {}, 0
+    while k < len(fa):
+        j = k + 1
+        while j < len(fa) and abs(fa[j] - fa[j - 1]) <= DEGENERATE_CM:
+            j += 1
+        qa = orthonormal([vec(ma[i]) for i in range(k, j)])
+        qb = orthonormal([vec(mb[i]) for i in range(k, j)])
+        if qa is None or qb is None or len(qa[0]) != len(qb[0]):
+            return None
+        # the part of b's span outside a's: |P_a - P_b|_F^2 = 2 sum sin^2 of the principal angles
+        r2 = 0.0
+        for v in qb:
+            c = [sum(x * y for x, y in zip(u, v)) for u in qa]
+            r2 += sum((v[t] - sum(ci * u[t] for ci, u in zip(c, qa))) ** 2 for t in range(len(v)))
+        rows["normal_modes"] = max(rows.get("normal_modes", 0.0), math.sqrt(2.0 * r2))
+        for q in MODE_SETS[1:]:
+            if len(a.get(q) or []) == len(fa) and len(b.get(q) or []) == len(fa):
+                rows[q] = max(rows.get(q, 0.0), abs(sum(a[q][k:j]) - sum(b[q][k:j])))
+        k = j
+    return rows
 
 
 def text_numbers(a, b):
@@ -523,8 +587,16 @@ def report(gold, new, ladder=False):
             rows["structure"] = "differs"
             ok = False
             continue
+        sets = mode_sets(a, b)
+        if sets is not None:
+            for q, v in sets.items():
+                rows[q] = max(rows.get(q, 0.0), v)
+            # spans that differ: reported for review, neither a pass nor a failure
+            review |= sets.get("normal_modes", 0.0) > MODES_REVIEW
         for (p, x), (_, y) in zip(la, lb):
             q = quantity(p)
+            if sets is not None and q in MODE_SETS:
+                continue
             if x == y or (isinstance(x, float) and isinstance(y, float) and math.isnan(x) and math.isnan(y)):
                 rows.setdefault(q, 0.0)
                 continue
