@@ -657,17 +657,18 @@ impl Setup {
             let o = MoSpace::new(c.as_ref(), n).to_mo(MatRef::from_row_major_slice(x, n, n), par);
             (0..n * n).map(|k| o[(k / n, k % n)]).collect()
         };
+        // 1/2 (C Y C^T + (C Y C^T)^T): the core's transform of rows [0, n) with all of them halved
         let to_ao = |c: &Mat<f64>, y: &[f64]| -> Vec<f64> {
-            let mut t = Mat::<f64>::zeros(n, n);
-            matmul(t.as_mut(), Accum::Replace, c.as_ref(), MatRef::from_row_major_slice(y, n, n), 1.0, par);
-            let mut o = Mat::<f64>::zeros(n, n);
-            matmul(o.as_mut(), Accum::Replace, t.as_ref(), c.transpose(), 1.0, par);
-            (0..n * n).map(|k| 0.5 * (o[(k / n, k % n)] + o[(k % n, k / n)])).collect()
+            let mo = MoSpace::new(c.as_ref(), n);
+            let mut a = MatRef::from_row_major_slice(y, n, n).to_owned();
+            mo.halve_occupied(&mut a);
+            let o = mo.to_ao(a.as_ref(), par);
+            (0..n * n).map(|k| o[(k / n, k % n)]).collect()
         };
         let chi = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let (dn, dnsum) = (&c.occ.df()[0], c.occ.z()[0]);
-            let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
+            let dn = &c.occ.df()[0];
+            let a = c.occ.fermi_shift(0, |q| x[q * n + q]);
             let d1 = c.occ.d1();
             for k in 0..n * n {
                 x[k] *= d1[(k / n, k % n)];
@@ -679,8 +680,8 @@ impl Setup {
         };
         let sigma_t = |c: &Ch, y: &[f64]| -> Vec<f64> {
             let mut x = to_mo(&c.c, y);
-            let (dn, dnsum) = (&c.occ.df()[0], c.occ.z()[0]);
-            let a = if dnsum != 0.0 { (0..n).map(|q| dn[q] * x[q * n + q]).sum::<f64>() / dnsum } else { 0.0 };
+            let dn = &c.occ.df()[0];
+            let a = c.occ.fermi_shift(0, |q| x[q * n + q]);
             let (d2, eps) = (c.occ.d2(), c.occ.eps());
             for k in 0..n * n {
                 x[k] *= -d2[(k / n, k % n)];

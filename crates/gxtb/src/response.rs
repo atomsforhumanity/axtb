@@ -112,16 +112,10 @@ impl Channel {
         }
     }
 
-    /// The Fermi-level shift of a level-weighted diagonal: sum_p n'_p x_pp / sum_p n'_p over
-    /// the rows [0, n_o) (0 at 0 K) for an MO matrix `x` (rows [0, n_o)).
+    /// The Fermi-level shift of the level changes `x(p)` of the rows [0, n_o): the core's
+    /// [`OccupationResponse::fermi_shift`], sum_{p < n_o} n'_p x(p) / sum_p n'_p (0 at 0 K).
     fn fermi_shift(&self, x: impl Fn(usize) -> f64) -> f64 {
-        match &self.fermi {
-            Some((z, _)) => {
-                let dn = &self.occ.df()[0];
-                (0..self.occ.n_o()).map(|p| dn[p] * x(p)).sum::<f64>() / z
-            }
-            None => 0.0,
-        }
+        self.occ.fermi_shift(0, x)
     }
 }
 
@@ -486,31 +480,18 @@ impl<'a> Cpks<'a> {
             .collect();
         let (k, kd) = self.kernel_parts(&dp);
         let df: Vec<Mat<f64>> = fy.iter().zip(&k).map(|(f, k)| f + k).collect();
+        // dW: the core's occupation response of F~ and S~ (with the Fermi-level shift at a finite
+        // temperature: d(n_p e_p) gains -e_p n'_p dmu)
         let dw: Vec<Mat<f64>> = self
             .ch
             .iter()
             .zip(&df)
             .zip(&st)
             .map(|((ch, f), s)| {
-                let (oc, mo) = (&ch.occ, ch.mo());
+                let mo = ch.mo();
                 let ft = mo.to_mo(f.as_ref(), par);
-                let (n_o, eps, d2, d3) = (oc.n_o(), oc.eps(), oc.d2(), oc.d3());
-                let mut a = Mat::<f64>::zeros(n_o, ft.ncols());
-                for j in 0..ft.ncols() {
-                    for i in 0..n_o {
-                        a[(i, j)] = ft[(i, j)] * d2[(i, j)] - s[(i, j)] * d3[(i, j)];
-                    }
-                }
-                // finite temperature: d(n_p e_p) gains -n'_p e_p dmu
-                if ch.fermi.is_some() {
-                    let mu = ch.fermi_shift(|p| ft[(p, p)] - eps[p] * s[(p, p)]);
-                    let dn = &oc.df()[0];
-                    for p in 0..n_o {
-                        a[(p, p)] -= dn[p] * eps[p] * mu;
-                    }
-                }
-                mo.halve_occupied(&mut a);
-                mo.to_ao(a.as_ref(), par)
+                let r = ch.occ.density_response(ft.as_ref(), Some(s.as_ref()));
+                mo.to_ao(r.dw.as_ref(), par)
             })
             .collect();
         Ok((Perturbed { dp, dw, df, iterations, zr }, kd))

@@ -4,12 +4,12 @@
 //!   2.0.1 (`crate::response`), on block vectors (one faer matrix per spin channel) with the
 //!   eight-partial-sum dot product ([`block_dot`]);
 //! - [`gmres`]: right-preconditioned restarted GMRES for v1.1's non-symmetric Z-vector equations
-//!   (the response of the program's Fock matrix), on plain vectors with the sequential dot product.
+//!   (the response of the program's Fock matrix), on plain vectors with the same dot product.
 //!
 //! Both start from x = 0 and stop at |b - A x| <= tol |b|; the convergence settings and the
 //! messages of a failure belong to the callers.
 
-use crate::dense::{dot, dot_seq};
+use crate::dense::dot;
 use axtb::Error;
 use faer::Mat;
 
@@ -41,9 +41,9 @@ pub fn block_dot(a: &[Mat<f64>], b: &[Mat<f64>]) -> f64 {
     s
 }
 
-/// The Euclidean norm with the sequential dot product.
+/// The Euclidean norm.
 fn norm(a: &[f64]) -> f64 {
-    dot_seq(a, a).sqrt()
+    dot(a, a).sqrt()
 }
 
 /// A conjugate-gradient solution.
@@ -172,7 +172,7 @@ pub fn gmres(
             iters += 1;
             let mut w = op(&pre(&v[k]))?;
             for j in 0..=k {
-                h[j][k] = dot_seq(&w, &v[j]);
+                h[j][k] = dot(&w, &v[j]);
                 sub_scaled(h[j][k], &v[j], &mut w);
             }
             h[k + 1][k] = norm(&w);
