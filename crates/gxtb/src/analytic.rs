@@ -35,7 +35,7 @@ use crate::coulomb::{AesCache, IsotropicCache};
 use crate::dense::dot;
 use crate::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
 use crate::explicit::STEP;
-use crate::fock::{add_charge_potential, add_potentials_rows};
+use crate::fock::{add_charge_potential, add_potentials};
 use crate::gradient::{exchange_kernel_weights, Potentials};
 use crate::h0::{anisotropy, anisotropy_gradient};
 use crate::intermediates::Slots;
@@ -581,7 +581,7 @@ impl<'a> Analytic<'a> {
         let (mut cv, mut cd, mut cq) = (vec![0.0; lay.nsh], vec![[0.0; 3]; lay.nat], vec![[0.0; 6]; lay.nat]);
         lay.unpack(&c, &mut cv, &mut cd, &mut cq, None);
         let cao: Vec<f64> = s.basis.scf.ao2sh.iter().map(|&i| cv[i]).collect();
-        add_potentials_rows(n, &s.s, &s.basis.scf.ao2at, &s.dpint, &s.qpint, &cao, &cd, &cq, &mut f0);
+        add_potentials(n, &s.s, &s.basis.scf.ao2at, &s.dpint, &s.qpint, &cao, &cd, &cq, &mut f0, false);
         let (dg, dk) = self.exchange_kernel_tangent(x);
         let a1: Vec<f64> = dg.iter().zip(&dk).map(|(g, k)| -0.125 * g + 0.5 * k).collect();
         let a2: Vec<f64> = dg.iter().map(|g| -0.125 * g).collect();

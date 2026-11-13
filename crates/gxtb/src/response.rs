@@ -37,7 +37,7 @@
 
 use crate::dense::{dot, from_mat_sym, to_mat, to_mat_sym};
 use crate::exchange::ResponseBase;
-use crate::fock::{add_charge_potential, add_potentials_rows};
+use crate::fock::{add_charge_potential, add_potentials};
 use crate::krylov::{self, CgError};
 use crate::scf::{ScfResult, Setup, State};
 use axtb::response::{occupied_count, MoSpace, OccupationResponse};
@@ -262,7 +262,7 @@ impl Setup {
         let n = self.nao;
         let mut f0 = vec![0.0; n * n];
         let vao: Vec<f64> = self.basis.scf.ao2sh.iter().map(|&ish| dv[ish]).collect();
-        add_potentials_rows(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f0);
+        add_potentials(n, &self.s, &self.basis.scf.ao2at, &self.dpint, &self.qpint, &vao, &vd, &vq, &mut f0, false);
         let wao: Option<Vec<f64>> = w.map(|w| self.basis.scf.ao2sh.iter().map(|&ish| w[ish]).collect());
         fx.into_iter()
             .enumerate()

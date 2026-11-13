@@ -33,6 +33,24 @@ pub fn fill_tiled(out: &mut [f64], n: usize, parallel: bool, f: impl Fn(usize, u
     });
 }
 
+/// `out[i n + j] = f(i, j, out[i n + j])` for an n x n row-major `out`, in the tiles of
+/// [`fill_tiled`].
+pub fn update_tiled(out: &mut [f64], n: usize, parallel: bool, f: impl Fn(usize, usize, f64) -> f64 + Sync + Send) {
+    for_slices(out, TILE * n, parallel, |t, rows| {
+        let i0 = t * TILE;
+        let i1 = (i0 + TILE).min(n);
+        for j0 in (0..n).step_by(TILE) {
+            let j1 = (j0 + TILE).min(n);
+            for i in i0..i1 {
+                let row = &mut rows[(i - i0) * n..(i - i0 + 1) * n];
+                for j in j0..j1 {
+                    row[j] = f(i, j, row[j]);
+                }
+            }
+        }
+    });
+}
+
 /// Sum of `f(k)` over `0..n` in fixed chunks, chunk sums added in order.
 pub fn sum(n: usize, parallel: bool, f: impl Fn(usize) -> f64 + Sync + Send) -> f64 {
     map_chunks(n, parallel, |r| r.map(&f).sum::<f64>()).into_iter().sum()
