@@ -57,10 +57,10 @@ pub trait FockMixer {
     fn observe(&mut self, _it: &Iteration) {}
 }
 
-/// Root mean square of `r`, sqrt(Σ r_k² / n) (each square divided by n, then summed).
+/// Root mean square of `r`, sqrt(Σ r_k² / n) (one division, as the per-atom norm and g-xTB's
+/// residuals).
 pub(crate) fn rms(r: &[f64]) -> f64 {
-    let n = r.len() as f64;
-    r.iter().map(|x| x * x / n).sum::<f64>().sqrt()
+    (r.iter().map(|x| x * x).sum::<f64>() / r.len() as f64).sqrt()
 }
 
 /// `dq = out − q_in` (the residual of a vector mixer).
