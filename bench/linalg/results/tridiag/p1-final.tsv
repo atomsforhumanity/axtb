@@ -1,0 +1,295 @@
+# file	n	variant	threads	median_ms	min_ms	eig_err	orth	resid	red	bits_vs_1t
+gfn2-taxol	299	faer22	1	-	-	4.11e-15	3.00e-15	1.94e-15	1.66e-15	-
+gfn2-taxol	299	faer22	4	-	-	-	-	-	-	same
+gfn2-taxol	299	faer22	8	-	-	-	-	-	-	same
+gfn2-taxol	299	faer22:thr1	1	-	-	4.11e-15	3.00e-15	1.94e-15	1.66e-15	-
+gfn2-taxol	299	faer22:thr1	4	-	-	4.00e-15	2.44e-15	1.94e-15	1.65e-15	differ
+gfn2-taxol	299	faer22:thr1	8	-	-	3.89e-15	2.89e-15	1.85e-15	1.64e-15	differ
+gfn2-taxol	299	faer24	1	-	-	4.00e-15	2.55e-15	1.93e-15	1.66e-15	-
+gfn2-taxol	299	faer24	4	-	-	-	-	-	-	same
+gfn2-taxol	299	faer24	8	-	-	-	-	-	-	same
+gfn2-taxol	299	faer24:thr1	1	-	-	4.00e-15	2.55e-15	1.93e-15	1.66e-15	-
+gfn2-taxol	299	faer24:thr1	4	-	-	3.77e-15	2.33e-15	1.92e-15	1.66e-15	differ
+gfn2-taxol	299	faer24:thr1	8	-	-	3.77e-15	2.55e-15	1.90e-15	1.66e-15	differ
+gfn2-taxol	299	blocked:nb32:nx64	1	-	-	4.11e-15	2.89e-15	1.88e-15	1.59e-15	-
+gfn2-taxol	299	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gfn2-taxol	299	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gfn2-taxol	299	blocked:nb64:nx64	1	-	-	3.89e-15	2.89e-15	1.99e-15	1.71e-15	-
+gfn2-taxol	299	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gfn2-taxol	299	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gfn2-taxol	299	faer22	1	2.157	2.099	-	-	-	-	-
+gfn2-taxol	299	faer22:thr1	1	2.159	2.055	-	-	-	-	-
+gfn2-taxol	299	faer24	1	2.105	1.993	-	-	-	-	-
+gfn2-taxol	299	faer24:thr1	1	2.146	2.025	-	-	-	-	-
+# profile gfn2-taxol blocked:nb32:nx64 1t: symv 1.29 latrd 1.89 (other 0.60) syr2k 0.34 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb32:nx64	1	2.256	2.153	-	-	-	-	-
+# profile gfn2-taxol blocked:nb64:nx64 1t: symv 1.51 latrd 2.48 (other 0.97) syr2k 0.30 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb64:nx64	1	2.719	2.631	-	-	-	-	-
+gfn2-taxol	299	faer22	4	2.175	2.024	-	-	-	-	-
+gfn2-taxol	299	faer22:thr1	4	2.604	2.511	-	-	-	-	-
+gfn2-taxol	299	faer24	4	2.125	1.979	-	-	-	-	-
+gfn2-taxol	299	faer24:thr1	4	2.718	2.590	-	-	-	-	-
+# profile gfn2-taxol blocked:nb32:nx64 4t: symv 1.15 latrd 1.80 (other 0.65) syr2k 0.25 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb32:nx64	4	2.085	1.969	-	-	-	-	-
+# profile gfn2-taxol blocked:nb64:nx64 4t: symv 1.29 latrd 2.30 (other 1.01) syr2k 0.24 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb64:nx64	4	2.573	2.474	-	-	-	-	-
+gfn2-taxol	299	faer22	8	2.166	2.091	-	-	-	-	-
+gfn2-taxol	299	faer22:thr1	8	2.778	2.639	-	-	-	-	-
+gfn2-taxol	299	faer24	8	2.098	2.064	-	-	-	-	-
+gfn2-taxol	299	faer24:thr1	8	2.786	2.679	-	-	-	-	-
+# profile gfn2-taxol blocked:nb32:nx64 8t: symv 1.24 latrd 1.96 (other 0.72) syr2k 0.39 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb32:nx64	8	2.307	2.219	-	-	-	-	-
+# profile gfn2-taxol blocked:nb64:nx64 8t: symv 1.32 latrd 2.34 (other 1.01) syr2k 0.31 sytd2 0.04 ms
+gfn2-taxol	299	blocked:nb64:nx64	8	2.779	2.568	-	-	-	-	-
+gxtb2-taxol	299	faer22	1	-	-	4.66e-15	2.44e-15	1.88e-15	1.53e-15	-
+gxtb2-taxol	299	faer22	4	-	-	-	-	-	-	same
+gxtb2-taxol	299	faer22	8	-	-	-	-	-	-	same
+gxtb2-taxol	299	faer22:thr1	1	-	-	4.66e-15	2.44e-15	1.88e-15	1.53e-15	-
+gxtb2-taxol	299	faer22:thr1	4	-	-	4.44e-15	2.11e-15	1.85e-15	1.51e-15	differ
+gxtb2-taxol	299	faer22:thr1	8	-	-	4.55e-15	2.11e-15	1.84e-15	1.51e-15	differ
+gxtb2-taxol	299	faer24	1	-	-	4.66e-15	1.78e-15	1.87e-15	1.54e-15	-
+gxtb2-taxol	299	faer24	4	-	-	-	-	-	-	same
+gxtb2-taxol	299	faer24	8	-	-	-	-	-	-	same
+gxtb2-taxol	299	faer24:thr1	1	-	-	4.66e-15	1.78e-15	1.87e-15	1.54e-15	-
+gxtb2-taxol	299	faer24:thr1	4	-	-	4.44e-15	2.22e-15	1.90e-15	1.52e-15	differ
+gxtb2-taxol	299	faer24:thr1	8	-	-	4.66e-15	2.44e-15	1.86e-15	1.53e-15	differ
+gxtb2-taxol	299	blocked:nb32:nx64	1	-	-	4.66e-15	2.44e-15	1.93e-15	1.53e-15	-
+gxtb2-taxol	299	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gxtb2-taxol	299	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gxtb2-taxol	299	blocked:nb64:nx64	1	-	-	4.66e-15	2.55e-15	2.02e-15	1.65e-15	-
+gxtb2-taxol	299	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gxtb2-taxol	299	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gxtb2-taxol	299	faer22	1	2.194	2.165	-	-	-	-	-
+gxtb2-taxol	299	faer22:thr1	1	2.172	2.130	-	-	-	-	-
+gxtb2-taxol	299	faer24	1	2.110	2.068	-	-	-	-	-
+gxtb2-taxol	299	faer24:thr1	1	2.106	2.065	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb32:nx64 1t: symv 1.36 latrd 1.96 (other 0.60) syr2k 0.36 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb32:nx64	1	2.227	2.174	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb64:nx64 1t: symv 1.49 latrd 2.41 (other 0.92) syr2k 0.30 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb64:nx64	1	2.707	2.606	-	-	-	-	-
+gxtb2-taxol	299	faer22	4	2.127	2.029	-	-	-	-	-
+gxtb2-taxol	299	faer22:thr1	4	2.491	2.422	-	-	-	-	-
+gxtb2-taxol	299	faer24	4	2.075	1.960	-	-	-	-	-
+gxtb2-taxol	299	faer24:thr1	4	2.586	2.505	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb32:nx64 4t: symv 1.12 latrd 1.75 (other 0.63) syr2k 0.26 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb32:nx64	4	2.060	1.964	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb64:nx64 4t: symv 1.26 latrd 2.23 (other 0.97) syr2k 0.24 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb64:nx64	4	2.522	2.460	-	-	-	-	-
+gxtb2-taxol	299	faer22	8	2.126	2.008	-	-	-	-	-
+gxtb2-taxol	299	faer22:thr1	8	2.816	2.720	-	-	-	-	-
+gxtb2-taxol	299	faer24	8	2.162	2.050	-	-	-	-	-
+gxtb2-taxol	299	faer24:thr1	8	2.821	2.705	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb32:nx64 8t: symv 1.29 latrd 2.05 (other 0.75) syr2k 0.43 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb32:nx64	8	2.370	2.220	-	-	-	-	-
+# profile gxtb2-taxol blocked:nb64:nx64 8t: symv 1.35 latrd 2.42 (other 1.07) syr2k 0.35 sytd2 0.04 ms
+gxtb2-taxol	299	blocked:nb64:nx64	8	2.782	2.617	-	-	-	-	-
+gfn2-c50h102	302	faer22	1	-	-	1.78e-15	2.00e-15	1.90e-15	1.55e-15	-
+gfn2-c50h102	302	faer22	4	-	-	-	-	-	-	same
+gfn2-c50h102	302	faer22	8	-	-	-	-	-	-	same
+gfn2-c50h102	302	faer22:thr1	1	-	-	1.78e-15	2.00e-15	1.90e-15	1.55e-15	-
+gfn2-c50h102	302	faer22:thr1	4	-	-	1.78e-15	2.00e-15	1.89e-15	1.52e-15	differ
+gfn2-c50h102	302	faer22:thr1	8	-	-	1.78e-15	2.00e-15	1.89e-15	1.51e-15	differ
+gfn2-c50h102	302	faer24	1	-	-	1.78e-15	2.33e-15	1.92e-15	1.51e-15	-
+gfn2-c50h102	302	faer24	4	-	-	-	-	-	-	same
+gfn2-c50h102	302	faer24	8	-	-	-	-	-	-	same
+gfn2-c50h102	302	faer24:thr1	1	-	-	1.78e-15	2.33e-15	1.92e-15	1.51e-15	-
+gfn2-c50h102	302	faer24:thr1	4	-	-	2.00e-15	2.44e-15	1.84e-15	1.49e-15	differ
+gfn2-c50h102	302	faer24:thr1	8	-	-	1.89e-15	1.89e-15	1.89e-15	1.49e-15	differ
+gfn2-c50h102	302	blocked:nb32:nx64	1	-	-	1.78e-15	2.76e-15	1.94e-15	1.48e-15	-
+gfn2-c50h102	302	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gfn2-c50h102	302	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gfn2-c50h102	302	blocked:nb64:nx64	1	-	-	2.11e-15	2.24e-15	2.07e-15	1.61e-15	-
+gfn2-c50h102	302	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gfn2-c50h102	302	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gfn2-c50h102	302	faer22	1	2.143	2.066	-	-	-	-	-
+gfn2-c50h102	302	faer22:thr1	1	2.174	2.094	-	-	-	-	-
+gfn2-c50h102	302	faer24	1	2.102	2.075	-	-	-	-	-
+gfn2-c50h102	302	faer24:thr1	1	2.089	2.059	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb32:nx64 1t: symv 1.31 latrd 1.93 (other 0.62) syr2k 0.34 sytd2 0.04 ms
+gfn2-c50h102	302	blocked:nb32:nx64	1	2.270	2.254	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb64:nx64 1t: symv 1.52 latrd 2.53 (other 1.01) syr2k 0.30 sytd2 0.04 ms
+gfn2-c50h102	302	blocked:nb64:nx64	1	2.793	2.771	-	-	-	-	-
+gfn2-c50h102	302	faer22	4	2.237	2.045	-	-	-	-	-
+gfn2-c50h102	302	faer22:thr1	4	2.470	2.414	-	-	-	-	-
+gfn2-c50h102	302	faer24	4	2.163	2.032	-	-	-	-	-
+gfn2-c50h102	302	faer24:thr1	4	2.663	2.601	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb32:nx64 4t: symv 1.14 latrd 1.81 (other 0.66) syr2k 0.26 sytd2 0.04 ms
+gfn2-c50h102	302	blocked:nb32:nx64	4	2.077	2.023	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb64:nx64 4t: symv 1.32 latrd 2.36 (other 1.04) syr2k 0.22 sytd2 0.04 ms
+gfn2-c50h102	302	blocked:nb64:nx64	4	2.582	2.502	-	-	-	-	-
+gfn2-c50h102	302	faer22	8	2.247	2.120	-	-	-	-	-
+gfn2-c50h102	302	faer22:thr1	8	2.798	2.696	-	-	-	-	-
+gfn2-c50h102	302	faer24	8	2.184	2.129	-	-	-	-	-
+gfn2-c50h102	302	faer24:thr1	8	2.865	2.792	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb32:nx64 8t: symv 1.32 latrd 2.14 (other 0.82) syr2k 0.40 sytd2 0.05 ms
+gfn2-c50h102	302	blocked:nb32:nx64	8	2.491	2.392	-	-	-	-	-
+# profile gfn2-c50h102 blocked:nb64:nx64 8t: symv 1.41 latrd 2.59 (other 1.18) syr2k 0.33 sytd2 0.05 ms
+gfn2-c50h102	302	blocked:nb64:nx64	8	2.905	2.805	-	-	-	-	-
+gfn2-w100	600	faer22	1	-	-	4.66e-15	2.89e-15	2.30e-15	2.27e-15	-
+gfn2-w100	600	faer22	4	-	-	4.33e-15	2.89e-15	2.27e-15	2.24e-15	differ
+gfn2-w100	600	faer22	8	-	-	4.72e-15	3.77e-15	2.30e-15	2.25e-15	differ
+gfn2-w100	600	faer22:thr1	1	-	-	4.66e-15	2.89e-15	2.30e-15	2.27e-15	-
+gfn2-w100	600	faer22:thr1	4	-	-	4.33e-15	3.39e-15	2.26e-15	2.22e-15	differ
+gfn2-w100	600	faer22:thr1	8	-	-	4.72e-15	3.22e-15	2.28e-15	2.25e-15	differ
+gfn2-w100	600	faer24	1	-	-	4.66e-15	3.22e-15	2.28e-15	2.22e-15	-
+gfn2-w100	600	faer24	4	-	-	4.39e-15	3.11e-15	2.31e-15	2.24e-15	differ
+gfn2-w100	600	faer24	8	-	-	4.55e-15	3.30e-15	2.25e-15	2.21e-15	differ
+gfn2-w100	600	faer24:thr1	1	-	-	4.66e-15	3.22e-15	2.28e-15	2.22e-15	-
+gfn2-w100	600	faer24:thr1	4	-	-	4.39e-15	2.82e-15	2.30e-15	2.23e-15	differ
+gfn2-w100	600	faer24:thr1	8	-	-	4.55e-15	3.11e-15	2.27e-15	2.23e-15	differ
+gfn2-w100	600	blocked:nb32:nx64	1	-	-	4.88e-15	3.44e-15	2.10e-15	1.88e-15	-
+gfn2-w100	600	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gfn2-w100	600	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gfn2-w100	600	blocked:nb64:nx64	1	-	-	4.83e-15	3.66e-15	2.23e-15	2.01e-15	-
+gfn2-w100	600	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gfn2-w100	600	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gfn2-w100	600	faer22	1	12.692	12.597	-	-	-	-	-
+gfn2-w100	600	faer22:thr1	1	12.751	12.588	-	-	-	-	-
+gfn2-w100	600	faer24	1	12.286	12.197	-	-	-	-	-
+gfn2-w100	600	faer24:thr1	1	12.353	12.140	-	-	-	-	-
+# profile gfn2-w100 blocked:nb32:nx64 1t: symv 9.57 latrd 12.07 (other 2.51) syr2k 2.87 sytd2 0.06 ms
+gfn2-w100	600	blocked:nb32:nx64	1	15.132	14.940	-	-	-	-	-
+# profile gfn2-w100 blocked:nb64:nx64 1t: symv 10.46 latrd 14.54 (other 4.08) syr2k 2.42 sytd2 0.02 ms
+gfn2-w100	600	blocked:nb64:nx64	1	17.162	16.771	-	-	-	-	-
+gfn2-w100	600	faer22	4	12.762	12.519	-	-	-	-	-
+gfn2-w100	600	faer22:thr1	4	13.057	12.541	-	-	-	-	-
+gfn2-w100	600	faer24	4	13.321	13.012	-	-	-	-	-
+gfn2-w100	600	faer24:thr1	4	14.283	13.519	-	-	-	-	-
+# profile gfn2-w100 blocked:nb32:nx64 4t: symv 4.68 latrd 7.91 (other 3.23) syr2k 1.32 sytd2 0.06 ms
+gfn2-w100	600	blocked:nb32:nx64	4	8.909	8.738	-	-	-	-	-
+# profile gfn2-w100 blocked:nb64:nx64 4t: symv 5.03 latrd 9.80 (other 4.78) syr2k 1.09 sytd2 0.02 ms
+gfn2-w100	600	blocked:nb64:nx64	4	10.754	10.490	-	-	-	-	-
+gfn2-w100	600	faer22	8	12.014	11.361	-	-	-	-	-
+gfn2-w100	600	faer22:thr1	8	12.515	12.076	-	-	-	-	-
+gfn2-w100	600	faer24	8	12.991	12.337	-	-	-	-	-
+gfn2-w100	600	faer24:thr1	8	13.758	13.260	-	-	-	-	-
+# profile gfn2-w100 blocked:nb32:nx64 8t: symv 4.29 latrd 7.95 (other 3.66) syr2k 1.21 sytd2 0.07 ms
+gfn2-w100	600	blocked:nb32:nx64	8	9.657	8.988	-	-	-	-	-
+# profile gfn2-w100 blocked:nb64:nx64 8t: symv 4.59 latrd 9.84 (other 5.25) syr2k 0.92 sytd2 0.02 ms
+gfn2-w100	600	blocked:nb64:nx64	8	11.790	11.538	-	-	-	-	-
+gxtb2-w100	600	faer22	1	-	-	5.77e-15	3.77e-15	2.19e-15	2.05e-15	-
+gxtb2-w100	600	faer22	4	-	-	5.77e-15	4.22e-15	2.18e-15	2.02e-15	differ
+gxtb2-w100	600	faer22	8	-	-	6.00e-15	2.44e-15	2.18e-15	2.02e-15	differ
+gxtb2-w100	600	faer22:thr1	1	-	-	5.77e-15	3.77e-15	2.19e-15	2.05e-15	-
+gxtb2-w100	600	faer22:thr1	4	-	-	5.77e-15	3.33e-15	2.19e-15	2.02e-15	differ
+gxtb2-w100	600	faer22:thr1	8	-	-	6.00e-15	2.66e-15	2.16e-15	2.01e-15	differ
+gxtb2-w100	600	faer24	1	-	-	5.11e-15	2.65e-15	2.19e-15	2.03e-15	-
+gxtb2-w100	600	faer24	4	-	-	5.55e-15	2.89e-15	2.20e-15	2.04e-15	differ
+gxtb2-w100	600	faer24	8	-	-	6.00e-15	3.22e-15	2.16e-15	2.01e-15	differ
+gxtb2-w100	600	faer24:thr1	1	-	-	5.11e-15	2.65e-15	2.19e-15	2.03e-15	-
+gxtb2-w100	600	faer24:thr1	4	-	-	5.55e-15	3.11e-15	2.20e-15	2.05e-15	differ
+gxtb2-w100	600	faer24:thr1	8	-	-	6.00e-15	2.83e-15	2.16e-15	2.02e-15	differ
+gxtb2-w100	600	blocked:nb32:nx64	1	-	-	5.33e-15	2.50e-15	2.18e-15	1.75e-15	-
+gxtb2-w100	600	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gxtb2-w100	600	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gxtb2-w100	600	blocked:nb64:nx64	1	-	-	5.33e-15	2.89e-15	2.26e-15	1.87e-15	-
+gxtb2-w100	600	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gxtb2-w100	600	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gxtb2-w100	600	faer22	1	12.921	12.820	-	-	-	-	-
+gxtb2-w100	600	faer22:thr1	1	12.910	12.865	-	-	-	-	-
+gxtb2-w100	600	faer24	1	12.578	12.392	-	-	-	-	-
+gxtb2-w100	600	faer24:thr1	1	12.524	12.485	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb32:nx64 1t: symv 9.80 latrd 12.23 (other 2.43) syr2k 2.83 sytd2 0.06 ms
+gxtb2-w100	600	blocked:nb32:nx64	1	15.321	14.923	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb64:nx64 1t: symv 10.69 latrd 14.58 (other 3.89) syr2k 2.40 sytd2 0.02 ms
+gxtb2-w100	600	blocked:nb64:nx64	1	17.322	17.028	-	-	-	-	-
+gxtb2-w100	600	faer22	4	12.695	12.191	-	-	-	-	-
+gxtb2-w100	600	faer22:thr1	4	13.316	12.619	-	-	-	-	-
+gxtb2-w100	600	faer24	4	13.153	12.724	-	-	-	-	-
+gxtb2-w100	600	faer24:thr1	4	14.492	13.999	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb32:nx64 4t: symv 4.60 latrd 7.62 (other 3.02) syr2k 1.44 sytd2 0.06 ms
+gxtb2-w100	600	blocked:nb32:nx64	4	8.623	8.334	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb64:nx64 4t: symv 5.25 latrd 9.57 (other 4.32) syr2k 1.22 sytd2 0.02 ms
+gxtb2-w100	600	blocked:nb64:nx64	4	10.282	9.988	-	-	-	-	-
+gxtb2-w100	600	faer22	8	12.318	11.449	-	-	-	-	-
+gxtb2-w100	600	faer22:thr1	8	12.961	12.132	-	-	-	-	-
+gxtb2-w100	600	faer24	8	13.388	12.215	-	-	-	-	-
+gxtb2-w100	600	faer24:thr1	8	14.077	12.779	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb32:nx64 8t: symv 4.29 latrd 7.68 (other 3.40) syr2k 1.32 sytd2 0.07 ms
+gxtb2-w100	600	blocked:nb32:nx64	8	10.075	9.061	-	-	-	-	-
+# profile gxtb2-w100 blocked:nb64:nx64 8t: symv 5.19 latrd 11.08 (other 5.89) syr2k 1.06 sytd2 0.03 ms
+gxtb2-w100	600	blocked:nb64:nx64	8	12.250	10.848	-	-	-	-	-
+gfn2-w200	1200	faer22	1	-	-	4.77e-15	3.55e-15	2.76e-15	2.76e-15	-
+gfn2-w200	1200	faer22	4	-	-	5.77e-15	4.33e-15	2.79e-15	2.74e-15	differ
+gfn2-w200	1200	faer22	8	-	-	6.44e-15	3.78e-15	2.77e-15	2.75e-15	differ
+gfn2-w200	1200	faer22:thr1	1	-	-	4.77e-15	3.55e-15	2.76e-15	2.76e-15	-
+gfn2-w200	1200	faer22:thr1	4	-	-	5.77e-15	3.33e-15	2.79e-15	2.74e-15	differ
+gfn2-w200	1200	faer22:thr1	8	-	-	6.44e-15	4.00e-15	2.77e-15	2.74e-15	differ
+gfn2-w200	1200	faer24	1	-	-	4.11e-15	3.77e-15	2.81e-15	2.77e-15	-
+gfn2-w200	1200	faer24	4	-	-	4.55e-15	5.33e-15	2.79e-15	2.74e-15	differ
+gfn2-w200	1200	faer24	8	-	-	4.66e-15	3.57e-15	2.74e-15	2.69e-15	differ
+gfn2-w200	1200	faer24:thr1	1	-	-	4.11e-15	3.77e-15	2.81e-15	2.77e-15	-
+gfn2-w200	1200	faer24:thr1	4	-	-	4.55e-15	5.33e-15	2.78e-15	2.74e-15	differ
+gfn2-w200	1200	faer24:thr1	8	-	-	4.66e-15	3.55e-15	2.74e-15	2.70e-15	differ
+gfn2-w200	1200	blocked:nb32:nx64	1	-	-	3.89e-15	3.58e-15	2.47e-15	2.10e-15	-
+gfn2-w200	1200	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gfn2-w200	1200	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gfn2-w200	1200	blocked:nb64:nx64	1	-	-	4.00e-15	3.89e-15	2.58e-15	2.18e-15	-
+gfn2-w200	1200	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gfn2-w200	1200	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gfn2-w200	1200	faer22	1	95.589	95.099	-	-	-	-	-
+gfn2-w200	1200	faer22:thr1	1	95.919	95.208	-	-	-	-	-
+gfn2-w200	1200	faer24	1	93.781	92.957	-	-	-	-	-
+gfn2-w200	1200	faer24:thr1	1	93.620	92.654	-	-	-	-	-
+# profile gfn2-w200 blocked:nb32:nx64 1t: symv 78.24 latrd 88.84 (other 10.60) syr2k 21.66 sytd2 0.05 ms
+gfn2-w200	1200	blocked:nb32:nx64	1	112.535	111.162	-	-	-	-	-
+# profile gfn2-w200 blocked:nb64:nx64 1t: symv 82.19 latrd 97.96 (other 15.77) syr2k 19.74 sytd2 0.05 ms
+gfn2-w200	1200	blocked:nb64:nx64	1	117.270	116.882	-	-	-	-	-
+gfn2-w200	1200	faer22	4	52.666	52.064	-	-	-	-	-
+gfn2-w200	1200	faer22:thr1	4	53.568	51.824	-	-	-	-	-
+gfn2-w200	1200	faer24	4	53.827	52.810	-	-	-	-	-
+gfn2-w200	1200	faer24:thr1	4	56.344	53.946	-	-	-	-	-
+# profile gfn2-w200 blocked:nb32:nx64 4t: symv 27.28 latrd 39.46 (other 12.18) syr2k 8.57 sytd2 0.06 ms
+gfn2-w200	1200	blocked:nb32:nx64	4	46.581	45.597	-	-	-	-	-
+# profile gfn2-w200 blocked:nb64:nx64 4t: symv 26.59 latrd 42.03 (other 15.45) syr2k 6.45 sytd2 0.06 ms
+gfn2-w200	1200	blocked:nb64:nx64	4	49.373	48.065	-	-	-	-	-
+gfn2-w200	1200	faer22	8	63.690	56.077	-	-	-	-	-
+gfn2-w200	1200	faer22:thr1	8	62.169	55.041	-	-	-	-	-
+gfn2-w200	1200	faer24	8	67.806	62.983	-	-	-	-	-
+gfn2-w200	1200	faer24:thr1	8	67.296	64.319	-	-	-	-	-
+# profile gfn2-w200 blocked:nb32:nx64 8t: symv 23.03 latrd 37.81 (other 14.78) syr2k 6.88 sytd2 0.06 ms
+gfn2-w200	1200	blocked:nb32:nx64	8	41.158	37.779	-	-	-	-	-
+# profile gfn2-w200 blocked:nb64:nx64 8t: symv 24.50 latrd 45.17 (other 20.67) syr2k 5.14 sytd2 0.07 ms
+gfn2-w200	1200	blocked:nb64:nx64	8	45.434	41.343	-	-	-	-	-
+gxtb2-w200	1200	faer22	1	-	-	1.24e-14	4.20e-15	2.63e-15	2.47e-15	-
+gxtb2-w200	1200	faer22	4	-	-	1.24e-14	3.61e-15	2.61e-15	2.47e-15	differ
+gxtb2-w200	1200	faer22	8	-	-	1.24e-14	3.96e-15	2.58e-15	2.42e-15	differ
+gxtb2-w200	1200	faer22:thr1	1	-	-	1.24e-14	4.20e-15	2.63e-15	2.47e-15	-
+gxtb2-w200	1200	faer22:thr1	4	-	-	1.24e-14	5.62e-15	2.62e-15	2.47e-15	differ
+gxtb2-w200	1200	faer22:thr1	8	-	-	1.24e-14	4.04e-15	2.58e-15	2.42e-15	differ
+gxtb2-w200	1200	faer24	1	-	-	1.27e-14	4.18e-15	2.65e-15	2.49e-15	-
+gxtb2-w200	1200	faer24	4	-	-	1.27e-14	3.39e-15	2.60e-15	2.46e-15	differ
+gxtb2-w200	1200	faer24	8	-	-	1.27e-14	3.45e-15	2.60e-15	2.45e-15	differ
+gxtb2-w200	1200	faer24:thr1	1	-	-	1.27e-14	4.18e-15	2.65e-15	2.49e-15	-
+gxtb2-w200	1200	faer24:thr1	4	-	-	1.27e-14	3.08e-15	2.61e-15	2.46e-15	differ
+gxtb2-w200	1200	faer24:thr1	8	-	-	1.27e-14	3.41e-15	2.59e-15	2.44e-15	differ
+gxtb2-w200	1200	blocked:nb32:nx64	1	-	-	1.33e-14	3.61e-15	2.50e-15	2.02e-15	-
+gxtb2-w200	1200	blocked:nb32:nx64	4	-	-	-	-	-	-	same
+gxtb2-w200	1200	blocked:nb32:nx64	8	-	-	-	-	-	-	same
+gxtb2-w200	1200	blocked:nb64:nx64	1	-	-	1.29e-14	3.80e-15	2.53e-15	2.10e-15	-
+gxtb2-w200	1200	blocked:nb64:nx64	4	-	-	-	-	-	-	same
+gxtb2-w200	1200	blocked:nb64:nx64	8	-	-	-	-	-	-	same
+gxtb2-w200	1200	faer22	1	103.434	91.097	-	-	-	-	-
+gxtb2-w200	1200	faer22:thr1	1	102.797	95.591	-	-	-	-	-
+gxtb2-w200	1200	faer24	1	100.792	96.129	-	-	-	-	-
+gxtb2-w200	1200	faer24:thr1	1	101.185	100.496	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb32:nx64 1t: symv 81.76 latrd 92.54 (other 10.78) syr2k 22.92 sytd2 0.05 ms
+gxtb2-w200	1200	blocked:nb32:nx64	1	116.534	110.761	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb64:nx64 1t: symv 85.24 latrd 102.62 (other 17.37) syr2k 20.57 sytd2 0.05 ms
+gxtb2-w200	1200	blocked:nb64:nx64	1	124.393	123.261	-	-	-	-	-
+gxtb2-w200	1200	faer22	4	56.489	51.820	-	-	-	-	-
+gxtb2-w200	1200	faer22:thr1	4	55.884	51.576	-	-	-	-	-
+gxtb2-w200	1200	faer24	4	55.500	53.338	-	-	-	-	-
+gxtb2-w200	1200	faer24:thr1	4	57.310	53.168	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb32:nx64 4t: symv 27.34 latrd 39.54 (other 12.21) syr2k 9.46 sytd2 0.07 ms
+gxtb2-w200	1200	blocked:nb32:nx64	4	50.858	46.814	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb64:nx64 4t: symv 30.33 latrd 48.15 (other 17.82) syr2k 7.84 sytd2 0.05 ms
+gxtb2-w200	1200	blocked:nb64:nx64	4	53.672	49.767	-	-	-	-	-
+gxtb2-w200	1200	faer22	8	64.208	61.724	-	-	-	-	-
+gxtb2-w200	1200	faer22:thr1	8	63.088	61.143	-	-	-	-	-
+gxtb2-w200	1200	faer24	8	66.522	63.018	-	-	-	-	-
+gxtb2-w200	1200	faer24:thr1	8	67.757	64.523	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb32:nx64 8t: symv 21.77 latrd 35.48 (other 13.71) syr2k 6.99 sytd2 0.06 ms
+gxtb2-w200	1200	blocked:nb32:nx64	8	44.355	42.816	-	-	-	-	-
+# profile gxtb2-w200 blocked:nb64:nx64 8t: symv 21.17 latrd 39.98 (other 18.81) syr2k 4.88 sytd2 0.06 ms
+gxtb2-w200	1200	blocked:nb64:nx64	8	47.067	43.185	-	-	-	-	-
