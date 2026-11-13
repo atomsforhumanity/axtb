@@ -5,10 +5,10 @@
 //! g-xTB lives in this GPL-3.0 crate, which builds on axtb (LGPL-3.0); the method trait is
 //! axtb-base's, so the front ends hold it like every other method.
 //!
-//! Energies, analytic gradients ([`crate::v2::gradient`]; v1.1 in the program's conventions with the
+//! Energies, analytic gradients ([`crate::gradient`]; v1.1 in the program's conventions with the
 //! response of its Fock matrix)
 //! and Hessians ([`Method::hessian`]: for 2.0.1 analytic (the default) or response,
-//! [`crate::v2::hessian`]; for both versions numerical, central differences of analytic
+//! [`crate::hessian`]; for both versions numerical, central differences of analytic
 //! gradients as GFN2-xTB's), with the settings of [`Options`] (refused when out of range or
 //! meant for the other version, [`ScfOptions::check`]). Where an SCF starts is the restart
 //! policy [`ScfSettings::restart`]: in the default conventions from the previous geometry's
@@ -23,7 +23,6 @@
 pub use crate::options::Version;
 use crate::options::{Conventions, ScfOptions};
 use crate::timing::Timings;
-use crate::v2;
 use axtb::method::{
     AnalysisConventions, AnalysisDefaults, Electronic, Electrons, Extras, Fingerprint, HessianDefault, HessianDefaults,
     Method, MethodInfo, QuadrupoleForm, Restart, RetryLadder, ScfData, ScfReport, ScfSettings, SinglePoint, Term, Want,
@@ -37,7 +36,7 @@ use axtb_base::threads::Threads;
 use faer::Par;
 use std::time::Instant;
 
-impl v2::scf::Energies {
+impl crate::scf::Energies {
     /// The terms with their names as the axtb front ends report them: every term a piece of the
     /// energy but `electronic`, the SCF energy (a subtotal). v1.1 has `es1` (first order) and
     /// `es2_3` (second to fourth order) and splits the exchange into `exchange_mulliken` and
@@ -104,7 +103,7 @@ pub struct ConvergerSettings {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Options {
     /// The SCF settings every SCF method has: accuracy, iteration limit (`None`: the program's,
-    /// [`crate::options::MAX_ITER_V1_1`] for v1.1, [`crate::v2::scf::MAX_ITER`] for 2.0.1), electronic
+    /// [`crate::options::MAX_ITER_V1_1`] for v1.1, [`crate::scf::MAX_ITER`] for 2.0.1), electronic
     /// temperature (`None`: 0 K, the programs' default: Aufbau occupations), restart policy
     /// (`None`: previous in the axtb conventions, the program's start in the program's).
     pub scf: ScfSettings,
@@ -174,7 +173,7 @@ pub const ETEMP: f64 = 0.0;
 enum Start {
     /// 2.0.1: shell charges, atomic dipoles and quadrupoles, shell magnetizations and spin
     /// densities, as `xtbrestart`.
-    V2_0_1(Box<v2::scf::State>),
+    V2_0_1(Box<crate::scf::State>),
     /// v1.1: the spin densities (closed shell: the total density), as `gxtbrestart`.
     V1_1(Vec<Vec<f64>>),
 }
@@ -189,7 +188,7 @@ pub struct Calculator {
     threads: Threads,
     /// Setup of the current geometry (built in `new`, reused while the positions and the
     /// conventions are equal).
-    setup: Option<Box<v2::scf::Setup>>,
+    setup: Option<Box<crate::scf::Setup>>,
     /// The last converged state (or one given with [`Method::set_wavefunction`]).
     state: Option<Start>,
     /// Start the next SCF from `state` even if the options do not reuse it (it was given).
@@ -200,9 +199,9 @@ pub struct Calculator {
 
 /// The setup of `mol` for `version` in the conventions of `opts`, on `opts.threads` threads
 /// (inside the caller's pool).
-fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<Box<v2::scf::Setup>> {
-    let model = crate::v2::Model::new(version, opts.conventions);
-    Ok(Box::new(v2::scf::Setup::with_threads(mol, model, opts.threads)?))
+fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<Box<crate::scf::Setup>> {
+    let model = crate::model::Model::new(version, opts.conventions);
+    Ok(Box::new(crate::scf::Setup::with_threads(mol, model, opts.threads)?))
 }
 
 /// Factor on the 2.0.1 convergence thresholds of an SCF that starts from a previous state in
@@ -451,7 +450,7 @@ impl Calculator {
         let version = self.version;
         // energy, gradient and dipole of one geometry
         let point = |m: &Molecule| -> Result<(f64, Vec<[f64; 3]>, [f64; 3])> {
-            let setup = v2::scf::Setup::new(m, crate::v2::Model::new(version, opts.conventions))?;
+            let setup = crate::scf::Setup::new(m, crate::model::Model::new(version, opts.conventions))?;
             let r = setup.scf(&opts)?;
             let g = setup.gradient(&r)?;
             let (energy, qa, dip) = (r.energies.total, &r.atom_charges, &r.state.dip);
@@ -500,7 +499,7 @@ impl Calculator {
         // the reference SCF starts where a single point would (v1.1: from the densities)
         let start = match self.take_start() {
             Some(Start::V2_0_1(s)) => Some(*s),
-            Some(Start::V1_1(p)) => Some(v2::scf::State::densities(p)),
+            Some(Start::V1_1(p)) => Some(crate::scf::State::densities(p)),
             None => None,
         };
         let version = self.version;
@@ -509,13 +508,15 @@ impl Calculator {
         // the setup of this geometry, when the calculator holds one (move_to dropped it otherwise)
         let cached = self.setup.take().map(|s| *s);
         let mol = &self.mol;
-        let run = || -> Result<(axtb::Hessian, v2::scf::Setup)> {
+        let run = || -> Result<(axtb::Hessian, crate::scf::Setup)> {
             let t0 = Instant::now();
             let mut setup = match cached {
                 Some(s) => s,
-                None => {
-                    v2::scf::Setup::with_threads(mol, crate::v2::Model::new(version, sopts.conventions), sopts.threads)?
-                }
+                None => crate::scf::Setup::with_threads(
+                    mol,
+                    crate::model::Model::new(version, sopts.conventions),
+                    sopts.threads,
+                )?,
             };
             let ladder = RetryLadder::warm_then_fresh(start.is_some());
             let (r, _) = ladder.climb(|rung| match rung.fresh {
@@ -526,11 +527,11 @@ impl Calculator {
             let gradient = setup.gradient(&r)?;
             let mut timings = vec![("reference scf", t0.elapsed().as_secs_f64())];
             // the analytic Hessian's defaults: the symmetric response terms at tolerance 1e-6
-            // (v2::hessian::AnalyticOptions); the response Hessian solves to 1e-10
+            // (crate::hessian::AnalyticOptions); the response Hessian solves to 1e-10
             let (mut h, dipd, t) = if method == HessianMethod::Analytic {
-                setup.analytic_hessian(&r, &v2::hessian::AnalyticOptions::default())
+                setup.analytic_hessian(&r, &crate::hessian::AnalyticOptions::default())
             } else {
-                setup.response_hessian(&r, step, v2::response::CpksOptions::default())
+                setup.response_hessian(&r, step, crate::response::CpksOptions::default())
             }?;
             timings.extend(t);
             let max_asymmetry = fd::symmetrize(&mut h, 3 * mol.nat());
@@ -588,10 +589,10 @@ impl Method for Calculator {
     /// Hessian at `positions` (bohr) with the method and settings of `opts`:
     ///
     /// - `Analytic` (2.0.1, its default): analytic second derivatives with the coupled-perturbed
-    ///   response ([`v2::analytic`]), SCF accuracy of the reference default [`ANALYTIC_ACCURACY`];
+    ///   response ([`crate::analytic`]), SCF accuracy of the reference default [`ANALYTIC_ACCURACY`];
     /// - `Response` (2.0.1): central differences of the analytic gradient functional with the
     ///   density and energy-weighted density extrapolated by the coupled-perturbed response
-    ///   ([`v2::hessian`]; no SCF per displacement), step default [`RESPONSE_STEP`], SCF accuracy
+    ///   ([`crate::hessian`]; no SCF per displacement), step default [`RESPONSE_STEP`], SCF accuracy
     ///   of the reference default [`ANALYTIC_ACCURACY`];
     /// - `Numerical` (both versions; v1.1's default): central differences of analytic gradients,
     ///   step default [`NUMERICAL_STEP`], the SCF of every displacement from the program's start
@@ -637,7 +638,7 @@ impl Method for Calculator {
             ));
         }
         self.state = Some(match self.version {
-            Version::V2_0_1 => Start::V2_0_1(Box::new(v2::scf::State {
+            Version::V2_0_1 => Start::V2_0_1(Box::new(crate::scf::State {
                 p: d.densities.clone(),
                 q: d.shell_charges.clone(),
                 // recomputed from the shell charges when the SCF starts (`restart_state`)
@@ -676,11 +677,11 @@ fn run(
     version: Version,
     mol: &Molecule,
     opts: &ScfOptions,
-    setup: Option<Box<v2::scf::Setup>>,
+    setup: Option<Box<crate::scf::Setup>>,
     start: Option<&Start>,
     want: &Want,
     form: Option<QuadrupoleForm>,
-) -> (Result<(SinglePoint, Start)>, Option<Box<v2::scf::Setup>>) {
+) -> (Result<(SinglePoint, Start)>, Option<Box<crate::scf::Setup>>) {
     let t0 = Instant::now();
     let mut setup = match setup {
         Some(s) => s,
@@ -699,7 +700,7 @@ fn run(
     let s0 = match (start, v1) {
         (Some(Start::V2_0_1(s)), false) => Ok(Some(s.as_ref())),
         (Some(Start::V1_1(p)), true) => {
-            densities = v2::scf::State::densities(p.clone());
+            densities = crate::scf::State::densities(p.clone());
             Ok(Some(&densities))
         }
         (Some(_), false) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
@@ -792,8 +793,8 @@ fn dipole(positions: &[[f64; 3]], q: &[f64], d: &[[f64; 3]]) -> [f64; 3] {
 /// state a later SCF can start from.
 #[allow(clippy::too_many_arguments)]
 fn results(
-    setup: &v2::scf::Setup,
-    mut r: v2::scf::ScfResult,
+    setup: &crate::scf::Setup,
+    mut r: crate::scf::ScfResult,
     gradient: Option<Vec<[f64; 3]>>,
     timings: Timings,
     opts: &ScfOptions,

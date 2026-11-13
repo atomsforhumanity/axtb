@@ -20,7 +20,7 @@
 //!   A_AA = (eta_A + kqeta_A q^loc_A + sqrt(2/pi)/w_A) C_AA + 1, Lagrange row/column of ones;
 //! - (q, lambda) = A^-1 b.
 //!
-//! g-xTB 2.0.1 ([`crate::v2::eeqbc`]) refits the parameters and changes the form in four places
+//! g-xTB 2.0.1 ([`crate::eeqbc_model`]) refits the parameters and changes the form in four places
 //! (spec §4.1): no local-charge hardness term (`kqeta`), R_AB = r_A + r_B, k_cnrad = 0.3 and
 //! k_bc = 0.75, a per-element scaled van der Waals radius, and the 25-bohr cutoff of the
 //! program's CNs on the counting function.
@@ -32,10 +32,10 @@
 //! In 2.0.1 the charges and the gradient use the same kernel, so the setup's factorization
 //! serves the gradients at its geometry ([`EeqBc::charges_and_solution`]).
 
+use crate::cn::CN_CUTOFF;
 use crate::data::{CN_AVG, PAULING_EN, VDW_RAD_PACKED};
+use crate::model::Model;
 use crate::params::{EeqBcParams, MAX_ELEM};
-use crate::v2::cn::CN_CUTOFF;
-use crate::v2::Model;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
 use axtb_base::eeq::{ChargeEquations, ChargeSolver, Constraints};
@@ -534,7 +534,7 @@ mod tests {
     #[test]
     fn sqrtpi_of_the_forms() {
         assert_eq!(EeqBcForm::V1_1.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits());
-        let v2 = crate::v2::eeqbc::form(&Model::v2_0_1(crate::options::Conventions::Gxtb));
+        let v2 = crate::eeqbc_model::form(&Model::v2_0_1(crate::options::Conventions::Gxtb));
         assert_eq!(v2.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits() + 1);
     }
 }

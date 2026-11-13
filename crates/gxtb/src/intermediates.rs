@@ -8,11 +8,11 @@
 //! and then the g-xTB, basis and revD4 CNs and the charges, the order of the gradient's chain
 //! rules before.
 
-use super::basis::{effective_charge_deriv, effective_charges, qeff_h0_weights, qeff_weights};
-use super::cn::{basis_cn, basis_cn_gradient, gxtb_cn, gxtb_cn_gradient};
-use super::eeqbc::{eeqbc, eeqbc_charge_gradient};
-use super::Model;
+use crate::basis::{effective_charge_deriv, effective_charges, qeff_h0_weights, qeff_weights};
+use crate::cn::{basis_cn, basis_cn_gradient, gxtb_cn, gxtb_cn_gradient};
 use crate::eeqbc::EeqBcSolution;
+use crate::eeqbc_model::{eeqbc, eeqbc_charge_gradient};
+use crate::model::Model;
 use axtb::terms::{Chain, ChainLayout, Geometry, Intermediate, Jacobians, Slot, Values};
 use axtb::{Molecule, Result};
 use std::sync::Arc;
@@ -80,7 +80,7 @@ impl Intermediate for BasisCn {
     }
 }
 
-/// The revD4 coordination number ([`super::disp::coordination_numbers`]).
+/// The revD4 coordination number ([`crate::revd4::coordination_numbers`]).
 struct RevD4Cn(Model);
 
 impl Intermediate for RevD4Cn {
@@ -89,11 +89,11 @@ impl Intermediate for RevD4Cn {
     }
 
     fn compute(&self, mol: &Molecule, _: &Values) -> Result<Vec<Vec<f64>>> {
-        Ok(vec![super::disp::coordination_numbers(&self.0, mol)])
+        Ok(vec![crate::revd4::coordination_numbers(&self.0, mol)])
     }
 
     fn chain(&self, geo: &Geometry<'_>, w: &[&[f64]], chain: &mut Chain) -> Result<()> {
-        super::disp::add_cn_gradient(&self.0, geo.mol, w[0], &mut chain.g);
+        crate::revd4::add_cn_gradient(&self.0, geo.mol, w[0], &mut chain.g);
         Ok(())
     }
 }
@@ -113,7 +113,7 @@ impl Intermediate for EeqBcCharges {
     }
 
     fn compute(&self, mol: &Molecule, _: &Values) -> Result<Vec<Vec<f64>>> {
-        Ok(vec![super::eeqbc::eeqbc_charges(&self.model, mol)?.charges])
+        Ok(vec![crate::eeqbc_model::eeqbc_charges(&self.model, mol)?.charges])
     }
 
     fn chain(&self, geo: &Geometry<'_>, w: &[&[f64]], chain: &mut Chain) -> Result<()> {

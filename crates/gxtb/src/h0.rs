@@ -22,12 +22,12 @@
 //! screening at 20, no anisotropy, and one ACP projector per l = s..f per element with the
 //! CN-dependent weight acp_coeff_l (1 + acpcn sqrt(CN)), pairs within 40 bohr.
 
-use super::Model;
 use crate::data_v2::{
     ACP_EXP, ACP_L, ACP_LEVEL, ACP_N, H0_DIAT_SCALE, H0_DIP_SCALE, H0_SELFENERGY, H0_SELFENERGY_CN, H0_SHPOLY2,
     PG_H0_KSHELL, PG_H0_SHPOLY2,
 };
 use crate::eeqbc::erf_f64;
+use crate::model::Model;
 use crate::options::Version;
 use axtb::ao::ShellPairs;
 use axtb::basis::{Basis as AoBasis, Cgto, MAXPRIM};

@@ -5,9 +5,9 @@
 //! finite electronic temperature, both conventions.
 
 use axtb_base::fd::symmetrize;
-use axtb_gxtb::v2::hessian::AnalyticOptions;
-use axtb_gxtb::v2::response::CpksOptions;
-use axtb_gxtb::v2::scf::Setup;
+use axtb_gxtb::hessian::AnalyticOptions;
+use axtb_gxtb::response::CpksOptions;
+use axtb_gxtb::scf::Setup;
 use axtb_gxtb::{Conventions, ScfOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -22,7 +22,7 @@ fn molecule(rel: &str, conv: Conventions) -> axtb::Molecule {
     let charge = input["charge"].as_f64().unwrap();
     let uhf = input["uhf"].as_u64().unwrap() as usize;
     let xyz = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
-    axtb_gxtb::v2::read_xyz(&xyz, charge, Some(uhf), conv).unwrap()
+    axtb_gxtb::model::read_xyz(&xyz, charge, Some(uhf), conv).unwrap()
 }
 
 fn maxdiff(a: &[f64], b: &[f64]) -> f64 {
@@ -38,7 +38,7 @@ fn symmetric_response_terms_match_a_tight_solve() {
         ("reference/tetrachlorocuprate", Conventions::Axtb, 3000.0),
     ] {
         let mol = molecule(rel, conv);
-        let mut setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(conv)).unwrap();
+        let mut setup = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(conv)).unwrap();
         let opts = ScfOptions {
             conventions: conv,
             etemp,

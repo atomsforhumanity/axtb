@@ -5,7 +5,7 @@
 //! compares more molecules (`bench/results/gxtb_parity_features.json`).
 
 use axtb::method::{Method, Restart, ScfSettings, SinglePoint, Want};
-use axtb_gxtb::{v2, Calculator, Conventions, Options, Version};
+use axtb_gxtb::{Calculator, Conventions, Options, Version};
 
 const WATER: &str = include_str!("../../../tests/structures/water.xyz");
 const O2: &str = "2\nO2\nO 0.0 0.0 0.0\nO 0.0 0.0 1.21\n";
@@ -15,7 +15,7 @@ const AUTOEV: f64 = 27.211386245988;
 
 fn calc(version: Version, xyz: &str, uhf: Option<usize>, opts: Options) -> (Calculator, Vec<[f64; 3]>) {
     let mol = match version {
-        Version::V2_0_1 => v2::read_xyz(xyz, 0.0, uhf, opts.conventions).unwrap(),
+        Version::V2_0_1 => axtb_gxtb::model::read_xyz(xyz, 0.0, uhf, opts.conventions).unwrap(),
         Version::V1_1 => axtb_gxtb::read_xyz(xyz, 0.0, uhf).unwrap(),
     };
     let c = Calculator::new(version, &mol.numbers, &mol.positions, 0.0, uhf, opts).unwrap();

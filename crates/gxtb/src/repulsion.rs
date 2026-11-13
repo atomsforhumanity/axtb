@@ -11,8 +11,9 @@
 //! v1.1 has no self-consistent repulsion (its [`Repulsion`] is empty) but the semi-classical
 //! repulsion of the EEQ-BC charges, [`classical`] (the 1.1.0 program's `repuls_`).
 
-use super::{sqrt_cn, Model};
 use crate::data_v2::{REP_ALPHA, REP_CN, REP_K1, REP_Q, REP_ROFFSET, REP_ZEFF};
+use crate::model::sqrt_cn;
+use crate::model::Model;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;

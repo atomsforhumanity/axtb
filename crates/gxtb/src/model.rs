@@ -9,7 +9,7 @@
 //! term, a self-consistent repulsion, a bond-order correction and charge-dependent onsite
 //! integrals in the exchange, screened revD4 damping, and tblite's SCF. Its Fock matrix is the
 //! exact derivative of its energy, so the converged SCF is stationary and the analytic gradient
-//! ([`scf::Setup::gradient`]) needs no response term.
+//! ([`crate::scf::Setup::gradient`]) needs no response term.
 //!
 //! Conventions ([`crate::Conventions`]):
 //! - `Gxtb` (program mode) reproduces the 2.0.1 program: mctc-lib's Ångström-to-bohr factor for
@@ -21,26 +21,6 @@
 //!   count, CODATA 2022 units for the Ångström tables, and the hard cutoffs replaced by smooth
 //!   switches (quintic smoothstep from the program's cutoff to 1 bohr beyond it; no integral
 //!   pair cutoff), so energy and gradient are continuous for any system size.
-
-pub mod analytic;
-pub mod basis;
-pub mod cn;
-pub mod coulomb;
-pub mod disp;
-pub mod eeqbc;
-pub mod exchange;
-pub mod explicit;
-pub mod fermi;
-pub mod gradient;
-pub mod h0;
-pub mod hessian;
-pub(crate) mod intermediates;
-pub mod repulsion;
-pub mod response;
-pub mod scf;
-pub(crate) mod strategy;
-pub mod tangent;
-pub(crate) mod terms;
 
 use crate::options::{Conventions, Version};
 use axtb::units::reference::MCTC_AATOAU;
@@ -123,7 +103,7 @@ impl Model {
 
     /// Radius of the H0 distance polynomial: 2.0.1's `get_rad` (the Pyykkö radius in Ångström
     /// times 1.889725949, with fixed values for H, F and Ne); v1.1's `com::rcov` (bohr; the
-    /// program divides by their mean, [`h0::shell_poly`] by their sum).
+    /// program divides by their mean, [`crate::h0::shell_poly`] by their sum).
     pub fn h0_rad(&self, z: usize) -> f64 {
         if self.version == Version::V1_1 {
             return crate::data::RCOV_COM[z - 1];
@@ -155,19 +135,19 @@ impl Model {
     #[inline]
     pub fn cn_cutoff(&self) -> Option<f64> {
         match self.version {
-            Version::V2_0_1 => Some(cn::CN_CUTOFF),
+            Version::V2_0_1 => Some(crate::cn::CN_CUTOFF),
             Version::V1_1 => None,
         }
     }
 
     /// The primitive screening of the H0-basis overlaps and of the ACP projector overlaps
     /// (2.0.1: tblite's 25; v1.1: the 1.1.0 program's 20); the SCF-basis integrals use
-    /// [`basis::INTCUT`] (25) in both versions.
+    /// [`crate::basis::INTCUT`] (25) in both versions.
     #[inline]
     pub fn intcut_h0(&self) -> f64 {
         match self.version {
-            Version::V2_0_1 => basis::INTCUT,
-            Version::V1_1 => h0::INTCUT_V1_1,
+            Version::V2_0_1 => crate::basis::INTCUT,
+            Version::V1_1 => crate::h0::INTCUT_V1_1,
         }
     }
 

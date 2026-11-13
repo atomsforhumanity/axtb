@@ -32,14 +32,14 @@
 //! A1 += -L/4 and A3 += -L/4 on the same-atom pairs k != l, and -1/16 diag(SP)^T (8 f L)
 //! diag(SP) on the shell blocks ([`Dual`]); nothing depends on the charges.
 
-use super::coulomb::spin_index;
-use super::coulomb::Shell;
-use super::Model;
+use crate::coulomb::spin_index;
+use crate::coulomb::Shell;
 use crate::data_v2::{
     FOCK_AVG_EXP, FOCK_CRAD, FOCK_CSCALE, FOCK_SHELL_HUBBARD, HUBBARD, ONECX, PG_FOCK_KQ, PG_FOCK_OFFDIAG,
 };
 use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
+use crate::model::Model;
 use crate::options::Version;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
@@ -760,7 +760,7 @@ impl Exchange {
     /// [`Exchange::kernel_weights_with`]) to `ch.g`: shell rows, then atom rows, each in fixed
     /// chunks (in parallel with `geo.parallel`) summed in order.
     pub fn add_kernel_gradient(&self, model: &Model, geo: &Geometry<'_>, tsh: &[f64], tat: &[f64], ch: &mut Chain) {
-        use super::gradient::{add_pair, chain_rows};
+        use crate::gradient::{add_pair, chain_rows};
         let mol = geo.mol;
         let nsh = self.shells.len();
         let nat = mol.nat();
@@ -846,7 +846,7 @@ pub struct ResponseBase {
 
 /// Overlap derivatives of the exchange along one overlap direction dS at fixed densities,
 /// kernels and charges: Fock matrices, shell potential dE/dq, dE/dG and dE/dK weights (as
-/// [`crate::v2::gradient::exchange_kernel_weights`]) and dE/dS.
+/// [`crate::gradient::exchange_kernel_weights`]) and dE/dS.
 pub struct OverlapTangent {
     pub f: Vec<Vec<f64>>,
     pub vx: Vec<f64>,
@@ -1371,7 +1371,7 @@ impl Exchange {
     }
 
     /// Derivative of the kernel weights dE/dG (shell pairs) and dE/dK (atom pairs) of
-    /// [`crate::v2::gradient::exchange_kernel_weights`] along density changes `dp` with the
+    /// [`crate::gradient::exchange_kernel_weights`] along density changes `dp` with the
     /// products `prods` = [dP S, S dP S] of every channel.
     pub fn kernel_weight_tangent(
         &self,

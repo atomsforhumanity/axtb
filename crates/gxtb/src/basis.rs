@@ -12,9 +12,11 @@
 //! program's operand order, the H0 basis with exponents scaled by `pln` and the three terms
 //! weighted by `kqvszp`; no integral pair cutoff.
 
-use super::cn::basis_cn;
-use super::{model_shells, qvszp, Model};
+use crate::cn::basis_cn;
 use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
+use crate::model::model_shells;
+use crate::model::qvszp;
+use crate::model::Model;
 use crate::options::Version;
 use crate::qvszp::{contracted_shells, Exponents};
 use axtb::ao::ShellPairs;
@@ -65,7 +67,7 @@ pub fn qeff_h0_weights(model: &Model, z: usize) -> [f64; 4] {
 
 /// Effective charge and its terms for weights `k`, charge `q` and basis CN `cn` (2.0.1).
 pub fn effective_charge(k: [f64; 4], q: f64, cn: f64) -> ([f64; 3], f64) {
-    let t = [q - k[1] * q * q, super::sqrt_cn(cn).0, q * cn];
+    let t = [q - k[1] * q * q, crate::model::sqrt_cn(cn).0, q * cn];
     (t, k[0] * t[0] + k[2] * t[1] + k[3] * t[2])
 }
 

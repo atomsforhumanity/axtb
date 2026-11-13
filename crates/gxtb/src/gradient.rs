@@ -15,11 +15,11 @@
 //! revD4 (two- and three-body, through the revD4 CN); then the chain rules q_eff -> EEQ-BC charges
 //! (adjoint of the charge equations) and basis CN, and all CNs -> R.
 
-use super::basis::{h0_shells, scf_shells, INTCUT};
-use super::exchange::Products;
-use super::h0::bond_projectors_deriv;
-use super::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
-use super::scf::{ScfResult, Setup, State};
+use crate::basis::{h0_shells, scf_shells, INTCUT};
+use crate::exchange::Products;
+use crate::h0::bond_projectors_deriv;
+use crate::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
+use crate::scf::{ScfResult, Setup, State};
 use crate::timing::Laps;
 use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
@@ -114,7 +114,7 @@ pub(crate) fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usiz
 /// dE/dG (shell pairs) and dE/dK (atom pairs) of the exchange at fixed spin densities `p`
 /// (closed shell: total density) and overlap `s`.
 pub fn exchange_kernel_weights(
-    x: &super::exchange::Exchange,
+    x: &crate::exchange::Exchange,
     s: &[f64],
     p: &[Vec<f64>],
     par: faer::Par,
@@ -128,11 +128,11 @@ impl Setup {
         self.potentials_with(st, &self.exch.products(&self.s, &st.p, self.par))
     }
 
-    /// [`Setup::potentials`] with the exchange [`Exchange::products`](super::exchange::Exchange::products) of `st`.
+    /// [`Setup::potentials`] with the exchange [`Exchange::products`](crate::exchange::Exchange::products) of `st`.
     pub fn potentials_with(&self, st: &State, pr: &[Products]) -> Potentials {
         let (tg, s) = (self.term_geometry(), st.moments());
         let terms = &self.terms;
-        use super::terms::buffer;
+        use crate::terms::buffer;
         let (nsh, nat) = (self.shells.len(), self.mol.nat());
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
@@ -525,7 +525,7 @@ impl Setup {
             .collect();
         let ch: Vec<(&[f64], &[f64])> =
             r.coefficients.iter().zip(&f).map(|(c, f)| (c.as_slice(), f.as_slice())).collect();
-        super::scf::weighted_density(n, &ch, self.par)
+        crate::scf::weighted_density(n, &ch, self.par)
     }
 
     /// Explicit gradient dE/dR at fixed AO spin densities of the state `st` (Mulliken charges,
@@ -658,7 +658,7 @@ impl Setup {
 
     /// The terms' gradients at the fixed charges, moments and densities of `st` (exchange
     /// products `pr`; `vd_scaled` = dE/d(c d) of its AES potential pass): electrostatics (AES:
-    /// with `full` its exact energy, otherwise E_AES', [`super::terms::add_aes`]), the exchange
+    /// with `full` its exact energy, otherwise E_AES', [`crate::terms::add_aes`]), the exchange
     /// kernels, repulsion and revD4.
     pub(crate) fn add_terms(
         &self,
@@ -674,7 +674,7 @@ impl Setup {
         if full {
             self.terms.aes.gradient_with(&tg, &self.aes, &s, vd_scaled, ch);
         } else {
-            super::terms::add_aes(&tg, self.slots.cn, &self.aes, s.qat, s.dip, s.quad, vd_scaled, false, ch);
+            crate::terms::add_aes(&tg, self.slots.cn, &self.aes, s.qat, s.dip, s.quad, vd_scaled, false, ch);
         }
         t.lap("gradient: electrostatics");
         let (tsh, tat) = self.exch.kernel_weights_with(&st.p, pr, self.parallel);

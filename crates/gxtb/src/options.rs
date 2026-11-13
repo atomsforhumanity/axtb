@@ -34,7 +34,7 @@ impl Version {
     }
 }
 
-/// The settings of one SCF of either version ([`crate::v2::scf::Setup::scf`]; a
+/// The settings of one SCF of either version ([`crate::scf::Setup::scf`]; a
 /// [`crate::Calculator`] assembles them from its [`crate::Options`]). The defaults (`None`, 0)
 /// are the programs':
 ///
@@ -44,10 +44,10 @@ impl Version {
 ///   |dE| < 1e-8 Eh and the RMS change of the packed spin densities < 2e-5 (open shell: 4e-7 Eh
 ///   and 5e-5), each times `accuracy`, followed by one more iteration with the unmixed Fock
 ///   matrix whose energy is the result; at most [`MAX_ITER_V1_1`] iterations.
-/// - **2.0.1** (tblite's SCF as the 2.0.1 program runs it; [`crate::v2::scf`]): no mixing in
+/// - **2.0.1** (tblite's SCF as the 2.0.1 program runs it; [`crate::scf`]): no mixing in
 ///   iteration 1, damping 0.2 in iterations 2-3, then DIIS with at most 7 Fock matrices,
 ///   convergence when |dE| < 1e-6 Eh and the RMS Fock residual < 2e-5, each times `accuracy`;
-///   at most [`crate::v2::scf::MAX_ITER`] iterations.
+///   at most [`crate::scf::MAX_ITER`] iterations.
 ///
 /// With `conventions: Conventions::Gxtb` the SCF reproduces the program's iterations and
 /// energies; with the default [`Conventions::Axtb`] v1.1 diagonalizes the exact derivative of
@@ -56,7 +56,7 @@ impl Version {
 #[derive(Clone, Debug)]
 pub struct ScfOptions {
     /// SCF iteration limit; 0 (the default): the program's, [`MAX_ITER_V1_1`] for v1.1 and
-    /// [`crate::v2::scf::MAX_ITER`] for 2.0.1.
+    /// [`crate::scf::MAX_ITER`] for 2.0.1.
     pub max_iter: usize,
     /// Multiplier of the program's convergence thresholds (those not given explicitly).
     pub accuracy: f64,
@@ -113,7 +113,7 @@ impl ScfOptions {
     pub fn iteration_limit(&self, version: Version) -> usize {
         match (self.max_iter, version) {
             (0, Version::V1_1) => MAX_ITER_V1_1,
-            (0, Version::V2_0_1) => crate::v2::scf::MAX_ITER,
+            (0, Version::V2_0_1) => crate::scf::MAX_ITER,
             (m, _) => m,
         }
     }

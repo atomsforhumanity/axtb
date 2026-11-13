@@ -11,8 +11,8 @@
 //! Rc = (rad_A + rad_B)/2 of its `gxtb_parameters`, the same basis CN, both over every pair
 //! (no cutoff; [`Model::cn_cutoff`]).
 
-use super::Model;
 use crate::eeqbc::erf_f64;
+use crate::model::Model;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;

@@ -35,11 +35,11 @@
 //! the Fermi-level shift normalized over the occupied rows, the overlap part dP^S and the
 //! diagonal correction of dW (n'_p e_p) dmu.
 
-use super::exchange::ResponseBase;
-use super::scf::{ScfResult, Setup, State};
 use crate::dense::{dot, from_mat_sym, to_mat, to_mat_sym};
+use crate::exchange::ResponseBase;
 use crate::fock::{add_charge_potential, add_potentials_rows};
 use crate::krylov::{self, CgError};
+use crate::scf::{ScfResult, Setup, State};
 use axtb::response::{occupied_count, MoSpace, OccupationResponse};
 use axtb::{Error, Result};
 use axtb_base::fd;
@@ -136,7 +136,7 @@ pub struct Perturbed {
     pub iterations: usize,
     /// With [`Cpks::keep_solution`]: the solution z and the final residual of the symmetric
     /// system on the response columns [v0, n) of every channel, in single precision (the
-    /// analytic Hessian's symmetric form, [`AnalyticOptions::symmetric`](super::hessian::AnalyticOptions)).
+    /// analytic Hessian's symmetric form, [`AnalyticOptions::symmetric`](crate::hessian::AnalyticOptions)).
     pub zr: Option<(Vec<f32>, Vec<f32>)>,
 }
 
@@ -192,7 +192,7 @@ impl Setup {
     ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[f64; 6]>, Option<Vec<f64>>) {
         use axtb::terms::MomentTerm;
         let (tg, s, d, terms) = (self.term_geometry(), st.moments(), ds.moments(), &self.terms);
-        use super::terms::buffer;
+        use crate::terms::buffer;
         let (nsh, nat) = (self.shells.len(), self.mol.nat());
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
@@ -228,7 +228,7 @@ impl Setup {
     /// [`Setup::fock_response`] that also returns the exchange shell potential change and the
     /// exchange's products [dP S, S dP S] of every channel ([`Exchange::response`]).
     ///
-    /// [`Exchange::response`]: super::exchange::Exchange::response
+    /// [`Exchange::response`]: crate::exchange::Exchange::response
     #[allow(clippy::type_complexity)]
     pub fn fock_response_parts(
         &self,

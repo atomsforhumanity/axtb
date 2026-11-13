@@ -161,7 +161,7 @@ pub fn read_xyz(text: &str, method: Method, conventions: Option<&str>) -> Result
         #[cfg(feature = "gxtb")]
         Method::GxtbV2_0_1 => {
             let c = conventions.map(names::gxtb_conventions).transpose()?.unwrap_or_default();
-            let mol = axtb_gxtb::v2::read_xyz(text, 0.0, None, c)?;
+            let mol = axtb_gxtb::model::read_xyz(text, 0.0, None, c)?;
             return Ok((mol.numbers, mol.positions));
         }
         #[cfg(not(feature = "gxtb"))]

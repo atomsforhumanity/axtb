@@ -1,7 +1,7 @@
 //! First geometry derivatives of the setup of g-xTB 2.0.1 at fixed AO density: the analytic
 //! derivative matrices of the SCF-basis overlap, dipole and quadrupole integrals and of the
 //! one-electron Hamiltonian H0 + ACP (the anisotropy term is treated as a dipole potential,
-//! see [`super::analytic`]) for every Cartesian displacement.
+//! see [`crate::analytic`]) for every Cartesian displacement.
 //!
 //! Every geometry dependence factors into local perturbations whose derivative matrices live
 //! in the AO rows (and columns) of one atom: the displacement of an atom (centres, bond
@@ -11,10 +11,10 @@
 //! Jacobians d q_eff/dR (EEQ-BC charges and basis CN), d q_eff0/dR and d CN/dR
 //! ([`Jacobians`]); the ACP projectors of a displaced atom add a low-rank term.
 
-use super::basis::{h0_shells, scf_shells, INTCUT};
-use super::h0::bond_projectors_deriv;
-use super::h0::{diat_scale, kshell, selfenergy, shell_poly, AcpSet};
-use super::scf::Setup;
+use crate::basis::{h0_shells, scf_shells, INTCUT};
+use crate::h0::bond_projectors_deriv;
+use crate::h0::{diat_scale, kshell, selfenergy, shell_poly, AcpSet};
+use crate::scf::Setup;
 use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
@@ -26,7 +26,7 @@ use axtb::Result;
 #[derive(Clone, Debug)]
 pub struct Jacobians {
     pub all: axtb::terms::Jacobians,
-    pub(crate) slots: super::intermediates::Slots,
+    pub(crate) slots: crate::intermediates::Slots,
 }
 
 impl Jacobians {
@@ -137,7 +137,7 @@ pub struct H0Pair {
 }
 
 pub fn h0_pair(
-    model: &super::Model,
+    model: &crate::model::Model,
     za: usize,
     zb: usize,
     ra: [f64; 3],

@@ -3,7 +3,7 @@
 //!
 //! The integral terms of the gradient are pair (or projector-atom) sums of integral derivatives
 //! contracted with weights that do not depend on the geometry at this level (their geometry
-//! dependence enters through the SCC and exchange couplings of [`super::analytic`]):
+//! dependence enters through the SCC and exchange couplings of [`crate::analytic`]):
 //!
 //! - SCF-basis overlap, dipole and quadrupole integrals of an atom pair with the overlap weight
 //!   X (Mulliken, spin and exchange potentials, -W) and the dipole (incl. anisotropy) and
@@ -20,13 +20,13 @@
 //! chains themselves (EEQ-BC charges, basis and g-xTB CNs, the q_eff formula) are added with
 //! the gradient's dE/dq_eff, dE/dq_eff0 and the H0 part of dE/dCN.
 
-use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
-use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
-use super::gradient::Potentials;
-use super::h0::projector;
-use super::h0::AcpSet;
-use super::scf::{Setup, State};
-use super::tangent::{h0_pair, Jacobians};
+use crate::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
+use crate::cn::{basis_cn_gradient, gxtb_cn_gradient};
+use crate::gradient::Potentials;
+use crate::h0::projector;
+use crate::h0::AcpSet;
+use crate::scf::{Setup, State};
+use crate::tangent::{h0_pair, Jacobians};
 use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
@@ -65,7 +65,7 @@ fn add_block(hl: &mut [f64], nl: usize, b: &Block) {
 }
 
 /// Step of the 4-point differences of the analytic Hessian (bohr, and units of charge and CN):
-/// the local differences here and the kernel terms of [`super::analytic`].
+/// the local differences here and the kernel terms of [`crate::analytic`].
 pub(crate) const STEP: f64 = 1e-3;
 
 /// Whether every primitive pair of two atoms with smallest exponents `a` and `b` at distance
@@ -614,7 +614,7 @@ impl Setup {
                 let mut m = mol.clone();
                 m.positions[x / 3][x % 3] += d;
                 let mut g = vec![[0.0; 3]; nat];
-                super::eeqbc::eeqbc_charge_gradient(&self.model, &m, &u, &mut g)?;
+                crate::eeqbc_model::eeqbc_charge_gradient(&self.model, &m, &u, &mut g)?;
                 basis_cn_gradient(&self.model, &m, &v, &mut g);
                 gxtb_cn_gradient(&self.model, &m, dcn, &mut g);
                 Ok(g.concat())
@@ -656,7 +656,7 @@ impl Setup {
             } else {
                 let mut cn = cn0.clone();
                 cn[a] += d;
-                let disp = super::disp::RevD4::with_cn(model, mol, cn)?;
+                let disp = crate::revd4::RevD4::with_cn(model, mol, cn)?;
                 disp.three_body_of(model, mol, Some(&mut g), Some(a)).1
             };
             let mut out = g.concat();
@@ -697,7 +697,7 @@ impl Setup {
                 let mut m = mol.clone();
                 m.positions[x / 3][x % 3] += d;
                 let mut g = vec![[0.0; 3]; nat];
-                super::disp::add_cn_gradient(model, &m, &dedcn, &mut g);
+                crate::revd4::add_cn_gradient(model, &m, &dedcn, &mut g);
                 g.concat()
             })
         };

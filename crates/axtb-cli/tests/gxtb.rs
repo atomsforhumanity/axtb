@@ -139,7 +139,7 @@ fn cli_v2_equals_rust_api_and_program() {
         let text = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
         for conv in ["gxtb", "axtb"] {
             let c: Conventions = conv.parse().unwrap();
-            let mol = axtb_gxtb::v2::read_xyz(&text, charge, Some(uhf), c).unwrap();
+            let mol = axtb_gxtb::model::read_xyz(&text, charge, Some(uhf), c).unwrap();
             let opts = Options { conventions: c, ..Default::default() };
             let mut calc =
                 Calculator::new(Version::V2_0_1, &mol.numbers, &mol.positions, charge, Some(uhf), opts).unwrap();
@@ -308,7 +308,7 @@ fn cli_etemp_reproduces_programs() {
             }
         }
         let text = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
-        let mol = axtb_gxtb::v2::read_xyz(&text, charge, Some(uhf), Conventions::Gxtb).unwrap();
+        let mol = axtb_gxtb::model::read_xyz(&text, charge, Some(uhf), Conventions::Gxtb).unwrap();
         let scf = axtb::method::ScfSettings { etemp: Some(1000.0), ..Default::default() };
         let opts = Options { conventions: Conventions::Gxtb, scf, ..Default::default() };
         let mut calc = Calculator::new(Version::V2_0_1, &mol.numbers, &mol.positions, charge, Some(uhf), opts).unwrap();

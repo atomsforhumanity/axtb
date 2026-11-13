@@ -9,14 +9,14 @@
 //!
 //! CN_A = sum_B 1/2 [1 + erf(-2 (R - Rc)/Rc^0.75)], Rc = r_A + r_B (`eeqbc_cov_radii`), and
 //! the local charges q^loc (Pauling EN / 3.98, multicharge's actinide values) use the 25-bohr
-//! CN cutoff of the program ([`super::Model::cut`]).
+//! CN cutoff of the program ([`crate::model::Model::cut`]).
 
-use super::Model;
 use crate::data_v2::{
     EEQBC_AVG_CN, EEQBC_CAP, EEQBC_CHI, EEQBC_COV_RADII, EEQBC_ETA, EEQBC_KCNCHI, EEQBC_KQCHI, EEQBC_RAD,
     EEQBC_RVDW_SCALE,
 };
 use crate::eeqbc::{EeqBc, EeqBcAtom, EeqBcCharges, EeqBcForm, Kernel, RcRule, RvdwRule};
+use crate::model::Model;
 use axtb::{Molecule, Result};
 
 /// sqrt(pi) as the 2.0.1 program writes it.
@@ -39,7 +39,7 @@ pub fn form(model: &Model) -> EeqBcForm {
 
 /// The EEQ-BC model of `mol` in `model` (v1.1: [`EeqBc::v1_1`]).
 pub fn eeqbc<'m>(model: &Model, mol: &'m Molecule) -> Result<EeqBc<'m>> {
-    super::check_model_elements(model, &mol.numbers)?;
+    crate::model::check_model_elements(model, &mol.numbers)?;
     if model.version == crate::options::Version::V1_1 {
         return Ok(EeqBc::v1_1(crate::params::eeqbc_v1_1(), mol));
     }
@@ -68,7 +68,7 @@ pub fn eeqbc_charges(model: &Model, mol: &Molecule) -> Result<EeqBcCharges> {
 /// Adds sum_A dE/dq_A dq_A/dR to `grad` for a function E of the EEQ-BC charges (adjoint of
 /// the linear charge equations A y = b: dE/dR = w^T (db/dR - dA/dR y), A w = (dE/dq, 0)).
 /// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::gradient_system`]; at
-/// the geometry of a [`super::scf::Setup`], its gradients use the setup's factorization (the
+/// the geometry of a [`crate::scf::Setup`], its gradients use the setup's factorization (the
 /// charges' kernel is the 2.0.1 gradient's, [`EeqBc::charges_and_solution`]).
 pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: &mut [[f64; 3]]) -> Result<()> {
     eeqbc(model, mol)?.gradient_system().add_charge_gradient(dedq, grad);

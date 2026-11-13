@@ -15,7 +15,7 @@
 //!   sums of P D and P Q, added to the atoms in AO order (rows in parallel when asked).
 //!
 //! The 2.0.1 response analyses density changes with eight-accumulator row dots instead
-//! (`v2::scf::Setup::delta_state`); GFN2-xTB's analysis (`axtb::scf`) sums columns with four
+//! (`crate::scf::Setup::delta_state`); GFN2-xTB's analysis (`axtb::scf`) sums columns with four
 //! accumulators.
 
 use crate::dense::dot_seq;

@@ -15,7 +15,7 @@
 //! All of this is verified against the 1.1.0 program to ~1e-15 (reference tests). The
 //! contraction ([`contracted`], [`contracted_dq`], with tabulated or scaled [`Exponents`]) is
 //! the one of every q-vSZP shell of both versions: the SCF and H0 bases of both versions
-//! ([`crate::v2::basis`]).
+//! ([`crate::basis`]).
 
 use crate::params::QvszpShell;
 use axtb::basis::{Cgto, MAXPRIM};

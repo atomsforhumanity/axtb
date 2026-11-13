@@ -6,8 +6,8 @@
 //! `V11_HESS=water,...` selects molecules (tests/reference).
 
 use axtb_base::fd::symmetrize;
-use axtb_gxtb::v2::response::CpksOptions;
-use axtb_gxtb::v2::scf::{ScfResult, Setup};
+use axtb_gxtb::response::CpksOptions;
+use axtb_gxtb::scf::{ScfResult, Setup};
 use axtb_gxtb::{Conventions, ScfOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -29,8 +29,8 @@ fn molecule(name: &str) -> axtb::Molecule {
     axtb_gxtb::read_xyz(&xyz, charge, Some(uhf)).unwrap()
 }
 
-fn model() -> axtb_gxtb::v2::Model {
-    axtb_gxtb::v2::Model::v1_1(Conventions::Axtb)
+fn model() -> axtb_gxtb::model::Model {
+    axtb_gxtb::model::Model::v1_1(Conventions::Axtb)
 }
 
 fn tight(etemp: f64) -> ScfOptions {

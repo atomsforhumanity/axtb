@@ -8,7 +8,7 @@
 //! ```
 //!
 //! with F^(x) = dF/dR_x at fixed P (the perturbation of the coupled-perturbed equations,
-//! [`super::response`]) and dP^y, dW^y their solution. The explicit part at fixed P and W
+//! [`crate::response`]) and dP^y, dW^y their solution. The explicit part at fixed P and W
 //! splits like the energy: the SCC variables s (Mulliken shell charges, atomic dipoles and
 //! quadrupoles, shell magnetizations) depend on the geometry through the integrals at fixed P
 //! (b^x = ds/dR_x|_P), the potentials V = dE/ds explicitly (c^x = dV/dR_x|_s, including the
@@ -30,21 +30,21 @@
 //! exactly from polarization identities: f(S + dS) - f(S - dS) = 2 df(dS) for quadratic f,
 //! and dE/dS is linear in S.
 
-use super::cn::gxtb_cn;
-use super::coulomb::{AesCache, IsotropicCache};
-use super::disp::RevD4;
-use super::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
-use super::explicit::STEP;
-use super::gradient::{exchange_kernel_weights, Potentials};
-use super::h0::{anisotropy, anisotropy_gradient};
-use super::intermediates::Slots;
-use super::repulsion::Repulsion;
-use super::response::KernelData;
-use super::scf::{Setup, State};
-use super::tangent::{IntegralBlock, Tangents};
-use super::Model;
+use crate::cn::gxtb_cn;
+use crate::coulomb::{AesCache, IsotropicCache};
 use crate::dense::dot;
+use crate::exchange::{bo_kernel, mfx_kernel, mfx_pair, Exchange, ResponseBase};
+use crate::explicit::STEP;
 use crate::fock::{add_charge_potential, add_potentials_rows};
+use crate::gradient::{exchange_kernel_weights, Potentials};
+use crate::h0::{anisotropy, anisotropy_gradient};
+use crate::intermediates::Slots;
+use crate::model::Model;
+use crate::repulsion::Repulsion;
+use crate::response::KernelData;
+use crate::revd4::RevD4;
+use crate::scf::{Setup, State};
+use crate::tangent::{IntegralBlock, Tangents};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::scf::ScfVariables;
 use axtb::terms::{Chain, ChainLayout, Geometry, MomentTerm, Values};
@@ -70,7 +70,7 @@ pub struct Kernels<'a> {
     pub(crate) slots: Slots,
     /// The setup's terms (they do not depend on the geometry; their caches are the fields above)
     /// and the values of the intermediates they read at this geometry (the g-xTB and revD4 CNs).
-    pub(crate) terms: &'a super::terms::Terms,
+    pub(crate) terms: &'a crate::terms::Terms,
     pub values: Values,
 }
 
@@ -81,7 +81,7 @@ impl<'a> Kernels<'a> {
         exch: &'a Exchange,
         layout: &'a ChainLayout,
         slots: Slots,
-        terms: &'a super::terms::Terms,
+        terms: &'a crate::terms::Terms,
     ) -> Result<Self> {
         let cn = gxtb_cn(model, mol);
         let disp = RevD4::new(model, mol)?;
@@ -115,7 +115,7 @@ impl<'a> Kernels<'a> {
     /// spin constants do not depend on the geometry).
     pub fn potentials(&self, st: &State, lay: &ScfVariables) -> Vec<f64> {
         let (tg, s, terms) = (self.term_geometry(), st.moments(), &self.terms);
-        use super::terms::buffer;
+        use crate::terms::buffer;
         let (nsh, nat) = (self.isotropic.shells.len(), self.mol.nat());
         let (mut piso, mut paes) = (buffer(&terms.iso, nsh, nat), buffer(&terms.aes, nsh, nat));
         let (mut prep, mut pdisp) = (buffer(&terms.rep, nsh, nat), buffer(&terms.disp, nsh, nat));
@@ -152,9 +152,9 @@ impl<'a> Kernels<'a> {
         terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
         anisotropy_gradient(&self.model, mol, &st.dip, &mut ch.g);
         let dcn = ch.weights(self.slots.cn).to_vec();
-        super::cn::gxtb_cn_gradient(&self.model, mol, &dcn, &mut ch.g);
+        crate::cn::gxtb_cn_gradient(&self.model, mol, &dcn, &mut ch.g);
         let d2 = ch.weights(self.slots.cnd4).to_vec();
-        super::disp::add_cn_gradient(&self.model, mol, &d2, &mut ch.g);
+        crate::revd4::add_cn_gradient(&self.model, mol, &d2, &mut ch.g);
         ch.g.concat()
     }
 }
@@ -669,8 +669,8 @@ impl<'a> Analytic<'a> {
                 let r = norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt();
                 let (kap, etag) = mfx_pair(&s.model, mol, &ex.shells, i, j);
                 // G = num/den, num = 0.15 + 0.85 erf(0.2 R), den = R + exp(-kappa R)/(eta g)
-                let (om, lr) = (super::exchange::OMEGA, super::exchange::LR);
-                let num = super::exchange::ALPHA + lr * crate::eeqbc::erf_f64(om * r);
+                let (om, lr) = (crate::exchange::OMEGA, crate::exchange::LR);
+                let num = crate::exchange::ALPHA + lr * crate::eeqbc::erf_f64(om * r);
                 let dnum = lr * 2.0 * om / SQRTPI * (-(om * r) * (om * r)).exp();
                 let d2num = -2.0 * om * om * r * dnum;
                 let damp = (-kap * r).exp() / etag;
@@ -688,7 +688,7 @@ impl<'a> Analytic<'a> {
                 let d1 = bo_kernel(&s.model, za, zb, r).1;
                 // K = c/2 (1 + erf(x)), x = -k (R - R_ab), k = aatoau/R0: K'' = 2 x k K'
                 let rr = (crate::data_v2::FOCK_CRAD[za - 1] * crate::data_v2::FOCK_CRAD[zb - 1]).sqrt();
-                let k = s.model.aatoau / super::exchange::r0(&s.model, za, zb);
+                let k = s.model.aatoau / crate::exchange::r0(&s.model, za, zb);
                 let d2 = 2.0 * (-k * (r - rr)) * k * d1;
                 pair(a, b, w, d1, d2);
             }
@@ -699,7 +699,7 @@ impl<'a> Analytic<'a> {
     /// Column y of sum_s Tr(F^(x)_s dP^y_s) - Tr(S^x dW^y) for every x, without forming F^(x):
     /// the derivative of the gradient functional g_x(P, W) along (dP^y, dW^y), contracted from
     /// the local rows. `kd` holds the solution dP^y with its kernel intermediates
-    /// ([`super::response::Cpks::solve_parts`]) and `dw` the total dW^y (row-major).
+    /// ([`crate::response::Cpks::solve_parts`]) and `dw` the total dW^y (row-major).
     ///
     /// Terms of F^(x) and their contraction with dP^y:
     /// - Fock tangent at the reference potentials (local rows, plus the ACP projectors of the

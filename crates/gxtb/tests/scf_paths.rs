@@ -64,7 +64,7 @@ fn uf6_v11_degenerate_iteration_two() {
     .unwrap();
     let xyz = std::fs::read_to_string(tests().join("reference_v2/elements/UF6/mol.xyz")).unwrap();
     let mol = axtb_gxtb::read_xyz(&xyz, 0.0, Some(0)).unwrap();
-    let setup = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(Conventions::Gxtb)).unwrap();
+    let setup = axtb_gxtb::scf::Setup::new(&mol, axtb_gxtb::model::Model::v1_1(Conventions::Gxtb)).unwrap();
     let n = setup.nao;
     let ao: Vec<(usize, usize, usize)> = setup.basis.scf.ao2sh.iter().map(|&i| setup.shells[i]).collect();
     let map = program_ao_map(&ao);
@@ -127,12 +127,12 @@ fn uf6_v11_degenerate_iteration_two() {
 /// 4 iterations, with the residuals of its printout.
 #[test]
 fn h2_v2_early_diis() {
-    use axtb_gxtb::{v2::scf::Setup, ScfOptions};
+    use axtb_gxtb::{scf::Setup, ScfOptions};
     let dir = tests().join("reference_v2/elements/H2");
     let summ: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("summary.json")).unwrap()).unwrap();
     let xyz = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
-    let mol = axtb_gxtb::v2::read_xyz(&xyz, 0.0, Some(0), Conventions::Gxtb).unwrap();
-    let r = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb))
+    let mol = axtb_gxtb::model::read_xyz(&xyz, 0.0, Some(0), Conventions::Gxtb).unwrap();
+    let r = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(Conventions::Gxtb))
         .unwrap()
         .scf(&ScfOptions { conventions: Conventions::Gxtb, ..Default::default() })
         .unwrap();
@@ -155,19 +155,19 @@ fn h2_v2_early_diis() {
 /// gradient, not the program's.
 #[test]
 fn gd_aqua_v2_program_gradient_axis() {
-    use axtb_gxtb::{v2::scf::Setup, ScfOptions};
+    use axtb_gxtb::{scf::Setup, ScfOptions};
     let d: Value = serde_json::from_str(
         &std::fs::read_to_string(tests().join("reference_elements/gd_aqua_v2_gradient.json")).unwrap(),
     )
     .unwrap();
-    let mol = axtb_gxtb::v2::read_xyz(
+    let mol = axtb_gxtb::model::read_xyz(
         d["xyz"].as_str().unwrap(),
         d["charge"].as_f64().unwrap(),
         Some(d["uhf"].as_u64().unwrap() as usize),
         Conventions::Gxtb,
     )
     .unwrap();
-    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(Conventions::Gxtb)).unwrap();
     let r = setup.scf(&ScfOptions { conventions: Conventions::Gxtb, accuracy: 1e-4, ..Default::default() }).unwrap();
     assert!((r.energies.total - d["energy"].as_f64().unwrap()).abs() < 1e-9, "energy {}", r.energies.total);
     let g = setup.gradient(&r).unwrap();

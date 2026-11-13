@@ -25,7 +25,7 @@ fn run(mol: &axtb::Molecule, threads: usize, conventions: Conventions, etemp: f6
 }
 
 fn nao(mol: &axtb::Molecule) -> usize {
-    axtb_gxtb::v2::scf::Setup::new(mol, axtb_gxtb::v2::Model::v1_1(Conventions::Axtb)).unwrap().nao
+    axtb_gxtb::scf::Setup::new(mol, axtb_gxtb::model::Model::v1_1(Conventions::Axtb)).unwrap().nao
 }
 
 #[test]

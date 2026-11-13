@@ -1,6 +1,6 @@
 //! The SCF strategy of the 2.0.1 program (tblite's SCF as the program runs it, spec §4.17): its
 //! Fock mixing, [`Gxtb201FockDiis`], and its convergence test, [`Gxtb201Rule`], for the core's
-//! SCF traits (`axtb::scf`). [`super::scf::Setup::scf_from`] runs them with the core's SCF
+//! SCF traits (`axtb::scf`). [`crate::scf::Setup::scf_from`] runs them with the core's SCF
 //! driver.
 
 use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};

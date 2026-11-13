@@ -12,9 +12,9 @@
 //! 1e-11) and is not timed.
 
 use axtb_base::fd::symmetrize;
-use axtb_gxtb::v2::hessian::AnalyticOptions;
-use axtb_gxtb::v2::response::CpksOptions;
-use axtb_gxtb::v2::scf::Setup;
+use axtb_gxtb::hessian::AnalyticOptions;
+use axtb_gxtb::response::CpksOptions;
+use axtb_gxtb::scf::Setup;
 use axtb_gxtb::{Conventions, ScfOptions};
 
 fn main() {
@@ -34,8 +34,8 @@ fn main() {
     let tol: f64 = a[6].parse().expect("tolerance");
     let symmetric = a[7] == "1";
     let threads: usize = a[8].parse().expect("threads");
-    let mol = axtb_gxtb::v2::read_xyz(&xyz, charge, Some(uhf), conv).expect("molecule");
-    let mut setup = Setup::with_threads(&mol, axtb_gxtb::v2::Model::v2_0_1(conv), threads).expect("setup");
+    let mol = axtb_gxtb::model::read_xyz(&xyz, charge, Some(uhf), conv).expect("molecule");
+    let mut setup = Setup::with_threads(&mol, axtb_gxtb::model::Model::v2_0_1(conv), threads).expect("setup");
     let opts = ScfOptions {
         conventions: conv,
         etemp,

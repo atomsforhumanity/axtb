@@ -7,7 +7,7 @@
 //! - iteration k: Fock matrix F_k of the current charges, multipoles and density (of P_{k-1});
 //!   mixing; diagonalization of the mixed matrix (generalized, S); occupations: 0 K Aufbau (the
 //!   last orbital of a channel takes the fractional remainder of its electron count) or, at a
-//!   finite electronic temperature, Fermi smearing ([`super::fermi`]); P_k; its Mulliken charges
+//!   finite electronic temperature, Fermi smearing ([`crate::fermi`]); P_k; its Mulliken charges
 //!   and moments; `E_k = E[P_k] - TS_k`;
 //! - mixing on the full Fock matrix (both spin channels in one vector): none in iteration 1,
 //!   damping 0.2 in iterations 2 and 3, then DIIS with the residuals r_j = F_j - F~_{j-1} of
@@ -20,22 +20,22 @@
 //!   `check_convergence` sets each flag and never clears it); no extra iteration
 //!   (`Gxtb201Rule`).
 
-use super::basis::Basis;
-use super::cn::gxtb_cn;
-use super::coulomb::{AesCache, IsotropicCache, Shell};
-use super::disp::RevD4;
-use super::eeqbc::eeqbc;
-use super::exchange::Exchange;
-use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy, AcpSet};
-use super::intermediates::Slots;
-use super::repulsion::Repulsion;
-use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
-use super::terms::{buffer, Terms};
-use super::Model;
+use crate::basis::Basis;
+use crate::cn::gxtb_cn;
+use crate::coulomb::{AesCache, IsotropicCache, Shell};
 use crate::data_v2::{REF_OCC, ZEFF_SHELL};
 use crate::eeqbc::EeqBcCharges;
+use crate::eeqbc_model::eeqbc;
+use crate::exchange::Exchange;
 use crate::fock::shell_list;
+use crate::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy, AcpSet};
+use crate::intermediates::Slots;
+use crate::model::Model;
 use crate::options::{ScfOptions, Version};
+use crate::repulsion::Repulsion;
+use crate::revd4::RevD4;
+use crate::strategy::{Gxtb201FockDiis, Gxtb201Rule};
+use crate::terms::{buffer, Terms};
 use crate::timing::{Laps, Timings};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
@@ -192,7 +192,7 @@ impl Setup {
     pub fn with_threads(mol: &Molecule, model: Model, threads: usize) -> Result<Self> {
         let parallel = threads > 1;
         crate::check_charge(mol)?;
-        super::check_model_elements(&model, &mol.numbers)?;
+        crate::model::check_model_elements(&model, &mol.numbers)?;
         let mut t = Laps::new();
         let (eeq, eeq_solution) = eeqbc(&model, mol)?.charges_and_solution()?;
         t.lap("setup: eeq-bc");
@@ -204,7 +204,7 @@ impl Setup {
         let nao = basis.scf.nao;
         axtb_base::threads::check(threads)?;
         let dense = axtb_base::threads::dense_par(threads, nao);
-        let (s, dpint, qpint) = super::basis::integrals(mol, &basis.scf, cutoff, parallel);
+        let (s, dpint, qpint) = crate::basis::integrals(mol, &basis.scf, cutoff, parallel);
         t.lap("setup: integrals");
         let mut h = build_h0(&model, mol, &basis.h0, &cn, cutoff, parallel);
         t.lap("setup: h0");
@@ -236,7 +236,7 @@ impl Setup {
         // of the Hessian) reuse them instead of factorizing again
         // (v1.1's gradient factorizes the matrix of another Coulomb kernel: no reuse)
         let eeq_solution = (model.version == Version::V2_0_1).then(|| Arc::new(eeq_solution));
-        let (layout, slots) = super::intermediates::layout(&model, mol, eeq_solution);
+        let (layout, slots) = crate::intermediates::layout(&model, mol, eeq_solution);
         let mut values = Values::new(&layout);
         values.set(slots.eeq, eeq.charges.clone());
         values.set(slots.cnd4, disp.cn.clone());
@@ -603,7 +603,7 @@ impl Setup {
     /// Occupation numbers of a channel with `nel` (real) electrons over `n` orbitals at 0 K:
     /// 1 for the first floor(nel), the remainder for the next.
     pub fn aufbau(nel: f64, n: usize) -> Vec<f64> {
-        super::fermi::aufbau(nel, n)
+        crate::fermi::aufbau(nel, n)
     }
 
     /// Occupations per spin channel at 0 K (closed shell: doubly occupied).
@@ -622,21 +622,21 @@ impl Setup {
     /// smears above 1e-6 K with its single-precision kB).
     pub fn kt(&self, etemp: f64) -> f64 {
         if self.model.version == Version::V1_1 && self.model.program() {
-            return if etemp > super::fermi::TEL_MIN { etemp * crate::occupations::KB_GXTB110 } else { 0.0 };
+            return if etemp > crate::fermi::TEL_MIN { etemp * crate::occupations::KB_GXTB110 } else { 0.0 };
         }
         if etemp > 0.0 {
-            etemp * super::fermi::boltzmann(self.model.program())
+            etemp * crate::fermi::boltzmann(self.model.program())
         } else {
             0.0
         }
     }
 
     /// Occupations, Fermi level and entropy term of one channel with `nel` electrons over the
-    /// levels `e` at `kt` in this model (v1.1: its rules, [`super::fermi::fill_channel_v1_1`]).
+    /// levels `e` at `kt` in this model (v1.1: its rules, [`crate::fermi::fill_channel_v1_1`]).
     pub fn fill_channel(&self, nel: f64, kt: f64, e: &[f64]) -> (Vec<f64>, Option<f64>, f64) {
         match self.model.version {
-            Version::V2_0_1 => super::fermi::fill_channel(nel, kt, e, self.model.program()),
-            Version::V1_1 => super::fermi::fill_channel_v1_1(nel as usize, kt, e, self.model.program()),
+            Version::V2_0_1 => crate::fermi::fill_channel(nel, kt, e, self.model.program()),
+            Version::V1_1 => crate::fermi::fill_channel_v1_1(nel as usize, kt, e, self.model.program()),
         }
     }
 

@@ -1,5 +1,5 @@
 //! g-xTB (T. Froitzheim, M. Müller, A. Hansen, S. Grimme, ChemRxiv 2025,
-//! doi:10.26434/chemrxiv-2025-bjxvt) in two versions on one engine ([`v2`]):
+//! doi:10.26434/chemrxiv-2025-bjxvt) in two versions on one engine ([`model`]):
 //!
 //! - **2.0.1**, the version of the grimme-lab/g-xtb 2.0.1 release (`xtb --gxtb`), decoded from
 //!   that program, method `"gxtb-v2.0.1"` and the default [`Version`], with its own parameters
@@ -7,15 +7,15 @@
 //! - **v1.1**, the public, preprint version as implemented by the g-xTB 1.1.0 program
 //!   (grimme-lab/g-xtb release v1.1.0), method `"gxtb-v1.1"`: the same engine with v1.1's
 //!   parameters ([`params`], [`data`], [`data_runtime`]) and its forms of the terms, selected by
-//!   the version in the [`v2::Model`].
+//!   the version in the [`model::Model`].
 //!
 //! **Use.** [`Calculator`] implements axtb-base's [`Method`] (the axtb CLI, Python package and
 //! qccodec codec select it by method name): `Calculator::new(Version::V2_0_1, numbers,
 //! positions, charge, uhf, Options::default())`, then [`Method::singlepoint`] (energy, analytic
 //! gradient) and [`Method::hessian`] (2.0.1: analytic by default, response or numerical; v1.1:
 //! numerical). [`Options`] holds the settings of both versions and refuses those of the other
-//! one. Lower down, [`v2::scf::Setup`] (`Setup::new(mol, Model::new(version, conventions))`) and
-//! [`v2::scf::Setup::scf`], with the settings of one SCF ([`ScfOptions`]).
+//! one. Lower down, [`scf::Setup`] (`Setup::new(mol, Model::new(version, conventions))`) and
+//! [`scf::Setup::scf`], with the settings of one SCF ([`ScfOptions`]).
 //!
 //! **Conventions** ([`Conventions`]). [`Conventions::Gxtb`] reproduces the programs:
 //! - 2.0.1: total energies to ≤ 1.8e-12 Eh (9.1e-12 Eh for (H2O)100), the same SCF iterations,
@@ -39,7 +39,7 @@
 //! `Options::scf.restart`).
 //!
 //! **Finite electronic temperature** (`Options::scf.etemp`; the programs' `--etemp` and `-tel`):
-//! Fermi smearing with the entropy term in both versions ([`v2::fermi`], on the shared rules of
+//! Fermi smearing with the entropy term in both versions ([`fermi`], on the shared rules of
 //! [`occupations`]).
 //!
 //! **Implicit solvent:** [`composite`], E_gxtb + [E_GFN2+ALPB/GBSA - E_GFN2] for energies,
@@ -68,11 +68,24 @@ pub mod data;
 pub mod data_runtime;
 #[rustfmt::skip] // parameter tables keep their compact layout
 pub mod data_v2;
+pub mod analytic;
+pub mod basis;
+pub mod cn;
+pub mod coulomb;
 pub mod dense;
 pub mod disp;
 pub mod eeqbc;
+pub mod eeqbc_model;
+pub mod exchange;
+pub mod explicit;
+pub mod fermi;
 pub mod fock;
+pub mod gradient;
+pub mod h0;
+pub mod hessian;
+pub(crate) mod intermediates;
 pub mod krylov;
+pub mod model;
 pub mod mulliken;
 pub mod occupations;
 pub mod options;
@@ -80,14 +93,20 @@ pub mod parallel;
 pub mod params;
 pub(crate) mod program110;
 pub mod qvszp;
+pub mod repulsion;
+pub mod response;
+pub mod revd4;
+pub mod scf;
+pub(crate) mod strategy;
+pub mod tangent;
+pub(crate) mod terms;
 pub mod timing;
-pub mod v2;
 
 pub use axtb::{method, Method};
 pub use calculator::{Calculator, ConvergerSettings, Options, Version, RESTART_ACCURACY};
 pub use composite::{CompositeCalculator, CompositeOptions, Correction};
 pub use options::{Conventions, ScfOptions};
-pub use v2::scf::{Energies, ScfResult, Setup};
+pub use scf::{Energies, ScfResult, Setup};
 
 use axtb::{Error, Molecule, Result};
 
@@ -106,7 +125,7 @@ pub(crate) fn check_charge(mol: &Molecule) -> Result<()> {
 pub const BOHR_ANGSTROM: f64 = 0.52917726_f32 as f64;
 
 /// Read an XYZ file (Ångström) the way the g-xTB 1.1.0 program does (coordinates divided by
-/// [`BOHR_ANGSTROM`]); [`v2::read_xyz`] reads it for 2.0.1.
+/// [`BOHR_ANGSTROM`]); [`model::read_xyz`] reads it for 2.0.1.
 pub fn read_xyz(text: &str, charge: f64, uhf: Option<usize>) -> Result<Molecule> {
     let (numbers, positions) = axtb::io::read_xyz_with(text, |x| x / BOHR_ANGSTROM)?;
     Molecule::new(&numbers, &positions, charge, uhf)

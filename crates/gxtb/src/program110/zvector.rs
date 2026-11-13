@@ -48,10 +48,10 @@
 
 use super::ProgramFock;
 use crate::dense::matmul as matmul_rows;
+use crate::gradient::{MultipoleTerm, Potentials};
 use crate::krylov::{gmres, GmresError};
-use crate::v2::gradient::{MultipoleTerm, Potentials};
-use crate::v2::scf::{ScfResult, Setup, State};
-use crate::v2::terms::buffer;
+use crate::scf::{ScfResult, Setup, State};
+use crate::terms::buffer;
 use axtb::response::{MoSpace, OccupationResponse};
 use axtb::terms::{Chain, MomentTerm};
 use axtb::{Error, Result};
@@ -162,7 +162,7 @@ impl Setup {
 
     /// y~ of F_x of one spin density `d` (closed shell: the total density):
     /// y~_m = -(w/8) sum_k m2_mk (D S)_kk within the atom of m, w = 1 (closed) or 2, with the
-    /// couplings m2 of the onsite exchange ([`crate::v2::exchange::Dual`]).
+    /// couplings m2 of the onsite exchange ([`crate::exchange::Dual`]).
     fn ofx_y(&self, d: &[f64], closed: bool) -> Vec<f64> {
         let n = self.nao;
         let Some(dual) = &self.exch.dual else { return vec![0.0; n] };
@@ -401,12 +401,7 @@ impl Setup {
 
     /// The explicit gradient's parts at the state `st`: the integral weights and the terms'
     /// derivatives (`full`: of E, otherwise of E').
-    fn explicit_parts(
-        &self,
-        pf: &ProgramFock,
-        st: &State,
-        full: bool,
-    ) -> (crate::v2::gradient::IntegralWeights, Chain) {
+    fn explicit_parts(&self, pf: &ProgramFock, st: &State, full: bool) -> (crate::gradient::IntegralWeights, Chain) {
         let pr = self.exch.products(&self.s, &st.p, self.par);
         let pot = if full { self.potentials_with(st, &pr) } else { self.potentials_program(pf, st, &pr) };
         let w = self.integral_weights(st, &pr, &pot, None);
@@ -417,7 +412,7 @@ impl Setup {
 
     /// The potentials of the explicit gradient of E' at `st` (exchange products `pr`): those of
     /// [`Setup::potentials_with`] with the program's AES.
-    fn potentials_program(&self, pf: &ProgramFock, st: &State, pr: &[crate::v2::exchange::Products]) -> Potentials {
+    fn potentials_program(&self, pf: &ProgramFock, st: &State, pr: &[crate::exchange::Products]) -> Potentials {
         let mut pot = self.program_potentials(pf, st);
         let (_, _, vx) = self.exch.evaluate_with(&self.s, &st.p, pr, &st.q, false, self.par, self.parallel);
         for (v, x) in pot.vsh.iter_mut().zip(&vx) {

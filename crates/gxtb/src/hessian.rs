@@ -1,4 +1,4 @@
-//! Nuclear Hessians of g-xTB 2.0.1 from the coupled-perturbed response ([`super::response`]).
+//! Nuclear Hessians of g-xTB 2.0.1 from the coupled-perturbed response ([`crate::response`]).
 //!
 //! With the analytic gradient written as a functional g(R; P, W) = dE/dR|_P - Tr(W dS/dR) of
 //! the AO spin densities and the energy-weighted density ([`Setup::explicit_gradient`]):
@@ -15,12 +15,12 @@
 //!   two displaced setups (central difference at fixed density).
 //! - **analytic** ([`Setup::analytic_hessian`], the default): H_xy = E^xy|_{P,W} +
 //!   sum_s Tr(F^(x)_s dP^y_s) - Tr(S^x dW^y) with the analytic perturbations F^(x), S^x and the
-//!   explicit second derivatives of [`super::analytic`], [`super::explicit`] and
-//!   [`super::tangent`]; no displaced setup and no displaced gradient.
+//!   explicit second derivatives of [`crate::analytic`], [`crate::explicit`] and
+//!   [`crate::tangent`]; no displaced setup and no displaced gradient.
 
-use super::response::{Cpks, CpksOptions};
-use super::scf::{ScfResult, Setup};
 use crate::dense::{from_mat, to_mat};
+use crate::response::{Cpks, CpksOptions};
+use crate::scf::{ScfResult, Setup};
 use crate::timing::Timings;
 use axtb::{Error, Result};
 use axtb_base::{fd, threads};
@@ -42,14 +42,14 @@ impl Setup {
         self.on_displacements(r, |s, parallel| s.response_columns(r, step, cpks, parallel))
     }
 
-    /// Analytic Hessian of a converged SCF `r` ([`super::analytic`]), with the dipole
+    /// Analytic Hessian of a converged SCF `r` ([`crate::analytic`]), with the dipole
     /// derivatives: the fixed-density part (integral derivatives of the Mulliken charges and
     /// atomic dipoles) plus the Mulliken analysis of the density response dP^x.
     ///
     /// Displacements are processed in blocks ([`AnalyticOptions::block`]); for each, the
     /// perturbation F^(x), S^x, the coupled-perturbed response dP^x, dW^x and its contraction
     /// with every displacement's local derivative rows
-    /// ([`super::analytic::Analytic::response_column`]). Only Hessian columns and vectors of the
+    /// ([`crate::analytic::Analytic::response_column`]). Only Hessian columns and vectors of the
     /// SCC-variable layout are kept, so the memory grows like N^2 (plus a few n x n matrices per
     /// thread). The phases "perturbations" and "response" are the wall time of the
     /// displacement loop split in proportion to the summed time of each part.
@@ -168,7 +168,7 @@ impl Setup {
         let nat = self.mol.nat();
         let n3 = 3 * nat;
         let seq = self;
-        let an = super::analytic::Analytic::new(seq, &r.state)?;
+        let an = crate::analytic::Analytic::new(seq, &r.state)?;
         let mut cp = Cpks::new(seq, r, opts.cpks, Par::Seq);
         cp.keep_solution = opts.symmetric;
         let cp = cp;
@@ -187,8 +187,8 @@ impl Setup {
         let (mut t_pert, mut t_resp) = (0.0, 0.0);
         #[allow(clippy::type_complexity)]
         let task = |x: usize| -> Result<(
-            super::analytic::Displacement,
-            super::analytic::ResponseColumn,
+            crate::analytic::Displacement,
+            crate::analytic::ResponseColumn,
             [f64; 3],
             f64,
             f64,

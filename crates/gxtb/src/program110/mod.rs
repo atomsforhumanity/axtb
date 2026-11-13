@@ -26,9 +26,9 @@
 pub(crate) mod strategy;
 pub(crate) mod zvector;
 
-use crate::v2::coulomb::{potentials_with, AesCache};
-use crate::v2::exchange::Products;
-use crate::v2::scf::Setup;
+use crate::coulomb::{potentials_with, AesCache};
+use crate::exchange::Products;
+use crate::scf::Setup;
 use axtb::Molecule;
 
 /// The program's start density of a v1.1 setup (spin densities; closed shell: the total).
@@ -91,7 +91,7 @@ impl ProgramFock {
     /// Add the program's extra half of the onsite exchange's population part to the Fock
     /// matrices `fm` of the spin densities with products `pr` (closed shell: one, the total
     /// density): w (-(y_m + y_k) S_mk / 16) for m != k with y = m2 diag(P S) per channel
-    /// ([`crate::v2::exchange::Dual`]), w = 1 (closed) or 2.
+    /// ([`crate::exchange::Dual`]), w = 1 (closed) or 2.
     pub fn add_ofx_extra(&self, setup: &Setup, pr: &[Products], fm: &mut [Vec<f64>]) {
         let Some(d) = &setup.exch.dual else { return };
         let n = setup.nao;

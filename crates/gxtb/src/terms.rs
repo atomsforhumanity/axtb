@@ -4,18 +4,18 @@
 //! gradient order), which the core leaves to the model. Their energies are totals (g-xTB sums
 //! no per-atom energies).
 //!
-//! [`Setup`]: super::scf::Setup
+//! [`Setup`]: crate::scf::Setup
 
-use super::coulomb::{
+use crate::coulomb::{
     first_order_g, gamma_kernel, spin_energy, spin_potential, tau_kernel, AesCache, IsotropicCache, Shell, ThirdOrder,
 };
-use super::disp::RevD4;
-use super::gradient::{add_pair, chain_rows};
-use super::intermediates::Slots;
-use super::repulsion::Repulsion;
-use super::Model;
 use crate::data_v2::INCREMENT;
+use crate::gradient::{add_pair, chain_rows};
+use crate::intermediates::Slots;
+use crate::model::Model;
 use crate::options::Version;
+use crate::repulsion::Repulsion;
+use crate::revd4::RevD4;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::terms::{Chain, Chain2, Geometry, GeometryTerm, MomentTerm, Needs, Potentials, SccMoments, Slot, TermEnergy};
 use axtb::Result;
@@ -80,7 +80,7 @@ impl GeometryTerm for Increments {
 }
 
 /// v1.1's semi-classical repulsion of the EEQ-BC charges and the g-xTB CN
-/// ([`super::repulsion::classical`]): a geometry term (it reads no SCC moment).
+/// ([`crate::repulsion::classical`]): a geometry term (it reads no SCC moment).
 #[derive(Clone, Debug)]
 pub struct ClassicalRepulsion {
     /// The EEQ-BC charges and the g-xTB CN.
@@ -109,17 +109,17 @@ impl GeometryTerm for ClassicalRepulsion {
             Some(ch) => {
                 let n = geo.mol.nat();
                 let (mut dq, mut dcn) = (vec![0.0; n], vec![0.0; n]);
-                let v = super::repulsion::classical::energy(geo.mol, q, c, Some((&mut ch.g, &mut dq, &mut dcn)));
+                let v = crate::repulsion::classical::energy(geo.mol, q, c, Some((&mut ch.g, &mut dq, &mut dcn)));
                 add(ch.slot(eeq), &dq);
                 add(ch.slot(cn), &dcn);
                 v
             }
-            None => super::repulsion::classical::energy(geo.mol, q, c, None),
+            None => crate::repulsion::classical::energy(geo.mol, q, c, None),
         };
     }
 }
 
-/// revD4 ([`super::disp`]): the two-body energy of the SCF charges (its energy and potential in
+/// revD4 ([`crate::revd4`]): the two-body energy of the SCF charges (its energy and potential in
 /// one pass) and the three-body energy at zero charges (the moment-independent part, once per
 /// geometry); both depend on the revD4 coordination number.
 #[derive(Clone, Debug)]
@@ -234,7 +234,7 @@ fn add(out: &mut [f64], x: &[f64]) {
     }
 }
 
-/// First- to fourth-order isotropic electrostatics ([`super::coulomb`]): the four energies from
+/// First- to fourth-order isotropic electrostatics ([`crate::coulomb`]): the four energies from
 /// one pass over the shells, the shell potential, the gradient at fixed charges (kernels and
 /// the CN-dependent parameters, dE/dCN of the g-xTB CN), the kernel product. The cache is the
 /// setup's [`IsotropicCache`].
@@ -290,7 +290,7 @@ impl MomentTerm for Isotropic {
     }
 }
 
-/// Anisotropic electrostatics with CN-scaled atomic dipoles ([`super::coulomb`]). Its gradient
+/// Anisotropic electrostatics with CN-scaled atomic dipoles ([`crate::coulomb`]). Its gradient
 /// needs dE/d(c d), the potential of the scaled dipoles: the trait's `gradient` computes it
 /// again; the setup, which has it from the potential pass at the same state, uses
 /// [`Aes::potential_scaled`] and [`Aes::gradient_with`] instead (the same bits). The cache is
@@ -432,7 +432,7 @@ impl MomentTerm for Spin {
     }
 }
 
-/// The self-consistent repulsion ([`super::repulsion`]): the geometry part M_AB depends on the
+/// The self-consistent repulsion ([`crate::repulsion`]): the geometry part M_AB depends on the
 /// g-xTB CN; energy, potential, gradient (positions and dE/dCN) and kernel product at the SCF
 /// charges.
 #[derive(Clone, Debug)]
@@ -688,7 +688,7 @@ mod tests {
     fn aes_gradient_paths_agree() {
         let pos = [[0.0, 0.0, -1.14], [0.0, 0.0, 1.14], [0.0, 1.77, -2.24], [0.0, -1.77, -2.24]];
         let mol = Molecule::new(&[6, 8, 1, 1], &pos, 0.0, None).unwrap();
-        let mut setup = Setup::new(&mol, super::Model::v2_0_1(Conventions::Axtb)).unwrap();
+        let mut setup = Setup::new(&mol, crate::model::Model::v2_0_1(Conventions::Axtb)).unwrap();
         let r = setup.scf(&ScfOptions::default()).unwrap();
         for threads in [1, 2] {
             setup.set_threads(threads).unwrap();

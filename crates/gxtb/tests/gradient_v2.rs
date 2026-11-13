@@ -1,7 +1,7 @@
 //! g-xTB 2.0.1 analytic gradients against finite differences of the energy and against the
 //! 2.0.1 program's analytic gradients (tests/reference_v2/*/*/gradient_tight).
 
-use axtb_gxtb::v2::scf::Setup;
+use axtb_gxtb::scf::Setup;
 use axtb_gxtb::{Conventions, ScfOptions};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -20,7 +20,7 @@ fn molecule(rel: &str, conv: Conventions) -> axtb::Molecule {
     let charge = input["charge"].as_f64().unwrap();
     let uhf = input["uhf"].as_u64().unwrap() as usize;
     let xyz = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
-    axtb_gxtb::v2::read_xyz(&xyz, charge, Some(uhf), conv).unwrap()
+    axtb_gxtb::model::read_xyz(&xyz, charge, Some(uhf), conv).unwrap()
 }
 
 fn tight(c: Conventions) -> ScfOptions {
@@ -34,12 +34,12 @@ fn tight(c: Conventions) -> ScfOptions {
 }
 
 fn energy(m: &axtb::Molecule, c: Conventions) -> f64 {
-    Setup::new(m, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap().scf(&tight(c)).unwrap().energies.total
+    Setup::new(m, axtb_gxtb::model::Model::v2_0_1(c)).unwrap().scf(&tight(c)).unwrap().energies.total
 }
 
 fn fd_check(rel: &str, c: Conventions) -> f64 {
     let mol = molecule(rel, c);
-    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(c)).unwrap();
     let r = setup.scf(&tight(c)).unwrap();
     let g = setup.gradient(&r).unwrap();
     let h = 5e-4;
@@ -109,7 +109,7 @@ fn gradient_matches_program() {
     for rel in &dirs {
         let c = Conventions::Gxtb;
         let mol = molecule(rel, c);
-        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(c)).unwrap();
         let r = setup.scf(&ScfOptions { conventions: c, accuracy: 1e-4, ..Default::default() }).unwrap();
         let g = setup.gradient(&r).unwrap();
         let gp = program_gradient(rel, "gradient_tight");
@@ -150,7 +150,7 @@ fn smooth_cutoffs_finite_differences() {
     let numbers = [8, 1, 1, 8, 1, 1, 2];
     let mol = axtb::Molecule::new(&numbers, &pos, 0.0, None).unwrap();
     let c = Conventions::Axtb;
-    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::model::Model::v2_0_1(c)).unwrap();
     let r = setup.scf(&tight(c)).unwrap();
     let g = setup.gradient(&r).unwrap();
     let h = 1e-3;

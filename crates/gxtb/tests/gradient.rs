@@ -11,7 +11,7 @@
 //! thresholds tightened to 1e-12 Eh / 1e-10 (gdb, `scripts/make_reference.py`).
 
 use axtb::method::{Method, Want};
-use axtb_gxtb::v2::scf::Setup;
+use axtb_gxtb::scf::Setup;
 use axtb_gxtb::{read_xyz, Calculator, Conventions, Options, ScfOptions};
 use serde_json::Value;
 use std::path::Path;
@@ -63,7 +63,7 @@ fn program_gradient(name: &str, file: &str, nat: usize) -> Vec<[f64; 3]> {
 
 /// The engine's v1.1 setup in the conventions `c`.
 fn setup(mol: &axtb::Molecule, c: Conventions) -> Setup {
-    Setup::new(mol, axtb_gxtb::v2::Model::v1_1(c)).unwrap()
+    Setup::new(mol, axtb_gxtb::model::Model::v1_1(c)).unwrap()
 }
 
 fn tight(conventions: Conventions) -> ScfOptions {

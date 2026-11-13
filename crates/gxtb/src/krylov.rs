@@ -1,7 +1,7 @@
 //! Krylov solvers of the g-xTB response equations and their vector operations:
 //!
 //! - [`cg`]: conjugate gradients for the symmetric positive definite coupled-perturbed system of
-//!   2.0.1 (`v2::response`), on block vectors (one faer matrix per spin channel) with the
+//!   2.0.1 (`crate::response`), on block vectors (one faer matrix per spin channel) with the
 //!   eight-partial-sum dot product ([`block_dot`]);
 //! - [`gmres`]: right-preconditioned restarted GMRES for v1.1's non-symmetric Z-vector equations
 //!   (the response of the program's Fock matrix), on plain vectors with the sequential dot product.

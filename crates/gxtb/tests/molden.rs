@@ -15,7 +15,7 @@ use std::path::Path;
 
 fn molecule(rel: &str, charge: f64, uhf: usize) -> Molecule {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference_v2").join(rel).join("mol.xyz");
-    axtb_gxtb::v2::read_xyz(&std::fs::read_to_string(path).unwrap(), charge, Some(uhf), Default::default()).unwrap()
+    axtb_gxtb::model::read_xyz(&std::fs::read_to_string(path).unwrap(), charge, Some(uhf), Default::default()).unwrap()
 }
 
 /// Largest deviation of C^T S C from the unit matrix over the sets of `orb`, with S from the

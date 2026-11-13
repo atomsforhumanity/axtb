@@ -36,7 +36,7 @@
 //! contraction with the weights ([`D4Model::pair_c6_from_weights`]), the two-body pair list and
 //! the three-body kernel ([`D4Dispersion`]). The tables, the CN, the pair-specific weights and
 //! the two-body gradient (its damping derivative in its own order, which differs from
-//! `axtb_d4`'s in the last bits) are g-xTB's and stay here; 2.0.1 ([`crate::v2::disp`]) uses
+//! `axtb_d4`'s in the last bits) are g-xTB's and stay here; 2.0.1 ([`crate::revd4`]) uses
 //! the same reference data with its own [`ReferenceCharges`].
 
 use crate::data::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};

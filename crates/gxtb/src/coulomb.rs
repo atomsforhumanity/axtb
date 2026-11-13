@@ -30,7 +30,6 @@
 //! radius in Ångström used as bohr and pairs beyond 200 bohr left out; no dipole scaling; the
 //! spin constants `atspin` W0.
 
-use super::{sqrt_cn, Model};
 use crate::data::{GAM, GAM3};
 use crate::data_runtime::REF_SHELL_OCC;
 use crate::data_v2::{
@@ -38,6 +37,8 @@ use crate::data_v2::{
     SHELL_HUBBARD, SPIN_W0, WLL_SCALE, ZEFF_SHELL,
 };
 use crate::eeqbc::{erf_f64, vdw_rad_pair};
+use crate::model::sqrt_cn;
+use crate::model::Model;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;

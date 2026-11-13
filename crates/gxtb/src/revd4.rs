@@ -20,9 +20,9 @@
 //! three-body term with dftd4's zero damping 1/(1 + 6 prod (R0/R)^(16/3)), s9 = 1.75, triples within
 //! 20 bohr ([`Damping`]); every cutoff hard and the CN's (30 bohr) too, in both conventions.
 
-use super::Model;
 use crate::data_v2::{D4_REFH, D4_REFQ};
 use crate::disp::{k_matrices, revd4_model, ReferenceCharges, CHARGES_V1_1};
+use crate::model::Model;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};

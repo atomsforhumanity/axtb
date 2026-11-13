@@ -4,11 +4,11 @@
 
 use axtb::basis::Basis;
 use axtb_base::math::primitive_norm;
+use axtb_gxtb::basis::{integrals, Basis as EngineBasis};
 use axtb_gxtb::eeqbc::eeqbc_charges;
 use axtb_gxtb::fock::shell_list;
 use axtb_gxtb::params::{EeqBcParams, QvszpParams};
 use axtb_gxtb::read_xyz;
-use axtb_gxtb::v2::basis::{integrals, Basis as EngineBasis};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -326,16 +326,16 @@ fn program_densities(c: &Case, map: &[usize]) -> Vec<Vec<f64>> {
 // ---- the same checks on the engine's v1.1 model (step 17) ----
 
 /// The engine's v1.1 model in the program's conventions.
-fn v11() -> axtb_gxtb::v2::Model {
-    axtb_gxtb::v2::Model::v1_1(axtb_gxtb::Conventions::Gxtb)
+fn v11() -> axtb_gxtb::model::Model {
+    axtb_gxtb::model::Model::v1_1(axtb_gxtb::Conventions::Gxtb)
 }
 
 /// The engine's v1.1 isotropic potential and kernel against the old tree's potential and
 /// central differences of the engine's potential, at the program's charges.
 #[test]
 fn isotropic_engine_potential_and_kernel() {
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::coulomb::IsotropicCache;
     let mut wk = 0.0f64;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
@@ -362,9 +362,9 @@ fn isotropic_engine_potential_and_kernel() {
 /// the program.
 #[test]
 fn basis_and_one_electron_engine_match_program() {
-    use axtb_gxtb::v2::basis::{integrals, Basis};
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::h0::{add_acp, build_h0, selfenergy, AcpSet};
+    use axtb_gxtb::basis::{integrals, Basis};
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::h0::{add_acp, build_h0, selfenergy, AcpSet};
     let model = v11();
     let (mut ws, mut wh, mut wa) = (0.0f64, 0.0f64, 0.0f64);
     for c in cases() {
@@ -430,7 +430,7 @@ fn basis_and_one_electron_engine_match_program() {
 /// old tree and central differences.
 #[test]
 fn exchange_engine_matches_program() {
-    use axtb_gxtb::v2::exchange::Exchange;
+    use axtb_gxtb::exchange::Exchange;
     use faer::Par;
     let model = v11();
     let (mut wm, mut wo, mut wr) = (0.0f64, 0.0f64, 0.0f64);
@@ -481,9 +481,9 @@ fn exchange_engine_matches_program() {
 /// differences.
 #[test]
 fn revd4_and_repulsion_engine_match_program() {
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::disp::RevD4;
-    use axtb_gxtb::v2::repulsion::classical;
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::repulsion::classical;
+    use axtb_gxtb::revd4::RevD4;
     let model = v11();
     let (mut w2, mut w3, mut wr, mut wg) = (0.0f64, 0.0f64, 0.0f64, 0.0f64);
     for c in cases() {
@@ -497,7 +497,7 @@ fn revd4_and_repulsion_engine_match_program() {
         w3 = w3.max((e3 - r3).abs());
         assert!((e2 - r2).abs() < 1e-14, "{}: revD4 two-body {e2:.17} vs {r2:.17}", c.name);
         assert!((e3 - r3).abs() < 1e-15, "{}: revD4 ATM {e3:.17} vs {r3:.17}", c.name);
-        let qe = axtb_gxtb::v2::eeqbc::eeqbc_charges(&model, mol).unwrap().charges;
+        let qe = axtb_gxtb::eeqbc_model::eeqbc_charges(&model, mol).unwrap().charges;
         let cn = gxtb_cn(&model, mol);
         let erep = classical::energy(mol, &qe, &cn, None);
         let dr = (erep - c.inter["repulsion_energy"].as_f64().unwrap()).abs();
@@ -530,12 +530,12 @@ fn revd4_and_repulsion_engine_match_program() {
 }
 
 /// The engine's v1.1 setup in the program's conventions.
-fn engine_setup(mol: &axtb::Molecule) -> axtb_gxtb::v2::scf::Setup {
-    axtb_gxtb::v2::scf::Setup::new(mol, v11()).unwrap()
+fn engine_setup(mol: &axtb::Molecule) -> axtb_gxtb::scf::Setup {
+    axtb_gxtb::scf::Setup::new(mol, v11()).unwrap()
 }
 
 /// The AOs ((atom, shell, l)) of the engine's setup.
-fn engine_ao(s: &axtb_gxtb::v2::scf::Setup) -> Vec<(usize, usize, usize)> {
+fn engine_ao(s: &axtb_gxtb::scf::Setup) -> Vec<(usize, usize, usize)> {
     s.basis.scf.ao2sh.iter().map(|&ish| s.shells[ish]).collect()
 }
 
@@ -696,9 +696,9 @@ fn program_pieces(c: &Case) -> ProgramPieces {
 /// The second-order kernel gamma and the Mulliken-exchange kernel against the program's.
 #[test]
 fn kernels_match_program() {
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::coulomb::IsotropicCache;
-    use axtb_gxtb::v2::exchange::Exchange;
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::coulomb::IsotropicCache;
+    use axtb_gxtb::exchange::Exchange;
     let (mut w2, mut wx) = (0.0f64, 0.0f64);
     for c in cases() {
         let r = json(&c.dir.join("kernels.json"));
@@ -774,8 +774,8 @@ fn repulsion_and_increments_match_program() {
 /// The isotropic electrostatics (first to fourth order) at the program's density.
 #[test]
 fn isotropic_engine_matches_program() {
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::coulomb::IsotropicCache;
     let (mut w1, mut w23) = (0.0f64, 0.0f64);
     for c in cases() {
         let pc = program_pieces(&c);
@@ -798,8 +798,8 @@ fn isotropic_engine_matches_program() {
 /// The anisotropic electrostatics and the spin polarization at the program's density.
 #[test]
 fn aes_and_spin_engine_match_program() {
-    use axtb_gxtb::v2::cn::gxtb_cn;
-    use axtb_gxtb::v2::coulomb::{spin_energy, AesCache};
+    use axtb_gxtb::cn::gxtb_cn;
+    use axtb_gxtb::coulomb::{spin_energy, AesCache};
     let mut we = 0.0f64;
     let mut n_open = 0;
     for c in cases() {
