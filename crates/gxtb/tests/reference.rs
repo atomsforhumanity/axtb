@@ -7,7 +7,7 @@ use axtb_base::math::primitive_norm;
 use axtb_gxtb::basis::{integrals, Basis as EngineBasis};
 use axtb_gxtb::eeqbc::eeqbc_charges;
 use axtb_gxtb::fock::shell_list;
-use axtb_gxtb::params::{EeqBcParams, QvszpParams};
+use axtb_gxtb::params::QvszpParams;
 use axtb_gxtb::read_xyz;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -89,10 +89,9 @@ fn coordinates_match_program() {
 
 #[test]
 fn eeqbc_charges_match_program() {
-    let param = EeqBcParams::v1_1();
     let mut worst = 0.0f64;
     for c in cases() {
-        let r = eeqbc_charges(&param, &c.mol).unwrap();
+        let r = eeqbc_charges(&v11(), &c.mol).unwrap();
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
         let d = max_abs_diff(&r.charges, &q_ref);
         worst = worst.max(d);
@@ -497,7 +496,7 @@ fn revd4_and_repulsion_engine_match_program() {
         w3 = w3.max((e3 - r3).abs());
         assert!((e2 - r2).abs() < 1e-14, "{}: revD4 two-body {e2:.17} vs {r2:.17}", c.name);
         assert!((e3 - r3).abs() < 1e-15, "{}: revD4 ATM {e3:.17} vs {r3:.17}", c.name);
-        let qe = axtb_gxtb::eeqbc_model::eeqbc_charges(&model, mol).unwrap().charges;
+        let qe = axtb_gxtb::eeqbc::eeqbc_charges(&model, mol).unwrap().charges;
         let cn = gxtb_cn(&model, mol);
         let erep = classical::energy(mol, &qe, &cn, None);
         let dr = (erep - c.inter["repulsion_energy"].as_f64().unwrap()).abs();

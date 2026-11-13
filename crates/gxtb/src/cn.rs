@@ -118,7 +118,7 @@ pub fn erf_cn_gradient(
 }
 
 fn gxtb_rc(mol: &Molecule) -> impl Fn(usize, usize) -> f64 + '_ {
-    use crate::data_v2::CN_RCOV;
+    use crate::data::v2_0_1::CN_RCOV;
     move |i, j| CN_RCOV[mol.numbers[i] - 1] + CN_RCOV[mol.numbers[j] - 1]
 }
 
@@ -132,7 +132,7 @@ fn gxtb_v1_1(mol: &Molecule) -> (f64, Vec<f64>) {
 }
 
 fn basis_rc(mol: &Molecule) -> impl Fn(usize, usize) -> f64 + '_ {
-    use crate::data::RCOV_BASIS_CN;
+    use crate::data::v1_1::RCOV_BASIS_CN;
     move |i, j| RCOV_BASIS_CN[mol.numbers[i] - 1] + RCOV_BASIS_CN[mol.numbers[j] - 1]
 }
 

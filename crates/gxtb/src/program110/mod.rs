@@ -39,7 +39,7 @@ pub fn guess_density(setup: &Setup) -> Vec<Vec<f64>> {
     let mol = &setup.mol;
     let mut zval = vec![0.0; mol.nat()];
     for &(iat, ish, _) in &setup.shells {
-        zval[iat] += crate::data::ZEFF_SHELL[ish * 103 + mol.numbers[iat] - 1] as f64;
+        zval[iat] += crate::data::v1_1::ZEFF_SHELL[ish * 103 + mol.numbers[iat] - 1] as f64;
     }
     let mut p = vec![0.0; n * n];
     for mu in 0..n {

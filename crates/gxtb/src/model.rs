@@ -87,7 +87,7 @@ impl Model {
     /// The shared van der Waals pair radius R̄_AB = 1/2 (s_A + s_B) R^D3_AB (bohr).
     #[inline]
     pub fn rvdw(&self, za: usize, zb: usize) -> f64 {
-        use crate::data_v2::RVDW_SCALE;
+        use crate::data::v2_0_1::RVDW_SCALE;
         self.vdw_pair(za, zb) * (0.5 * (RVDW_SCALE[za - 1] + RVDW_SCALE[zb - 1]))
     }
 
@@ -95,7 +95,7 @@ impl Model {
     #[inline]
     pub fn covalent_rad_d3(&self, z: usize) -> f64 {
         if self.program() {
-            crate::data_v2::D4_RCOV[z - 1]
+            crate::data::v2_0_1::D4_RCOV[z - 1]
         } else {
             axtb::param::covalent_rad_d3_codata2022(z)
         }
@@ -106,7 +106,7 @@ impl Model {
     /// program divides by their mean, [`crate::h0::shell_poly`] by their sum).
     pub fn h0_rad(&self, z: usize) -> f64 {
         if self.version == Version::V1_1 {
-            return crate::data::RCOV_COM[z - 1];
+            return crate::data::v1_1::RCOV_COM[z - 1];
         }
         match z {
             1 => 0.7615595574470001,
@@ -189,7 +189,7 @@ impl Model {
 pub fn element_shells(z: usize) -> &'static [crate::params::QvszpShell] {
     let b = qvszp();
     let el = b.element(z).expect("q-vSZP covers H-Lr");
-    &el.shells[..crate::data_v2::NSHELL[z - 1]]
+    &el.shells[..crate::data::v2_0_1::NSHELL[z - 1]]
 }
 
 /// The q-vSZP shells of an element in `model`: 2.0.1's first `NSHELL` ([`element_shells`]),

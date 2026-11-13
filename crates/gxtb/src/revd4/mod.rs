@@ -1,4 +1,4 @@
-//! revD4 dispersion of g-xTB 2.0.1 (spec §4.15): the v1.1 C6 model ([`crate::disp`]: revD4 CN,
+//! revD4 dispersion of g-xTB 2.0.1 (spec §4.15): the v1.1 C6 model ([`mod@reference`]: revD4 CN,
 //! pair-specific Gaussian weights, tanh charge scaling n(q)/n(qref), hydrogen-subtracted
 //! reference polarizabilities, K matrices) with the 2.0.1 reference charges ([`CHARGES`]:
 //! `gxtbq`, `gxtbh`) and CN radii, and the screened rational damping of the 2.0.1 dftd4 build:
@@ -13,21 +13,23 @@
 //! Cutoffs (CN 30 bohr, 50, 25) are hard in program mode and smooth otherwise
 //! ([`Model::cut`]).
 //!
-//! v1.1 ([`crate::disp`]: the 1.1.0 program's embedded dftd4) has the same C6 model with its
+//! v1.1 ([`mod@reference`]: the 1.1.0 program's embedded dftd4) has the same C6 model with its
 //! reference charges and CN radii and dftd4's dampings: the rational two-body damping with
 //! C8, s6 = 1, s8 = glob(20), a1 = glob(10), a2 = 0, E2 = -sum C6_AB [s6/(R^6 + R0^6) +
 //! s8 rr/(R^8 + R0^8)], rr = 3 r4r2_A r4r2_B, R0 = a1 sqrt(rr) + a2, pairs within 60 bohr; the
 //! three-body term with dftd4's zero damping 1/(1 + 6 prod (R0/R)^(16/3)), s9 = 1.75, triples within
 //! 20 bohr ([`Damping`]); every cutoff hard and the CN's (30 bohr) too, in both conventions.
 
-use crate::data_v2::{D4_REFH, D4_REFQ};
-use crate::disp::{k_matrices, revd4_model, ReferenceCharges, CHARGES_V1_1};
+pub mod reference;
+
+use crate::data::v2_0_1::{D4_REFH, D4_REFQ};
 use crate::model::Model;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
 use axtb_base::math::erf;
 use axtb_base::ncoord::{CnModel, Cutoff, Erf, Smooth, Unweighted};
+use reference::{k_matrices, revd4_model, ReferenceCharges, CHARGES_V1_1};
 
 pub const S6: f64 = 1.0;
 pub const S9: f64 = 1.826410691;
@@ -45,14 +47,14 @@ pub const CHARGES: ReferenceCharges = ReferenceCharges { refq: &D4_REFQ, refh: &
 
 /// tanh charge function n(q) = a + b tanh(c q + d) of element `z` and its derivative.
 pub fn charge_function(z: usize, q: f64) -> (f64, f64) {
-    crate::disp::charge_function(z, q)
+    reference::charge_function(z, q)
 }
 
 /// Second derivative of the tanh charge function n(q) = a + b tanh(c q + d).
 pub fn charge_function_d2(z: usize, q: f64) -> f64 {
     // n' = b c (1 - t^2) => n'' = -2 c t n'
     let (_, dn) = charge_function(z, q);
-    let p = &crate::data::D4_TANH[4 * (z - 1)..4 * z];
+    let p = &crate::data::v1_1::D4_TANH[4 * (z - 1)..4 * z];
     let t = (q * p[2] + p[3]).tanh();
     -2.0 * p[2] * t * dn
 }
@@ -80,7 +82,7 @@ fn revd4_cn<'a>(
 /// v1.1: its radii, a hard 30-bohr cutoff).
 pub fn coordination_numbers(model: &Model, mol: &Molecule) -> Vec<f64> {
     if model.version == Version::V1_1 {
-        return crate::disp::coordination_numbers(mol);
+        return reference::coordination_numbers(mol);
     }
     revd4_cn(model, mol).compute(&mol.positions)
 }
@@ -88,7 +90,7 @@ pub fn coordination_numbers(model: &Model, mol: &Molecule) -> Vec<f64> {
 /// Adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `g`.
 pub fn add_cn_gradient(model: &Model, mol: &Molecule, dedcn: &[f64], g: &mut [[f64; 3]]) {
     if model.version == Version::V1_1 {
-        return crate::disp::RevD4::add_cn_gradient(mol, dedcn, g);
+        return reference::add_cn_gradient_v1_1(mol, dedcn, g);
     }
     revd4_cn(model, mol).add_gradient(&mol.positions, dedcn, g);
 }
@@ -186,7 +188,7 @@ impl RevD4 {
                 let t8 = 1.0 / (pow4(r2) + pow8(r0));
                 [s6 * t6 + s8 * rr * t8]
             });
-            let damping = Damping::Dftd4 { s8, a1, a2, s9: crate::disp::S9, alp3: crate::disp::ALP / 3.0 };
+            let damping = Damping::Dftd4 { s8, a1, a2, s9: reference::S9, alp3: reference::ALP / 3.0 };
             return Ok(Self { numbers: mol.numbers.clone(), cn, kmat, dkmat, r4r2, f6, damping });
         }
         let model4 = revd4_model(&mol.numbers, CHARGES)?;

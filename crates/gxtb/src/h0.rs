@@ -22,7 +22,7 @@
 //! screening at 20, no anisotropy, and one ACP projector per l = s..f per element with the
 //! CN-dependent weight acp_coeff_l (1 + acpcn sqrt(CN)), pairs within 40 bohr.
 
-use crate::data_v2::{
+use crate::data::v2_0_1::{
     ACP_EXP, ACP_L, ACP_LEVEL, ACP_N, H0_DIAT_SCALE, H0_DIP_SCALE, H0_SELFENERGY, H0_SELFENERGY_CN, H0_SHPOLY2,
     PG_H0_KSHELL, PG_H0_SHPOLY2,
 };

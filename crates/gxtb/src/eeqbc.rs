@@ -20,10 +20,17 @@
 //!   A_AA = (eta_A + kqeta_A q^loc_A + sqrt(2/pi)/w_A) C_AA + 1, Lagrange row/column of ones;
 //! - (q, lambda) = A^-1 b.
 //!
-//! g-xTB 2.0.1 ([`crate::eeqbc_model`]) refits the parameters and changes the form in four places
-//! (spec §4.1): no local-charge hardness term (`kqeta`), R_AB = r_A + r_B, k_cnrad = 0.3 and
-//! k_bc = 0.75, a per-element scaled van der Waals radius, and the 25-bohr cutoff of the
-//! program's CNs on the counting function.
+//! g-xTB 2.0.1 (multicharge `eeqbc2025` as built into the 2.0.1 program, [`EeqBcForm::of`] and
+//! the `EEQBC_*` tables) refits the parameters and changes the form in four places (spec §4.1):
+//! - no local-charge hardness term: A_AA = (eta_A + sqrt(2/pi)/w_A) C_AA + 1;
+//! - R_AB = r_A + r_B (`eeqbc_cov_radii`) in CN_A = sum_B 1/2 [1 + erf(-2 (R - R_AB)/R_AB^0.75)],
+//!   with the 25-bohr cutoff of the program's CNs ([`crate::model::Model::cut`]);
+//! - w_A = rad_A (1 - 0.3 CN_A / CNavg_A^0.75), k_bc = 0.75;
+//! - c_AB = sqrt(cap_A cap_B) 1/2 [1 + erf(-0.75 (R - Rv_AB)/Rv_AB)] with
+//!   Rv_AB = R^D3_AB (bohr) / (2 aatoau) (s_A + s_B), s = `eeqbc_rvdw_scale`.
+//!
+//! [`eeqbc`] builds the model of a molecule for the version of a [`Model`], [`eeqbc_charges`] and
+//! [`eeqbc_charge_gradient`] are its charges and their adjoint gradient.
 //!
 //! The bordered linear system is [`axtb_base::eeq`]'s (one total-charge constraint) with the
 //! capacitance-scaled matrix assembled here. [`EeqBc::solve`] factorizes it once per geometry
@@ -33,9 +40,13 @@
 //! serves the gradients at its geometry ([`EeqBc::charges_and_solution`]).
 
 use crate::cn::CN_CUTOFF;
-use crate::data::{CN_AVG, PAULING_EN, VDW_RAD_PACKED};
+use crate::data::v1_1::{CN_AVG, PAULING_EN, VDW_RAD_PACKED};
+use crate::data::v2_0_1::{
+    EEQBC_AVG_CN, EEQBC_CAP, EEQBC_CHI, EEQBC_COV_RADII, EEQBC_ETA, EEQBC_KCNCHI, EEQBC_KQCHI, EEQBC_RAD,
+    EEQBC_RVDW_SCALE,
+};
 use crate::model::Model;
-use crate::params::{EeqBcParams, MAX_ELEM};
+use crate::params::EeqBcParams;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
 use axtb_base::eeq::{ChargeEquations, ChargeSolver, Constraints};
@@ -510,19 +521,66 @@ impl EeqBcSystem<'_, '_> {
     }
 }
 
-/// EEQ-BC partial charges of `mol` with the v1.1 parameters `param` (positions in bohr; total
-/// charge `mol.charge`).
-pub fn eeqbc_charges(param: &EeqBcParams, mol: &Molecule) -> Result<EeqBcCharges> {
-    if let Some(&z) = mol.numbers.iter().find(|&&z| z > MAX_ELEM) {
-        return Err(Error::UnsupportedElement { method: "EEQ-BC", z });
+// ---- the versions' models of a molecule ----
+
+impl EeqBcForm {
+    /// The form of `model`: v1.1's ([`EeqBcForm::V1_1`]) or 2.0.1's in the conventions of `model`
+    /// (its Ångström-to-bohr factor and its CN cutoff).
+    pub fn of(model: &Model) -> EeqBcForm {
+        if model.version == crate::options::Version::V1_1 {
+            return Self::V1_1;
+        }
+        EeqBcForm {
+            kbc: 0.75,
+            kcnrad: 0.3,
+            rc: RcRule::Sum,
+            kqeta: false,
+            rvdw: RvdwRule::ScaledD3(*model),
+            cutoff: Some(*model),
+            sqrtpi: SQRTPI,
+            gradient_kernel: Kernel::RootGamma,
+        }
     }
-    EeqBc::v1_1(param, mol).charges()
 }
 
-/// Gradient of a function of the v1.1 EEQ-BC charges: with `dedq[A]` = dE/dq_A, adds
-/// sum_A dE/dq_A dq_A/dR to `grad` (positions in bohr; [`EeqBcSystem::add_charge_gradient`]).
-pub fn eeqbc_charge_gradient(param: &EeqBcParams, mol: &Molecule, dedq: &[f64], grad: &mut [[f64; 3]]) -> Result<()> {
-    EeqBc::v1_1(param, mol).gradient_system().add_charge_gradient(dedq, grad);
+/// sqrt(pi) as the 2.0.1 program writes it.
+const SQRTPI: f64 = 1.772_453_850_905_516;
+
+/// The EEQ-BC model of `mol` in `model` (v1.1: [`EeqBc::v1_1`]).
+pub fn eeqbc<'m>(model: &Model, mol: &'m Molecule) -> Result<EeqBc<'m>> {
+    crate::model::check_model_elements(model, &mol.numbers)?;
+    if model.version == crate::options::Version::V1_1 {
+        return Ok(EeqBc::v1_1(crate::params::eeqbc_v1_1(), mol));
+    }
+    Ok(EeqBc::new(EeqBcForm::of(model), mol, |z| {
+        let k = z - 1;
+        EeqBcAtom {
+            chi: EEQBC_CHI[k],
+            eta: EEQBC_ETA[k],
+            rad: EEQBC_RAD[k],
+            kcnchi: EEQBC_KCNCHI[k],
+            kqchi: EEQBC_KQCHI[k],
+            kqeta: 0.0,
+            cap: EEQBC_CAP[k],
+            rcov: EEQBC_COV_RADII[k],
+            cn_avg: EEQBC_AVG_CN[k],
+            rvdw_scale: EEQBC_RVDW_SCALE[k],
+        }
+    }))
+}
+
+/// EEQ-BC partial charges of `mol` (positions in bohr; total charge `mol.charge`).
+pub fn eeqbc_charges(model: &Model, mol: &Molecule) -> Result<EeqBcCharges> {
+    eeqbc(model, mol)?.charges()
+}
+
+/// Adds sum_A dE/dq_A dq_A/dR to `grad` for a function E of the EEQ-BC charges (adjoint of
+/// the linear charge equations A y = b: dE/dR = w^T (db/dR - dA/dR y), A w = (dE/dq, 0)).
+/// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::gradient_system`]; at
+/// the geometry of a [`crate::scf::Setup`], its gradients use the setup's factorization (the
+/// charges' kernel is the 2.0.1 gradient's, [`EeqBc::charges_and_solution`]).
+pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: &mut [[f64; 3]]) -> Result<()> {
+    eeqbc(model, mol)?.gradient_system().add_charge_gradient(dedq, grad);
     Ok(())
 }
 
@@ -534,7 +592,7 @@ mod tests {
     #[test]
     fn sqrtpi_of_the_forms() {
         assert_eq!(EeqBcForm::V1_1.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits());
-        let v2 = crate::eeqbc_model::form(&Model::v2_0_1(crate::options::Conventions::Gxtb));
+        let v2 = EeqBcForm::of(&Model::v2_0_1(crate::options::Conventions::Gxtb));
         assert_eq!(v2.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits() + 1);
     }
 }

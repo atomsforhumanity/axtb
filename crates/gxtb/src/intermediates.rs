@@ -11,7 +11,7 @@
 use crate::basis::{effective_charge_deriv, effective_charges, qeff_h0_weights, qeff_weights};
 use crate::cn::{basis_cn, basis_cn_gradient, gxtb_cn, gxtb_cn_gradient};
 use crate::eeqbc::EeqBcSolution;
-use crate::eeqbc_model::{eeqbc, eeqbc_charge_gradient};
+use crate::eeqbc::{eeqbc, eeqbc_charge_gradient};
 use crate::model::Model;
 use axtb::terms::{Chain, ChainLayout, Geometry, Intermediate, Jacobians, Slot, Values};
 use axtb::{Molecule, Result};
@@ -113,7 +113,7 @@ impl Intermediate for EeqBcCharges {
     }
 
     fn compute(&self, mol: &Molecule, _: &Values) -> Result<Vec<Vec<f64>>> {
-        Ok(vec![crate::eeqbc_model::eeqbc_charges(&self.model, mol)?.charges])
+        Ok(vec![crate::eeqbc::eeqbc_charges(&self.model, mol)?.charges])
     }
 
     fn chain(&self, geo: &Geometry<'_>, w: &[&[f64]], chain: &mut Chain) -> Result<()> {

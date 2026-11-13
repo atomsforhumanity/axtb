@@ -3,10 +3,10 @@
 //!
 //! - **2.0.1**, the version of the grimme-lab/g-xtb 2.0.1 release (`xtb --gxtb`), decoded from
 //!   that program, method `"gxtb-v2.0.1"` and the default [`Version`], with its own parameters
-//!   ([`data_v2`]);
+//!   ([`data::v2_0_1`]);
 //! - **v1.1**, the public, preprint version as implemented by the g-xTB 1.1.0 program
 //!   (grimme-lab/g-xtb release v1.1.0), method `"gxtb-v1.1"`: the same engine with v1.1's
-//!   parameters ([`params`], [`data`], [`data_runtime`]) and its forms of the terms, selected by
+//!   parameters ([`params`], [`data::v1_1`], [`data::runtime`]) and its forms of the terms, selected by
 //!   the version in the [`model::Model`].
 //!
 //! **Use.** [`Calculator`] implements axtb-base's [`Method`] (the axtb CLI, Python package and
@@ -51,7 +51,7 @@
 //! it, in fixed chunks summed in order (`axtb_base::threads` and [`parallel`]).
 //!
 //! Shared pieces: the EEQ-BC charge model ([`eeqbc`]), the q-vSZP contraction ([`qvszp`]), the
-//! revD4 reference data ([`disp`]), the Fock builders ([`fock`]) and Mulliken analysis
+//! revD4 reference data ([`revd4::reference`]), the Fock builders ([`fock`]) and Mulliken analysis
 //! ([`mulliken`]), row-major dense matrices, their conversions to faer and the dot products in
 //! the crate's two rounding orders ([`dense`]), and the Krylov solvers of the response equations
 //! ([`krylov`]: conjugate gradients for 2.0.1's, GMRES for v1.1's Z-vector equations).
@@ -60,22 +60,15 @@
 //! documented in `docs/gxtb-v2.0.1-spec.md` (a term-by-term delta to v1.1) and
 //! `docs/gxtb-v1.1-spec.md`.
 
-pub mod calculator;
-pub mod composite;
-#[rustfmt::skip] // parameter tables keep their compact layout
-pub mod data;
-#[rustfmt::skip] // parameter tables keep their compact layout
-pub mod data_runtime;
-#[rustfmt::skip] // parameter tables keep their compact layout
-pub mod data_v2;
 pub mod analytic;
 pub mod basis;
+pub mod calculator;
 pub mod cn;
+pub mod composite;
 pub mod coulomb;
+pub mod data;
 pub mod dense;
-pub mod disp;
 pub mod eeqbc;
-pub mod eeqbc_model;
 pub mod exchange;
 pub mod explicit;
 pub mod fermi;

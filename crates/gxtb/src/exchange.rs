@@ -34,7 +34,7 @@
 
 use crate::coulomb::spin_index;
 use crate::coulomb::Shell;
-use crate::data_v2::{
+use crate::data::v2_0_1::{
     FOCK_AVG_EXP, FOCK_CRAD, FOCK_CSCALE, FOCK_SHELL_HUBBARD, HUBBARD, ONECX, PG_FOCK_KQ, PG_FOCK_OFFDIAG,
 };
 use crate::dense::matmul;
@@ -150,7 +150,7 @@ impl Dual {
                     continue;
                 }
                 let Some(k) = gmunu_index(li, lj) else { continue };
-                let lam = OFX_SCALE * crate::data::GMUNU[(k - 1) + 9 * (numbers[ai] - 1)];
+                let lam = OFX_SCALE * crate::data::v1_1::GMUNU[(k - 1) + 9 * (numbers[ai] - 1)];
                 if i != j {
                     lam_off[i * n + j] = lam;
                 }
@@ -193,7 +193,7 @@ pub fn mfx_pair(model: &Model, mol: &Molecule, shells: &[Shell], i: usize, j: us
 /// (R0 the D3 pair radius in Ångström, also within an atom) and eta g with the program's general
 /// average 2^(xi-1) (U U')^(xi/2) / (U + U')^(xi-1).
 fn mfx_pair_v1_1(mol: &Molecule, shells: &[Shell], i: usize, j: usize) -> (f64, f64) {
-    use crate::data::{BAS_POL, GAM};
+    use crate::data::v1_1::{BAS_POL, GAM};
     let p = crate::params::gxtb_v1_1();
     let g = &p.glob;
     let ((ia, ish, li), (ja, jsh, lj)) = (shells[i], shells[j]);

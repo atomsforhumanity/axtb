@@ -13,7 +13,7 @@
 //! weighted by `kqvszp`; no integral pair cutoff.
 
 use crate::cn::basis_cn;
-use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
+use crate::data::v2_0_1::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
 use crate::model::model_shells;
 use crate::model::qvszp;
 use crate::model::Model;

@@ -687,7 +687,7 @@ impl<'a> Analytic<'a> {
                 let (za, zb) = (mol.numbers[a], mol.numbers[b]);
                 let d1 = bo_kernel(&s.model, za, zb, r).1;
                 // K = c/2 (1 + erf(x)), x = -k (R - R_ab), k = aatoau/R0: K'' = 2 x k K'
-                let rr = (crate::data_v2::FOCK_CRAD[za - 1] * crate::data_v2::FOCK_CRAD[zb - 1]).sqrt();
+                let rr = (crate::data::v2_0_1::FOCK_CRAD[za - 1] * crate::data::v2_0_1::FOCK_CRAD[zb - 1]).sqrt();
                 let k = s.model.aatoau / crate::exchange::r0(&s.model, za, zb);
                 let d2 = 2.0 * (-k * (r - rr)) * k * d1;
                 pair(a, b, w, d1, d2);

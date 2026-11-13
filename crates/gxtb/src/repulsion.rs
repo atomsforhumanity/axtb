@@ -11,7 +11,7 @@
 //! v1.1 has no self-consistent repulsion (its [`Repulsion`] is empty) but the semi-classical
 //! repulsion of the EEQ-BC charges, [`classical`] (the 1.1.0 program's `repuls_`).
 
-use crate::data_v2::{REP_ALPHA, REP_CN, REP_K1, REP_Q, REP_ROFFSET, REP_ZEFF};
+use crate::data::v2_0_1::{REP_ALPHA, REP_CN, REP_K1, REP_Q, REP_ROFFSET, REP_ZEFF};
 use crate::model::sqrt_cn;
 use crate::model::Model;
 use crate::options::Version;

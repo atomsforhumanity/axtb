@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate crates/gxtb/src/data_v2.rs (g-xTB 2.0.1 parameter tables) from the parameter arrays
+"""Generate crates/gxtb/src/data/v2_0_1.rs (g-xTB 2.0.1 parameter tables) from the parameter arrays
 extracted from the 2.0.1 program (crates/gxtb/tests/reference_v2/params/*.json; the capture points are
 listed in docs/gxtb-v2.0.1-spec.md, Appendix A).
 
@@ -9,7 +9,7 @@ Every value is written with Python's shortest round-trip repr, so the Rust liter
 program's doubles bit for bit. Tables the 2.0.1 program shares bit-identically with g-xTB 1.1.0
 (q-vSZP basis, onsite exchange integrals Lambda0, Pauling EN, D3 vdW radii in Angstrom, the dftd4
 reference polarizabilities, reference CNs, tanh charge function and pair weight factors) are taken
-from src/data.rs / axtb-d4 instead; this script checks those identities where the JSON has the
+from src/data/v1_1.rs / axtb-d4 instead; this script checks those identities where the JSON has the
 arrays and stops if one fails.
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 CRATE = HERE.parent
 PARAMS = Path(sys.argv[1]) if len(sys.argv) > 1 else CRATE / "tests/reference_v2/params"
-OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else CRATE / "src/data_v2.rs"
+OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else CRATE / "src/data/v2_0_1.rs"
 
 
 def load(name):
@@ -31,7 +31,7 @@ G, A = ham["gxtb"], cd["arrays"]
 
 
 def v1_table(name):
-    src = (CRATE / "src/data.rs").read_text()
+    src = (CRATE / "src/data/v1_1.rs").read_text()
     m = re.search(name + r": \[(?:f64|i32); \d+\] = \[(.*?)\];", src, re.S)
     return [float(x) for x in m.group(1).replace("\n", " ").split(",") if x.strip()]
 

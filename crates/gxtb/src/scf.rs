@@ -23,9 +23,9 @@
 use crate::basis::Basis;
 use crate::cn::gxtb_cn;
 use crate::coulomb::{AesCache, IsotropicCache, Shell};
-use crate::data_v2::{REF_OCC, ZEFF_SHELL};
+use crate::data::v2_0_1::{REF_OCC, ZEFF_SHELL};
+use crate::eeqbc::eeqbc;
 use crate::eeqbc::EeqBcCharges;
-use crate::eeqbc_model::eeqbc;
 use crate::exchange::Exchange;
 use crate::fock::shell_list;
 use crate::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy, AcpSet};
@@ -223,7 +223,7 @@ impl Setup {
             Version::V2_0_1 => shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect(),
             Version::V1_1 => shells
                 .iter()
-                .map(|&(iat, ish, _)| crate::data_runtime::REF_SHELL_OCC[mol.numbers[iat] - 1][ish])
+                .map(|&(iat, ish, _)| crate::data::runtime::REF_SHELL_OCC[mol.numbers[iat] - 1][ish])
                 .collect(),
         };
         let isotropic = IsotropicCache::new_par(&model, mol, &shells, &cn, parallel);
@@ -347,8 +347,10 @@ fn electrons_v2_0_1(
 /// v1.1's electrons (total, alpha, beta) and spin channels: the valence electrons of the
 /// Aufbau shell occupations (`com::zeff_shell`) less the charge, in both conventions.
 fn electrons_v1_1(mol: &Molecule, shells: &[Shell], nao: usize) -> Result<(f64, f64, f64, usize)> {
-    let zval: f64 =
-        shells.iter().map(|&(iat, ish, _)| crate::data::ZEFF_SHELL[ish * 103 + mol.numbers[iat] - 1] as f64).sum();
+    let zval: f64 = shells
+        .iter()
+        .map(|&(iat, ish, _)| crate::data::v1_1::ZEFF_SHELL[ish * 103 + mol.numbers[iat] - 1] as f64)
+        .sum();
     let nelf = zval - mol.charge;
     if !((nelf - nelf.round()).abs() <= 1e-8 && nelf >= 0.0) {
         return Err(Error::Input(format!("g-xTB: {nelf} electrons")));

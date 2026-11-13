@@ -614,7 +614,7 @@ impl Setup {
                 let mut m = mol.clone();
                 m.positions[x / 3][x % 3] += d;
                 let mut g = vec![[0.0; 3]; nat];
-                crate::eeqbc_model::eeqbc_charge_gradient(&self.model, &m, &u, &mut g)?;
+                crate::eeqbc::eeqbc_charge_gradient(&self.model, &m, &u, &mut g)?;
                 basis_cn_gradient(&self.model, &m, &v, &mut g);
                 gxtb_cn_gradient(&self.model, &m, dcn, &mut g);
                 Ok(g.concat())

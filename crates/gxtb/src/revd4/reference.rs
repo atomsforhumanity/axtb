@@ -1,4 +1,4 @@
-//! revD4 dispersion of g-xTB v1.1 (P-Eq. 44), as implemented by the 1.1.0 program (its
+//! The revD4 reference data of g-xTB, as v1.1 (P-Eq. 44) defines it in the 1.1.0 program (its
 //! embedded dftd4 with the `gxtb` reference set, `tblite_disp_d4`), built on
 //! [`axtb_d4`]. Verified against the program's two-body and three-body energies to ~1e-18 Eh
 //! (reference tests).
@@ -28,25 +28,22 @@
 //!   with all distances within 20 bohr; evaluated once (not self-consistent).
 //!
 //! Since the charge enters only through n_A(q_A), C6_AB(q) = n_A(q_A) n_B(q_B) K_AB with a
-//! geometry-only K_AB, which [`RevD4`] precomputes.
+//! geometry-only K_AB (`k_matrices`).
 //!
 //! The mechanisms that are dftd4's come from [`axtb_d4`]: the hydrogen-subtracted reference
 //! polarizabilities ([`axtb_d4::reference_alpha`], with the tanh ratio as the secondary
 //! scaling), the Gaussian counts ([`axtb_d4::reference_ngw`]), the reference C6 and their
 //! contraction with the weights ([`D4Model::pair_c6_from_weights`]), the two-body pair list and
-//! the three-body kernel ([`D4Dispersion`]). The tables, the CN, the pair-specific weights and
+//! the three-body kernel ([`axtb_d4::D4Dispersion`]). The tables, the CN, the pair-specific weights and
 //! the two-body gradient (its damping derivative in its own order, which differs from
-//! `axtb_d4`'s in the last bits) are g-xTB's and stay here; 2.0.1 ([`crate::revd4`]) uses
-//! the same reference data with its own [`ReferenceCharges`].
+//! `axtb_d4`'s in the last bits) are g-xTB's and stay here; the term ([`crate::revd4`]) uses
+//! the same reference data for both versions, each with its [`ReferenceCharges`].
 
-use crate::data::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
-use crate::params::GxtbParams;
+use crate::data::v1_1::{D4_RCOV, D4_REFCN, D4_REFCOVCN, D4_REFH, D4_REFQ, D4_TANH, K3_PAIR};
 use axtb::{Error, Molecule, Result};
 use axtb_base::ncoord::{CnModel, Cutoff, Erf};
 use axtb_d4::data::{NFREQ, REFN};
-use axtb_d4::{
-    ChargeModel, D4Cache, D4Dispersion, D4Model, ElementReferences, RationalDamping, RealspaceCutoff, MAX_REF,
-};
+use axtb_d4::{ChargeModel, D4Model, ElementReferences, RealspaceCutoff, MAX_REF};
 
 /// Three-body scaling s9.
 pub const S9: f64 = 1.75;
@@ -56,11 +53,6 @@ pub const ALP: f64 = 16.0;
 pub const CUTOFF: RealspaceCutoff = RealspaceCutoff { cn: 30.0, disp2: 60.0, disp3: 20.0, width2: 0.0, width3: 0.0 };
 /// Largest element of the program's tables of the CN weighting factors.
 const MAX_Z: usize = 103;
-
-/// Damping parameters of the program (`new_d4_dispersion` called from `scf_`).
-pub fn damping(param: &GxtbParams) -> RationalDamping {
-    RationalDamping { s6: 1.0, s8: param.glob[19], s9: S9, a1: param.glob[9], a2: 0.0, alp: ALP }
-}
 
 /// tanh charge function n(q) = a + b tanh(c q + d) of element `z` and its derivative.
 pub fn charge_function(z: usize, q: f64) -> (f64, f64) {
@@ -217,135 +209,7 @@ pub(crate) fn scaled_cn_weights(z: usize, cn: f64, wf: f64, refq: &[f64]) -> ([f
     (w, dw)
 }
 
-/// revD4 for one molecule and geometry.
-#[derive(Clone, Debug)]
-pub struct RevD4 {
-    disp: D4Dispersion,
-    cache: D4Cache,
-    numbers: Vec<usize>,
-    cn: Vec<f64>,
-    /// K_AB (row-major nat x nat): C6_AB = n_A(q_A) n_B(q_B) K_AB.
-    kmat: Vec<f64>,
-    /// dK_AB/dCN_A (row-major nat x nat).
-    dkmat: Vec<f64>,
-    /// Damping: s6, s8, a1, a2 and the r4/r2 values per atom.
-    damp: RationalDamping,
-    r4r2: Vec<f64>,
-}
-
-impl RevD4 {
-    /// Set up the model for `mol` (positions in bohr).
-    pub fn new(param: &GxtbParams, mol: &Molecule) -> Result<Self> {
-        let model = revd4_model(&mol.numbers, CHARGES_V1_1)?;
-        let disp = D4Dispersion::new(model, damping(param), CUTOFF);
-        let cache = disp.update(&mol.positions);
-        let cn = coordination_numbers(mol);
-        let model = disp.model();
-        let (kmat, dkmat) = k_matrices(model, &cn, CHARGES_V1_1.refq, false);
-        let r4r2 = (0..mol.nat()).map(|i| model.r4r2_atom(i)).collect();
-        Ok(Self { disp, cache, numbers: mol.numbers.clone(), cn, kmat, dkmat, damp: damping(param), r4r2 })
-    }
-
-    /// The revD4 coordination numbers.
-    pub fn cn(&self) -> &[f64] {
-        &self.cn
-    }
-
-    /// Pair C6 coefficients (row-major nat x nat, zero diagonal) at atomic charges `q`.
-    pub fn c6_matrix(&self, q: &[f64]) -> Vec<f64> {
-        let nat = self.numbers.len();
-        let n: Vec<f64> = (0..nat).map(|i| charge_function(self.numbers[i], q[i]).0).collect();
-        let mut c6 = self.kmat.clone();
-        for i in 0..nat {
-            for j in 0..nat {
-                c6[i * nat + j] *= n[i] * n[j];
-            }
-        }
-        c6
-    }
-
-    /// Two-body energy at atomic charges `q` (positive = electron deficient).
-    pub fn two_body_energy(&self, q: &[f64]) -> f64 {
-        self.two_body_potential(q).0
-    }
-
-    /// Two-body energy and its derivative dE/dq_A at atomic charges `q`.
-    pub fn two_body_potential(&self, q: &[f64]) -> (f64, Vec<f64>) {
-        let nat = self.numbers.len();
-        let nd: Vec<(f64, f64)> = (0..nat).map(|i| charge_function(self.numbers[i], q[i])).collect();
-        let mut e = 0.0;
-        let mut v = vec![0.0; nat];
-        for (i, j, f) in self.cache.pairs() {
-            let kf = self.kmat[i * nat + j] * f;
-            e -= nd[i].0 * nd[j].0 * kf;
-            v[i] -= nd[i].1 * nd[j].0 * kf;
-            v[j] -= nd[i].0 * nd[j].1 * kf;
-        }
-        (e, v)
-    }
-
-    /// Gradient of the two-body energy at fixed atomic charges `q`: adds the explicit
-    /// geometry derivative to `grad` and returns dE/dCN_A (revD4 CN); dE/dq is
-    /// [`two_body_potential`](Self::two_body_potential).
-    pub fn two_body_gradient(&self, positions: &[[f64; 3]], q: &[f64], grad: &mut [[f64; 3]]) -> Vec<f64> {
-        let nat = self.numbers.len();
-        let nq: Vec<f64> = (0..nat).map(|i| charge_function(self.numbers[i], q[i]).0).collect();
-        let mut dedcn = vec![0.0; nat];
-        let d = &self.damp;
-        for (i, j, f) in self.cache.pairs() {
-            let nn = nq[i] * nq[j];
-            dedcn[i] -= nn * self.dkmat[i * nat + j] * f;
-            dedcn[j] -= nn * self.dkmat[j * nat + i] * f;
-            let v = [
-                positions[i][0] - positions[j][0],
-                positions[i][1] - positions[j][1],
-                positions[i][2] - positions[j][2],
-            ];
-            let r2 = v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-            let rr = 3.0 * self.r4r2[i] * self.r4r2[j];
-            let r0 = d.a1 * rr.sqrt() + d.a2;
-            let (r6, r8) = (r2 * r2 * r2, r2 * r2 * r2 * r2);
-            let (t6, t8) = (1.0 / (r6 + r0.powi(6)), 1.0 / (r8 + r0.powi(8)));
-            // d f / d r divided by r
-            let dfr = -6.0 * d.s6 * r2 * r2 * t6 * t6 - 8.0 * d.s8 * rr * r6 * t8 * t8;
-            let g = -nn * self.kmat[i * nat + j] * dfr;
-            for k in 0..3 {
-                grad[i][k] += g * v[k];
-                grad[j][k] -= g * v[k];
-            }
-        }
-        dedcn
-    }
-
-    /// Gradient of the three-body energy (C6 at q = 0): adds the geometric part to `grad`
-    /// and returns dE/dCN_A (revD4 CN).
-    pub fn three_body_gradient(&self, grad: &mut [[f64; 3]]) -> Vec<f64> {
-        let nat = self.numbers.len();
-        let c6 = self.c6_matrix(&vec![0.0; nat]);
-        let n0: Vec<f64> = (0..nat).map(|i| charge_function(self.numbers[i], 0.0).0).collect();
-        let mut dc6 = self.dkmat.clone();
-        for i in 0..nat {
-            for j in 0..nat {
-                dc6[i * nat + j] *= n0[i] * n0[j];
-            }
-        }
-        let mut e = vec![0.0; nat];
-        let mut dedcn = vec![0.0; nat];
-        self.disp.three_body_c6_gradient(&self.cache, &c6, &dc6, &mut e, grad, &mut dedcn);
-        dedcn
-    }
-
-    /// Adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `grad`.
-    pub fn add_cn_gradient(mol: &Molecule, dedcn: &[f64], grad: &mut [[f64; 3]]) {
-        revd4_cn(mol).add_gradient(&mol.positions, dedcn, grad);
-    }
-
-    /// Three-body (ATM) energy, C6 at q = 0.
-    pub fn three_body_energy(&self) -> f64 {
-        let nat = self.numbers.len();
-        let c6 = self.c6_matrix(&vec![0.0; nat]);
-        let mut e = vec![0.0; nat];
-        self.disp.three_body_c6(&self.cache, &c6, &mut e);
-        e.iter().sum()
-    }
+/// v1.1: adds sum_A dE/dCN_A dCN_A/dR (revD4 CN) to `grad`.
+pub fn add_cn_gradient_v1_1(mol: &Molecule, dedcn: &[f64], grad: &mut [[f64; 3]]) {
+    revd4_cn(mol).add_gradient(&mol.positions, dedcn, grad);
 }

@@ -12,7 +12,7 @@
 //!   k_l, tau = -0.2093327496 eta^2 within an atom, 2.3 x (1 - 1.3 x/2) exp(-1.3 x) with
 //!   x = R/eta between atoms.
 //! - Fourth order: E4 = 1/24 sum_l 0.036 k_l q_l^4.
-//! - Anisotropic electrostatics: the v1.1 pair formula ([`aes_energy`]) with
+//! - Anisotropic electrostatics: the v1.1 pair formula ([`aes_energy_rows`]) with
 //!   kernels g_n = 1/2 k_n [1 - erf(-s_n (R - R̄_AB))]/R^n and atomic dipoles scaled by
 //!   c_A = 1 + `pa_aes_dip_scale` f(CN_A).
 //! - Spin: E = 1/2 sum_A sum_{l,l' in A} m_l W_ll' m_l', W = `pa_wll_scale` W0.
@@ -30,9 +30,9 @@
 //! radius in Ångström used as bohr and pairs beyond 200 bohr left out; no dipole scaling; the
 //! spin constants `atspin` W0.
 
-use crate::data::{GAM, GAM3};
-use crate::data_runtime::REF_SHELL_OCC;
-use crate::data_v2::{
+use crate::data::runtime::REF_SHELL_OCC;
+use crate::data::v1_1::{GAM, GAM3};
+use crate::data::v2_0_1::{
     AES_DIP_SCALE, HUBBARD, HUBBARD_CN, HUBBARD_DERIV, IPEA, IPEA_CN, PG_TB3_KSHELL, PG_TB4_KSHELL, REF_OCC,
     SHELL_HUBBARD, SPIN_W0, WLL_SCALE, ZEFF_SHELL,
 };
@@ -268,7 +268,7 @@ impl IsotropicCache {
                     du.push(if sq > 0.0 { e.gam2[ish] * GAM[z - 1] * e.g2cn / (2.0 * sq) } else { 0.0 });
                     gam3.push(GAM3[z - 1]);
                     gam4.push(6.0 * K4_V1_1);
-                    rref.push(REF_SHELL_OCC[z - 1][ish] - crate::data::ZEFF_SHELL[ish * 103 + z - 1] as f64);
+                    rref.push(REF_SHELL_OCC[z - 1][ish] - crate::data::v1_1::ZEFF_SHELL[ish * 103 + z - 1] as f64);
                 }
             }
         }
@@ -568,7 +568,7 @@ impl AesCache {
         dip.iter().zip(&self.dip_scale).map(|(d, c)| [c * d[0], c * d[1], c * d[2]]).collect()
     }
 
-    /// AES energy ([`aes_energy`] with the scaled dipoles), atom rows in fixed chunks
+    /// AES energy ([`aes_energy_rows`] with the scaled dipoles), atom rows in fixed chunks
     /// (in parallel when `parallel`; same result).
     pub fn energy(&self, mol: &Molecule, qa: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], parallel: bool) -> f64 {
         let d = self.scaled_dipoles(dip);
@@ -719,7 +719,7 @@ pub fn spin_w(model: &Model, z: usize, la: usize, lb: usize) -> f64 {
         Version::V2_0_1 => WLL_SCALE[z - 1] * SPIN_W0[z - 1][spin_index(la, lb)],
         Version::V1_1 => {
             let k = crate::params::gxtb_v1_1().element(z).expect("g-xTB v1.1 parameters of a checked element").atspin;
-            k * crate::data::SPIN_W0[(z - 1) * 10 + spin_index(la, lb)]
+            k * crate::data::v1_1::SPIN_W0[(z - 1) * 10 + spin_index(la, lb)]
         }
     }
 }
@@ -756,12 +756,7 @@ fn qmat(q: &[f64; 6]) -> [[f64; 3]; 3] {
     [[q[0], q[1], q[3]], [q[1], q[2], q[4]], [q[3], q[4], q[5]]]
 }
 
-/// AES energy from atomic charges, moments and kernels.
-pub fn aes_energy(mol: &Molecule, q: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], k: &[Vec<f64>; 4]) -> f64 {
-    aes_energy_rows(mol, q, dip, qp, k, 0..mol.nat())
-}
-
-/// The pair terms (i, j < i) of [`aes_energy`] for the atoms i in `rows`.
+/// The pair terms (i, j < i) of the AES energy for the atoms i in `rows`.
 pub fn aes_energy_rows(
     mol: &Molecule,
     q: &[f64],
