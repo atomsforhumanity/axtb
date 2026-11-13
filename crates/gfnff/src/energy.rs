@@ -230,7 +230,12 @@ pub struct HbLists {
     pub xb: Vec<[usize; 3]>,
 }
 
-pub fn hb_lists(topo: &Topology, model: &Model, xyz: &[[f64; 3]], cells: &CellList) -> HbLists {
+/// The H-bond triplets (A, B, H) of `gfnff_hbset` (and the halogen bonds) at `xyz`. Per
+/// acceptor-capable atom i (in order) its partners j < i (ascending) and, per pair, the
+/// candidate H in ascending order: the H near i, the H bonded to i and the H bonded to j. With
+/// `threads` parallel the atoms i run in fixed chunks whose lists are joined in order: the
+/// same lists in the same order on any thread count.
+pub fn hb_lists(topo: &Topology, model: &Model, xyz: &[[f64; 3]], cells: &CellList, threads: &Threads) -> HbLists {
     let n = topo.natoms();
     let thr1 = model.thr.hb1;
     let thr2 = model.thr.hb2;
@@ -240,50 +245,87 @@ pub fn hb_lists(topo: &Topology, model: &Model, xyz: &[[f64; 3]], cells: &CellLi
         d[0] * d[0] + d[1] * d[1] + d[2] * d[2]
     };
     if !topo.hb_h.is_empty() {
-        let mut cand = Vec::new();
-        let mut hcand = Vec::new();
-        for i in 0..n {
-            if !topo.hb_ab[i] {
-                continue;
-            }
-            cells.candidates(i, thr1.sqrt() * (1.0 + 1e-12) + 1e-9, |j| j < i && topo.hb_ab[j], &mut cand);
-            let mut hnear_done = false;
+        // the triplets of the atoms i in `range`: (hb1, hb2)
+        let atoms = |range: std::ops::Range<usize>| {
+            let (mut hb1, mut hb2) = (Vec::new(), Vec::new());
+            let mut cand = Vec::new();
             let mut hnear: Vec<usize> = Vec::new();
-            for &j in &cand {
-                if topo.hbbas[i] * topo.hbaci[j] < 1.0e-6 && topo.hbaci[i] * topo.hbbas[j] < 1.0e-6 {
+            // d2(H, i) of the H in `hnear`
+            let mut rnear: Vec<f64> = Vec::new();
+            let mut bonded: Vec<usize> = Vec::new();
+            for i in range {
+                if !topo.hb_ab[i] {
                     continue;
                 }
-                let rab = d2(i, j);
-                if rab > thr1 {
-                    continue;
-                }
-                if !hnear_done {
-                    cells.candidates(i, thr2.sqrt() * (1.0 + 1e-12) + 1e-9, |h| model.is_hb_h[h], &mut hnear);
-                    hnear_done = true;
-                }
-                let ijnonbond = topo.bpair.get(j, i) != 1;
-                hcand.clear();
-                hcand.extend_from_slice(&hnear);
-                hcand.extend_from_slice(&model.bonded_h[i]);
-                hcand.extend_from_slice(&model.bonded_h[j]);
-                hcand.sort_unstable();
-                hcand.dedup();
-                for &nh in &hcand {
-                    let rih = d2(nh, i);
-                    let rjh = d2(nh, j);
-                    if topo.bpair.get(i, nh) == 1 && ijnonbond {
-                        out.hb2.push([i, j, nh]);
+                cells.candidates(i, thr1.sqrt() * (1.0 + 1e-12) + 1e-9, |j| j < i && topo.hb_ab[j], &mut cand);
+                let mut hnear_done = false;
+                for &j in &cand {
+                    if topo.hbbas[i] * topo.hbaci[j] < 1.0e-6 && topo.hbaci[i] * topo.hbbas[j] < 1.0e-6 {
                         continue;
                     }
-                    if topo.bpair.get(j, nh) == 1 && ijnonbond {
-                        out.hb2.push([j, i, nh]);
+                    let rab = d2(i, j);
+                    if rab > thr1 {
                         continue;
                     }
-                    if rab + rih + rjh < thr2 {
-                        out.hb1.push([i, j, nh]);
+                    if !hnear_done {
+                        // ascending (`CellList::candidates`)
+                        cells.candidates(i, thr2.sqrt() * (1.0 + 1e-12) + 1e-9, |h| model.is_hb_h[h], &mut hnear);
+                        rnear.clear();
+                        rnear.extend(hnear.iter().map(|&h| d2(h, i)));
+                        hnear_done = true;
+                    }
+                    let ijnonbond = topo.bpair.get(j, i) != 1;
+                    // the H bonded to i or j, ascending and unique (each list is sorted)
+                    bonded.clear();
+                    bonded.extend_from_slice(&model.bonded_h[i]);
+                    bonded.extend_from_slice(&model.bonded_h[j]);
+                    bonded.sort_unstable();
+                    bonded.dedup();
+                    // the union with `hnear`, ascending: an H bonded to i or j takes the checks
+                    // of the bonded H; any other H can only make an hb1 triplet, whose test
+                    // (rab + rih) + rjh < thr2 fails when rab + rih alone does not pass (rjh >= 0)
+                    let (mut a, mut b) = (0, 0);
+                    while a < hnear.len() || b < bonded.len() {
+                        let next_near = hnear.get(a).copied().unwrap_or(usize::MAX);
+                        let next_bonded = bonded.get(b).copied().unwrap_or(usize::MAX);
+                        if next_bonded <= next_near {
+                            let nh = next_bonded;
+                            b += 1;
+                            if next_near == nh {
+                                a += 1;
+                            }
+                            let rih = d2(nh, i);
+                            let rjh = d2(nh, j);
+                            if topo.bpair.get(i, nh) == 1 && ijnonbond {
+                                hb2.push([i, j, nh]);
+                                continue;
+                            }
+                            if topo.bpair.get(j, nh) == 1 && ijnonbond {
+                                hb2.push([j, i, nh]);
+                                continue;
+                            }
+                            if rab + rih + rjh < thr2 {
+                                hb1.push([i, j, nh]);
+                            }
+                        } else {
+                            let (nh, rih) = (next_near, rnear[a]);
+                            a += 1;
+                            let s = rab + rih;
+                            if s.partial_cmp(&thr2) != Some(std::cmp::Ordering::Less) {
+                                continue;
+                            }
+                            if s + d2(nh, j) < thr2 {
+                                hb1.push([i, j, nh]);
+                            }
+                        }
                     }
                 }
             }
+            (hb1, hb2)
+        };
+        for (hb1, hb2) in threads.install(|| axtb_base::threads::map_chunks(n, threads.parallel(), atoms)) {
+            out.hb1.extend(hb1);
+            out.hb2.extend(hb2);
         }
     }
     if !topo.xb_ax.is_empty() {
@@ -445,7 +487,7 @@ pub fn evaluate_full(
     let nch = NCHUNK.min(n.max(1));
 
     // HB/XB lists
-    let lists = hb_lists(topo, model, xyz, &cells);
+    let lists = hb_lists(topo, model, xyz, &cells, threads);
     lap("hb lists", &mut t);
 
     // non-bonded repulsion
