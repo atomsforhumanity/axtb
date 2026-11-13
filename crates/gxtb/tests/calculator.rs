@@ -3,7 +3,12 @@
 
 use axtb::method::{Method, Want};
 use axtb::method::{ScfSettings, TermKind};
-use axtb_gxtb::{read_xyz, Calculator, Conventions, ConvergerSettings, Options, ScfOptions, Setup, Version};
+use axtb_gxtb::{read_xyz, Calculator, Conventions, ConvergerSettings, Options, ScfOptions, Version};
+
+/// The engine's setup of v1.1 in `conventions`.
+fn v11_setup(mol: &axtb::Molecule, conventions: Conventions) -> axtb_gxtb::v2::scf::Setup {
+    axtb_gxtb::v2::scf::Setup::new(mol, axtb_gxtb::v2::Model::v1_1(conventions)).unwrap()
+}
 use serde_json::Value;
 use std::path::Path;
 
@@ -43,7 +48,7 @@ fn with_converger(converger: ConvergerSettings) -> Options {
 fn calculator_matches_scf_and_program() {
     for name in ["water", "dioxygen_triplet", "tetrachlorocuprate", "nickel_tetracarbonyl"] {
         let (mol, eref) = reference(name);
-        let direct = Setup::new(&mol).unwrap().scf(&program()).unwrap();
+        let direct = v11_setup(&mol, Conventions::Gxtb).scf(&program()).unwrap();
         for threads in [1, 2] {
             let opts = Options { threads, ..program_options() };
             let mut calc =
@@ -88,8 +93,7 @@ fn calculator_matches_scf_and_program() {
             Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, Options::default())
                 .unwrap();
         let e = calc.singlepoint(&mol.positions, &Want::gradient(false)).unwrap().energy;
-        let exact = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(Conventions::Axtb))
-            .unwrap()
+        let exact = v11_setup(&mol, Conventions::Axtb)
             .scf(&ScfOptions { conventions: Conventions::Axtb, ..Default::default() })
             .unwrap();
         assert_eq!(e, exact.energies.total);
@@ -112,17 +116,12 @@ fn scf_dipole_matches_program_printout() {
 #[test]
 fn gradient_and_hessian() {
     let (mol, _) = reference("water");
-    let st = Setup::new(&mol).unwrap();
     for (conventions, threads) in
         [(Conventions::Axtb, 1), (Conventions::Axtb, 2), (Conventions::Gxtb, 1), (Conventions::Gxtb, 2)]
     {
         let opts = ScfOptions { conventions, ..Default::default() };
-        let direct = if conventions == Conventions::Axtb {
-            let st = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(conventions)).unwrap();
-            st.gradient(&st.scf(&opts).unwrap()).unwrap()
-        } else {
-            st.gradient(&st.scf(&opts).unwrap()).unwrap()
-        };
+        let st = v11_setup(&mol, conventions);
+        let direct = st.gradient(&st.scf(&opts).unwrap()).unwrap();
         let opts = Options { threads, conventions, ..Default::default() };
         let mut calc = Calculator::new(Version::V1_1, &mol.numbers, &mol.positions, mol.charge, mol.uhf, opts).unwrap();
         let sp = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();

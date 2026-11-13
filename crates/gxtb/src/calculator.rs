@@ -20,7 +20,7 @@
 //! no thread is spawned and faer's global parallelism is never touched.
 
 pub use crate::options::Version;
-use crate::scf::{Conventions, ScfOptions, ScfResult, Setup};
+use crate::scf::{Conventions, ScfOptions};
 use crate::timing::Timings;
 use crate::v2;
 use axtb::method::{
@@ -191,13 +191,6 @@ impl Options {
 /// g-xTB's default electronic temperature (K), the programs' (Aufbau occupations).
 pub const ETEMP: f64 = 0.0;
 
-/// The geometry-dependent setup of either version.
-#[derive(Clone, Debug)]
-enum AnySetup {
-    V2(Box<v2::scf::Setup>),
-    V1(Box<Setup>),
-}
-
 /// The converged SCF state a later SCF of the same molecule can start from, as the programs'
 /// restart files carry it.
 #[derive(Clone, Debug)]
@@ -217,8 +210,9 @@ pub struct Calculator {
     pub options: Options,
     version: Version,
     threads: Threads,
-    /// Setup of the current geometry (built in `new`, reused while the positions are equal).
-    setup: Option<AnySetup>,
+    /// Setup of the current geometry (built in `new`, reused while the positions and the
+    /// conventions are equal).
+    setup: Option<Box<v2::scf::Setup>>,
     /// The last converged state (or one given with [`Method::set_wavefunction`]).
     state: Option<Start>,
     /// Start the next SCF from `state` even if the options do not reuse it (it was given).
@@ -227,22 +221,11 @@ pub struct Calculator {
     fingerprint: Fingerprint,
 }
 
-/// Whether `version` runs on the engine ([`crate::v2`]) in `conventions`: 2.0.1 and v1.1 in the
-/// default conventions.
-fn on_engine(version: Version, conventions: Conventions) -> bool {
-    version == Version::V2_0_1 || conventions == Conventions::Axtb
-}
-
 /// The setup of `mol` for `version` in the conventions of `opts`, on `opts.threads` threads
 /// (inside the caller's pool).
-fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<AnySetup> {
-    if on_engine(version, opts.conventions) {
-        let model = crate::v2::Model::new(version, opts.conventions);
-        return Ok(AnySetup::V2(Box::new(v2::scf::Setup::with_threads(mol, model, opts.threads)?)));
-    }
-    let mut s = Setup::new(mol)?;
-    s.set_threads(opts.threads)?;
-    Ok(AnySetup::V1(Box::new(s)))
+fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<Box<v2::scf::Setup>> {
+    let model = crate::v2::Model::new(version, opts.conventions);
+    Ok(Box::new(v2::scf::Setup::with_threads(mol, model, opts.threads)?))
 }
 
 /// Factor on the 2.0.1 convergence thresholds of an SCF that starts from a previous state in
@@ -408,12 +391,7 @@ impl Calculator {
             self.setup = None;
         }
         // the setups depend on the conventions
-        let stale = match &self.setup {
-            Some(AnySetup::V2(s)) => s.model.conventions != self.options.conventions,
-            Some(AnySetup::V1(_)) => on_engine(self.version, self.options.conventions),
-            None => false,
-        };
-        if stale {
+        if matches!(&self.setup, Some(s) if s.model.conventions != self.options.conventions) {
             self.setup = None;
         }
         Ok(())
@@ -478,21 +456,10 @@ impl Calculator {
         let version = self.version;
         // energy, gradient and dipole of one geometry
         let point = |m: &Molecule| -> Result<(f64, Vec<[f64; 3]>, [f64; 3])> {
-            let (energy, g, qa, dip) = match on_engine(version, opts.conventions) {
-                true => {
-                    let setup = v2::scf::Setup::new(m, crate::v2::Model::new(version, opts.conventions))?;
-                    let r = setup.scf(&opts)?;
-                    let g = setup.gradient(&r)?;
-                    (r.energies.total, g, r.atom_charges.clone(), r.state.dip.clone())
-                }
-                false => {
-                    let setup = Setup::new(m)?;
-                    let r = setup.scf(&opts)?;
-                    let g = setup.gradient(&r)?;
-                    let (dpat, _) = setup.atomic_moments(&crate::fock::total_density(&r.density));
-                    (r.energies.total, g, r.atom_charges.clone(), dpat)
-                }
-            };
+            let setup = v2::scf::Setup::new(m, crate::v2::Model::new(version, opts.conventions))?;
+            let r = setup.scf(&opts)?;
+            let g = setup.gradient(&r)?;
+            let (energy, qa, dip) = (r.energies.total, &r.atom_charges, &r.state.dip);
             let mut mu = [0.0; 3];
             for (a, p) in m.positions.iter().enumerate() {
                 for k in 0..3 {
@@ -543,10 +510,7 @@ impl Calculator {
         // the response needs every orbital
         let sopts = ScfOptions { accuracy, ..self.options.run(true) };
         // the setup of this geometry, when the calculator holds one (move_to dropped it otherwise)
-        let cached = match self.setup.take() {
-            Some(AnySetup::V2(s)) => Some(*s),
-            _ => None,
-        };
+        let cached = self.setup.take().map(|s| *s);
         let mol = &self.mol;
         let run = || -> Result<(axtb::Hessian, v2::scf::Setup)> {
             let t0 = Instant::now();
@@ -583,7 +547,7 @@ impl Calculator {
             Ok((hess, setup))
         };
         let (hess, setup) = self.threads.install(run)?;
-        self.setup = Some(AnySetup::V2(Box::new(setup)));
+        self.setup = Some(Box::new(setup));
         Ok(hess)
     }
 }
@@ -712,11 +676,11 @@ fn run(
     version: Version,
     mol: &Molecule,
     opts: &ScfOptions,
-    setup: Option<AnySetup>,
+    setup: Option<Box<v2::scf::Setup>>,
     start: Option<&Start>,
     want: &Want,
     form: Option<QuadrupoleForm>,
-) -> (Result<(SinglePoint, Start)>, Option<AnySetup>) {
+) -> (Result<(SinglePoint, Start)>, Option<Box<v2::scf::Setup>>) {
     let t0 = Instant::now();
     let mut setup = match setup {
         Some(s) => s,
@@ -729,66 +693,41 @@ fn run(
     let t1 = Instant::now();
     let label = if start.is_some() { "previous" } else { "eeq-bc" };
     let form = form.unwrap_or_default();
-    let res = match &mut setup {
-        AnySetup::V1(setup) => {
-            let p0 = match start {
-                Some(Start::V1_1(p)) => Ok(Some(p.as_slice())),
-                Some(_) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
-                None => Ok(None),
-            };
-            p0.and_then(|p0| setup.scf_from(opts, p0)).and_then(|mut r| {
-                let mut timings = vec![("setup", t_setup), ("scf", t1.elapsed().as_secs_f64())];
-                timings.append(&mut r.timings);
-                let g = if want.gradient {
-                    let t2 = Instant::now();
-                    let g = setup.gradient(&r)?;
-                    timings.push(("gradient", t2.elapsed().as_secs_f64()));
-                    Some(g)
-                } else {
-                    None
-                };
-                Ok(results(setup, r, g, timings, opts, want, label, form))
-            })
+    let v1 = setup.model.version == Version::V1_1;
+    // v1.1 starts from the densities (`gxtbrestart`), 2.0.1 from the state (`xtbrestart`)
+    let densities;
+    let s0 = match (start, v1) {
+        (Some(Start::V2_0_1(s)), false) => Ok(Some(s.as_ref())),
+        (Some(Start::V1_1(p)), true) => {
+            densities = v2::scf::State::densities(p.clone());
+            Ok(Some(&densities))
         }
-        AnySetup::V2(setup) => {
-            let v1 = setup.model.version == Version::V1_1;
-            // v1.1 starts from the densities (`gxtbrestart`), 2.0.1 from the state (`xtbrestart`)
-            let densities;
-            let s0 = match (start, v1) {
-                (Some(Start::V2_0_1(s)), false) => Ok(Some(s.as_ref())),
-                (Some(Start::V1_1(p)), true) => {
-                    densities = v2::scf::State::densities(p.clone());
-                    Ok(Some(&densities))
-                }
-                (Some(_), false) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
-                (Some(_), true) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
-                (None, _) => Ok(None),
-            };
-            // 2.0.1's restarts in the default conventions at RESTART_ACCURACY; v1.1 restarts at its
-            // own thresholds
-            let vo = if v1 { opts.clone() } else { v2_options(opts, start.is_some()) };
-            // the setup's phases (once: a reused setup reports none)
-            let setup_laps = std::mem::take(&mut setup.timings);
-            let t_setup =
-                if setup_laps.is_empty() { t_setup } else { t_setup.max(setup_laps.iter().map(|x| x.1).sum()) };
-            s0.and_then(|s0| setup.scf_from(&vo, s0)).and_then(|mut r| {
-                let mut timings = vec![("setup", t_setup)];
-                timings.extend(setup_laps);
-                timings.push(("scf", t1.elapsed().as_secs_f64()));
-                timings.append(&mut r.timings);
-                let g = if want.gradient {
-                    let t2 = Instant::now();
-                    let (g, laps) = setup.gradient_timed(&r)?;
-                    timings.push(("gradient", t2.elapsed().as_secs_f64()));
-                    timings.extend(laps);
-                    Some(g)
-                } else {
-                    None
-                };
-                Ok(results_v2(setup, r, g, timings, opts, want, label, form))
-            })
-        }
+        (Some(_), false) => Err(Error::Input("a g-xTB v1.1 wavefunction cannot start a 2.0.1 SCF".into())),
+        (Some(_), true) => Err(Error::Input("a g-xTB 2.0.1 wavefunction cannot start a v1.1 SCF".into())),
+        (None, _) => Ok(None),
     };
+    // 2.0.1's restarts in the default conventions at RESTART_ACCURACY; v1.1 restarts at its own
+    // thresholds
+    let vo = if v1 { opts.clone() } else { v2_options(opts, start.is_some()) };
+    // the setup's phases (once: a reused setup reports none)
+    let setup_laps = std::mem::take(&mut setup.timings);
+    let t_setup = if setup_laps.is_empty() { t_setup } else { t_setup.max(setup_laps.iter().map(|x| x.1).sum()) };
+    let res = s0.and_then(|s0| setup.scf_from(&vo, s0)).and_then(|mut r| {
+        let mut timings = vec![("setup", t_setup)];
+        timings.extend(setup_laps);
+        timings.push(("scf", t1.elapsed().as_secs_f64()));
+        timings.append(&mut r.timings);
+        let g = if want.gradient {
+            let t2 = Instant::now();
+            let (g, laps) = setup.gradient_timed(&r)?;
+            timings.push(("gradient", t2.elapsed().as_secs_f64()));
+            timings.extend(laps);
+            Some(g)
+        } else {
+            None
+        };
+        Ok(results(&setup, r, g, timings, opts, want, label, form))
+    });
     (res, Some(setup))
 }
 
@@ -849,58 +788,10 @@ fn dipole(positions: &[[f64; 3]], q: &[f64], d: &[[f64; 3]]) -> [f64; 3] {
     dipole
 }
 
+/// The single point of a converged SCF `r` of `setup` (with its `gradient` and `timings`), and the
+/// state a later SCF can start from.
 #[allow(clippy::too_many_arguments)]
 fn results(
-    setup: &Setup,
-    mut r: ScfResult,
-    gradient: Option<Vec<[f64; 3]>>,
-    timings: Timings,
-    opts: &ScfOptions,
-    want: &Want,
-    start: &'static str,
-    form: QuadrupoleForm,
-) -> (SinglePoint, Start) {
-    let orbitals = want.orbitals.then(|| {
-        collect_orbitals(&setup.mol, &setup.basis.scf.cgto, &r.orbital_energies, &r.occupations, &r.coefficients)
-    });
-    let levels = levels(&r.orbital_energies, &r.occupations);
-    let homo_lumo_gap = homo_lumo_gap(&levels, setup.nalpha as f64, setup.nbeta as f64, gap_rule(opts.conventions));
-    let ao_atom = &setup.basis.scf.ao2at;
-    let bond_orders = want.bond_orders.then(|| bond_orders(setup.mol.nat(), ao_atom, &setup.s, &r.density, setup.par));
-    let ptot = crate::fock::total_density(&r.density);
-    let (dpat, qpat) = setup.atomic_moments(&ptot);
-    let positions = &setup.mol.positions;
-    let sp = SinglePoint {
-        energy: r.energies.total,
-        terms: r.energies.terms(),
-        gradient,
-        dipole: dipole(positions, &r.atom_charges, &dpat),
-        electronic: Some(Electronic {
-            shell_charges: std::mem::take(&mut r.shell_charges),
-            quadrupole: molecular_quadrupole(positions, &r.atom_charges, &dpat, &qpat, form),
-            atomic_dipoles: dpat,
-            atomic_quadrupoles: qpat,
-            levels,
-            homo_lumo_gap,
-            orbitals,
-            bond_orders,
-            scf: ScfReport {
-                iterations: r.iterations,
-                start,
-                mixer_used: None,
-                attempts: Vec::new(),
-                eigensolver: r.eigensolver.clone(),
-            },
-        }),
-        charges: std::mem::take(&mut r.atom_charges),
-        extras: Extras::default(),
-        timings,
-    };
-    (sp, Start::V1_1(std::mem::take(&mut r.density)))
-}
-
-#[allow(clippy::too_many_arguments)]
-fn results_v2(
     setup: &v2::scf::Setup,
     mut r: v2::scf::ScfResult,
     gradient: Option<Vec<[f64; 3]>>,
