@@ -86,6 +86,25 @@ pub struct Potentials {
     pub w: Option<Vec<f64>>,
 }
 
+/// One density and the dipole and quadrupole potentials its atomic moments are contracted with
+/// in [`Setup::add_overlap_multipole`].
+#[derive(Clone, Copy)]
+pub struct MultipoleTerm<'a> {
+    pub p: &'a [f64],
+    pub vd: &'a [[f64; 3]],
+    pub vq: &'a [[f64; 6]],
+}
+
+/// The weights of the integral derivatives of the explicit gradient
+/// ([`Setup::integral_weights`]): the overlap weight X, the total density and the dipole
+/// (AES and anisotropy) and quadrupole potentials of its atomic moments.
+pub struct IntegralWeights {
+    pub x: Vec<f64>,
+    pub ptot: Vec<f64>,
+    pub vd: Vec<[f64; 3]>,
+    pub vq: Vec<[f64; 6]>,
+}
+
 /// `f(i, chain)` for every row i of `0..n` with a [`Chain`] of the shape of `like` per fixed chunk
 /// of rows (in parallel when `parallel`), the chunks' chains summed in order.
 pub(crate) fn chain_rows(n: usize, like: &Chain, parallel: bool, f: impl Fn(usize, &mut Chain) + Sync + Send) -> Chain {
@@ -140,16 +159,15 @@ impl Setup {
         (0..mol.nat()).map(|i| scf_shells(&self.model, mol.numbers[i], self.basis.qeff[i], true)).collect()
     }
 
-    /// Sum_mn X_mn dS_mn/dR (symmetric X) plus Sum_A vd_A . dd_A/dR + vq_A . dQ_A/dR of the atomic
-    /// multipoles of the total density `p` (SCF basis): centres to `ch.g`, effective charges to
-    /// `ch.dqeff`. `dsh`: [`Setup::scf_shell_derivatives`]. Atom pairs in fixed chunks (in
-    /// parallel with `self.parallel`), summed in order; blocks that are exactly zero are skipped.
+    /// Sum_mn X_mn dS_mn/dR (symmetric X) plus, per term, Sum_A vd_A . dd_A/dR + vq_A . dQ_A/dR
+    /// of the atomic multipoles of its density `p` (SCF basis): centres to `ch.g`, effective
+    /// charges to `ch.dqeff`. `dsh`: [`Setup::scf_shell_derivatives`]. Atom pairs in fixed chunks
+    /// (in parallel with `self.parallel`), summed in order; blocks that are exactly zero are
+    /// skipped.
     pub(crate) fn add_overlap_multipole(
         &self,
         x: &[f64],
-        p: &[f64],
-        vd: &[[f64; 3]],
-        vq: &[[f64; 6]],
+        terms: &[MultipoleTerm<'_>],
         dsh: &[Vec<Cgto>],
         ch: &mut Chain,
     ) -> Result<()> {
@@ -198,9 +216,12 @@ impl Setup {
                                 let mut dg = [w * mg.ds[k][0], w * mg.ds[k][1], w * mg.ds[k][2]];
                                 let mut dqa = w * mi.s[k];
                                 let mut dqb = w * mj.s[k];
-                                let pmn = p[mu * n + nu];
-                                if pmn != 0.0 {
-                                    let (vda, vqa, vdb, vqb) = (&vd[ia], &vq[ia], &vd[ib], &vq[ib]);
+                                for t in terms {
+                                    let pmn = t.p[mu * n + nu];
+                                    if pmn == 0.0 {
+                                        continue;
+                                    }
+                                    let (vda, vqa, vdb, vqb) = (&t.vd[ia], &t.vq[ia], &t.vd[ib], &t.vq[ib]);
                                     for k3 in 0..3 {
                                         dg[k3] -= pmn
                                             * (vdot(vda, vqa, &mg.dd_i[k][k3], &mg.dq_i[k][k3])
@@ -235,9 +256,11 @@ impl Setup {
                         for b in 0..nb {
                             let nu = sp.jj + b;
                             let k = b + nb * a;
-                            let pmn = p[mu * n + nu];
-                            let (vda, vqa) = (&vd[ia], &vq[ia]);
-                            cq[ia] -= pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
+                            for t in terms {
+                                let pmn = t.p[mu * n + nu];
+                                let (vda, vqa) = (&t.vd[ia], &t.vq[ia]);
+                                cq[ia] -= pmn * (vdot(vda, vqa, &da1[k], &qa1[k]) + vdot(vda, vqa, &da2[k], &qa2[k]));
+                            }
                         }
                     }
                 });
@@ -550,21 +573,37 @@ impl Setup {
         x_extra: Option<&[f64]>,
         t: &mut Laps,
     ) -> Result<Chain> {
-        let n = self.nao;
-        let mol = &self.mol;
-        let nat = mol.nat();
         t.skip();
-        let ptot = self.total_density(&st.p);
         // the exchange products of the density, shared by its potential, overlap weight and
         // kernel weights
         let pr = self.exch.products(&self.s, &st.p, self.par);
         let pot_now = self.potentials_with(st, &pr);
         let pot_other = (!std::ptr::eq(st, pot_state)).then(|| self.potentials(pot_state));
         let pot = pot_other.as_ref().unwrap_or(&pot_now);
-        let mut ch = Chain::new(&self.layout, nat);
+        let mut ch = Chain::new(&self.layout, self.mol.nat());
         t.lap("gradient: potentials");
-        // overlap weight: Mulliken charges, magnetizations, exchange
-        let mut x = self.exch.overlap_weight_with(&st.p, &pr, &st.q, self.par, self.parallel);
+        let w = self.integral_weights(st, &pr, pot, x_extra);
+        t.lap("gradient: overlap weight");
+        let terms = [MultipoleTerm { p: &w.ptot, vd: &w.vd, vq: &w.vq }];
+        self.add_integrals(&w.x, &terms, &w.ptot, &st.dip, &mut ch, t)?;
+        self.add_terms(st, &pr, &pot_now.vd_scaled, true, &mut ch, t);
+        Ok(ch)
+    }
+
+    /// The weights of the integral derivatives of the explicit gradient at the state `st` (with
+    /// its exchange products `pr`) and the potentials `pot`: the overlap weight of the Mulliken
+    /// charges, magnetizations and exchange (plus `x_extra`), the total density, the dipole
+    /// potential (AES plus the anisotropy) and the quadrupole potential.
+    pub(crate) fn integral_weights(
+        &self,
+        st: &State,
+        pr: &[Products],
+        pot: &Potentials,
+        x_extra: Option<&[f64]>,
+    ) -> IntegralWeights {
+        let n = self.nao;
+        let ptot = self.total_density(&st.p);
+        let mut x = self.exch.overlap_weight_with(&st.p, pr, &st.q, self.par, self.parallel);
         for i in 0..n {
             for j in 0..n {
                 x[i * n + j] -=
@@ -588,41 +627,74 @@ impl Setup {
         // dipole potential: AES plus the anisotropy (E_aniso = sum_A a_A . d_A)
         let vd: Vec<[f64; 3]> =
             pot.vd.iter().zip(&self.aniso).map(|(v, a)| [v[0] + a[0], v[1] + a[1], v[2] + a[2]]).collect();
-        t.lap("gradient: overlap weight");
+        IntegralWeights { x, ptot, vd, vq: pot.vq.clone() }
+    }
+
+    /// The integral derivatives of the explicit gradient: the SCF-basis overlap with the weight
+    /// `x` and multipole integrals with the `terms`, the anisotropy vectors with the dipoles
+    /// `dip`, H0 and the ACP with the density `p_h0`.
+    pub(crate) fn add_integrals(
+        &self,
+        x: &[f64],
+        terms: &[MultipoleTerm<'_>],
+        p_h0: &[f64],
+        dip: &[[f64; 3]],
+        ch: &mut Chain,
+        t: &mut Laps,
+    ) -> Result<()> {
         let dsh = self.scf_shell_derivatives()?;
-        self.add_overlap_multipole(&x, &ptot, &vd, &pot.vq, &dsh, &mut ch)?;
+        self.add_overlap_multipole(x, terms, &dsh, ch)?;
         t.lap("gradient: overlap+multipole integrals");
         if self.model.anisotropy() {
-            anisotropy_gradient_par(&self.model, mol, &st.dip, &mut ch.g, self.parallel);
+            anisotropy_gradient_par(&self.model, &self.mol, dip, &mut ch.g, self.parallel);
         }
         t.lap("gradient: anisotropy");
-        self.add_h0(&ptot, &mut ch)?;
+        self.add_h0(p_h0, ch)?;
         t.lap("gradient: h0");
-        self.add_acp(&ptot, &dsh, &mut ch)?;
+        self.add_acp(p_h0, &dsh, ch)?;
         t.lap("gradient: acp");
+        Ok(())
+    }
+
+    /// The terms' gradients at the fixed charges, moments and densities of `st` (exchange
+    /// products `pr`; `vd_scaled` = dE/d(c d) of its AES potential pass): electrostatics (AES:
+    /// with `full` its exact energy, otherwise E_AES', [`super::terms::add_aes`]), the exchange
+    /// kernels, repulsion and revD4.
+    pub(crate) fn add_terms(
+        &self,
+        st: &State,
+        pr: &[Products],
+        vd_scaled: &[[f64; 3]],
+        full: bool,
+        ch: &mut Chain,
+        t: &mut Laps,
+    ) {
         let (tg, s) = (self.term_geometry(), st.moments());
-        self.terms.iso.gradient(&tg, &self.isotropic, &s, &mut ch);
-        self.terms.aes.gradient_with(&tg, &self.aes, &s, &pot_now.vd_scaled, &mut ch);
+        self.terms.iso.gradient(&tg, &self.isotropic, &s, ch);
+        if full {
+            self.terms.aes.gradient_with(&tg, &self.aes, &s, vd_scaled, ch);
+        } else {
+            super::terms::add_aes(&tg, self.slots.cn, &self.aes, s.qat, s.dip, s.quad, vd_scaled, false, ch);
+        }
         t.lap("gradient: electrostatics");
-        let (tsh, tat) = self.exch.kernel_weights_with(&st.p, &pr, self.parallel);
-        self.exch.add_kernel_gradient(&self.model, &tg, &tsh, &tat, &mut ch);
+        let (tsh, tat) = self.exch.kernel_weights_with(&st.p, pr, self.parallel);
+        self.exch.add_kernel_gradient(&self.model, &tg, &tsh, &tat, ch);
         t.lap("gradient: exchange kernels");
-        self.terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
+        self.terms.rep.gradient(&tg, &self.rep, &s, ch);
         if let Some(c) = &self.terms.classical {
             axtb::terms::GeometryTerm::energy(
                 c,
                 &tg,
                 &(),
                 &mut TermEnergy { pieces: &mut [0.0], atoms: None },
-                Some(&mut ch),
+                Some(ch),
             );
         }
-        self.terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
+        self.terms.disp.gradient(&tg, &self.disp, &s, ch);
         t.lap("gradient: repulsion+revd4");
         let mut e3 = [0.0];
-        self.terms.disp.fixed_energy(&tg, &self.disp, &mut TermEnergy { pieces: &mut e3, atoms: None }, Some(&mut ch));
+        self.terms.disp.fixed_energy(&tg, &self.disp, &mut TermEnergy { pieces: &mut e3, atoms: None }, Some(ch));
         t.lap("gradient: revd4 three-body");
-        Ok(ch)
     }
 
     /// Analytic gradient (Eh/bohr) of a converged SCF.
