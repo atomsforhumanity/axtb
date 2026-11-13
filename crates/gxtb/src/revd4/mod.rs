@@ -80,7 +80,8 @@ fn revd4_cn<'a>(
         .skipping_zero_weights()
 }
 
-/// revD4 coordination numbers (erf, 7.5, Rc = R_A + R_B, cutoff factor; [`revd4_cn`]).
+/// revD4 coordination numbers: erf, 7.5, Rc = R_A + R_B and a cutoff factor (2.0.1: the radii of
+/// `covalent_rad_d3` and [`Model::cut`]; v1.1: the 1.1.0 program's radii, a hard 30-bohr cutoff).
 pub fn coordination_numbers(model: &Model, mol: &Molecule) -> Vec<f64> {
     revd4_cn(model, mol).compute(&mol.positions)
 }

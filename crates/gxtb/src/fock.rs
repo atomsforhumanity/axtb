@@ -28,7 +28,7 @@
 //! derivatives of the energy (checked by finite differences).
 //!
 //! The potential part F = -1/2 (v_mu + v_nu) S - 1/2 (G + G^T), G = D.v_d + Q.v_q by rows, is
-//! written once ([`potential_part`]): added to a matrix by [`add_potentials`] (the response and
+//! written once (`potential_part`): added to a matrix by [`add_potentials`] (the response and
 //! Hessian) and to H + X by [`from_potentials_fused`] (the SCF). GFN2-xTB's form (`axtb::scf`,
 //! B = S v + D.v_d + Q.v_q by columns, then 1/2 (B + B^T)) is another order.
 
@@ -100,7 +100,7 @@ fn potential_part(b: f64, n: usize, m: usize, k: usize, s: &[f64], vao: &[f64], 
     b - 0.5 * (vao[m] + vao[k]) * s[mk] - 0.5 * (g[mk] + g[k * n + m])
 }
 
-/// Add the potential part of a 2.0.1 Fock matrix (change) to `f` ([`potential_part`]: the charge
+/// Add the potential part of a 2.0.1 Fock matrix (change) to `f` (`potential_part`: the charge
 /// potentials per AO `vao`, the multipole potentials `vd`, `vq` of the atoms), in tiles, in
 /// parallel with `parallel` (the response and Hessian).
 pub fn add_potentials(
@@ -127,7 +127,7 @@ pub fn add_potentials(
 /// ```
 ///
 /// with the charge potentials per AO `vao`, G_mk = vd(A(m)).D_mk + vq(A(m)).Q_mk (by rows, all
-/// nine products in one sum: [`potential_part`]) and, with `wao`, the spin potentials per AO
+/// nine products in one sum: `potential_part`) and, with `wao`, the spin potentials per AO
 /// (+ on alpha, the first channel, - on beta). G by rows and F in tiles, in parallel with
 /// `parallel` (each element by one task: the result does not depend on the thread count).
 pub fn from_potentials_fused(
