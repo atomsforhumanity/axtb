@@ -68,8 +68,8 @@ pub(crate) fn displacement_response(resp: &Response, dv: &Mat<f64>, y: usize, pa
         }
     }
     let mo = resp.mo();
-    let ft = mo.to_mo_full_first(df.as_ref(), par);
-    let stt = mo.to_mo_full_first(ds.as_ref(), par);
+    let ft = mo.to_mo(df.as_ref(), par);
+    let stt = mo.to_mo(ds.as_ref(), par);
     let r = resp.mo_response(ft.as_ref(), Some(stt.as_ref()));
     (resp.to_ao(&r.dp, par), resp.to_ao(&r.dw, par))
 }

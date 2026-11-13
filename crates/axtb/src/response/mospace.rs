@@ -7,10 +7,8 @@
 //! occupied-occupied block of these rows `A` halved, the AO matrix of the symmetric MO matrix
 //! is `C_o A Cᵀ + (C_o A Cᵀ)ᵀ`, `C_o` the first `n_o` columns of `C` ([`MoSpace::to_ao`]).
 //!
-//! The order of the two products of a transform decides its rounding, so each order is its
-//! own function: [`MoSpace::to_mo`] forms `(C_oᵀ X) C` (2 n_o n² multiply-adds),
-//! [`MoSpace::to_mo_full_first`] `C_oᵀ (X C)` (n³ + n_o n²; GFN2-xTB's response Hessian).
-//! Products run on faer's kernels with the caller's `Par`.
+//! [`MoSpace::to_mo`] forms `(C_oᵀ X) C` (2 n_o n² multiply-adds; the order of the two
+//! products decides the rounding). Products run on faer's kernels with the caller's `Par`.
 
 use faer::linalg::matmul::matmul;
 use faer::{Accum, Mat, MatRef, Par};
@@ -56,16 +54,6 @@ impl<'a> MoSpace<'a> {
         matmul(t.as_mut(), Accum::Replace, self.c.subcols(0, self.n_o).transpose(), x, 1.0, par);
         let mut out = Mat::<f64>::zeros(self.n_o, n);
         matmul(out.as_mut().subcols_mut(v0, n - v0), Accum::Replace, t.as_ref(), self.c.subcols(v0, n - v0), 1.0, par);
-        out
-    }
-
-    /// Rows `[0, n_o)` of `Cᵀ X C`, formed as `C_oᵀ (X C)`.
-    pub fn to_mo_full_first(&self, x: MatRef<'_, f64>, par: Par) -> Mat<f64> {
-        let n = self.c.nrows();
-        let mut xc = Mat::<f64>::zeros(n, n);
-        matmul(xc.as_mut(), Accum::Replace, x, self.c, 1.0, par);
-        let mut out = Mat::<f64>::zeros(self.n_o, n);
-        matmul(out.as_mut(), Accum::Replace, self.c.subcols(0, self.n_o).transpose(), xc.as_ref(), 1.0, par);
         out
     }
 
