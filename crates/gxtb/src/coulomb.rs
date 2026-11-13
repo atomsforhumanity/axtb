@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Charge- and multipole-dependent electrostatics and spin polarization of g-xTB 2.0.1
 //! (spec §4.7-§4.12). Shell charges q_l = n0_l - Mulliken population, atomic charges
 //! q_A = sum_l q_l, f(CN) the smoothed square root of the g-xTB CN.

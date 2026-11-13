@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The q-vSZP atomic orbital basis as used by g-xTB v1.1.
 //!
 //! q-vSZP: M. Müller, A. Hansen, S. Grimme, J. Chem. Phys. 158, 014103 (2023), in the variant

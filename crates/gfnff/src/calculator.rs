@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Stateful GFN-FF calculator: the topology is set up once (from the first structure, or
 //! from a reference structure) and reused for every later geometry, as xtb does within an
 //! optimization. It implements [`Method`]: energies, gradients and EEQ charges

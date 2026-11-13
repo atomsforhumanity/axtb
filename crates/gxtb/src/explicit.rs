@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Explicit second derivatives of the integral terms of g-xTB 2.0.1 at fixed AO density and
 //! fixed gradient weights, in local variables, and the chain second derivatives.
 //!

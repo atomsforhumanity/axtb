@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic GFN-FF Hessian as JSON: stdin `{"numbers", "positions" (bohr), "charge",
 //! "threads", "conventions"}`, stdout `{"energy", "hessian" (row-major 3N x 3N), "seconds"}`.
 

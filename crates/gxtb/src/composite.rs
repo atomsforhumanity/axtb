@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB in implicit solvent: a solvation composite, in one process.
 //!
 //! g-xTB has no implicit-solvent parametrization (the g-xTB 2.0.1 program stops with

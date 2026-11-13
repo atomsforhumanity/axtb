@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Molecular structure.
 
 use crate::error::{Error, Result};

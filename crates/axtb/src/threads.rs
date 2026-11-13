@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Guidance on thread counts, from the benchmarks in `bench/` (README, "Threads"). The thread
 //! pool of a calculator and the parallel loops are in `axtb_base::threads` ([`crate::Threads`]).
 

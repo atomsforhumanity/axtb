@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Terms without their types, as a model holds the terms added to it: a term behind an `Arc`,
 //! and a term bound to one geometry, which owns the term's typed cache. Crate-private: users
 //! write [`MomentTerm`]s and hand them to a model (`Calculator::push_term`).

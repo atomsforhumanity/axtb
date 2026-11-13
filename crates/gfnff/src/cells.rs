@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Linked-cell search for atom pairs within a cutoff (O(N) for dense systems).
 //!
 //! xtb's GFN-FF loops over all atom pairs (and keeps N x N arrays); every pair loop here

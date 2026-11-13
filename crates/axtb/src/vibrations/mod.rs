@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Vibrational analysis of a nuclear Hessian: harmonic frequencies, normal modes, reduced
 //! masses, IR intensities and quasi-RRHO thermochemistry ([`thermo`]).
 //!

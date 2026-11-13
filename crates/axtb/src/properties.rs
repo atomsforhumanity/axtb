@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Properties of a converged SCF that the reference programs print: Mayer–Wiberg bond orders,
 //! the molecular quadrupole moment and the HOMO–LUMO gap. Shared by GFN2-xTB and g-xTB.
 //!

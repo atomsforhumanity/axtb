@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The driver's rules: one request for every method, settings that do not apply refused, the
 //! same response fields, the error kinds, and a stateful calculator that gives the one-shot
 //! results.

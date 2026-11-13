@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Classical repulsion of the GFN-xTB methods:
 //! `E = sum_{A<B} Z_A Z_B exp(-sqrt(α_A α_B) R^k) / R^r`.
 

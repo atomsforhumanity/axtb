@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Energy/gradient consistency and invariances of the default (axtb) conventions, which
 //! have no external reference program: analytic gradients against central finite
 //! differences, and invariance under atom permutation.

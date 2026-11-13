@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Mulliken analysis of g-xTB densities, both versions: shell populations
 //! `sum_{mu in l} (P S)_{mu mu}`, the shell charges `n0_l` minus them, shell magnetizations
 //! (alpha minus beta populations) and the atomic dipoles and traceless quadrupoles

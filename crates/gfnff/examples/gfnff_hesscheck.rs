@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic Hessian vs central differences of the analytic gradient (Richardson-extrapolated
 //! from steps h and h/2; env STEP, default 2e-3 bohr) for reference structures
 //! (`tests/reference-xtb-6.7.1/*.json`) given as arguments.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic GFN-FF Hessian against central differences of the analytic gradient
 //! (Richardson-extrapolated), dipole derivatives against finite differences of the EEQ
 //! dipole, and thread-count independence; the force fields of xtb 6.8.0 and 6.7.1.

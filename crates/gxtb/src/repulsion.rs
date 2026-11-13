@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Self-consistent repulsion of g-xTB 2.0.1 (spec §4.4):
 //!
 //! E = sum_{A<B} z_A z_B M_AB, z_A = Z0_A (1 - kq_A q_A) with the SCF Mulliken atomic charges q,

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The xtb 6.8.0 conventions with one setting at a time put back to its xtb 6.7.1 value
 //! (`tests/xtb680_changes.py` compares each with the xtb 6.8.0 program): how much each
 //! documented 6.7.1 quirk would move the result.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! axtb-driver: the one request/response layer of the axtb front ends.
 //!
 //! The CLI fills a [`Request`] from its arguments or a JSON request, Python from keyword

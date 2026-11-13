@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! GFN-FF topology setup: a port of xtb's `gfnff_ini` (`src/gfnff/gfnff_ini.f90`) and
 //! `gfnff_neigh` (`gfnff_ini2.F90`) for molecules.
 //!

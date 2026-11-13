@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Parsers for the three g-xTB v1.1 parameter files.
 //!
 //! The layouts were established from the read statements of the program (`rdpar_`,

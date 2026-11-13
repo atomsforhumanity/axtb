@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Coupled-perturbed SCF: the linear response of a converged SCF to a perturbation of its Fock
 //! and overlap matrices (nuclear displacements for Hessians and dipole derivatives).
 //!

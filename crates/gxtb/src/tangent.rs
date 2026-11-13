@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! First geometry derivatives of the setup of g-xTB 2.0.1 at fixed AO density: the analytic
 //! derivative matrices of the SCF-basis overlap, dipole and quadrupole integrals and of the
 //! one-electron Hamiltonian H0 + ACP (the anisotropy term is treated as a dipole potential,

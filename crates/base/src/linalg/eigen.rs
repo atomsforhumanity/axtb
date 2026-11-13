@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Symmetric eigenproblems: the generalized one of the SCF, F C = S C ε ([`GenEigSolver`], with
 //! ports of LAPACK's `dsygst` here and of `dsterf`/`dstein` in `tridiag`, and the run-time
 //! library of `lapack`; the method is described in the documentation of [`crate::linalg`]),

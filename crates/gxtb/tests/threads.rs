@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! `threads = 1` must not create any thread (in particular not rayon's global pool, which
 //! faer's high-level solvers would start at the machine's full size), and `threads = n > 1`
 //! must stay inside the calculator's own pool. Results repeat bit for bit on a given thread

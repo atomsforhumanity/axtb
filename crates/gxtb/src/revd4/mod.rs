@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! revD4 dispersion of g-xTB 2.0.1 (spec §4.15): the v1.1 C6 model ([`mod@reference`]: revD4 CN,
 //! pair-specific Gaussian weights, tanh charge scaling n(q)/n(qref), hydrogen-subtracted
 //! reference polarizabilities, K matrices) with the 2.0.1 reference charges ([`CHARGES`]:

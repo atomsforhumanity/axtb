@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Energy terms of a tight-binding model, written once against a common interface.
 //!
 //! **Unstable**: these traits and types may change in any release before 1.0.

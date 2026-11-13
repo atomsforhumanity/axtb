@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Python bindings: `axtb._axtb`, a thin layer over `axtb-driver`.
 //!
 //! Keyword arguments fill an `axtb_driver::Request`; the driver checks and runs it, and its

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Mulliken analysis of a density: shell charges `q_l = n0_l - Σ_{μ∈l} (P S)_μμ` and atomic
 //! dipoles and traceless quadrupoles `μ_A = -Σ_{μ∈A} (P D)_μμ`, `Θ_A = -Σ_{μ∈A} (P Q)_μμ` with the
 //! multipole integrals around the atom of the column AO (tblite's

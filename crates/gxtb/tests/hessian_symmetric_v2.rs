@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The analytic g-xTB 2.0.1 Hessian's symmetric response terms
 //! ([`AnalyticOptions::symmetric`]): at the default solver tolerance (1e-6) the Hessian equals
 //! that of a tight solve (1e-12) to well below the analytic Hessian's accuracy, while the same

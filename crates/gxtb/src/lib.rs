@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB (T. Froitzheim, M. Müller, A. Hansen, S. Grimme, ChemRxiv 2025,
 //! doi:10.26434/chemrxiv-2025-bjxvt) in two versions on one engine ([`model`]):
 //!

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Records in `python/axtb/_build.py` whether this build of the extension module assumes an
 //! x86-64-v3 CPU (AVX2, FMA, ...; `.cargo/config.toml`), so that `axtb/__init__.py` checks the
 //! CPU before it loads the module only when the build needs it: a build with

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! What a term reads (the geometry it is bound to, the SCC moments) and what it writes into
 //! (energies, potentials, kernels, potential derivatives). Every sink is added to, never
 //! assigned: the model sizes and zeroes it and decides which terms share it.

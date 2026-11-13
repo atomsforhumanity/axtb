@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """g-xTB in implicit solvent (the composite E_gxtb + [E_GFN2+solv - E_GFN2]) through the Python
 package, the qccodec codec and the CLI.
 

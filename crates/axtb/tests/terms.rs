@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! A term written outside the crate with the public API of `axtb::terms` only: a uniform
 //! electric field acting on the molecular dipole, E = -F · (Σ_A q_A R_A + μ_A), added to a
 //! GFN2-xTB calculator with `push_term`. Its kernel and second derivatives are the traits'

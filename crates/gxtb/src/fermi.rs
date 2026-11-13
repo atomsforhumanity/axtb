@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Orbital occupations of g-xTB 2.0.1 at a finite electronic temperature (Fermi smearing,
 //! the program's `--etemp`), per spin channel, and the electronic entropy term −TS, on the rules
 //! of [`crate::occupations`].

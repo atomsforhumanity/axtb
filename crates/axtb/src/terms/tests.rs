@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! A toy model: an intermediate of the positions, a second one that depends on it (two
 //! outputs), and a moment term that reads the second and the atomic charges and dipoles.
 

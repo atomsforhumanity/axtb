@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 analytic gradients against finite differences of the energy and against the
 //! 2.0.1 program's analytic gradients (tests/reference_v2/*/*/gradient_tight).
 

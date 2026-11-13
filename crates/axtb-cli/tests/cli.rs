@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The command line itself: help and version, usage errors (exit code 2), JSON errors with
 //! their kinds (exit code 1), the response's header, the one alias rule, settings that do not
 //! apply, and XYZ files converted with the factor of the conventions.

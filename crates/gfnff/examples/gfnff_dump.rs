@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Dump the GFN-FF topology, charges, energies and gradient of a structure as JSON (for
 //! the comparisons with xtb in `tests/gfnff_reproduction.py`).
 //!

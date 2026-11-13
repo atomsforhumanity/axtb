@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Type stubs of the extension module ``axtb._axtb`` (see the package docs and the README)."""
 
 from typing import Any, Literal, Sequence

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Generate g-xTB 2.0.1 reference data under crates/gxtb/tests/reference_v2/.
 
 Usage: python3 crates/gxtb/scripts/make_reference_v2.py <xtb 2.0.1 binary> <output dir>

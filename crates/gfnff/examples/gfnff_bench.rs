@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Timing of GFN-FF setup, energy + gradient and analytic Hessian for scaling benchmarks:
 //! stdin `{"numbers", "positions" (bohr), "charge", "threads", "mode": "grad" | "hess",
 //! "conventions": "xtb" | "xtb-6.7.1"}`,

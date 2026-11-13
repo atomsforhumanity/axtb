@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Validation of the coupled-perturbed SCC response and the Hessians against finite
 //! differences (run with `cargo test --release -p axtb --lib response -- --nocapture`).
 

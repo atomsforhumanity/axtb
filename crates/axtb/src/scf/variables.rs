@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The layout of the self-consistent variables in one flat vector, as mixers and response
 //! equations use them:
 //!

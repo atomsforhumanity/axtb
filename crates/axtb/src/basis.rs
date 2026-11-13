@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Contracted Gaussian basis functions and the AO/shell/atom bookkeeping.
 
 use crate::molecule::Molecule;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 parameter tables, read bit-exactly from the 2.0.1 program's data symbols
 //! (module `tblite_xtb_gxtb` `pa_*`/`ps_*`/`pg_*` arrays, multicharge `eeqbc2025`, dftd4 `d4srev`).
 //!

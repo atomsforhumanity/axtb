@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! GFN2-xTB parametrization (C. Bannwarth, S. Ehlert, S. Grimme, JCTC 15, 1652 (2019)).
 
 use crate::basis::{slater_to_gauss, Basis, StoExpansion};

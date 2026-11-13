@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Molden files of converged molecular orbitals, for orbital viewers (Molden, Jmol,
 //! Avogadro, IboView, Multiwfn, PySCF/IOData readers).
 //!

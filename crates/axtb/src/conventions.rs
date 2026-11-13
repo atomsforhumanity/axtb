@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Numerical conventions: axtb's corrected default, or exact reproduction of the xtb 6.8.0,
 //! xtb 6.7.1 and tblite 0.8.0 programs. Everything that differs between them is one table,
 //! [`ConventionParams`], resolved once when a calculation is set up; the rest of the code

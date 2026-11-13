@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Electrostatics of the GFN-xTB methods: isotropic second order (shell-resolved γ
 //! kernel), on-site third order, and damped anisotropic multipole electrostatics (GFN2).
 

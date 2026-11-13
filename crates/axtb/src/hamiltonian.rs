@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Extended Hückel-type core Hamiltonian of the GFN-xTB methods and its nuclear gradient.
 
 use crate::ao::{AoMatrices, AtomPair, ShellPair, ShellPairs};

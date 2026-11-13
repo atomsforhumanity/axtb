@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """qccodec codec for axtb: GFN2-xTB, GFN-FF and g-xTB (v1.1, 2.0.1) energies, gradients
 and Hessians, in-process.
 

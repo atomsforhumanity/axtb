@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB's deterministic parallel loops on top of `axtb_base::threads`: work is cut into
 //! fixed chunks that do not depend on the thread count, each chunk is evaluated on its own (on
 //! the current rayon pool when `parallel`, in order otherwise) and the chunk results are

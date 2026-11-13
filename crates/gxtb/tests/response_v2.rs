@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 coupled-perturbed response: the kernel against finite differences of the Fock
 //! matrix, and the density, energy-weighted density and Mulliken moment responses to nuclear
 //! displacements against central differences of tightly converged SCF densities.

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 import json
 from pathlib import Path
 REF = Path(__file__).resolve().parents[1] / "tests"

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Optional LAPACK eigensolver loaded at run time (Intel MKL, OpenBLAS or AMD AOCL), for the
 //! SCF's symmetric eigenproblems: tridiagonal reduction (`dsytrd`), divide and conquer on the
 //! tridiagonal matrix (`dstedc`) and the back-transformation of the needed eigenvectors

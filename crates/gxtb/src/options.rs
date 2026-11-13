@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! What a g-xTB calculation computes: the version ([`Version`]), the conventions
 //! ([`Conventions`]) and the settings of one SCF ([`ScfOptions`]), for both versions.
 

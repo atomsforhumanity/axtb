@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Warm starts for the golden corpus (`scripts/golden.py`; a development tool, not part of the
 //! published package): an SCF started from the previous geometry's converged wavefunction, which
 //! one CLI request cannot express.

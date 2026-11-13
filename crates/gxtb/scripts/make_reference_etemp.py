@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """g-xTB 1.1.0 reference data at finite electronic temperatures (the program's `-tel <K>`).
 
 Usage: python3 crates/gxtb/scripts/make_reference_etemp.py <g-xtb-1.1.0 dir> [--jobs N]

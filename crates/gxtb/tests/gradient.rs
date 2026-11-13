@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic gradients of g-xTB v1.1 (the engine's [`Setup::gradient`]) against finite differences of our
 //! own energies at tight SCF convergence, for the exact Fock matrix (default, stationary SCF)
 //! and the program's (with the Z-vector response), and against the g-xTB 1.1.0 program's

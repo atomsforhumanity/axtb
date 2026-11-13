@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The intermediates of the g-xTB 2.0.1 gradient, as core [`Intermediate`]s of the setup's chain
 //! layout ([`axtb::terms::ChainLayout`]): the g-xTB, basis and revD4 coordination numbers, the
 //! EEQ-BC charges, and the q-vSZP effective charges of the SCF and H0 bases, which depend on

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The error function of the reference programs, 3-vector helpers, the Cartesian Hessian
 //! block of a pair term, the normalization of Gaussian primitives and the atomic sums of shell
 //! quantities.

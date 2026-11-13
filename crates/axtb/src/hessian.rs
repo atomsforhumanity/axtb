@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Nuclear Hessians from the coupled-perturbed SCC response.
 //!
 //! - [`HessianMethod::Response`]: column y is the central difference of the gradient

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Orbitals for Molden files from the calculators (GFN2-xTB, g-xTB v1.1 and 2.0.1): kept only
 //! when asked, orthonormal in the per-atom basis they come with (so the coefficients are laid
 //! out orbital by orbital in axtb's AO order and each atom has its own charge-adapted shells),

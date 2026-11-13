@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Point groups and rotational symmetry numbers of molecules.
 //!
 //! The symmetry elements are found by testing candidate operations through the centroid:

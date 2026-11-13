@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The chain of intermediates: geometry-dependent quantities that several terms differentiate
 //! through (coordination numbers, model charges), each with its chain rule applied once at the
 //! end of a gradient.

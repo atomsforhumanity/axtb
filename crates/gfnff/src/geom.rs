@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Internal coordinates and their derivatives as GFN-FF evaluates them (xtb
 //! `src/constr.f90`, `src/gfnff/math.f`), for molecules (all translation vectors zero).
 

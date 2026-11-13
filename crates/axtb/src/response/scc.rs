@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Coupled-perturbed SCC response of GFN2-xTB to nuclear displacements.
 //!
 //! The SCC variables `s` are the Mulliken shell charges, atomic dipoles and packed

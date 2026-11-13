@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Orbital occupations: the 0 K Aufbau filling, the Fermi smearing of tblite and xtb at a finite
 //! electronic temperature and tblite's electronic entropy term −TS, written once for the
 //! methods that use them.

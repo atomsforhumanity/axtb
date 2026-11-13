@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Dense linear systems A X = B, as named strategies. Partial pivoting chooses the row of the
 //! largest |a_ik|; the strategies differ in which row wins a tie and in their arithmetic, so
 //! each caller keeps the one it was validated with:

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 analytic Hessian pieces against finite differences: the perturbation F^(x), S^x
 //! of every displacement against 4-point differences of the setup at fixed density.
 //! `V2_ANA=reference/water,...` selects molecules. Heavy elements (UF6: 4e-7) see tblite's

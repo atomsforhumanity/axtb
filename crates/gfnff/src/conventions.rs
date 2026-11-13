@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The xtb versions whose GFN-FF the port reproduces. Everything that differs between them
 //! is one table, [`ConventionParams`], resolved once when the topology is set up; the rest of
 //! the code reads the table instead of testing the version.

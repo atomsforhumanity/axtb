@@ -11,7 +11,9 @@ Rust crates, the CLI and the Python package share one version.
   its authors, Thomas Froitzheim and Stefan Grimme, gave explicit permission to use g-xTB,
   including its parameters (1.1 and 2.0.1), in axtb and to distribute the implementation under
   LGPL-3.0-or-later. [NOTICE](NOTICE) quotes the permission; [LICENSE](LICENSE) lists the
-  crates. Every published crate carries `COPYING`, `COPYING.LESSER` and `NOTICE`.
+  crates. Every published crate carries `COPYING`, `COPYING.LESSER` and `NOTICE`, and every Rust
+  and Python source file starts with `SPDX-License-Identifier: LGPL-3.0-or-later`
+  (`scripts/check.sh fast` checks it).
 - g-xTB 2.0.1 analytic Hessians: the response terms in a symmetric form
   (`AnalyticOptions::symmetric`, on by default) whose error is quadratic in the response
   solver's tolerance, and a default tolerance of 1e-6 (was 1e-10). Over 15 cases (closed and

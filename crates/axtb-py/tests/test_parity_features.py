@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """SCF guess reuse, Mayer-Wiberg bond orders, orbital levels, HOMO-LUMO gap and the molecular
 quadrupole through the Python package, the qccodec codec (incl. ``propagate_wfn``) and the CLI.
 

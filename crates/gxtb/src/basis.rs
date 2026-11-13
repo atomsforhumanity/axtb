@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! q-vSZP basis of g-xTB 2.0.1: the v1.1 tables (bit-identical in the 2.0.1 program) with the
 //! effective charge q_eff = k0 (q - k1 q^2) + k2 f(CN) + k3 q CN (f = smoothed square root,
 //! k0 = 1, k1 = k_q2, k2 = k_cn, k3 = k_qcn of the `basisq` header; EEQ-BC charges q and basis

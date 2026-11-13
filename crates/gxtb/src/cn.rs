@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Error-function coordination numbers of g-xTB 2.0.1 (mctc-lib `erf` counting with a pair
 //! cutoff): CN_A = sum_B 1/2 [1 + erf(-k (R_AB - Rc_AB) / Rc_AB^e)] * cut(R_AB), with the cutoff
 //! factor of [`Model::cut`] (25 bohr in the program).

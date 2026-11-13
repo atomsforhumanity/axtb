@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Small test molecules covering further elements (rough textbook geometries, not minima)."""
 import math
 def xyz(name, atoms):

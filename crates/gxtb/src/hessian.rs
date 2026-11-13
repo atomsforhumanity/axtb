@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Nuclear Hessians of g-xTB 2.0.1 from the coupled-perturbed response ([`crate::response`]).
 //!
 //! With the analytic gradient written as a functional g(R; P, W) = dE/dR|_P - Tr(W dS/dR) of

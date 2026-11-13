@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 single points: the geometry-dependent setup, the energy and Fock matrices of a
 //! density, and tblite's SCF as the 2.0.1 program runs it (spec §4.17; a model of the core's
 //! SCF driver, `axtb::scf::run_scf`):

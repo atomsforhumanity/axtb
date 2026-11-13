@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Coupled-perturbed SCF response of g-xTB 2.0.1 for the full density matrix.
 //!
 //! The 2.0.1 Fock matrix is the exact derivative of the energy, F^s = dE/dP^s (closed shell:

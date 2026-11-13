@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB v1.1 Hessians in the default conventions (step 17: v1.1 on the engine) against a tight
 //! reference: Richardson extrapolation of central differences of analytic gradients (h = 2e-3
 //! and 1e-3 bohr) with SCFs converged to 1e-13; the response Hessian's dipole derivatives against

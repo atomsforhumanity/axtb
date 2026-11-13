@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Input errors and numerical errors of the public API: fragment charges, positions, threads,
 //! settings, and the analytic Hessian where it is not defined.
 

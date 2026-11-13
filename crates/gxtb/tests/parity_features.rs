@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The g-xTB program features of `docs/gxtb-feature-coverage.md`: SCF guess reuse
 //! (the programs' restart files), Mayer-Wiberg bond orders, the HOMO-LUMO gap and the molecular
 //! quadrupole, against numbers of the programs (g-xTB 2.0.1 = `xtb --gxtb`, 6.7.1 build; g-xTB

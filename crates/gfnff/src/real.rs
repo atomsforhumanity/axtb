@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Scalar type of the energy and gradient kernels.
 //!
 //! The kernels are written once, generic over [`Real`]: with `f64` they are the energy

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! A calculator with `threads > 1` must run all of its work inside its own pool: every SCF,
 //! including the retry from scratch after an SCF that started from a bad guess failed, and
 //! every Hessian method, including the reference SCF of the numerical Hessian. Before the

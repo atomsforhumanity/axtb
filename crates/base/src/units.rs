@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Physical constants and unit conversions.
 //!
 //! Physical constants are NIST CODATA 2022 values as curated in AFH's qcref package

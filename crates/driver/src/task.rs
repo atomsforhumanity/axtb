@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! What a call computes besides the energy, checked against the method.
 
 use crate::error::{Error, Result};

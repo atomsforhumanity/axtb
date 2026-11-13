@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Self-consistent charge extended tight-binding single point: SCF, energy and analytic
 //! nuclear gradient for the GFN-type Hamiltonians.
 

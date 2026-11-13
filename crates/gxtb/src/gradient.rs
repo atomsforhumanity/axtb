@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic nuclear gradient of g-xTB 2.0.1.
 //!
 //! The 2.0.1 Fock matrix is the exact derivative of the energy (in both conventions), so the

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Wall time per named phase (the `timings` of a calculation).
 
 use std::time::Instant;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Names of methods, conventions and settings as every front end accepts them.
 //!
 //! One alias rule for all of them: case and everything but ASCII letters and digits are

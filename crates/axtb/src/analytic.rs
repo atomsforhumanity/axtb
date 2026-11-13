@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic nuclear Hessian of the SCC tight-binding energy.
 //!
 //! With the gradient written as a functional `g_x(R; P, W, s)` of the density, the

@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Molden files of converged orbitals (Python package, qccodec codec and CLI).
 
 Run with the extension built from this tree and the CLI at ``target/release/axtb`` (or

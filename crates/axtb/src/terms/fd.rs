@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The finite-difference defaults of the term traits: the kernel and its product with a vector
 //! from central differences of the analytic potential, and the second derivatives with respect
 //! to the nuclear positions from central differences of the analytic potential and gradient

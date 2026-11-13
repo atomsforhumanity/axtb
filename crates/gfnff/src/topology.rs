@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The GFN-FF topology: everything the force field derives from the setup structure.
 //!
 //! It corresponds to xtb's `TGFFTopology` plus the parts of `TNeigh` used by the energy

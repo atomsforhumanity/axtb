@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 Hessians at a finite electronic temperature (Fermi smearing) against a tight
 //! reference: Richardson extrapolation of central differences of analytic gradients (h = 2e-3
 //! and 1e-3 bohr) with SCFs converged to 1e-12 Eh / 5e-13, in both conventions.

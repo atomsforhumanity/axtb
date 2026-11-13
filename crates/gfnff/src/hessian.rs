@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic Hessian of GFN-FF: the exact derivative of xtb's analytic gradient.
 //!
 //! Every column (one Cartesian coordinate of one atom) is the forward-mode derivative

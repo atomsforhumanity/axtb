@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! D4 dispersion (crate `axtb-d4`) as a self-consistent, charge-dependent SCF term.
 
 use crate::molecule::Molecule;

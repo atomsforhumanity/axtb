@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! One-electron integrals over contracted Gaussian shells: overlap, dipole and traceless
 //! quadrupole moments, and their derivatives with respect to the ket center.
 //!

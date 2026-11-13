@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Density matrices from orbital coefficients: P = C diag(w) Cᵀ over the columns of C with a
 //! non-negligible weight (occupations, or occupations times orbital energies for the
 //! energy-weighted density), as a full matrix product or as its lower triangle mirrored

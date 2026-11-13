@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 analytic setup derivatives (overlap, dipole and quadrupole integrals, H0 + ACP)
 //! against 4-point differences of the setup. `V2_TAN=reference/water,...` selects molecules.
 

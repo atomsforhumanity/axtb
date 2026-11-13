@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Stateful calculator: build the method once for a molecule, then evaluate energies,
 //! gradients and Hessians at any number of geometries through the [`Method`] trait.
 //!

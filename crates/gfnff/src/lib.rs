@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! GFN-FF: the generic force field of Spicher and Grimme (Angew. Chem. Int. Ed. 59,
 //! 15665 (2020), doi:10.1002/anie.202004239), ported from xtb's implementation
 //! (`src/gfnff`, LGPL-3.0-or-later) and validated against the xtb 6.8.0 program (default) and

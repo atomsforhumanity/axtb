@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Krylov solvers of the g-xTB response equations and their vector operations:
 //!
 //! - [`cg`]: conjugate gradients for the symmetric positive definite coupled-perturbed system of

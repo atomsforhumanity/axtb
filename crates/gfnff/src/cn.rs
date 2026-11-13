@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Error-function coordination number with logarithmic cap (`gfnff_dlogcoord`).
 //!
 //! The counting function ([`XtbErf::GFNFF`]: xtb's erf count with kn = −7.5 and its derivative

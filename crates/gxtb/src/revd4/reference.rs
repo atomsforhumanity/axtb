@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The revD4 reference data of g-xTB, as v1.1 (P-Eq. 44) defines it in the 1.1.0 program (its
 //! embedded dftd4 with the `gxtb` reference set, `tblite_disp_d4`), built on
 //! [`axtb_d4`]. Verified against the program's two-body and three-body energies to ~1e-18 Eh

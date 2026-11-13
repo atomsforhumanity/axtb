@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """The CPU check of ``import axtb`` (``axtb/__init__.py``): which ``/proc/cpuinfo`` flags it
 needs, and that its message is the CLI's.
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Mixing between SCF iterations. The accelerators come in two kinds, by what they mix:
 //!
 //! - [`VectorMixer`]: the input vector of the self-consistent variables, before the Fock matrix

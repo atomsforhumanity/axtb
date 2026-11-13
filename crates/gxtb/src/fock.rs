@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Fock matrices of g-xTB v1.1: the derivatives of the energy terms with respect to the
 //! spin densities, as the 1.1.0 program builds them in its SCF (`set1espot_`, `setespot_`,
 //! `set3espot_`, `setvsdq_` + `addanisotropich1_`, `setospot_`, `setfock_mat_`,

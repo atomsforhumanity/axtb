@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The CLI's g-xTB v1.1 results (energies and gradients) equal the Rust API's
 //! (axtb_gxtb::Calculator) bit for bit, XYZ input reproduces the g-xTB 1.1.0 program, and
 //! GFN2-only settings are rejected.

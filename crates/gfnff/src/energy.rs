@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Energy and analytic gradient of GFN-FF at one geometry with a fixed topology: a port
 //! of xtb's `gfnff_eg` (`src/gfnff/gfnff_eg.f90`) for molecules.
 //!

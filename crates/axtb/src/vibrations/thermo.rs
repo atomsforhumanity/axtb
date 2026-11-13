@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Quasi-RRHO thermochemistry of an ideal gas: translation (ideal gas at pressure p),
 //! rigid rotor (rotational symmetry number from the point group) and harmonic vibrations
 //! whose entropy is interpolated to that of a free rotor below the rotor cutoff (Grimme's

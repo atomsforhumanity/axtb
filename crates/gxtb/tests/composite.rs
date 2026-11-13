@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB in implicit solvent (`axtb_gxtb::composite`): the composite equals its three parts run
 //! separately, its gradient and Hessian are the derivatives of its energy, threads change
 //! nothing, the GFN2 pair follows its retry ladder, and the settings resolve as documented.

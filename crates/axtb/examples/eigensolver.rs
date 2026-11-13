@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Time per call of the SCF eigensolver for F C = S C ε: `GenEigSolver::solve_lowest` with
 //! the lowest two thirds of the eigenvectors (a closed-shell SCF's occupied orbitals in a
 //! minimal basis) and `solve` with all of them, on a random symmetric F and an overlap-like S

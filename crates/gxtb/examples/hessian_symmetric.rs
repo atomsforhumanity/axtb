@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! One analytic g-xTB 2.0.1 Hessian with a chosen response tolerance and with or without the
 //! symmetric response terms ([`AnalyticOptions::symmetric`]), for
 //! `tests/gxtb2_hessian_symmetric.py`, which compares the settings.

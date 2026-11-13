@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! SCF paths against the g-xTB programs where they are decided by round-off or by a switch of
 //! the program's mixer (data in tests/reference_elements/ and tests/reference_v2/elements/,
 //! see tests/gxtb_elements.py and docs/gxtb-v1.1-spec.md §4.17).

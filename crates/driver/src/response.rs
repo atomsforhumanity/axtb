@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The response: what the CLI writes as JSON and Python returns as a dict, with the same
 //! fields. A field is present when it was computed (`skip` when `None`), except
 //! `homo_lumo_gap`, which is `null` without a LUMO.

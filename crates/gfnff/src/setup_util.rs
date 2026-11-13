@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Helpers of the GFN-FF topology setup, ported from xtb `src/gfnff/gfnff_ini2.F90`,
 //! `mrec.f90` and `src/mctc/sort.f90`.
 

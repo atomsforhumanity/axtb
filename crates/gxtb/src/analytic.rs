@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic nuclear Hessian of g-xTB 2.0.1.
 //!
 //! With the gradient written as a functional g_x(R; P, W) = dE/dR_x|_P - Tr(W dS/dR_x) of the

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Bond-capacitor electronegativity equilibration (EEQ-BC) charges of g-xTB: one model
 //! ([`EeqBc`]) for both programs, each with its form ([`EeqBcForm`]) and element parameters.
 //!

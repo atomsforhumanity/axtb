@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Dipole derivatives of the g-xTB Hessians (for IR intensities) against central differences
 //! of converged dipoles: 2.0.1 analytic, response and numerical; v1.1 numerical.
 

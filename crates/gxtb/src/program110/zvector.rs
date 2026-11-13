@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Analytic gradient of the converged v1.1 SCF energy in the program's conventions
 //! ([`Setup::program_gradient`]): the response of the program's Fock matrix (Z-vector method)
 //! on the engine.

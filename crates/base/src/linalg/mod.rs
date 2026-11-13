@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Dense linear algebra of the methods, on faer's kernels (feature `linalg`; faer is a large
 //! dependency that `axtb-d4` and `axtb-solvation` do without):
 //!

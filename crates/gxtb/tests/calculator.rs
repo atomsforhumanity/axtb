@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The calculator interface used by the axtb front ends (CLI, Python, qccodec): same results
 //! as the SCF driver, explicit threads; gradients and Hessians.
 

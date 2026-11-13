@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! SCF mixers. The axtb conventions run Broyden and fall back to DIIS from the initial guess
 //! when Broyden does not converge (`auto`): results Broyden converges are exactly Broyden's,
 //! hard cases of `tests/scf_hard_set.py` converge through the fallback, and the result says

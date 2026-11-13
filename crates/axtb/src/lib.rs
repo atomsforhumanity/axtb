@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! axtb: extended tight-binding quantum chemistry. This crate holds GFN2-xTB and what the
 //! methods of the workspace share (basis, integrals, Molden files, properties, vibrational
 //! analysis; the molecule, the eigensolver and the [`Method`] trait from `axtb-base`,

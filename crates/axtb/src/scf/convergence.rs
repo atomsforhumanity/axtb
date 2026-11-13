@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! When an SCF stops: after every iteration a [`ConvergenceRule`] reads the [`Iteration`]
 //! record and gives its [`Verdict`]. Each method's rule reproduces its programs' test:
 //! GFN2-xTB's is here (xtb's and tblite's test, with xtb 6.7.1's per-atom residual and extra

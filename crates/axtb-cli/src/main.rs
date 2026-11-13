@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! `axtb` command-line driver: one calculation per call, the result as JSON on stdout.
 //!
 //! `axtb mol.xyz [options]` runs the structure file (XYZ, Ångström); `axtb --json` reads a

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Implicit solvation (ALPB, GBSA; crate `axtb-solvation`) as a charge-dependent SCF term:
 //! the GFN2-xTB models of the xtb 6.8.0 and 6.7.1 programs, and the corrected model.
 

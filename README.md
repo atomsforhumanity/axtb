@@ -872,11 +872,13 @@ docs/validation.md has the agreement with each program's printout and files.
 `scripts/check.sh fast` needs no external program: `cargo fmt --check`, clippy and rustdoc with
 warnings as errors, the workspace tests (all reference data is committed), the LGPL-only build,
 a wheel installed in a fresh venv with the Python tests, a grep of the tracked files for
-home paths, private addresses and host names, and a check that the crates' copies of the license
-files match the top level. `scripts/check.sh programs` runs the validation
-gates against the reference programs; a gate whose programs are not set is reported as skipped,
-and every gate writes its results under `target/check/programs/`, never into the repository
-(`scripts/check.sh list` prints the gates and their limits). `tests/programs.py` finds the
+home paths, private addresses and host names, a check that the crates' copies of the license
+files match the top level, and a check that every Rust and Python source file of the crates and
+of `scripts/` starts with `SPDX-License-Identifier: LGPL-3.0-or-later`. `scripts/check.sh
+programs` runs the validation gates against the reference programs; a gate whose programs are
+not set is reported as skipped, and every gate writes its results under
+`target/check/programs/`, never into the repository (`scripts/check.sh list` prints the gates
+and their limits). `tests/programs.py` finds the
 programs from one variable each and nothing else:
 
 | program | variable | source |

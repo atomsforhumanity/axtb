@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Calculator of g-xTB (2.0.1 and v1.1): axtb-base's [`Method`], so that the axtb command-line
 //! driver, Python package and qccodec codec select it by method name (`"gxtb-v2.0.1"`,
 //! `"gxtb-v1.1"`).

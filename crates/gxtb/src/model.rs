@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1, the version of g-xTB distributed with the grimme-lab/g-xtb 2.0.1 release
 //! (`xtb --gxtb`: xtb 6.7.1 with a g-xTB build of tblite), decoded from that program
 //! (`docs/gxtb-v2.0.1-spec.md`, a term-by-term delta to `docs/gxtb-v1.1-spec.md`).

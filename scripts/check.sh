@@ -3,8 +3,8 @@
 #
 #   scripts/check.sh fast                 no external programs: formatting, lints, docs, the Rust
 #                                         tests, the LGPL-only build, the Python tests from a wheel
-#                                         in a fresh venv, the privacy grep and the crates' copies
-#                                         of the license files
+#                                         in a fresh venv, the privacy grep, the crates' copies
+#                                         of the license files and the sources' SPDX headers
 #   scripts/check.sh programs [GATE ...]  the validation gates against xtb, tblite and the g-xTB
 #                                         programs (all, or the named ones); a gate whose programs
 #                                         are not set is reported as skipped
@@ -97,6 +97,28 @@ license_files() {
   return $bad
 }
 
+spdx_headers() {
+  # every Rust file of the crates and every Python file of the crates and of scripts/ starts with
+  # the SPDX line (after a Python file's shebang); third_party/ keeps its own headers
+  local f want top n=0 bad=0
+  while IFS= read -r -d '' f; do
+    [ -L "$f" ] && continue
+    n=$((n + 1))
+    case $f in
+      *.rs) want='// SPDX-License-Identifier: LGPL-3.0-or-later' ;;
+      *) want='# SPDX-License-Identifier: LGPL-3.0-or-later' ;;
+    esac
+    top=$(head -n 1 "$f")
+    if [[ $f != *.rs && $top == '#!'* ]]; then top=$(sed -n 2p "$f"); fi
+    if [ "$top" != "$want" ]; then
+      echo "$f: does not start with \"$want\""
+      bad=1
+    fi
+  done < <(git ls-files -z -- 'crates/*.rs' 'crates/*.py' 'crates/*.pyi' 'scripts/*.py')
+  [ $bad = 0 ] && echo "SPDX headers: all $n source files start with LGPL-3.0-or-later"
+  return $bad
+}
+
 lgpl_build() {
   # the build without g-xTB (LGPL-3.0-or-later) compiles cleanly and does not contain axtb-gxtb
   cargo clippy -p axtb-cli -p axtb-py --no-default-features -- -D warnings || return 1
@@ -148,6 +170,7 @@ fast() {
   step "Python tests (crates/axtb-py/tests, tests/reference_matrix)" python_tests
   step "privacy grep" privacy
   step "license files in the crates" license_files
+  step "SPDX headers of the source files" spdx_headers
 }
 
 # ---------------------------------------------------------------------------------- programs

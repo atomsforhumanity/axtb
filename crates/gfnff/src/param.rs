@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Fixed parameters, thresholds and element helpers of GFN-FF.
 //!
 //! Port of `newGFNFFGenerator` and `gfnff_set_param` (xtb `src/gfnff/gfnff_param.f90`),

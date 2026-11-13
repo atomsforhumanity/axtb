@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! AO-matrix assembly from shell-pair blocks: a visitor over the atom pairs and shell pairs of
 //! a [`Basis`] with the integral screening ([`ShellPairs`]), and the overlap, dipole and
 //! quadrupole matrices built on it ([`AoMatrices`]).

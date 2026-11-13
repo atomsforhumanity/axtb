@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Coordination numbers of GFN2-xTB: `axtb-base`'s [`CnModel`] with the double exponential
 //! counting function ([`DoubleExp::GFN2`]: ka = 10, kb = 20, shift 2 bohr), the conventions'
 //! covalent radii and a hard cutoff (r² > cutoff² and r² < 1e-12 bohr² skipped, as xtb and

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Input validation: broken structures, impossible charge/spin states and invalid SCF and
 //! Hessian settings must be errors (never panics) in every conventions mode (xtb and tblite
 //! compute garbage or panic-free nonsense for most of these; see tests/reference_matrix,

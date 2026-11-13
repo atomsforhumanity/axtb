@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Dense row-major matrices and vectors of both g-xTB versions on faer: square matrix products,
 //! conversions between row-major vectors and faer matrices, and dot products in the two
 //! rounding orders the crate uses.

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB v1.1 on several threads (v1.1 runs on the engine, whose setup and gradient loops run in
 //! parallel in fixed chunks summed in order): 4 threads give the 1-thread bits. Caffeine stays
 //! below the size from which the dense linear algebra runs in parallel; taxol (299 basis functions

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Response of the orbital occupations of a converged SCF to a perturbation: the divided
 //! differences of the occupations between orbitals and the Fermi-level shifts that keep the
 //! number of electrons of every spin.

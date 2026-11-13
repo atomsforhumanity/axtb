@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Local energy terms of GFN-FF with xtb's analytic gradients (`gfnff_eg.f90`), generic
 //! over the scalar type (`f64` for energies and gradients, `Dual` for Hessians). Every
 //! kernel follows the Fortran operation by operation; molecules only (translations are 0).

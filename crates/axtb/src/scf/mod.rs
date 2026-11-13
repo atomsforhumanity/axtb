@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Building blocks of a self-consistent-charge tight-binding SCF that do not depend on the
 //! method: the layout of the self-consistent variables ([`ScfVariables`]), the Mulliken
 //! analysis that gives them from a density (`mulliken`, crate-private), the Fock matrix of

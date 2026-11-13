@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! g-xTB 2.0.1 on several threads at a size where the dense linear algebra runs in parallel
 //! (at least `axtb_base::threads::DENSE_MIN_AO` basis functions, and above the ~313 rows from which the
 //! eigensolver's tridiagonalization is threaded): energy and gradient on 4 threads equal the

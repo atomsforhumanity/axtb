@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Results on several threads (README, design rules): axtb's own parallel kernels (integrals,
 //! Fock matrix, potentials incl. the multipole gather and the γ rows, D4's pair sums, Mulliken
 //! charges) sum in a fixed order, so below faer's parallel tridiagonalization (~313 rows) a

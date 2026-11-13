@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! What reproduces the g-xTB 1.1.0 program beyond the v1.1 model (`Version::V1_1` of the
 //! engine, [`crate::v2`]): the parts of its SCF that are program behaviour rather than model.
 //!

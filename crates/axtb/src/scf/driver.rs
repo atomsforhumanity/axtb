@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The SCF loop, once for every self-consistent tight-binding method: [`run_scf`] iterates a
 //! method's [`ScfModel`] with an [`ScfStrategy`] (how the iterations are mixed and when they
 //! stop) from a given start state, and returns the [`ScfOutcome`].

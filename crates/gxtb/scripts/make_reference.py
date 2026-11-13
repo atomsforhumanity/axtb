@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Generate the g-xTB 1.1.0 reference data under crates/gxtb/tests/reference/.
 
 Usage: python3 crates/gxtb/scripts/make_reference.py <g-xtb-1.1.0 dir> <geometry dir> <output dir>

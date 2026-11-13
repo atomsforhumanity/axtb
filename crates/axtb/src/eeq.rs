@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Electronegativity equilibration (EEQ) charges, EEQ 2019 model of D4
 //! (E. Caldeweyher et al., J. Chem. Phys. 150, 154122 (2019); parameters from the
 //! multicharge library). Used as the SCF starting guess, as the xtb program does. The bordered

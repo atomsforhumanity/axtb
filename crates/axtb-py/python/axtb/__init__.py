@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """axtb: extended tight binding (GFN2-xTB; g-xTB v1.1 and 2.0.1) and GFN-FF in-process.
 
 All quantities are in atomic units (bohr, Hartree). Calculations run on the number of

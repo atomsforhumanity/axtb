@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Capture the converged density of the g-xTB 2.0.1 program for per-term tests.
 
 Usage: python3 crates/gxtb/scripts/capture_density_v2.py <xtb 2.0.1 binary> <reference_v2 dir> <group/name> ...

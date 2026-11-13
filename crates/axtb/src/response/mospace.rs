@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The MO basis of a coupled-perturbed SCF and the transforms between it and the AO basis.
 //!
 //! A response is described in the orbitals `C` (columns) of the converged SCF: an AO matrix `X`

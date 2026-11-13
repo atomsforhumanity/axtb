@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Vibrational analysis through the Python package, the CLI and the qccodec codec.
 
 Run with the extension built from this tree (a wheel built from ``crates/axtb-py``) and the CLI

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Symmetric tridiagonal eigenproblems: all eigenvalues by the root-free QL/QR iteration of
 //! Pal, Walker and Kahan (LAPACK `dsterf`), and selected eigenvectors by inverse iteration with
 //! modified Gram-Schmidt within clusters of close eigenvalues (LAPACK `dstein`, with the LU

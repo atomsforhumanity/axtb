@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! A method bound to one molecule: the request's method built behind axtb-base's [`Method`]
 //! trait (GFN2-xTB, g-xTB and its solvation composite, GFN-FF), and the response of any of them.
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The request: what the CLI reads from argv or JSON and Python from keyword arguments.
 
 use serde::Deserialize;

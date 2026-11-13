@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Generate crates/gxtb/src/data/v2_0_1.rs (g-xTB 2.0.1 parameter tables) from the parameter arrays
 extracted from the 2.0.1 program (crates/gxtb/tests/reference_v2/params/*.json; the capture points are
 listed in docs/gxtb-v2.0.1-spec.md, Appendix A).
@@ -106,6 +107,7 @@ for i in range(103):
     for j in range(103):
         assert wf[i + 118 * j] == k3[i + 103 * j], "weight factors"
 
+w("// SPDX-License-Identifier: LGPL-3.0-or-later")
 w("//! g-xTB 2.0.1 parameter tables, read bit-exactly from the 2.0.1 program's data symbols")
 w("//! (module `tblite_xtb_gxtb` `pa_*`/`ps_*`/`pg_*` arrays, multicharge `eeqbc2025`, dftd4 `d4srev`).")
 w("//!")

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """g-xTB 2.0.1 reference data at finite electronic temperatures (Fermi smearing, `--etemp`).
 
 Usage: python3 crates/gxtb/scripts/make_reference_v2_etemp.py <xtb 2.0.1 binary> [--jobs N] [--temps 300,1000,...]

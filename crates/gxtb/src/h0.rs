@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! One-electron Hamiltonian of g-xTB 2.0.1 (spec §4.5, §4.5.1, §4.6):
 //!
 //! - self-energies se_l = `ps_h0_selfenergy` - `ps_h0_selfenergy_cn` CN_A (raw g-xTB CN);

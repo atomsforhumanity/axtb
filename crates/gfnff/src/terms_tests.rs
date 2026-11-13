@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The dual-number derivative of every kernel's gradient against central differences of
 //! the f64 kernel (the analytic Hessian is built from these derivatives).
 use super::*;

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The Fock matrix of the SCC potentials (tblite's `add_pot_to_h1` form):
 //!
 //! ```text

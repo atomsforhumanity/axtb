@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! GFN-FF against xtb 6.8.0 and 6.7.1: topology, EEQ charges, per-term energies and gradients
 //! of the reference sets in `tests/reference-xtb-6.8.0/` (xtb 6.8.0, default conventions) and
 //! `tests/reference-xtb-6.7.1/` (xtb 6.7.1, the g-xTB 2.0.1 build; conventions `Xtb671`), written by

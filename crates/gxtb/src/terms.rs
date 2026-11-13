@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The energy terms of g-xTB 2.0.1 as core terms ([`axtb::terms`]). The setup ([`Setup`]) is
 //! the model at one geometry: it holds the terms' caches (`disp`, ...) and calls the terms in
 //! the order of the program's arithmetic (its energy sum, its shell-potential fold, its

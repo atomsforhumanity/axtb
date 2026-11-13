@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Every calculation runs on its own thread count: nothing may use faer's global parallelism,
 //! which is every CPU unless a program changes it. With it disabled, faer panics on any use.
 //! In a file of its own, since the setting is per process.

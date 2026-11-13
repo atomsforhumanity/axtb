@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! The CLI's GFN-FF results equal the Rust API's (axtb_gfnff::Calculator) bit for bit, XYZ
 //! files with `--conventions xtb` reproduce `xtb mol.xyz --gfnff` (xtb 6.8.0; `xtb-6.7.1`:
 //! 6.7.1), the Hessian in xtb's conventions reproduces `xtb --gfnff --hess` thermochemistry, a

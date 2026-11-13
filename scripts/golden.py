@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: LGPL-3.0-or-later
 """Golden outputs for refactoring: run a fixed corpus of CLI requests (every method, convention
 and feature, a few thread counts and the run-time LAPACK path) and compare outputs bit for bit.
 

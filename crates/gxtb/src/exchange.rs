@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: LGPL-3.0-or-later
 //! Exchange of g-xTB 2.0.1 (spec §4.13, §4.13.1, §4.14): Mulliken-approximated range-separated
 //! exchange (MFX), the bond-order correction and the Mulliken-form onsite exchange with
 //! charge-dependent integrals. For a closed shell with the total density P (open shell:
