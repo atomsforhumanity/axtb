@@ -3,8 +3,6 @@
 //! (axtb_gxtb::Calculator) bit for bit, XYZ input reproduces the g-xTB 1.1.0 program, and
 //! GFN2-only settings are rejected.
 
-#![cfg(feature = "gxtb")]
-
 use axtb::method::{Method, Want};
 use axtb::ToMolden;
 use std::io::Write;

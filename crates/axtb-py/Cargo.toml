@@ -15,15 +15,9 @@ publish = false
 name = "_axtb"
 crate-type = ["cdylib"]
 
-[features]
-default = ["gxtb"]
-# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") from axtb-gxtb; `--no-default-features` builds a
-# module without it (GFN2-xTB, GFN-FF).
-gxtb = ["axtb-driver/gxtb"]
-
 [dependencies]
 axtb = { workspace = true }
-# request validation, dispatch to the methods and the response (g-xTB with `gxtb`)
+# request validation, dispatch to the methods and the response
 axtb-driver = { workspace = true }
 pyo3 = { version = "0.23", features = ["extension-module", "abi3-py310"] }
 numpy = "0.23"

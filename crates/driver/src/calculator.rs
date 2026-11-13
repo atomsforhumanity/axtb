@@ -178,17 +178,7 @@ impl Calculator {
                 };
                 Box::new(axtb_gfnff::Calculator::new(&req.numbers, setup, req.charge, opts)?)
             }
-            Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
-                #[cfg(feature = "gxtb")]
-                {
-                    gxtb_method(req, kind, threads, uhf, guess)?
-                }
-                #[cfg(not(feature = "gxtb"))]
-                {
-                    let _ = (uhf, guess);
-                    return Err(input(format!("{kind}: this axtb was built without g-xTB (feature `gxtb`)")));
-                }
-            }
+            Method::GxtbV1_1 | Method::GxtbV2_0_1 => gxtb_method(req, kind, threads, uhf, guess)?,
         };
         Ok(Self { method, kind, numbers: req.numbers.clone(), charge: req.charge, uhf, threads })
     }
@@ -323,7 +313,6 @@ impl Calculator {
 
 /// The g-xTB method of a request: plain, or the solvation composite with
 /// `solvation_correction`.
-#[cfg(feature = "gxtb")]
 fn gxtb_method(
     req: &Request,
     kind: Method,

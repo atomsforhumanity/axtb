@@ -19,17 +19,12 @@ include = ["/src", "/Cargo.toml", "/README.md", "/COPYING", "/COPYING.LESSER", "
 name = "axtb_driver"
 path = "src/lib.rs"
 
-[features]
-default = ["gxtb"]
-# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") and its solvation composite from axtb-gxtb;
-# `--no-default-features` builds a driver without it (GFN2-xTB and GFN-FF).
-gxtb = ["dep:axtb-gxtb"]
-
 [dependencies]
 axtb = { workspace = true }
 # GFN-FF (method "gfnff")
 axtb-gfnff = { workspace = true }
-axtb-gxtb = { workspace = true, optional = true }
+# g-xTB (methods "gxtb-v1.1", "gxtb-v2.0.1") and its solvation composite
+axtb-gxtb = { workspace = true }
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]

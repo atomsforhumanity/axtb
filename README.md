@@ -870,8 +870,8 @@ docs/validation.md has the agreement with each program's printout and files.
 ## Checks
 
 `scripts/check.sh fast` needs no external program: `cargo fmt --check`, clippy and rustdoc with
-warnings as errors, the workspace tests (all reference data is committed), the LGPL-only build,
-a wheel installed in a fresh venv with the Python tests, a grep of the tracked files for
+warnings as errors, the workspace tests (all reference data is committed), a wheel installed
+in a fresh venv with the Python tests, a grep of the tracked files for
 home paths, private addresses and host names, a check that the crates' copies of the license
 files match the top level, and a check that every Rust and Python source file of the crates and
 of `scripts/` starts with `SPDX-License-Identifier: LGPL-3.0-or-later`. `scripts/check.sh

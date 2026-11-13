@@ -7,7 +7,5 @@ GFN-FF), the structure and the settings; `run` checks it, dispatches it, and ret
 `Response` with the same fields for every front end, including Hessians and their vibrational
 analysis. A stateful `Calculator` runs one geometry after another.
 
-Features: `gxtb` (default) adds g-xTB from [`axtb-gxtb`](https://crates.io/crates/axtb-gxtb).
-
 License: LGPL-3.0-or-later (`COPYING.LESSER`, with `COPYING`). `NOTICE` credits the upstream
 work.

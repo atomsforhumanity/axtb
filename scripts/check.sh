@@ -2,9 +2,9 @@
 # axtb's checks, in two tiers.
 #
 #   scripts/check.sh fast                 no external programs: formatting, lints, docs, the Rust
-#                                         tests, the LGPL-only build, the Python tests from a wheel
-#                                         in a fresh venv, the privacy grep, the crates' copies
-#                                         of the license files and the sources' SPDX headers
+#                                         tests, the Python tests from a wheel in a fresh venv,
+#                                         the privacy grep, the crates' copies of the license
+#                                         files and the sources' SPDX headers
 #   scripts/check.sh programs [GATE ...]  the validation gates against xtb, tblite and the g-xTB
 #                                         programs (all, or the named ones); a gate whose programs
 #                                         are not set is reported as skipped
@@ -119,15 +119,6 @@ spdx_headers() {
   return $bad
 }
 
-lgpl_build() {
-  # the build without g-xTB (LGPL-3.0-or-later) compiles cleanly and does not contain axtb-gxtb
-  cargo clippy -p axtb-cli -p axtb-py --no-default-features -- -D warnings || return 1
-  if cargo tree -p axtb-cli -p axtb-py --no-default-features -e normal | grep -q axtb-gxtb; then
-    echo "axtb-gxtb is in the --no-default-features dependency tree"
-    return 1
-  fi
-}
-
 make_venv() {
   rm -rf "$VENV"
   mkdir -p "$CHECK_DIR"
@@ -163,7 +154,6 @@ fast() {
   step "clippy -D warnings" cargo clippy --workspace --all-targets -- -D warnings
   step "rustdoc -D warnings" env RUSTDOCFLAGS=-Dwarnings cargo doc --workspace --no-deps -q
   step "cargo test --release" cargo test --workspace --release -q
-  step "LGPL-only build (--no-default-features)" lgpl_build
   step "release CLI" cargo build --release -q -p axtb-cli
   step "fresh venv ($CHECK_DIR/venv)" make_venv
   step "wheel (maturin build) installed in the venv" wheel

@@ -1,9 +1,8 @@
 # Checks on every push and pull request (Linux x86-64; no reference programs needed), on the
 # newest stable Rust: scripts/check.sh fast (rustfmt, clippy and rustdoc with warnings as errors,
-# the workspace tests, the LGPL-only build, a wheel with the Python tests in a fresh venv, the
-# privacy grep, the license-file copies, the SPDX headers), a build check on the minimum
-# supported Rust (1.89, the workspace's rust-version), then `cargo package` of the crates.io
-# packages.
+# the workspace tests, a wheel with the Python tests in a fresh venv, the privacy grep, the
+# license-file copies, the SPDX headers), a build check on the minimum supported Rust (1.89, the
+# workspace's rust-version), then `cargo package` of the crates.io packages.
 #
 # The privacy grep adds the repository secret AXTB_PRIVATE_PATTERN (a regular expression of the
 # site's host names) to its built-in patterns; without the secret (forks, or not set up) that

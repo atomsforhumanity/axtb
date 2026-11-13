@@ -3,7 +3,7 @@
 //!
 //! The CLI fills a [`Request`] from its arguments or a JSON request, Python from keyword
 //! arguments; [`run`] checks it, dispatches it to GFN2-xTB (`axtb`), g-xTB and its solvation
-//! composite (`axtb-gxtb`, feature `gxtb`) or GFN-FF (`axtb-gfnff`), and returns a
+//! composite (`axtb-gxtb`) or GFN-FF (`axtb-gfnff`), and returns a
 //! [`Response`] with the same fields for every front end (the CLI writes it as JSON, Python
 //! returns it as a dict). A stateful [`Calculator`] (Python's `axtb.Calculator`) builds the
 //! request's method behind axtb-base's `Method` trait and runs a [`Task`] at one geometry
@@ -24,9 +24,6 @@
 //!   ([`eigensolver_warning`]) are the front ends' to print;
 //! - XYZ files in Ångström are converted with the factor of the method's conventions
 //!   ([`read_xyz`]).
-//!
-//! License: LGPL-3.0-or-later code; built with the default feature `gxtb` it includes the
-//! GPL-3.0 crate `axtb-gxtb` (g-xTB).
 
 mod calculator;
 mod error;
@@ -194,20 +191,14 @@ pub fn read_xyz(text: &str, method: Method, conventions: Option<&str>) -> Result
                 AATOAU
             }
         }
-        #[cfg(feature = "gxtb")]
         Method::GxtbV1_1 => {
             let mol = axtb_gxtb::read_xyz(text, 0.0, None)?;
             return Ok((mol.numbers, mol.positions));
         }
-        #[cfg(feature = "gxtb")]
         Method::GxtbV2_0_1 => {
             let c = conventions.map(names::gxtb_conventions).transpose()?.unwrap_or_default();
             let mol = axtb_gxtb::model::read_xyz(text, 0.0, None, c)?;
             return Ok((mol.numbers, mol.positions));
-        }
-        #[cfg(not(feature = "gxtb"))]
-        Method::GxtbV1_1 | Method::GxtbV2_0_1 => {
-            return Err(Error::Input(format!("{method}: this axtb was built without g-xTB (feature `gxtb`)")))
         }
     };
     Ok(axtb::io::read_xyz(text, aatoau)?)

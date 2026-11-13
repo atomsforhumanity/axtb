@@ -14,6 +14,10 @@ Rust crates, the CLI and the Python package share one version.
   crates. Every published crate carries `COPYING`, `COPYING.LESSER` and `NOTICE`, and every Rust
   and Python source file starts with `SPDX-License-Identifier: LGPL-3.0-or-later`
   (`scripts/check.sh fast` checks it).
+- The Cargo feature `gxtb` of `axtb-driver`, `axtb-cli` and `axtb-py` is gone: it existed only
+  for an LGPL build without g-xTB, and g-xTB is now always built in. `--no-default-features` no
+  longer leaves g-xTB out; a dependency that names the feature (`features = ["gxtb"]`) must
+  drop it.
 - g-xTB 2.0.1 analytic Hessians: the response terms in a symmetric form
   (`AnalyticOptions::symmetric`, on by default) whose error is quadratic in the response
   solver's tolerance, and a default tolerance of 1e-6 (was 1e-10). Over 15 cases (closed and

@@ -62,7 +62,6 @@ impl Method {
     }
 
     /// The g-xTB version of a g-xTB method.
-    #[cfg(feature = "gxtb")]
     pub(crate) fn gxtb_version(self) -> Option<axtb_gxtb::Version> {
         match self {
             Method::GxtbV1_1 => Some(axtb_gxtb::Version::V1_1),
@@ -98,7 +97,6 @@ pub fn gfn2_conventions(name: &str) -> Result<axtb::Conventions> {
 }
 
 /// g-xTB conventions: `axtb` (also `default`) or `gxtb` (the program's).
-#[cfg(feature = "gxtb")]
 pub(crate) fn gxtb_conventions(name: &str) -> Result<axtb_gxtb::Conventions> {
     match key(name).as_str() {
         "axtb" | "default" => Ok(axtb_gxtb::Conventions::Axtb),
@@ -189,7 +187,6 @@ pub fn molden_functions(name: &str) -> Result<axtb::MoldenFunctions> {
 }
 
 /// Solvation correction of the g-xTB composite: `gfn2` (also `GFN2-xTB`).
-#[cfg(feature = "gxtb")]
 pub(crate) fn correction(name: &str) -> Result<axtb_gxtb::Correction> {
     match key(name).as_str() {
         "gfn2" | "gfn2xtb" => Ok(axtb_gxtb::Correction::Gfn2),
