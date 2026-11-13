@@ -22,7 +22,7 @@
 //! The Fock matrix is dE/dP at fixed kernels plus the Mulliken shell potential dE/dq of the
 //! charge dependence (the program's, exact).
 //!
-//! v1.1 (the 1.1.0 program's `setfock_mat_`, `setfock_indo_`, [`crate::exchange`]): the same
+//! v1.1 (the 1.1.0 program's `setfock_mat_`, `setfock_indo_`): the same
 //! MFX with its kernel ((0.15 + 0.85 erf(omega R))/(R + exp(-(glob(7) + glob(8) R0) R)/(eta g)),
 //! omega = glob(19), R0 the D3 pair radius in Ångström used as bohr, eta the general average of
 //! fam_l gam_Z with xi = 1 or 2 (polarization shells), g = 1.39 for the same shell, R = 1e-12 bohr
@@ -32,6 +32,7 @@
 //! A1 += -L/4 and A3 += -L/4 on the same-atom pairs k != l, and -1/16 diag(SP)^T (8 f L)
 //! diag(SP) on the shell blocks ([`Dual`]); nothing depends on the charges.
 
+use super::coulomb::spin_index;
 use super::coulomb::Shell;
 use super::Model;
 use crate::data_v2::{
@@ -39,7 +40,6 @@ use crate::data_v2::{
 };
 use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
-use crate::es::spin_index;
 use crate::options::Version;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
@@ -140,7 +140,6 @@ pub struct Dual {
 impl Dual {
     /// The onsite integrals of the AOs `ao` ((atom, shell, l)) of the elements `numbers`.
     pub fn new(numbers: &[usize], ao: &[Shell]) -> Self {
-        use crate::exchange::{gmunu_index, OFX_SCALE};
         let n = ao.len();
         let mut lam_off = vec![0.0; n * n];
         let mut m2 = vec![0.0; n * n];
@@ -204,7 +203,7 @@ fn mfx_pair_v1_1(mol: &Molecule, shells: &[Shell], i: usize, j: usize) -> (f64, 
     let xi = (BAS_POL[ish * 103 + zi - 1].max(BAS_POL[jsh * 103 + zj - 1]) + 1) as f64;
     let eta = (xi - 1.0).exp2() * (ui * uj).powf(0.5 * xi) / (ui + uj).powf(xi - 1.0);
     let gl = [g[4], g[5], g[5], g[5]];
-    let gg = if i == j { crate::kernels::G_ONSITE } else { (gl[li] * gl[lj]).sqrt() };
+    let gg = if i == j { G_ONSITE } else { (gl[li] * gl[lj]).sqrt() };
     let r0 = crate::eeqbc::vdw_rad_pair(zi, zj);
     (g[6] + g[7] * r0, eta * gg)
 }
@@ -218,8 +217,7 @@ impl Exchange {
         let ao_atom: Vec<usize> = ao_shell.iter().map(|&s| shells[s].0).collect();
         let v1_1 = model.version == Version::V1_1;
         // v1.1: the program's distance of an atom from itself, its range separation
-        let (r_same, omega) =
-            if v1_1 { (crate::kernels::R_SAME_ATOM, crate::params::gxtb_v1_1().glob[18]) } else { (0.0, OMEGA) };
+        let (r_same, omega) = if v1_1 { (R_SAME_ATOM, crate::params::gxtb_v1_1().glob[18]) } else { (0.0, OMEGA) };
         let [gx_sh] = crate::parallel::symmetric(nsh, parallel, |i, j| {
             let (ia, ja) = (shells[i].0, shells[j].0);
             let r = if ia == ja { r_same } else { norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt() };
@@ -1406,3 +1404,34 @@ impl Exchange {
         (tsh, tat)
     }
 }
+
+// ---- v1.1's exchange constants (from the old tree's exchange.rs and kernels.rs) ----
+
+/// Onsite exchange integral index (1-based into the 9 per-element entries of `com::gmunu`)
+/// of an angular-momentum pair (`setfock_indo_$IPOINT`): sp 1, pp 2, sd 3, pd 4, dd 5,
+/// sf 6, pf 7, df 8, ff 9; s-s has none.
+pub fn gmunu_index(la: usize, lb: usize) -> Option<usize> {
+    match (la.min(lb), la.max(lb)) {
+        (0, 1) => Some(1),
+        (1, 1) => Some(2),
+        (0, 2) => Some(3),
+        (1, 2) => Some(4),
+        (2, 2) => Some(5),
+        (0, 3) => Some(6),
+        (1, 3) => Some(7),
+        (2, 3) => Some(8),
+        (3, 3) => Some(9),
+        _ => None,
+    }
+}
+
+/// Exchange-integral scaling applied by the program at start-up (alpha of the reference
+/// functional's short-range exact exchange).
+pub const OFX_SCALE: f64 = 0.15;
+
+/// Onsite same-shell factor of the MFX kernel.
+pub const G_ONSITE: f64 = 1.39;
+
+/// Distance the program stores for an atom with itself (diagonal of its packed distance
+/// array); it enters the onsite second-order kernel.
+pub const R_SAME_ATOM: f64 = 1e-12;

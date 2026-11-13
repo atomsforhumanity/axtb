@@ -1,8 +1,8 @@
 //! Orbital occupations of g-xTB at a finite electronic temperature, shared by both versions:
 //! the g-xTB programs' Fermi smearing and the exact filling of the default conventions, with
 //! their entropy terms. tblite's and xtb's rules, the Aufbau filling and the Newton iteration of
-//! xtb's `fermismear` come from [`axtb_base::occupations`]; [`crate::fermi`] (v1.1) and
-//! [`crate::v2::fermi`] (2.0.1) choose among these per conventions.
+//! xtb's `fermismear` come from [`axtb_base::occupations`]; [`crate::v2::fermi`] chooses among these per
+//! version and conventions.
 //!
 //! | rule | function and parameters | used by | from |
 //! |---|---|---|---|

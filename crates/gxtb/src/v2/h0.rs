@@ -14,7 +14,7 @@
 //! - ACP: H += S_pv^T diag(w) S_pv, normalized single-Gaussian projectors (`pa_nacp` per
 //!   element, l = `pa_l_acp`, exponent `ps_acp_exp`, weight `ps_acp_level`).
 //!
-//! v1.1 ([`crate::h0`], [`crate::acp`]: the 1.1.0 program's `scf_`, `sintm_diat_`,
+//! v1.1 (the 1.1.0 program's `scf_`, `sintm_diat_`,
 //! `setupcbas_`) has the same structure with its parameters: levels -(lev_l - lev_cn_l CN),
 //! K(l, l') = 1/2 (K_l + K_l') with K = (glob(1), glob(2), 1.4, 2.85) and no d-f factor, the
 //! linear polynomial 1 + poly_A F_l R / ((rcov_A + rcov_B)/2) (F = (1, glob(3), 2, 2)), the
@@ -23,19 +23,18 @@
 //! CN-dependent weight acp_coeff_l (1 + acpcn sqrt(CN)), pairs within 40 bohr.
 
 use super::Model;
-use crate::acp::projector;
 use crate::data_v2::{
     ACP_EXP, ACP_L, ACP_LEVEL, ACP_N, H0_DIAT_SCALE, H0_DIP_SCALE, H0_SELFENERGY, H0_SELFENERGY_CN, H0_SHPOLY2,
     PG_H0_KSHELL, PG_H0_SHPOLY2,
 };
 use crate::eeqbc::erf_f64;
-use crate::h0::scale_diatomic_block;
 use crate::options::Version;
 use axtb::ao::ShellPairs;
-use axtb::basis::{Basis as AoBasis, Cgto};
+use axtb::basis::{Basis as AoBasis, Cgto, MAXPRIM};
 use axtb::integrals::{overlap, MBLK};
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
+use axtb_base::math::primitive_norm;
 use axtb_base::threads;
 use faer::linalg::matmul::triangular::BlockStructure;
 use faer::{Accum, MatMut, MatRef, Par};
@@ -86,7 +85,7 @@ pub fn diat_scale(model: &Model, za: usize, zb: usize) -> [f64; 3] {
         Version::V2_0_1 => (H0_DIAT_SCALE[za - 1], H0_DIAT_SCALE[zb - 1]),
         Version::V1_1 => {
             let (ea, eb) = (v1_1(za), v1_1(zb));
-            ([ea.h0k[0], ea.h0k[1], crate::h0::K_DELTA], [eb.h0k[0], eb.h0k[1], crate::h0::K_DELTA])
+            ([ea.h0k[0], ea.h0k[1], K_DELTA], [eb.h0k[0], eb.h0k[1], K_DELTA])
         }
     };
     [0, 1, 2].map(|k| 2.0 / (1.0 / a[k] + 1.0 / b[k]))
@@ -376,7 +375,7 @@ pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, parallel: bool)
 const ACP_LOOPS_MAX_AO: usize = 16;
 
 /// Adds H^ACP = S_p^T diag(w) S_p of the projectors `set` to the lower triangle of `h`
-/// (nao x nao) as one matrix product (v1.1 with at most [`ACP_LOOPS_MAX_AO`] basis functions:
+/// (nao x nao) as one matrix product (v1.1 with at most `ACP_LOOPS_MAX_AO` = 16 basis functions:
 /// as loops over the rows).
 pub fn add_acp(mol: &Molecule, bas: &AoBasis, set: &AcpSet, h: &mut [f64], par: Par, parallel: bool) {
     let n = bas.nao;
@@ -410,4 +409,213 @@ pub fn add_acp(mol: &Molecule, bas: &AoBasis, set: &AcpSet, h: &mut [f64], par: 
         1.0,
         par,
     );
+}
+
+// ---- shared with v1.1's H0 (from the old tree's h0.rs and acp.rs) ----
+
+/// Primitive-pair screening of the program's overlap code (`xtb_intgrad::get_overlap`, as
+/// called from `sintm_diat_`): pairs with a_i a_j R^2/(a_i + a_j) > 20 are skipped.
+pub const INTCUT_V1_1: f64 = 20.0;
+
+/// Delta-bond scaling of the diatomic-frame overlap.
+pub const K_DELTA: f64 = 5.0;
+
+/// Normalized projector shell.
+pub fn projector(l: usize, alpha: f64) -> Cgto {
+    let mut c = Cgto { l, nprim: 1, alpha: [0.0; MAXPRIM], coeff: [0.0; MAXPRIM] };
+    c.alpha[0] = alpha;
+    c.coeff[0] = primitive_norm(l, alpha);
+    c
+}
+
+/// Projectors onto the bond-frame |m| = 0, 1, 2 subspaces of a shell with angular momentum
+/// `l` <= 2, in axtb's real spherical-harmonic order, for bond direction `n` (unit vector).
+/// Returned as `proj[mu][a * nsph + b]`.
+fn bond_projectors(l: usize, n: [f64; 3]) -> [Vec<f64>; 3] {
+    let ns = 2 * l + 1;
+    let mut proj = [vec![0.0; ns * ns], vec![0.0; ns * ns], vec![0.0; ns * ns]];
+    if l == 0 {
+        proj[0][0] = 1.0;
+        return proj;
+    }
+    // orthonormal frame (e1, e2, n)
+    let t = if n[0].abs() < 0.9 { [1.0, 0.0, 0.0] } else { [0.0, 1.0, 0.0] };
+    let d = t[0] * n[0] + t[1] * n[1] + t[2] * n[2];
+    let mut e1 = [t[0] - d * n[0], t[1] - d * n[1], t[2] - d * n[2]];
+    let ne = norm2_sq(e1).sqrt();
+    e1 = [e1[0] / ne, e1[1] / ne, e1[2] / ne];
+    let e2 = [n[1] * e1[2] - n[2] * e1[1], n[2] * e1[0] - n[0] * e1[2], n[0] * e1[1] - n[1] * e1[0]];
+    let frame = [e1, e2, n]; // bond-frame x, y, z axes in lab coordinates
+                             // u[m_bond][m_lab]: lab components of the bond-frame functions
+    let mut u = vec![0.0; ns * ns];
+    let mu_of: Vec<usize> = match l {
+        1 => {
+            // axtb order y, z, x -> axis index 1, 2, 0
+            let axis = [1usize, 2, 0];
+            for (mb, &ab) in axis.iter().enumerate() {
+                for (ml, &al) in axis.iter().enumerate() {
+                    u[mb * ns + ml] = frame[ab][al];
+                }
+            }
+            vec![1, 0, 1]
+        }
+        2 => {
+            let s3 = 3f64.sqrt() / 2.0;
+            // quadratic forms of the axtb d functions (m = -2..2), Frobenius norm^2 = 3/2
+            let mut q = [[[0.0; 3]; 3]; 5];
+            q[0][0][1] = s3;
+            q[0][1][0] = s3;
+            q[1][1][2] = s3;
+            q[1][2][1] = s3;
+            q[2][0][0] = -0.5;
+            q[2][1][1] = -0.5;
+            q[2][2][2] = 1.0;
+            q[3][0][2] = s3;
+            q[3][2][0] = s3;
+            q[4][0][0] = s3;
+            q[4][1][1] = -s3;
+            for mb in 0..5 {
+                // bond-frame form in lab coordinates: sum_ab q[a][b] frame[a] (x) frame[b]
+                let mut lab = [[0.0; 3]; 3];
+                for a in 0..3 {
+                    for b in 0..3 {
+                        if q[mb][a][b] != 0.0 {
+                            for x in 0..3 {
+                                for y in 0..3 {
+                                    lab[x][y] += q[mb][a][b] * frame[a][x] * frame[b][y];
+                                }
+                            }
+                        }
+                    }
+                }
+                for ml in 0..5 {
+                    let mut dot = 0.0;
+                    for x in 0..3 {
+                        for y in 0..3 {
+                            dot += q[ml][x][y] * lab[x][y];
+                        }
+                    }
+                    u[mb * ns + ml] = dot / 1.5;
+                }
+            }
+            vec![2, 1, 0, 1, 2]
+        }
+        _ => unreachable!(),
+    };
+    for (mb, &mu) in mu_of.iter().enumerate() {
+        for a in 0..ns {
+            for b in 0..ns {
+                proj[mu][a * ns + b] += u[mb * ns + a] * u[mb * ns + b];
+            }
+        }
+    }
+    proj
+}
+
+/// Quadratic forms of axtb's real d functions (m = -2..2: xy, yz, z2, xz, x2-y2), Frobenius
+/// norm^2 3/2.
+fn d_forms() -> [[[f64; 3]; 3]; 5] {
+    let s3 = 3f64.sqrt() / 2.0;
+    let mut q = [[[0.0; 3]; 3]; 5];
+    q[0][0][1] = s3;
+    q[0][1][0] = s3;
+    q[1][1][2] = s3;
+    q[1][2][1] = s3;
+    q[2][0][0] = -0.5;
+    q[2][1][1] = -0.5;
+    q[2][2][2] = 1.0;
+    q[3][0][2] = s3;
+    q[3][2][0] = s3;
+    q[4][0][0] = s3;
+    q[4][1][1] = -s3;
+    q
+}
+
+/// Bond-frame projectors P_mu (|m| = mu = 0, 1, 2) of a shell with l <= 2 for the unit bond
+/// vector `n` in closed form, and their derivatives dP_mu/dn_k (`n` treated as a free vector;
+/// contract with the tangential dn). Row-major `(2l+1) x (2l+1)`, axtb order.
+/// p: P_0 = n n^T, P_1 = 1 - P_0. d (forms q_m): P_0 = a a^T with a_m = n^T q_m n,
+/// (P_1)_{mm'} = (2 (q_m n).(q_m' n) - 2 a_m a_m')/(3/2), P_2 = 1 - P_0 - P_1.
+#[allow(clippy::type_complexity)]
+pub fn bond_projectors_deriv(l: usize, n: [f64; 3]) -> ([Vec<f64>; 3], [[Vec<f64>; 3]; 3]) {
+    let ns = 2 * l + 1;
+    let z = || vec![0.0; ns * ns];
+    let mut p = [z(), z(), z()];
+    let mut dp = [[z(), z(), z()], [z(), z(), z()], [z(), z(), z()]];
+    match l {
+        0 => p[0][0] = 1.0,
+        1 => {
+            let ax = [1usize, 2, 0];
+            for a in 0..3 {
+                for b in 0..3 {
+                    let v = n[ax[a]] * n[ax[b]];
+                    p[0][a * 3 + b] = v;
+                    p[1][a * 3 + b] = if a == b { 1.0 } else { 0.0 } - v;
+                    for k in 0..3 {
+                        let d = if ax[a] == k { n[ax[b]] } else { 0.0 } + if ax[b] == k { n[ax[a]] } else { 0.0 };
+                        dp[0][k][a * 3 + b] = d;
+                        dp[1][k][a * 3 + b] = -d;
+                    }
+                }
+            }
+        }
+        2 => {
+            let q = d_forms();
+            let mv = |m: &[[f64; 3]; 3], v: [f64; 3]| -> [f64; 3] {
+                [0, 1, 2].map(|x| m[x][0] * v[0] + m[x][1] * v[1] + m[x][2] * v[2])
+            };
+            let dot = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+            let b: Vec<[f64; 3]> = (0..5).map(|m| mv(&q[m], n)).collect();
+            let a: Vec<f64> = (0..5).map(|m| dot(n, b[m])).collect();
+            // q_m b_m' (for the derivative of b_m . b_m')
+            let qb: Vec<Vec<[f64; 3]>> = (0..5).map(|m| (0..5).map(|mp| mv(&q[m], b[mp])).collect()).collect();
+            for m in 0..5 {
+                for mp in 0..5 {
+                    let k0 = a[m] * a[mp];
+                    let k1 = (2.0 * dot(b[m], b[mp]) - 2.0 * k0) / 1.5;
+                    let idx = m * 5 + mp;
+                    p[0][idx] = k0;
+                    p[1][idx] = k1;
+                    p[2][idx] = if m == mp { 1.0 } else { 0.0 } - k0 - k1;
+                    for k in 0..3 {
+                        let (da, dap) = (2.0 * b[m][k], 2.0 * b[mp][k]);
+                        let d0 = da * a[mp] + a[m] * dap;
+                        let d1 = (2.0 * (qb[m][mp][k] + qb[mp][m][k]) - 2.0 * d0) / 1.5;
+                        dp[0][k][idx] = d0;
+                        dp[1][k][idx] = d1;
+                        dp[2][k][idx] = -d0 - d1;
+                    }
+                }
+            }
+        }
+        _ => panic!("bond projectors for l = {l}"),
+    }
+    (p, dp)
+}
+
+/// Scale an overlap block `s` (rows: shell of angular momentum `la` on A, columns: `lb` on
+/// B, row-major) in the diatomic frame of the bond A -> B.
+pub fn scale_diatomic_block(la: usize, lb: usize, n: [f64; 3], k: [f64; 3], s: &mut [f64]) {
+    if la > 2 || lb > 2 {
+        return;
+    }
+    let (na, nb) = (2 * la + 1, 2 * lb + 1);
+    let pa = bond_projectors(la, n);
+    let pb = bond_projectors(lb, n);
+    let mut out = vec![0.0; na * nb];
+    for mu in 0..=la.min(lb) {
+        // out += k_mu * Pa S Pb
+        let mut tmp = vec![0.0; na * nb];
+        for i in 0..na {
+            for j in 0..nb {
+                tmp[i * nb + j] = (0..na).map(|a| pa[mu][i * na + a] * s[a * nb + j]).sum();
+            }
+        }
+        for i in 0..na {
+            for j in 0..nb {
+                out[i * nb + j] += k[mu] * (0..nb).map(|b| tmp[i * nb + b] * pb[mu][b * nb + j]).sum::<f64>();
+            }
+        }
+    }
+    s.copy_from_slice(&out);
 }

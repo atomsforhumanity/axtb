@@ -41,7 +41,7 @@
 //! reproduces the three programs `xtb --gxtb`, `xtb --alpb water` and `xtb` of the g-xTB 2.0.1
 //! build of xtb 6.7.1: every SCF starts from the program's guess, as each program call does.
 use crate::calculator::{Calculator, Options, Version};
-use crate::scf::Conventions;
+use crate::options::Conventions;
 use axtb::method::{
     Composite, Correction as CompositeCorrection, Detail, Fingerprint, Guard, HessianOptions, Method, MethodInfo, Part,
     Restart, RetryLadder, RetryOn, Rung, ScfSettings, SinglePoint, Want, Wavefunction, WavefunctionData,

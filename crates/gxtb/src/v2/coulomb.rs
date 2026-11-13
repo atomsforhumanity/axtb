@@ -12,7 +12,7 @@
 //!   k_l, tau = -0.2093327496 eta^2 within an atom, 2.3 x (1 - 1.3 x/2) exp(-1.3 x) with
 //!   x = R/eta between atoms.
 //! - Fourth order: E4 = 1/24 sum_l 0.036 k_l q_l^4.
-//! - Anisotropic electrostatics: the v1.1 pair formula ([`crate::aes::aes_energy`]) with
+//! - Anisotropic electrostatics: the v1.1 pair formula ([`aes_energy`]) with
 //!   kernels g_n = 1/2 k_n [1 - erf(-s_n (R - R̄_AB))]/R^n and atomic dipoles scaled by
 //!   c_A = 1 + `pa_aes_dip_scale` f(CN_A).
 //! - Spin: E = 1/2 sum_A sum_{l,l' in A} m_l W_ll' m_l', W = `pa_wll_scale` W0.
@@ -38,7 +38,6 @@ use crate::data_v2::{
     SHELL_HUBBARD, SPIN_W0, WLL_SCALE, ZEFF_SHELL,
 };
 use crate::eeqbc::{erf_f64, vdw_rad_pair};
-use crate::es::spin_index;
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
@@ -310,7 +309,7 @@ impl IsotropicCache {
 
     /// Atomic charges from shell charges ([`axtb_base::math::atom_charges`]).
     pub fn atom_charges(&self, q: &[f64]) -> Vec<f64> {
-        crate::es::atom_charges(self.nat, &self.shells, q)
+        atom_charges(self.nat, &self.shells, q)
     }
 
     /// The four pieces of the energy, shells in fixed chunks (in parallel when `parallel`; same
@@ -568,15 +567,13 @@ impl AesCache {
         dip.iter().zip(&self.dip_scale).map(|(d, c)| [c * d[0], c * d[1], c * d[2]]).collect()
     }
 
-    /// AES energy ([`crate::aes::aes_energy`] with the scaled dipoles), atom rows in fixed chunks
+    /// AES energy ([`aes_energy`] with the scaled dipoles), atom rows in fixed chunks
     /// (in parallel when `parallel`; same result).
     pub fn energy(&self, mol: &Molecule, qa: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], parallel: bool) -> f64 {
         let d = self.scaled_dipoles(dip);
-        axtb_base::threads::map_chunks(mol.nat(), parallel, |rows| {
-            crate::aes::aes_energy_rows(mol, qa, &d, qp, &self.aes, rows)
-        })
-        .into_iter()
-        .sum()
+        axtb_base::threads::map_chunks(mol.nat(), parallel, |rows| aes_energy_rows(mol, qa, &d, qp, &self.aes, rows))
+            .into_iter()
+            .sum()
     }
 
     /// AES potentials dE/dq_A, dE/dd_A and dE/dQ_A (the off-diagonal quadrupole components
@@ -634,7 +631,7 @@ pub fn potentials_with(
     )
 }
 
-/// The AES potential terms (exact derivatives, as [`crate::fock::aes_potentials`] with `full`)
+/// The AES potential terms (exact derivatives)
 /// of atom `i` and its partners j < i, added to `vs`, `vd`, `vq`; the potentials of atom i are
 /// summed in registers.
 pub fn aes_potentials_row(
@@ -750,4 +747,67 @@ pub fn spin_potential(model: &Model, mol: &Molecule, shells: &[Shell], m: &[f64]
         }
     }
     w
+}
+
+// ---- the AES energy and the shell bookkeeping (from the old tree's aes.rs and es.rs) ----
+
+fn qmat(q: &[f64; 6]) -> [[f64; 3]; 3] {
+    [[q[0], q[1], q[3]], [q[1], q[2], q[4]], [q[3], q[4], q[5]]]
+}
+
+/// AES energy from atomic charges, moments and kernels.
+pub fn aes_energy(mol: &Molecule, q: &[f64], dip: &[[f64; 3]], qp: &[[f64; 6]], k: &[Vec<f64>; 4]) -> f64 {
+    aes_energy_rows(mol, q, dip, qp, k, 0..mol.nat())
+}
+
+/// The pair terms (i, j < i) of [`aes_energy`] for the atoms i in `rows`.
+pub fn aes_energy_rows(
+    mol: &Molecule,
+    q: &[f64],
+    dip: &[[f64; 3]],
+    qp: &[[f64; 6]],
+    k: &[Vec<f64>; 4],
+    rows: std::ops::Range<usize>,
+) -> f64 {
+    let n = mol.nat();
+    let dot = |a: [f64; 3], b: [f64; 3]| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    let mv = |m: &[[f64; 3]; 3], v: [f64; 3]| [dot(m[0], v), dot(m[1], v), dot(m[2], v)];
+    let mut e = 0.0;
+    for i in rows {
+        let qi = qmat(&qp[i]);
+        for j in 0..i {
+            let qj = qmat(&qp[j]);
+            let r = sub3(mol.positions[j], mol.positions[i]);
+            let r2 = dot(r, r);
+            let (di, dj) = (dip[i], dip[j]);
+            let (qir, qjr) = (mv(&qi, r), mv(&qj, r));
+            let (rqir, rqjr) = (dot(r, qir), dot(r, qjr));
+            let e_qd = q[j] * dot(di, r) - q[i] * dot(dj, r);
+            let e_qq = q[j] * rqir + q[i] * rqjr;
+            let e_dd = dot(dj, di) * r2 - 3.0 * dot(dj, r) * dot(di, r);
+            let e_dq = (5.0 * rqir * dot(dj, r) - 2.0 * dot(r, mv(&qi, dj)) * r2)
+                - (5.0 * dot(di, r) * rqjr - 2.0 * dot(r, mv(&qj, di)) * r2);
+            let mut tr = 0.0;
+            for a in 0..3 {
+                for b in 0..3 {
+                    tr += qi[a][b] * qj[a][b];
+                }
+            }
+            let e_q2 = 35.0 * rqir * rqjr - 20.0 * dot(qir, qjr) * r2 + 3.0 * tr * r2 * r2;
+            let ij = i * n + j;
+            e += e_qd * k[0][ij] + (e_qq + e_dd) * k[1][ij] - e_dq * k[2][ij] + e_q2 * k[3][ij] / 3.0;
+        }
+    }
+    e
+}
+
+/// Atomic charges from shell charges ([`axtb_base::math::atom_charges`]).
+pub fn atom_charges(nat: usize, shells: &[(usize, usize, usize)], q: &[f64]) -> Vec<f64> {
+    axtb_base::math::atom_charges(nat, shells.iter().map(|s| s.0), q)
+}
+
+/// Index (0-based) into the 10 spin constants of an element for a shell pair (l, l').
+pub fn spin_index(la: usize, lb: usize) -> usize {
+    const INDX: [usize; 16] = [1, 2, 3, 4, 2, 5, 6, 7, 3, 6, 8, 9, 4, 7, 9, 10];
+    INDX[la * 4 + lb] - 1
 }

@@ -667,7 +667,7 @@ pub(crate) fn add_aes(
 #[cfg(test)]
 mod tests {
     use super::super::scf::Setup;
-    use crate::scf::{Conventions, ScfOptions};
+    use crate::options::{Conventions, ScfOptions};
     use axtb::terms::{Chain, MomentTerm, Potentials};
     use axtb::Molecule;
 

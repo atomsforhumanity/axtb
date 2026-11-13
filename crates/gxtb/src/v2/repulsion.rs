@@ -213,7 +213,7 @@ impl Repulsion {
     }
 }
 
-/// v1.1's semi-classical repulsion (the 1.1.0 program's `repuls_`, [`crate::classical`]):
+/// v1.1's semi-classical repulsion (the 1.1.0 program's `repuls_`):
 /// E = sum_{A<B} Z_A Z_B exp(-a_AB (R + R0_AB)^{3/2}) [1 + (k1_A + k1_B)/(2R) + k2/R^2 + k3/R^3 + k4/R^4]
 /// with Z_A = rep3 (1 - rep5 q_A - rep6 q_A^2) of the EEQ-BC charges q, a_A = rep1 (1 + rep4 sqrt(CN_A))
 /// (g-xTB CN), a_AB = 2 a_A a_B / (a_A + a_B), R0_AB = sqrt(rep2_A rep2_B), k1 = glob(9) for H and

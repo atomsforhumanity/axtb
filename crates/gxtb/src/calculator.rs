@@ -5,7 +5,8 @@
 //! g-xTB lives in this GPL-3.0 crate, which builds on axtb (LGPL-3.0); the method trait is
 //! axtb-base's, so the front ends hold it like every other method.
 //!
-//! Energies, analytic gradients (2.0.1: [`crate::v2::gradient`]; v1.1: [`crate::response`])
+//! Energies, analytic gradients ([`crate::v2::gradient`]; v1.1 in the program's conventions with the
+//! response of its Fock matrix)
 //! and Hessians ([`Method::hessian`]: for 2.0.1 analytic (the default) or response,
 //! [`crate::v2::hessian`]; for both versions numerical, central differences of analytic
 //! gradients as GFN2-xTB's), with the settings of [`Options`] (refused when out of range or
@@ -20,7 +21,7 @@
 //! no thread is spawned and faer's global parallelism is never touched.
 
 pub use crate::options::Version;
-use crate::scf::{Conventions, ScfOptions};
+use crate::options::{Conventions, ScfOptions};
 use crate::timing::Timings;
 use crate::v2;
 use axtb::method::{
@@ -78,30 +79,6 @@ impl v2::scf::Energies {
     }
 }
 
-impl crate::scf::Energies {
-    /// The terms with their names as the axtb front ends report them for g-xTB v1.1: every term
-    /// a piece of the energy but `electronic`, the SCF energy (a subtotal). v1.1 has `es1`
-    /// (first order) and `es2_3` (second to fourth order) and splits the exchange into
-    /// `exchange_mulliken` and `exchange_onsite`, as the 1.1.0 program prints them.
-    pub fn terms(&self) -> Vec<Term> {
-        vec![
-            Term::piece("one_electron", self.one_electron),
-            Term::piece("es1", self.es1),
-            Term::piece("es2_3", self.es23),
-            Term::piece("es_multipole", self.aes),
-            Term::piece("exchange_mulliken", self.mfx),
-            Term::piece("exchange_onsite", self.ofx),
-            Term::piece("spin_polarization", self.spin),
-            Term::piece("entropy", self.entropy),
-            Term::subtotal("electronic", self.electronic),
-            Term::piece("increments", self.increments),
-            Term::piece("dispersion", self.disp2),
-            Term::piece("dispersion_three_body", self.disp3),
-            Term::piece("repulsion", self.repulsion),
-        ]
-    }
-}
-
 /// The converger settings of the programs' SCFs; `None`: the program's (see [`ScfOptions`]).
 /// Some belong to one version: `density_tol` and `transition_iteration` to v1.1, `residual_tol`
 /// to 2.0.1; the other version refuses them.
@@ -113,7 +90,7 @@ pub struct ConvergerSettings {
     pub density_tol: Option<f64>,
     /// 2.0.1 only: explicit threshold of the RMS Fock residual.
     pub residual_tol: Option<f64>,
-    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`crate::scf::DAMPING`],
+    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`crate::options::DAMPING_V1_1`],
     /// 2.0.1 0.2.
     pub damping: Option<f64>,
     /// v1.1 only: iteration of the transition step; `None`: 3 (open shell: 4).
@@ -127,7 +104,7 @@ pub struct ConvergerSettings {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Options {
     /// The SCF settings every SCF method has: accuracy, iteration limit (`None`: the program's,
-    /// [`crate::scf::MAX_ITER`] for v1.1, [`crate::v2::scf::MAX_ITER`] for 2.0.1), electronic
+    /// [`crate::options::MAX_ITER_V1_1`] for v1.1, [`crate::v2::scf::MAX_ITER`] for 2.0.1), electronic
     /// temperature (`None`: 0 K, the programs' default: Aufbau occupations), restart policy
     /// (`None`: previous in the axtb conventions, the program's start in the program's).
     pub scf: ScfSettings,

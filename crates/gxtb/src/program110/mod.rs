@@ -5,7 +5,7 @@
 //!   diagonal, with the reference shell occupations of every atom scaled to its EEQ-BC electron
 //!   count, n_l (Z_A - q_A)/Z_A, spread evenly over the 2l+1 AOs of the shell (open shell: half
 //!   per spin). v1.1 starts from it in both conventions, as its mixer
-//!   (`crate::strategy::Gxtb110FockMixer` and `Gxtb110Rule`, the 1.1.0 program's `diisfock_`)
+//!   (`strategy::Gxtb110FockMixer` and `Gxtb110Rule`, the 1.1.0 program's `diisfock_`)
 //!   does.
 //! - **The program's Fock matrix** ([`ProgramFock`], conventions `Gxtb`): the 1.1.0 program
 //!   leaves out the AES potentials of the dipole-quadrupole and quadrupole-quadrupole energies
@@ -23,6 +23,7 @@
 //! The program's Fermi smearing (`fermismear_`) is one of the shared rules of
 //! [`crate::occupations`].
 
+pub(crate) mod strategy;
 pub(crate) mod zvector;
 
 use crate::v2::coulomb::{potentials_with, AesCache};

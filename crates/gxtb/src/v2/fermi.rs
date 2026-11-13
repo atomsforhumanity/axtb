@@ -20,7 +20,7 @@
 //! electronic energy (the program spreads it over the atoms' electronic energies, so it enters
 //! the SCF energy, its convergence test and the total).
 
-use crate::occupations::{self, EXACT_MAX_STEPS, NEWTON_GXTB201};
+use crate::occupations::{self, Fermismear, EXACT_MAX_STEPS, NEWTON_GXTB201};
 use axtb::units::{reference::KB_XTB_TBLITE, KB_HARTREE};
 use axtb_base::occupations as base;
 
@@ -55,6 +55,34 @@ pub fn fill_channel(nel: f64, kt: f64, emo: &[f64], program: bool) -> (Vec<f64>,
         (occ, mu, ts)
     } else {
         let mu = occupations::fill_exact(nel, kt, emo, &mut occ, EXACT_MAX_STEPS);
+        let ts = occupations::entropy_exact(emo, mu, kt);
+        (occ, Some(mu), ts)
+    }
+}
+
+// ---- v1.1's occupations (from the old tree's fermi.rs) ----
+
+/// Electronic temperature (K) above which the program smears.
+pub const TEL_MIN: f64 = 1e-6;
+
+/// Levels with f or 1 − f at or below this are left out of the program's entropy term.
+const ENTROPY_THR_V1_1: f64 = 1e-9;
+
+/// Occupations (per electron spin, 0/1 scale), Fermi level and entropy term of one channel
+/// with `nel` electrons over `emo` at `kt` (0: Aufbau).
+pub fn fill_channel_v1_1(nel: usize, kt: f64, emo: &[f64], program: bool) -> (Vec<f64>, Option<f64>, f64) {
+    let n = emo.len();
+    let mut occ = vec![0.0; n];
+    if kt <= 0.0 || nel == 0 || nel >= n {
+        base::aufbau(nel as f64, &mut occ);
+        return (occ, None, 0.0);
+    }
+    if program {
+        let ef = occupations::fill_gxtb110(nel, kt, emo, &mut occ, Fermismear::GXTB110);
+        let ts = occupations::entropy_thresholded(&occ, kt, ENTROPY_THR_V1_1);
+        (occ, Some(ef), ts)
+    } else {
+        let mu = occupations::fill_exact(nel as f64, kt, emo, &mut occ, occupations::EXACT_MAX_STEPS);
         let ts = occupations::entropy_exact(emo, mu, kt);
         (occ, Some(mu), ts)
     }

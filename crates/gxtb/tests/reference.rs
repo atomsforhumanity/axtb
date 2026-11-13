@@ -3,11 +3,12 @@
 //! q-vSZP effective charges and contracted shells.
 
 use axtb::basis::Basis;
+use axtb_base::math::primitive_norm;
 use axtb_gxtb::eeqbc::eeqbc_charges;
 use axtb_gxtb::fock::shell_list;
 use axtb_gxtb::params::{EeqBcParams, QvszpParams};
-use axtb_gxtb::qvszp::{raw_shell_coefficients, QvszpBasis};
 use axtb_gxtb::read_xyz;
+use axtb_gxtb::v2::basis::{integrals, Basis as EngineBasis};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -115,44 +116,6 @@ fn eeqbc_charges_match_program() {
     eprintln!("EEQ-BC charges: max deviation {worst:e}");
 }
 
-#[test]
-fn qvszp_effective_charges_match_program() {
-    let basis = QvszpParams::v1_1();
-    let param = EeqBcParams::v1_1();
-    let (mut worst_cn, mut worst_q) = (0.0f64, 0.0f64);
-    for c in cases() {
-        // with the program's own charges, to isolate the basis CN and effective charge
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let b = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let d_cn = max_abs_diff(&b.cn, &floats(&c.inter["cn_eeq"]["data"]));
-        let qeff: Vec<f64> = b.qeff.iter().map(|e| e.qeff).collect();
-        let d_q = max_abs_diff(&qeff, &floats(&c.inter["qeff"]["data"]));
-        worst_cn = worst_cn.max(d_cn);
-        worst_q = worst_q.max(d_q);
-        assert!(d_cn < 1e-13, "{}: basis CN differs by {d_cn:e}", c.name);
-        assert!(d_q < 1e-13, "{}: q_eff differs by {d_q:e}", c.name);
-        // end to end from our own EEQ-BC charges
-        let q = eeqbc_charges(&param, &c.mol).unwrap().charges;
-        let b2 = QvszpBasis::new(&basis, &c.mol, &q).unwrap();
-        let qeff2: Vec<f64> = b2.qeff.iter().map(|e| e.qeff).collect();
-        let d = max_abs_diff(&qeff2, &floats(&c.inter["qeff"]["data"]));
-        assert!(d < 1e-12, "{}: end-to-end q_eff differs by {d:e}", c.name);
-        // printed table (5 decimals)
-        let t = &c.summary["qvszp_table"];
-        let cols: [(&str, Vec<f64>); 4] = [
-            ("q_change", b.qeff.iter().map(|e| e.q_term).collect()),
-            ("cn_change", b.qeff.iter().map(|e| e.cn_term).collect()),
-            ("qcn_change", b.qeff.iter().map(|e| e.qcn_term).collect()),
-            ("qeff", qeff.clone()),
-        ];
-        for (key, ours) in cols {
-            let d = max_abs_diff(&ours, &floats(&t[key]));
-            assert!(d <= 5.0001e-6, "{}: printed {key} differs by {d:e}", c.name);
-        }
-    }
-    eprintln!("basis CN: max deviation {worst_cn:e}; q_eff: max deviation {worst_q:e}");
-}
-
 /// The program stores primitives per Cartesian AO (atom by atom, shell by shell, ncart(l)
 /// components each); the first component of each shell carries the x^l normalization.
 #[test]
@@ -164,10 +127,10 @@ fn qvszp_primitives_match_program() {
         let qeff_ref = floats(&c.inter["qeff"]["data"]);
         let exps = floats(&c.inter["prim_exp"]["data"]);
         let cnts = floats(&c.inter["prim_cnt"]["data"]);
-        let b = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
         let mut k = 0;
         for (iat, &z) in c.mol.numbers.iter().enumerate() {
-            let raw = raw_shell_coefficients(&basis, z, qeff_ref[iat]).unwrap();
+            let raw = raw_shell_coefficients(&basis, z, qeff_ref[iat]);
             for (ish, sh) in b.scf.cgto[iat].iter().enumerate() {
                 let ncart = (sh.l + 1) * (sh.l + 2) / 2;
                 for comp in 0..ncart {
@@ -192,11 +155,10 @@ fn qvszp_primitives_match_program() {
 /// Molden [GTO] section: the normalized contraction of each shell.
 #[test]
 fn qvszp_shells_match_molden() {
-    let basis = QvszpParams::v1_1();
     let mut worst = 0.0f64;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let b = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
         let text = std::fs::read_to_string(c.dir.join("molden.input")).unwrap();
         let gto = text.split("[GTO]").nth(1).unwrap().split("[MO]").next().unwrap();
         let mut lines = gto.lines().map(str::trim).filter(|l| !l.is_empty()).peekable();
@@ -238,31 +200,6 @@ fn qvszp_shells_match_molden() {
     eprintln!("molden contraction coefficients: max relative deviation {worst:e}");
 }
 
-#[test]
-fn repulsion_and_increments_match_program() {
-    use axtb_gxtb::classical::{gxtb_cn, increment_energy, repulsion_energy};
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let eeq = EeqBcParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let terms = &c.summary["energy_terms"];
-        let q = eeqbc_charges(&eeq, &c.mol).unwrap().charges;
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let erep = repulsion_energy(&p, &c.mol, &q, &cn).unwrap();
-        let d = (erep - terms["nuclear repulsion"].as_f64().unwrap()).abs();
-        assert!(d <= 5.0001e-9, "{}: repulsion {erep:.10} vs {}", c.name, terms["nuclear repulsion"]);
-        // full precision, read from the program's memory
-        let d = (erep - c.inter["repulsion_energy"].as_f64().unwrap()).abs();
-        worst = worst.max(d);
-        assert!(d < 1e-12, "{}: repulsion {erep:.16} vs {}", c.name, c.inter["repulsion_energy"]);
-        let einc = increment_energy(&p, &c.mol).unwrap();
-        let d = (einc - terms["atomic core increments"].as_f64().unwrap()).abs();
-        assert!(d <= 5.0001e-9, "{}: increments {einc:.10} vs {}", c.name, terms["atomic core increments"]);
-    }
-    eprintln!("repulsion: max deviation {worst:e} Eh");
-}
-
 /// Overlap matrix of the q-vSZP basis (normalized AOs), checked through the program's MOs:
 /// the molden MO coefficients (15 digits) must satisfy C^T S C = 1 with our S. Molecules with
 /// s and p shells only (molden writes Cartesian d/f functions transformed from spherical,
@@ -270,12 +207,11 @@ fn repulsion_and_increments_match_program() {
 #[test]
 fn overlap_orthonormalizes_program_mos() {
     use axtb::integrals::{overlap, MBLK};
-    let basis = QvszpParams::v1_1();
     let mut worst = 0.0f64;
     let mut ntested = 0;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let b = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
         if b.scf.cgto.iter().flatten().any(|s| s.l > 1) {
             continue;
         }
@@ -363,184 +299,6 @@ fn program_ao_map(ao: &[(usize, usize, usize)], dperm: [usize; 5]) -> Vec<usize>
     map
 }
 
-#[test]
-fn h0_matches_program() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::h0::build_h0;
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut ws, mut wh, mut wl) = (0.0f64, 0.0f64, 0.0f64);
-    for c in cases() {
-        let r = json(&c.dir.join("h0.json"));
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let h0 = build_h0(&p, &basis, &c.mol, &qb, &cn).unwrap();
-        assert_eq!(r["nsao"].as_u64().unwrap() as usize, h0.nao, "{}: nao", c.name);
-        let map = program_ao_map(&h0.ao, PROGRAM_D_ORDER);
-        let n = h0.nao;
-        let st = floats(&r["stilde_packed"]);
-        let hp = floats(&r["h0_packed"]);
-        let lv = floats(&r["levels"]);
-        let mut k = 0;
-        for i in 0..n {
-            let d = (-h0.level[map[i]] - lv[i]).abs();
-            wl = wl.max(d);
-            assert!(d < 1e-14, "{}: level {i}: {} vs {}", c.name, -h0.level[map[i]], lv[i]);
-            for j in 0..=i {
-                let (a, b) = (map[i], map[j]);
-                let ds = (h0.stilde[a * n + b] - st[k]).abs();
-                let dh = (h0.h[a * n + b] - hp[k]).abs();
-                ws = ws.max(ds);
-                wh = wh.max(dh);
-                if std::env::var("H0DEBUG").is_ok() && ds > 1e-12 {
-                    eprintln!(
-                        "{} {i} {j} {:?} {:?} ours {:.15e} prog {:.15e} rel {:.2e}",
-                        c.name,
-                        h0.ao[a],
-                        h0.ao[b],
-                        h0.stilde[a * n + b],
-                        st[k],
-                        ds / st[k].abs()
-                    );
-                }
-                assert!(ds < 1e-12, "{}: S~({i},{j}) = {} vs {}", c.name, h0.stilde[a * n + b], st[k]);
-                assert!(dh < 1e-12, "{}: H0({i},{j}) = {} vs {}", c.name, h0.h[a * n + b], hp[k]);
-                k += 1;
-            }
-        }
-    }
-    eprintln!("H0: levels {wl:e}, scaled overlap {ws:e}, H0 {wh:e} (max abs deviation)");
-}
-
-#[test]
-fn acp_matches_program() {
-    use axtb_gxtb::acp::add_acp;
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::h0::build_h0;
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let r = json(&c.dir.join("h0.json"));
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let h0 = build_h0(&p, &basis, &c.mol, &qb, &cn).unwrap();
-        let mut h = h0.h.clone();
-        add_acp(&p, &c.mol, &qb.scf, &cn, &mut h).unwrap();
-        let map = program_ao_map(&h0.ao, PROGRAM_D_ORDER);
-        let n = h0.nao;
-        let ha = floats(&r["h0_acp_packed"]);
-        let mut k = 0;
-        for i in 0..n {
-            for j in 0..=i {
-                let (a, b) = (map[i], map[j]);
-                let d = (h[a * n + b] - ha[k]).abs();
-                worst = worst.max(d);
-                if std::env::var("ACPDEBUG").is_ok() && d > 1e-12 {
-                    eprintln!(
-                        "{} {i} {j} {:?} {:?} ours {:.12e} prog {:.12e}",
-                        c.name,
-                        h0.ao[a],
-                        h0.ao[b],
-                        h[a * n + b] - h0.h[a * n + b],
-                        ha[k] - h0.h[a * n + b]
-                    );
-                }
-                assert!(
-                    std::env::var("ACPDEBUG").is_ok() || d < 1e-12,
-                    "{}: H0+ACP({i},{j}) = {} vs {}",
-                    c.name,
-                    h[a * n + b],
-                    ha[k]
-                );
-                k += 1;
-            }
-        }
-    }
-    eprintln!("H0 + ACP: max abs deviation {worst:e}");
-}
-
-#[test]
-fn scf_overlap_matches_program() {
-    use axtb_gxtb::ints::overlap_matrix;
-    let basis = QvszpParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let r = json(&c.dir.join("scf.json"));
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let n = ao.len();
-        let sp = floats(&r["s_packed"]);
-        let mut k = 0;
-        for i in 0..n {
-            for j in 0..=i {
-                let d = (s[map[i] * n + map[j]] - sp[k]).abs();
-                worst = worst.max(d);
-                assert!(d < 1e-13, "{}: S({i},{j}) = {} vs {}", c.name, s[map[i] * n + map[j]], sp[k]);
-                k += 1;
-            }
-        }
-    }
-    eprintln!("SCF overlap: max abs deviation {worst:e}");
-}
-
-#[test]
-fn kernels_match_program() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::kernels::{gamma2, gamma_mfx, hubbard_u};
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut w2, mut wx) = (0.0f64, 0.0f64);
-    for c in cases() {
-        let r = json(&c.dir.join("kernels.json"));
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.scf);
-        let ns = sh.len();
-        assert_eq!(r["nsh"].as_u64().unwrap() as usize, ns);
-        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
-        let g2 = gamma2(&p, &c.mol, &sh, &u);
-        let g2p = floats(&r["gamma2_packed"]);
-        let mut k = 0;
-        for i in 0..ns {
-            for j in 0..=i {
-                let d = (g2[i * ns + j] - g2p[k]).abs();
-                w2 = w2.max(d);
-                assert!(d < 1e-13, "{}: gamma2({i},{j}) {} vs {}", c.name, g2[i * ns + j], g2p[k]);
-                k += 1;
-            }
-        }
-        let gx = gamma_mfx(&p, &c.mol, &sh).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let n = ao.len();
-        // AO -> shell index
-        let mut ao_sh = Vec::new();
-        for (ish, &(_, _, l)) in sh.iter().enumerate() {
-            ao_sh.extend(std::iter::repeat_n(ish, 2 * l + 1));
-        }
-        let gxp = floats(&r["gamma_mfx"]);
-        for i in 0..n {
-            for j in 0..n {
-                let ours = gx[ao_sh[map[i]] * ns + ao_sh[map[j]]];
-                let d = (ours - gxp[i * n + j]).abs();
-                wx = wx.max(d);
-                assert!(d < 1e-13, "{}: gamma_mfx({i},{j}) {} vs {}", c.name, ours, gxp[i * n + j]);
-            }
-        }
-    }
-    eprintln!("kernels: gamma2 {w2:e}, gamma_mfx {wx:e}");
-}
-
 /// Program packed matrix (program AO order) -> full matrix in our AO order.
 fn unpack_program(packed: &[f64], map: &[usize]) -> Vec<f64> {
     let n = map.len();
@@ -565,367 +323,6 @@ fn program_densities(c: &Case, map: &[usize]) -> Vec<Vec<f64>> {
     (0..r["nspin"].as_u64().unwrap() as usize).map(|sp| unpack_program(&p[sp * npk..(sp + 1) * npk], map)).collect()
 }
 
-#[test]
-fn mfx_energy_matches_program() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::exchange::mfx_energy;
-    use axtb_gxtb::ints::overlap_matrix;
-    use axtb_gxtb::kernels::gamma_mfx;
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let _cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.scf);
-        let ns = sh.len();
-        let ao = ao_list(&qb.scf);
-        let n = ao.len();
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let gs = gamma_mfx(&p, &c.mol, &sh).unwrap();
-        let mut ao_sh = Vec::new();
-        for (ish, &(_, _, l)) in sh.iter().enumerate() {
-            ao_sh.extend(std::iter::repeat_n(ish, 2 * l + 1));
-        }
-        let mut g = vec![0.0; n * n];
-        for i in 0..n {
-            for j in 0..n {
-                g[i * n + j] = gs[ao_sh[i] * ns + ao_sh[j]];
-            }
-        }
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let dens = program_densities(&c, &map);
-        let e = mfx_energy(n, &s, &dens, &g);
-        let r = json(&c.dir.join("kernels.json"));
-        let e_ref = r["final_energies"]["mfx"].as_f64().unwrap();
-        worst = worst.max((e - e_ref).abs());
-        assert!((e - e_ref).abs() < 1e-11, "{}: E_MFX {e:.14} vs {e_ref:.14}", c.name);
-    }
-    eprintln!("MFX energy at the program's density: max deviation {worst:e} Eh");
-}
-
-#[test]
-fn mulliken_charges_match_program() {
-    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
-    let basis = QvszpParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let dens = program_densities(&c, &map);
-        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens);
-        let r = json(&c.dir.join("scf.json"));
-        let qp = floats(&r["shell_charges"]);
-        let d = max_abs_diff(&q, &qp);
-        worst = worst.max(d);
-        assert!(d < 1e-12, "{}: shell charges differ by {d:e}", c.name);
-    }
-    eprintln!("Mulliken shell charges at the program's density: max deviation {worst:e}");
-}
-
-#[test]
-fn isotropic_charge_energies_match_program() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::es::{first_order_energy, higher_order_energies};
-    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut w1, mut w23) = (0.0f64, 0.0f64);
-    for c in cases() {
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &program_densities(&c, &map));
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.scf);
-        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
-        let g2 = gamma2(&p, &c.mol, &sh, &u);
-        let e1 = first_order_energy(&p, &c.mol, &sh, &cn, &q, &g2).unwrap();
-        let tau = tau3(&c.mol, &sh, &u, &g2);
-        let tp = floats(&json(&c.dir.join("kernels.json"))["half_gamma2_sq_packed"]);
-        let ns = sh.len();
-        let mut k = 0;
-        for i in 0..ns {
-            for j in 0..=i {
-                let d = (tau[i * ns + j] - tp[k]).abs();
-                assert!(d < 1e-14, "{}: tau({i},{j}) {} vs {}", c.name, tau[i * ns + j], tp[k]);
-                k += 1;
-            }
-        }
-        let (e2, e3, e4) = higher_order_energies(&c.mol, &sh, &q, &g2, &tau);
-        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
-        let d1 = (e1 - fe["es1"].as_f64().unwrap()).abs();
-        let d23 = (e2 + e3 + e4 - fe["es2_3"].as_f64().unwrap()).abs();
-        w1 = w1.max(d1);
-        w23 = w23.max(d23);
-        assert!(d1 < 1e-12, "{}: ES1 {e1} vs {}", c.name, fe["es1"]);
-        assert!(d23 < 1e-12, "{}: ES2+3 {} vs {} (E2 {e2} E3 {e3} E4 {e4})", c.name, e2 + e3 + e4, fe["es2_3"]);
-    }
-    eprintln!("isotropic ES at the program's density: ES1 {w1:e}, ES2+3 {w23:e} Eh");
-}
-
-#[test]
-fn ofx_energy_matches_program() {
-    use axtb_gxtb::exchange::ofx_energy;
-    use axtb_gxtb::ints::overlap_matrix;
-    let basis = QvszpParams::v1_1();
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let e = ofx_energy(&c.mol.numbers, &ao, &s, &program_densities(&c, &map));
-        let e_ref = json(&c.dir.join("kernels.json"))["final_energies"]["ofx"].as_f64().unwrap();
-        worst = worst.max((e - e_ref).abs());
-        assert!((e - e_ref).abs() < 1e-12, "{}: E_OFX {e:.14} vs {e_ref:.14}", c.name);
-    }
-    eprintln!("OFX energy at the program's density: max deviation {worst:e} Eh");
-}
-
-#[test]
-fn spin_energy_matches_program() {
-    use axtb_gxtb::es::spin_energy;
-    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let mut n_open = 0;
-    for c in cases() {
-        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
-        let Some(e_ref) = fe.get("spin").and_then(|v| v.as_f64()) else { continue };
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let d = program_densities(&c, &map);
-        // magnetization = population(alpha) - population(beta) = q(beta) - q(alpha)
-        let qa = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &d[..1]);
-        let qbeta = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &d[1..]);
-        let mag: Vec<f64> = qa.iter().zip(&qbeta).map(|(a, b)| b - a).collect();
-        let e = spin_energy(&p, &c.mol, &shell_list(&qb.scf), &mag).unwrap();
-        assert!((e - e_ref).abs() < 1e-14, "{}: E_spin {e} vs {e_ref}", c.name);
-        n_open += 1;
-    }
-    assert_eq!(n_open, 2);
-}
-
-#[test]
-fn aes_matches_program() {
-    use axtb_gxtb::aes::{aes_energy, aes_kernels, atomic_moments};
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut wk, mut wm, mut we) = (0.0f64, 0.0f64, 0.0f64);
-    for c in cases() {
-        let kr = json(&c.dir.join("kernels.json"));
-        let aes = &kr["aes"];
-        let n = c.mol.nat();
-        let k = aes_kernels(&p, &c.mol);
-        for (t, key) in ["g3", "g5", "g7", "g9"].iter().enumerate() {
-            let r = floats(&aes[*key]);
-            for i in 0..n {
-                for j in 0..n {
-                    if i == j {
-                        continue;
-                    }
-                    let d = (k[t][i * n + j] - r[i * n + j]).abs() / r[i * n + j].abs().max(1e-300);
-                    wk = wk.max(d);
-                    assert!(d < 1e-13, "{}: {key}({i},{j}) {} vs {}", c.name, k[t][i * n + j], r[i * n + j]);
-                }
-            }
-        }
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let dens = program_densities(&c, &map);
-        let nao = ao.len();
-        let ptot: Vec<f64> = (0..nao * nao).map(|x| dens.iter().map(|d| d[x]).sum()).collect();
-        let (dip, qp) = atomic_moments(&c.mol, &qb.scf.cgto, &ptot);
-        let (dr, qr) = (floats(&aes["dip"]), floats(&aes["qp"]));
-        for a in 0..n {
-            for x in 0..3 {
-                wm = wm.max((dip[a][x] - dr[3 * a + x]).abs());
-            }
-            for x in 0..6 {
-                wm = wm.max((qp[a][x] - qr[6 * a + x]).abs());
-            }
-        }
-        assert!(wm < 1e-12, "{}: moments differ by {wm:e}", c.name);
-        let qa = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
-        let e = aes_energy(&c.mol, &qa, &dip, &qp, &k);
-        let e_ref = kr["final_energies"]["aes"].as_f64().unwrap();
-        we = we.max((e - e_ref).abs());
-        assert!((e - e_ref).abs() < 1e-13, "{}: E_AES {e} vs {e_ref}", c.name);
-    }
-    eprintln!("AES: kernels {wk:e} (rel), moments {wm:e}, energy {we:e} Eh");
-}
-
-#[test]
-fn revd4_matches_program() {
-    use axtb_gxtb::disp::RevD4;
-    use axtb_gxtb::params::GxtbParams;
-    let p = GxtbParams::v1_1();
-    let (mut w2, mut w3) = (0.0f64, 0.0f64);
-    for c in cases() {
-        let d = RevD4::new(&p, &c.mol).unwrap();
-        let q = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
-        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
-        let (e2, e3) = (d.two_body_energy(&q), d.three_body_energy());
-        let (r2, r3) = (fe["disp2"].as_f64().unwrap(), fe["disp3"].as_f64().unwrap());
-        w2 = w2.max((e2 - r2).abs());
-        w3 = w3.max((e3 - r3).abs());
-        assert!((e2 - r2).abs() < 1e-14, "{}: revD4 two-body {e2:.17} vs {r2:.17}", c.name);
-        assert!((e3 - r3).abs() < 1e-15, "{}: revD4 ATM {e3:.17} vs {r3:.17}", c.name);
-        // printed "dispersion" is the two-body part only
-        let printed = c.summary["energy_terms"]["dispersion"].as_f64().unwrap();
-        assert!((e2 - printed).abs() <= 5.0001e-9, "{}: printed dispersion {printed} vs {e2}", c.name);
-    }
-    eprintln!("revD4 at the program's charges: two-body {w2:e}, three-body {w3:e} Eh");
-}
-
-/// Fock matrices (before the program's mixing) from the program's densities: the start
-/// density and the last iteration.
-#[test]
-fn fock_matches_program() {
-    use axtb_gxtb::scf::Setup;
-    let mut worst = 0.0f64;
-    for c in cases() {
-        let setup = Setup::new(&c.mol).unwrap();
-        let map = program_ao_map(&setup.ao, PROGRAM_D_ORDER);
-        let n = setup.nao;
-        let npk = n * (n + 1) / 2;
-        let r = json(&c.dir.join("fock.json"));
-        // known: the program screens long-range d-d multipole integrals (Cl-Cl in [CuCl4]2-),
-        // which changes its AES Fock elements there by ~1e-9
-        let tol = if c.name == "tetrachlorocuprate" { 3e-9 } else { 1e-12 };
-        for key in ["first", "last"] {
-            let ns = r[key]["nspin"].as_u64().unwrap() as usize;
-            assert_eq!(ns, setup.nspin());
-            let (pp, ff) = (floats(&r[key]["P"]), floats(&r[key]["F"]));
-            let p: Vec<Vec<f64>> = (0..ns).map(|s| unpack_program(&pp[s * npk..(s + 1) * npk], &map)).collect();
-            let ev = setup.evaluate(&p, Some(axtb_gxtb::Conventions::Gxtb)).unwrap();
-            for s in 0..ns {
-                let f = unpack_program(&ff[s * npk..(s + 1) * npk], &map);
-                let d = max_abs_diff(&ev.fock[s], &f);
-                if c.name != "tetrachlorocuprate" {
-                    worst = worst.max(d);
-                }
-                assert!(d < tol, "{}: Fock ({key}, spin {s}) differs by {d:e}", c.name);
-            }
-        }
-    }
-    eprintln!("Fock matrices at the program's densities: max deviation {worst:e} (excl. [CuCl4]2-)");
-}
-
-/// Full single points: total energy, every energy term, Mulliken charges, orbital energies and
-/// the number of iterations, from the program's start density through its SCF.
-#[test]
-fn scf_matches_program() {
-    use axtb_gxtb::scf::Setup;
-    let (mut we, mut wt, mut wq, mut weps) = (0.0f64, 0.0f64, 0.0f64, 0.0f64);
-    for c in cases() {
-        let r = Setup::new(&c.mol).unwrap().scf(&program()).unwrap();
-        let e = &r.energies;
-        let eref = c.summary["total_energy"].as_f64().unwrap();
-        we = we.max((e.total - eref).abs());
-        assert!((e.total - eref).abs() < 1e-11, "{}: total {:.13} vs {eref:.13}", c.name, e.total);
-        assert_eq!(r.iterations as u64, c.summary["scf_iterations"].as_u64().unwrap(), "{}: iterations", c.name);
-        // full-precision terms of the program's final iteration
-        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
-        let terms = [
-            ("es1", e.es1),
-            ("es2_3", e.es23),
-            ("ofx", e.ofx),
-            ("mfx", e.mfx),
-            ("aes", e.aes),
-            ("disp2", e.disp2),
-            ("disp3", e.disp3),
-        ];
-        for (k, v) in terms.into_iter().chain(fe.get("spin").map(|_| ("spin", e.spin))) {
-            let d = (v - fe[k].as_f64().unwrap()).abs();
-            wt = wt.max(d);
-            assert!(d < 1e-11, "{}: {k} {v:.14} vs {}", c.name, fe[k]);
-        }
-        // printed terms (8 decimals)
-        let t = &c.summary["energy_terms"];
-        for (k, v) in [
-            ("electronic", e.electronic),
-            ("atomic core increments", e.increments),
-            ("dispersion", e.disp2),
-            ("nuclear repulsion", e.repulsion),
-            ("ES total", e.es1 + e.es23 + e.aes),
-            ("total", e.total),
-        ] {
-            assert!((v - t[k].as_f64().unwrap()).abs() <= 5.0001e-9, "{}: printed {k} {} vs {v}", c.name, t[k]);
-        }
-        let scf = json(&c.dir.join("scf.json"));
-        for (ours, key) in [(&r.atom_charges, "atom_charges"), (&r.shell_charges, "shell_charges")] {
-            let d = max_abs_diff(ours, &floats(&scf[key]));
-            wq = wq.max(d);
-            assert!(d < 1e-10, "{}: {key} differ by {d:e}", c.name);
-        }
-        // orbital energies of the molden file (alpha block, then beta for open shells)
-        let text = std::fs::read_to_string(c.dir.join("molden.input")).unwrap();
-        let mut eps_ref: Vec<Vec<f64>> = vec![Vec::new(); r.orbital_energies.len()];
-        for block in text.split("[MO]").nth(1).unwrap().split("Sym=").skip(1) {
-            let ene: f64 = block.lines().find_map(|l| l.trim().strip_prefix("Ene=")).unwrap().trim().parse().unwrap();
-            let beta = block.contains("Spin= Beta");
-            eps_ref[if beta { 1 } else { 0 }].push(ene);
-        }
-        // [CuCl4]2-: the program's screened long-range d-d multipole integrals (see
-        // fock_matches_program) shift its orbital energies by ~1e-9
-        let tol = if c.name == "tetrachlorocuprate" { 2e-9 } else { 1e-10 };
-        for (s, er) in eps_ref.iter().enumerate() {
-            let d = max_abs_diff(&r.orbital_energies[s][..er.len()], er);
-            if c.name != "tetrachlorocuprate" {
-                weps = weps.max(d);
-            }
-            assert!(d < tol, "{}: orbital energies (spin {s}) differ by {d:e}", c.name);
-        }
-    }
-    eprintln!(
-        "SCF: total energy {we:e} Eh, terms {wt:e} Eh, charges {wq:e}, orbital energies {weps:e} Eh (excl. [CuCl4]2-)"
-    );
-}
-
-/// Further single points against the program's total energy only (tests/reference_extra.json):
-/// larger organics, ferrocene, a halogenated aromatic, a dianion and an open-shell dication.
-#[test]
-fn extra_singlepoints_match_program() {
-    use axtb_gxtb::scf::Setup;
-    let r = json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference_extra.json"));
-    let mut worst = 0.0f64;
-    for m in r["molecules"].as_array().unwrap() {
-        let name = m["name"].as_str().unwrap();
-        let mol = read_xyz(
-            m["xyz"].as_str().unwrap(),
-            m["charge"].as_f64().unwrap(),
-            Some(m["uhf"].as_u64().unwrap() as usize),
-        )
-        .unwrap();
-        let res = Setup::new(&mol).unwrap().scf(&program()).unwrap();
-        let eref = m["total_energy"].as_f64().unwrap();
-        let d = (res.energies.total - eref).abs();
-        worst = worst.max(d);
-        assert!(d < 1e-10, "{name}: total {:.12} vs {eref:.12}", res.energies.total);
-        assert_eq!(res.iterations as u64, m["scf_iterations"].as_u64().unwrap(), "{name}: iterations");
-    }
-    eprintln!("extra single points: max total-energy deviation {worst:e} Eh");
-}
-
 // ---- the same checks on the engine's v1.1 model (step 17) ----
 
 /// The engine's v1.1 model in the program's conventions.
@@ -933,71 +330,20 @@ fn v11() -> axtb_gxtb::v2::Model {
     axtb_gxtb::v2::Model::v1_1(axtb_gxtb::Conventions::Gxtb)
 }
 
-#[test]
-fn isotropic_engine_matches_program() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
-    use axtb_gxtb::params::GxtbParams;
-    use axtb_gxtb::v2::coulomb::IsotropicCache;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut w1, mut w23) = (0.0f64, 0.0f64);
-    for c in cases() {
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let q = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &program_densities(&c, &map));
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.scf);
-        let iso = IsotropicCache::new(&v11(), &c.mol, &sh, &cn);
-        // the kernels and Hubbard parameters are the program's expressions: the same bits
-        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
-        let g2 = gamma2(&p, &c.mol, &sh, &u);
-        assert_eq!(iso.u, u, "{}: Hubbard parameters", c.name);
-        assert_eq!(iso.gamma, g2, "{}: gamma", c.name);
-        assert_eq!(iso.tau, tau3(&c.mol, &sh, &u, &g2), "{}: tau", c.name);
-        let [e1, e2, e3, e4] = iso.energies(&q, false);
-        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
-        let d1 = (e1 - fe["es1"].as_f64().unwrap()).abs();
-        let d23 = (e2 + e3 + e4 - fe["es2_3"].as_f64().unwrap()).abs();
-        w1 = w1.max(d1);
-        w23 = w23.max(d23);
-        assert!(d1 < 1e-12, "{}: ES1 {e1} vs {}", c.name, fe["es1"]);
-        assert!(d23 < 1e-12, "{}: ES2+3 {} vs {}", c.name, e2 + e3 + e4, fe["es2_3"]);
-    }
-    eprintln!("engine isotropic ES at the program's density: ES1 {w1:e}, ES2+3 {w23:e} Eh");
-}
-
 /// The engine's v1.1 isotropic potential and kernel against the old tree's potential and
 /// central differences of the engine's potential, at the program's charges.
 #[test]
 fn isotropic_engine_potential_and_kernel() {
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::fock::isotropic_shell_potential;
-    use axtb_gxtb::kernels::{gamma2, hubbard_u, tau3};
-    use axtb_gxtb::params::GxtbParams;
+    use axtb_gxtb::v2::cn::gxtb_cn;
     use axtb_gxtb::v2::coulomb::IsotropicCache;
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let (mut wv, mut wk) = (0.0f64, 0.0f64);
+    let mut wk = 0.0f64;
     for c in cases() {
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
+        let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
         let q = floats(&json(&c.dir.join("scf.json"))["shell_charges"]);
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let sh = shell_list(&qb.scf);
+        let cn = gxtb_cn(&v11(), &c.mol);
+        let sh = shell_list(&b.scf);
         let iso = IsotropicCache::new(&v11(), &c.mol, &sh, &cn);
-        let u = hubbard_u(&p, &c.mol, &sh, &cn).unwrap();
-        let g2 = gamma2(&p, &c.mol, &sh, &u);
-        let tau = tau3(&c.mol, &sh, &u, &g2);
-        let old = isotropic_shell_potential(&p, &c.mol, &sh, &cn, &q, &g2, &tau).unwrap();
-        let new = iso.potential(&q, false);
-        let scale = old.iter().fold(1.0f64, |m, v| m.max(v.abs()));
-        wv = wv.max(max_abs_diff(&old, &new) / scale);
-        assert!(max_abs_diff(&old, &new) < 1e-13 * scale, "{}: potential", c.name);
         // the kernel (Hessian-vector product) against central differences of the potential
         let dq: Vec<f64> = (0..q.len()).map(|i| ((7 * i + 3) % 11) as f64 / 11.0 - 0.5).collect();
         let h = 1e-5;
@@ -1008,49 +354,7 @@ fn isotropic_engine_potential_and_kernel() {
         wk = wk.max(max_abs_diff(&fd, &k));
         assert!(max_abs_diff(&fd, &k) < 1e-7, "{}: kernel vs FD {:e}", c.name, max_abs_diff(&fd, &k));
     }
-    eprintln!("engine isotropic potential: rel {wv:e}; kernel vs FD {wk:e}");
-}
-
-#[test]
-fn aes_and_spin_engine_match_program() {
-    use axtb_gxtb::aes::{aes_kernels, atomic_moments};
-    use axtb_gxtb::classical::gxtb_cn;
-    use axtb_gxtb::ints::{mulliken_shell_charges, overlap_matrix};
-    use axtb_gxtb::params::GxtbParams;
-    use axtb_gxtb::v2::coulomb::{spin_energy, AesCache};
-    let p = GxtbParams::v1_1();
-    let basis = QvszpParams::v1_1();
-    let mut we = 0.0f64;
-    let mut n_open = 0;
-    for c in cases() {
-        let kr = json(&c.dir.join("kernels.json"));
-        let cn = gxtb_cn(&p, &c.mol).unwrap();
-        let aes = AesCache::new(&v11(), &c.mol, &cn);
-        assert_eq!(aes.aes, aes_kernels(&p, &c.mol), "{}: AES kernels", c.name);
-        let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let qb = QvszpBasis::new(&basis, &c.mol, &q_ref).unwrap();
-        let ao = ao_list(&qb.scf);
-        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
-        let dens = program_densities(&c, &map);
-        let nao = ao.len();
-        let ptot: Vec<f64> = (0..nao * nao).map(|x| dens.iter().map(|d| d[x]).sum()).collect();
-        let (dip, qp) = atomic_moments(&c.mol, &qb.scf.cgto, &ptot);
-        let qa = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
-        let e = aes.energy(&c.mol, &qa, &dip, &qp, false);
-        let e_ref = kr["final_energies"]["aes"].as_f64().unwrap();
-        we = we.max((e - e_ref).abs());
-        assert!((e - e_ref).abs() < 1e-13, "{}: E_AES {e} vs {e_ref}", c.name);
-        let Some(e_ref) = kr["final_energies"].get("spin").and_then(|v| v.as_f64()) else { continue };
-        let s = overlap_matrix(&c.mol, &qb.scf);
-        let qalpha = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens[..1]);
-        let qbeta = mulliken_shell_charges(&c.mol.numbers, &qb.scf.cgto, &s, &dens[1..]);
-        let mag: Vec<f64> = qalpha.iter().zip(&qbeta).map(|(a, b)| b - a).collect();
-        let e = spin_energy(&v11(), &c.mol, &shell_list(&qb.scf), &mag);
-        assert!((e - e_ref).abs() < 1e-14, "{}: E_spin {e} vs {e_ref}", c.name);
-        n_open += 1;
-    }
-    assert_eq!(n_open, 2);
-    eprintln!("engine AES energy at the program's density: {we:e} Eh");
+    eprintln!("engine isotropic kernel vs FD {wk:e}");
 }
 
 /// The engine's v1.1 EEQ-BC charges, coordination numbers, effective charges, SCF overlap, H0
@@ -1058,30 +362,22 @@ fn aes_and_spin_engine_match_program() {
 /// the program.
 #[test]
 fn basis_and_one_electron_engine_match_program() {
-    use axtb_gxtb::classical::gxtb_cn as old_gxtb_cn;
     use axtb_gxtb::v2::basis::{integrals, Basis};
     use axtb_gxtb::v2::cn::gxtb_cn;
     use axtb_gxtb::v2::h0::{add_acp, build_h0, selfenergy, AcpSet};
-    let basis = QvszpParams::v1_1();
-    let p = axtb_gxtb::params::GxtbParams::v1_1();
     let model = v11();
     let (mut ws, mut wh, mut wa) = (0.0f64, 0.0f64, 0.0f64);
     for c in cases() {
         let mol = &c.mol;
-        // EEQ-BC and the CNs: the old tree's bits
-        let q_old = eeqbc_charges(&EeqBcParams::v1_1(), mol).unwrap().charges;
-        let q_new = axtb_gxtb::v2::eeqbc::eeqbc_charges(&model, mol).unwrap().charges;
-        assert_eq!(q_old, q_new, "{}: EEQ-BC charges", c.name);
         let cn = gxtb_cn(&model, mol);
-        assert_eq!(cn, old_gxtb_cn(&p, mol).unwrap(), "{}: g-xTB CN", c.name);
-        // basis CN and effective charges from the program's charges: the old tree's bits
+        // basis CN and effective charges from the program's charges, and end to end
         let q_ref = floats(&c.inter["q_eeq"]["data"]);
-        let old = QvszpBasis::new(&basis, mol, &q_ref).unwrap();
         let b = Basis::new(&model, mol, &q_ref).unwrap();
-        assert_eq!(b.cn, old.cn, "{}: basis CN", c.name);
-        assert_eq!(b.qeff, old.qeff.iter().map(|e| e.qeff).collect::<Vec<_>>(), "{}: q_eff", c.name);
-        let coef = |bs: &[Vec<axtb::basis::Cgto>]| -> Vec<f64> { bs.iter().flatten().flat_map(|s| s.coeff).collect() };
-        assert_eq!(coef(&b.scf.cgto), coef(&old.scf.cgto), "{}: SCF shells", c.name);
+        let (cn_ref, qeff_ref) = (floats(&c.inter["cn_eeq"]["data"]), floats(&c.inter["qeff"]["data"]));
+        assert!(max_abs_diff(&b.cn, &cn_ref) < 1e-13, "{}: basis CN", c.name);
+        assert!(max_abs_diff(&b.qeff, &qeff_ref) < 1e-13, "{}: q_eff", c.name);
+        let setup = engine_setup(mol);
+        assert!(max_abs_diff(&setup.basis.qeff, &qeff_ref) < 1e-12, "{}: end-to-end q_eff", c.name);
         // SCF overlap (every pair evaluated in both orders and averaged)
         let (s, _, _) = integrals(mol, &b.scf, b.pair_cutoff(&model), false);
         let ao = ao_list(&b.scf);
@@ -1134,52 +430,28 @@ fn basis_and_one_electron_engine_match_program() {
 /// old tree and central differences.
 #[test]
 fn exchange_engine_matches_program() {
-    use axtb_gxtb::fock::{mfx_fock, ofx_fock};
-    use axtb_gxtb::scf::Setup;
     use axtb_gxtb::v2::exchange::Exchange;
     use faer::Par;
     let model = v11();
-    let (mut wm, mut wo, mut wf, mut wx, mut wr) = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);
+    let (mut wm, mut wo, mut wr) = (0.0f64, 0.0f64, 0.0f64);
     for c in cases() {
-        let old = Setup::new(&c.mol).unwrap();
-        let n = old.nao;
-        let map = program_ao_map(&old.ao, PROGRAM_D_ORDER);
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let b = EngineBasis::new(&model, &c.mol, &q_ref).unwrap();
+        let n = b.scf.nao;
+        let sh = shell_list(&b.scf);
+        let map = program_ao_map(&ao_list(&b.scf), PROGRAM_D_ORDER);
         let dens = program_densities(&c, &map);
-        let ex = Exchange::new(&model, &c.mol, &old.shells, &old.basis.scf.ao2sh, false);
-        // the MFX kernel: the old tree's bits
-        assert_eq!(ex.gx, old.gamma_x, "{}: MFX kernel", c.name);
-        let s = &old.s;
+        let ex = Exchange::new(&model, &c.mol, &sh, &b.scf.ao2sh, false);
+        let s = &integrals(&c.mol, &b.scf, b.pair_cutoff(&model), false).0;
         let pr = ex.products(s, &dens, Par::Seq);
-        let q = vec![0.0; old.shells.len()];
-        let (e_mfx, e_ofx, fm, _) = ex.evaluate_parts(s, &dens, &pr, &q, true, Par::Seq, false);
+        let q = vec![0.0; sh.len()];
+        let (e_mfx, e_ofx, _, _) = ex.evaluate_parts(s, &dens, &pr, &q, false, Par::Seq, false);
         let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
         let (rm, ro) = (fe["mfx"].as_f64().unwrap(), fe["ofx"].as_f64().unwrap());
         wm = wm.max((e_mfx - rm).abs());
         wo = wo.max((e_ofx - ro).abs());
         assert!((e_mfx - rm).abs() < 1e-11, "{}: E_MFX {e_mfx} vs {rm}", c.name);
         assert!((e_ofx - ro).abs() < 1e-12, "{}: E_OFX {e_ofx} vs {ro}", c.name);
-        // Fock matrices: the old tree's exact ones
-        let closed = dens.len() == 1;
-        for (k, p) in dens.iter().enumerate() {
-            let fx = mfx_fock(n, s, p, &old.gamma_x, closed, Par::Seq);
-            let fo = ofx_fock(&c.mol.numbers, &old.ao, s, p, closed, true, Par::Seq);
-            let scale = fx.iter().fold(1.0f64, |m, v| m.max(v.abs()));
-            let d = (0..n * n).map(|x| (fx[x] + fo[x] - fm[k][x]).abs()).fold(0.0, f64::max) / scale;
-            wf = wf.max(d);
-            assert!(d < 1e-13, "{}: exchange Fock (spin {k}) differs by {d:e}", c.name);
-        }
-        // overlap weight: the old tree's d(E_MFX + E_OFX)/dS
-        let xw = ex.overlap_weight(s, &dens, &q, Par::Seq);
-        let mut xo = vec![0.0; n * n];
-        for p in &dens {
-            for (a, b) in xo.iter_mut().zip(old.exchange_overlap_weight(p, closed)) {
-                *a += b;
-            }
-        }
-        let scale = xo.iter().fold(1.0f64, |m, v| m.max(v.abs()));
-        let d = (0..n * n).map(|x| (xw[x] - xo[x]).abs()).fold(0.0, f64::max) / scale;
-        wx = wx.max(d);
-        assert!(d < 1e-13, "{}: exchange overlap weight differs by {d:e}", c.name);
         // response: the change of the Fock matrices along a density change (exact: quadratic in P)
         let base = ex.response_base(s, &dens, &q, Par::Seq);
         let dp: Vec<Vec<f64>> = dens
@@ -1201,9 +473,7 @@ fn exchange_engine_matches_program() {
             assert!(d < 1e-9, "{}: exchange response (spin {k}) vs FD {d:e}", c.name);
         }
     }
-    eprintln!(
-        "engine v1.1 exchange: E_MFX {wm:e}, E_OFX {wo:e} Eh; Fock {wf:e}, overlap weight {wx:e} (rel); response vs FD {wr:e}"
-    );
+    eprintln!("engine v1.1 exchange: E_MFX {wm:e}, E_OFX {wo:e} Eh; response vs FD {wr:e}");
 }
 
 /// The engine's v1.1 revD4 (rational two-body damping with C8, zero-damped three-body term) and
@@ -1389,72 +659,169 @@ fn extra_singlepoints_engine_match_program() {
     eprintln!("engine extra single points: max total-energy deviation {worst:e} Eh");
 }
 
-/// The engine's v1.1 in the default conventions against the old tree: the same iterations,
-/// energies and analytic gradients (at tight convergence) to round-off.
-#[test]
-fn axtb_conventions_engine_match_old_tree() {
-    use axtb_gxtb::Conventions;
-    let model = axtb_gxtb::v2::Model::v1_1(Conventions::Axtb);
-    let opts = axtb_gxtb::ScfOptions::default();
-    let tight = axtb_gxtb::ScfOptions { energy_tol: Some(1e-13), density_tol: Some(1e-11), ..Default::default() };
-    let (mut we, mut wg) = (0.0f64, 0.0f64);
-    for c in cases() {
-        let old = axtb_gxtb::scf::Setup::new(&c.mol).unwrap().scf(&opts).unwrap();
-        let setup = axtb_gxtb::v2::scf::Setup::new(&c.mol, model).unwrap();
-        let new = setup.scf(&opts).unwrap();
-        assert_eq!(old.iterations, new.iterations, "{}: iterations", c.name);
-        let d = (old.energies.total - new.energies.total).abs();
-        we = we.max(d);
-        assert!(d < 1e-10, "{}: total {} vs old {}", c.name, new.energies.total, old.energies.total);
-        // the analytic gradient against the old tree's at tight convergence
-        let old_setup = axtb_gxtb::scf::Setup::new(&c.mol).unwrap();
-        let g_old = old_setup.gradient(&old_setup.scf(&tight).unwrap()).unwrap();
-        let g = setup.gradient(&setup.scf(&tight).unwrap()).unwrap();
-        for (a, (x, y)) in g.iter().zip(&g_old).enumerate() {
-            for k in 0..3 {
-                wg = wg.max((x[k] - y[k]).abs());
-                assert!((x[k] - y[k]).abs() < 1e-10, "{} atom {a} {k}: engine {} old {}", c.name, x[k], y[k]);
-            }
-        }
-    }
-    eprintln!("engine v1.1 (axtb): vs the old tree: total energy {we:e} Eh, gradient {wg:e} Eh/bohr");
+/// The program's internal (unnormalized-contraction) coefficients of a shell:
+/// (c0 + c1 q_eff) times the primitive normalization of the x^l component.
+fn raw_shell_coefficients(basis: &QvszpParams, z: usize, qeff: f64) -> Vec<Vec<f64>> {
+    let el = basis.element(z).unwrap();
+    el.shells
+        .iter()
+        .map(|sh| {
+            (0..sh.alpha.len()).map(|i| (sh.c0[i] + sh.c1[i] * qeff) * primitive_norm(sh.l, sh.alpha[i])).collect()
+        })
+        .collect()
 }
 
-/// The engine's v1.1 at an electronic temperature (both conventions) against the old tree: the
-/// same iterations, energies, Fermi levels and occupations to round-off.
+/// The program's data of the reference set with the engine's v1.1 pieces: q-vSZP from the
+/// program's EEQ-BC charges, the SCF overlap and Mulliken analysis of the program's density.
+struct ProgramPieces {
+    b: EngineBasis,
+    s: Vec<f64>,
+    dpint: [Vec<f64>; 3],
+    qpint: [Vec<f64>; 6],
+    dens: Vec<Vec<f64>>,
+    ptot: Vec<f64>,
+}
+
+fn program_pieces(c: &Case) -> ProgramPieces {
+    let q_ref = floats(&c.inter["q_eeq"]["data"]);
+    let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
+    let (s, dpint, qpint) = integrals(&c.mol, &b.scf, b.pair_cutoff(&v11()), false);
+    let map = program_ao_map(&ao_list(&b.scf), PROGRAM_D_ORDER);
+    let dens = program_densities(c, &map);
+    let n = b.scf.nao;
+    let ptot: Vec<f64> = (0..n * n).map(|x| dens.iter().map(|d| d[x]).sum()).collect();
+    ProgramPieces { b, s, dpint, qpint, dens, ptot }
+}
+
+/// The second-order kernel gamma and the Mulliken-exchange kernel against the program's.
 #[test]
-fn etemp_engine_matches_old_tree() {
-    use axtb_gxtb::Conventions;
-    let mut we = 0.0f64;
-    for conventions in [Conventions::Axtb, Conventions::Gxtb] {
-        let opts = axtb_gxtb::ScfOptions { etemp: 3000.0, conventions, ..Default::default() };
-        for c in cases() {
-            let old = axtb_gxtb::scf::Setup::new(&c.mol).unwrap().scf(&opts).unwrap();
-            let model = axtb_gxtb::v2::Model::v1_1(conventions);
-            let new = axtb_gxtb::v2::scf::Setup::new(&c.mol, model).unwrap().scf(&opts).unwrap();
-            assert_eq!(old.iterations, new.iterations, "{conventions:?} {}: iterations", c.name);
-            let d = (old.energies.total - new.energies.total).abs();
-            we = we.max(d);
-            assert!(
-                d < 1e-10,
-                "{conventions:?} {}: total {} vs old {}",
-                c.name,
-                new.energies.total,
-                old.energies.total
-            );
-            let ts = (old.energies.entropy - new.energies.entropy).abs();
-            assert!(
-                ts < 1e-10,
-                "{conventions:?} {}: -TS {} vs old {}",
-                c.name,
-                new.energies.entropy,
-                old.energies.entropy
-            );
-            for (s, o) in old.occupations.iter().enumerate() {
-                let d = max_abs_diff(o, &new.occupations[s]);
-                assert!(d < 1e-9, "{conventions:?} {}: occupations (spin {s}) differ by {d:e}", c.name);
+fn kernels_match_program() {
+    use axtb_gxtb::v2::cn::gxtb_cn;
+    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    use axtb_gxtb::v2::exchange::Exchange;
+    let (mut w2, mut wx) = (0.0f64, 0.0f64);
+    for c in cases() {
+        let r = json(&c.dir.join("kernels.json"));
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let b = EngineBasis::new(&v11(), &c.mol, &q_ref).unwrap();
+        let cn = gxtb_cn(&v11(), &c.mol);
+        let sh = shell_list(&b.scf);
+        let ns = sh.len();
+        assert_eq!(r["nsh"].as_u64().unwrap() as usize, ns);
+        let g2 = IsotropicCache::new(&v11(), &c.mol, &sh, &cn).gamma;
+        let g2p = floats(&r["gamma2_packed"]);
+        let mut k = 0;
+        for i in 0..ns {
+            for j in 0..=i {
+                let d = (g2[i * ns + j] - g2p[k]).abs();
+                w2 = w2.max(d);
+                assert!(d < 1e-13, "{}: gamma2({i},{j}) {} vs {}", c.name, g2[i * ns + j], g2p[k]);
+                k += 1;
+            }
+        }
+        let gx = Exchange::new(&v11(), &c.mol, &sh, &b.scf.ao2sh, false).gx;
+        let map = program_ao_map(&ao_list(&b.scf), PROGRAM_D_ORDER);
+        let n = b.scf.nao;
+        let gxp = floats(&r["gamma_mfx"]);
+        for i in 0..n {
+            for j in 0..n {
+                let ours = gx[map[i] * n + map[j]];
+                let d = (ours - gxp[i * n + j]).abs();
+                wx = wx.max(d);
+                assert!(d < 1e-13, "{}: gamma_mfx({i},{j}) {} vs {}", c.name, ours, gxp[i * n + j]);
             }
         }
     }
-    eprintln!("engine v1.1 at 3000 K vs the old tree: total energy {we:e} Eh");
+    eprintln!("kernels: gamma2 {w2:e}, gamma_mfx {wx:e}");
+}
+
+/// Mulliken shell charges of the program's density.
+#[test]
+fn mulliken_charges_match_program() {
+    let mut worst = 0.0f64;
+    for c in cases() {
+        let pc = program_pieces(&c);
+        let n0 = engine_setup(&c.mol).ref_occ;
+        let q = axtb_gxtb::mulliken::shell_charges(&pc.b.scf, &pc.s, &n0, &pc.ptot, false);
+        let d = max_abs_diff(&q, &floats(&json(&c.dir.join("scf.json"))["shell_charges"]));
+        worst = worst.max(d);
+        assert!(d < 1e-12, "{}: shell charges differ by {d:e}", c.name);
+    }
+    eprintln!("Mulliken shell charges at the program's density: max deviation {worst:e}");
+}
+
+/// The semi-classical repulsion and the atomic increments of the engine's v1.1 setup.
+#[test]
+fn repulsion_and_increments_match_program() {
+    let mut worst = 0.0f64;
+    for c in cases() {
+        let terms = &c.summary["energy_terms"];
+        let setup = engine_setup(&c.mol);
+        let erep = setup.e_rep;
+        let d = (erep - terms["nuclear repulsion"].as_f64().unwrap()).abs();
+        assert!(d <= 5.0001e-9, "{}: repulsion {erep:.10} vs {}", c.name, terms["nuclear repulsion"]);
+        // full precision, read from the program's memory
+        let d = (erep - c.inter["repulsion_energy"].as_f64().unwrap()).abs();
+        worst = worst.max(d);
+        assert!(d < 1e-12, "{}: repulsion {erep:.16} vs {}", c.name, c.inter["repulsion_energy"]);
+        let einc = setup.e_incr;
+        let d = (einc - terms["atomic core increments"].as_f64().unwrap()).abs();
+        assert!(d <= 5.0001e-9, "{}: increments {einc:.10} vs {}", c.name, terms["atomic core increments"]);
+    }
+    eprintln!("repulsion: max deviation {worst:e} Eh");
+}
+
+/// The isotropic electrostatics (first to fourth order) at the program's density.
+#[test]
+fn isotropic_engine_matches_program() {
+    use axtb_gxtb::v2::cn::gxtb_cn;
+    use axtb_gxtb::v2::coulomb::IsotropicCache;
+    let (mut w1, mut w23) = (0.0f64, 0.0f64);
+    for c in cases() {
+        let pc = program_pieces(&c);
+        let n0 = engine_setup(&c.mol).ref_occ;
+        let q = axtb_gxtb::mulliken::shell_charges(&pc.b.scf, &pc.s, &n0, &pc.ptot, false);
+        let cn = gxtb_cn(&v11(), &c.mol);
+        let iso = IsotropicCache::new(&v11(), &c.mol, &shell_list(&pc.b.scf), &cn);
+        let [e1, e2, e3, e4] = iso.energies(&q, false);
+        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
+        let d1 = (e1 - fe["es1"].as_f64().unwrap()).abs();
+        let d23 = (e2 + e3 + e4 - fe["es2_3"].as_f64().unwrap()).abs();
+        w1 = w1.max(d1);
+        w23 = w23.max(d23);
+        assert!(d1 < 1e-12, "{}: ES1 {e1} vs {}", c.name, fe["es1"]);
+        assert!(d23 < 1e-12, "{}: ES2+3 {} vs {}", c.name, e2 + e3 + e4, fe["es2_3"]);
+    }
+    eprintln!("engine isotropic ES at the program's density: ES1 {w1:e}, ES2+3 {w23:e} Eh");
+}
+
+/// The anisotropic electrostatics and the spin polarization at the program's density.
+#[test]
+fn aes_and_spin_engine_match_program() {
+    use axtb_gxtb::v2::cn::gxtb_cn;
+    use axtb_gxtb::v2::coulomb::{spin_energy, AesCache};
+    let mut we = 0.0f64;
+    let mut n_open = 0;
+    for c in cases() {
+        let kr = json(&c.dir.join("kernels.json"));
+        let cn = gxtb_cn(&v11(), &c.mol);
+        let aes = AesCache::new(&v11(), &c.mol, &cn);
+        let pc = program_pieces(&c);
+        let (_, dip, qp) =
+            axtb_gxtb::mulliken::moments_by_rows(&pc.b.scf, &pc.s, &pc.dpint, &pc.qpint, &pc.ptot, false);
+        let qa = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
+        let e = aes.energy(&c.mol, &qa, &dip, &qp, false);
+        let e_ref = kr["final_energies"]["aes"].as_f64().unwrap();
+        we = we.max((e - e_ref).abs());
+        assert!((e - e_ref).abs() < 1e-13, "{}: E_AES {e} vs {e_ref}", c.name);
+        let Some(e_ref) = kr["final_energies"].get("spin").and_then(|v| v.as_f64()) else { continue };
+        let pa = axtb_gxtb::mulliken::shell_populations(&pc.b.scf, &pc.s, &pc.dens[0], false);
+        let pb = axtb_gxtb::mulliken::shell_populations(&pc.b.scf, &pc.s, &pc.dens[1], false);
+        let mag: Vec<f64> = pa.iter().zip(&pb).map(|(a, b)| a - b).collect();
+        let e = spin_energy(&v11(), &c.mol, &shell_list(&pc.b.scf), &mag);
+        assert!((e - e_ref).abs() < 1e-14, "{}: E_spin {e} vs {e_ref}", c.name);
+        n_open += 1;
+    }
+    assert_eq!(n_open, 2);
+    eprintln!("engine AES energy at the program's density: {we:e} Eh");
 }

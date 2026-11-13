@@ -167,7 +167,7 @@ impl Model {
     pub fn intcut_h0(&self) -> f64 {
         match self.version {
             Version::V2_0_1 => basis::INTCUT,
-            Version::V1_1 => crate::h0::INTCUT,
+            Version::V1_1 => h0::INTCUT_V1_1,
         }
     }
 

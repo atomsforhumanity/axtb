@@ -2,7 +2,7 @@
 //! the program's mixer (data in tests/reference_elements/ and tests/reference_v2/elements/,
 //! see tests/gxtb_elements.py and docs/gxtb-v1.1-spec.md §4.17).
 
-use axtb_gxtb::scf::{Conventions, Setup};
+use axtb_gxtb::Conventions;
 use faer::{Mat, MatRef, Par};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -64,26 +64,26 @@ fn uf6_v11_degenerate_iteration_two() {
     .unwrap();
     let xyz = std::fs::read_to_string(tests().join("reference_v2/elements/UF6/mol.xyz")).unwrap();
     let mol = axtb_gxtb::read_xyz(&xyz, 0.0, Some(0)).unwrap();
-    let setup = Setup::new(&mol).unwrap();
+    let setup = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v1_1(Conventions::Gxtb)).unwrap();
     let n = setup.nao;
-    let map = program_ao_map(&setup.ao);
+    let ao: Vec<(usize, usize, usize)> = setup.basis.scf.ao2sh.iter().map(|&i| setup.shells[i]).collect();
+    let map = program_ao_map(&ao);
     let (p1, p2) = (unpack(&floats(&d["P1"]), &map), unpack(&floats(&d["P2"]), &map));
     let printed = floats(&d["printed_energies"]);
-    let conv = Some(Conventions::Gxtb);
     // the program's printed iteration energies (8 decimals) are our energies of its densities
-    let e1 = setup.evaluate(std::slice::from_ref(&p1), conv).unwrap();
-    let e2 = setup.evaluate(std::slice::from_ref(&p2), conv).unwrap();
-    assert!((e1.energies.total - printed[0]).abs() < 5.1e-9, "iteration 1: {}", e1.energies.total);
-    assert!((e2.energies.total - printed[1]).abs() < 5.1e-9, "iteration 2: {}", e2.energies.total);
+    let e1 = setup.evaluate(&setup.state(std::slice::from_ref(&p1)), true);
+    let e2 = setup.evaluate(&setup.state(std::slice::from_ref(&p2)), true);
+    assert!((e1.0.total - printed[0]).abs() < 5.1e-9, "iteration 1: {}", e1.0.total);
+    assert!((e2.0.total - printed[1]).abs() < 5.1e-9, "iteration 2: {}", e2.0.total);
     // the damped Fock matrix of iteration 2 from the program's P1 (F~1 = a F(P0), F~2 = F~1 + a (F(P1) - F~1))
     let a = 0.1_f32 as f64;
-    let f0 = setup.evaluate(&setup.guess(), conv).unwrap().fock[0].clone();
-    let ft2: Vec<f64> = (0..n * n).map(|k| a * f0[k] + a * (e1.fock[0][k] - a * f0[k])).collect();
+    let f0 = setup.evaluate(&setup.state(&setup.start_density()), true).1[0].clone();
+    let ft2: Vec<f64> = (0..n * n).map(|k| a * f0[k] + a * (e1.1[0][k] - a * f0[k])).collect();
     let mut solver = axtb::linalg::GenEigSolver::new(MatRef::from_row_major_slice(&setup.s, n, n), Par::Seq).unwrap();
     let mut eps = vec![0.0; n];
     let mut c = Mat::<f64>::zeros(n, n);
     solver.solve(MatRef::from_row_major_slice(&ft2, n, n), &mut eps, &mut c).unwrap();
-    let nocc = setup.nalpha;
+    let nocc = setup.nalpha as usize;
     let set: Vec<usize> = (0..n).filter(|&k| (eps[k] - eps[nocc - 1]).abs() < 1e-12).collect();
     assert_eq!(set, vec![nocc - 2, nocc - 1, nocc], "HOMO set {:?}", &eps[nocc - 4..nocc + 4]);
     // the program's P2 in our orbitals: N = C^T S P2 S C

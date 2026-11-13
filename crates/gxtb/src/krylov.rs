@@ -4,7 +4,7 @@
 //!   2.0.1 (`v2::response`), on block vectors (one faer matrix per spin channel) with the
 //!   eight-partial-sum dot product ([`block_dot`]);
 //! - [`gmres`]: right-preconditioned restarted GMRES for v1.1's non-symmetric Z-vector equations
-//!   ([`crate::response`]), on plain vectors with the sequential dot product.
+//!   (the response of the program's Fock matrix), on plain vectors with the sequential dot product.
 //!
 //! Both start from x = 0 and stop at |b - A x| <= tol |b|; the convergence settings and the
 //! messages of a failure belong to the callers.

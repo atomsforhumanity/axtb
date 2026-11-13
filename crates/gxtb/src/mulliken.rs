@@ -11,10 +11,8 @@
 //! Rounding orders, each written once:
 //! - shell populations (both versions): per AO row the sequential sum of P S ([`dot_seq`]),
 //!   added to the shells in AO order;
-//! - atomic multipoles, 2.0.1 ([`moments_by_rows`]): per AO row the negated sequential sums of
-//!   P D and P Q, added to the atoms in AO order (rows in parallel when asked);
-//! - atomic multipoles, v1.1 ([`moments_by_elements`]): every element P_{mu nu} D_{mu nu}
-//!   subtracted from the atom's moment directly.
+//! - atomic multipoles (both versions, [`moments_by_rows`]): per AO row the negated sequential
+//!   sums of P D and P Q, added to the atoms in AO order (rows in parallel when asked).
 //!
 //! The 2.0.1 response analyses density changes with eight-accumulator row dots instead
 //! (`v2::scf::Setup::delta_state`); GFN2-xTB's analysis (`axtb::scf`) sums columns with four
@@ -98,31 +96,4 @@ pub fn moments_by_rows(
         }
     }
     (pop, dip, qp)
-}
-
-/// Atomic dipoles and traceless quadrupoles of the total density `p` in v1.1's order (every
-/// element subtracted directly).
-pub fn moments_by_elements(
-    bas: &Basis,
-    dpint: &[Vec<f64>; 3],
-    qpint: &[Vec<f64>; 6],
-    p: &[f64],
-) -> (Vec<[f64; 3]>, Vec<[f64; 6]>) {
-    let n = bas.nao;
-    let nat = bas.nsh_at.len();
-    let mut dip = vec![[0.0; 3]; nat];
-    let mut qp = vec![[0.0; 6]; nat];
-    for mu in 0..n {
-        let a = bas.ao2at[mu];
-        for nu in 0..n {
-            let pmn = p[mu * n + nu];
-            for x in 0..3 {
-                dip[a][x] -= pmn * dpint[x][mu * n + nu];
-            }
-            for c in 0..6 {
-                qp[a][c] -= pmn * qpint[c][mu * n + nu];
-            }
-        }
-    }
-    (dip, qp)
 }

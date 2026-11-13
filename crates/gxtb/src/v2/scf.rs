@@ -440,6 +440,12 @@ impl Setup {
         State { p, q, qa, dip, qp, mag }
     }
 
+    /// v1.1: the 1.1.0 program's start density at this geometry (spin densities; closed shell:
+    /// the total density), from which its SCF starts in both conventions.
+    pub fn start_density(&self) -> Vec<Vec<f64>> {
+        crate::program110::guess_density(self)
+    }
+
     /// The program's start (`eeqbc_guess`): EEQ-BC charges partitioned to the shells by the
     /// reference occupations, no density, no multipoles.
     pub fn guess_state(&self) -> State {
@@ -616,7 +622,7 @@ impl Setup {
     /// smears above 1e-6 K with its single-precision kB).
     pub fn kt(&self, etemp: f64) -> f64 {
         if self.model.version == Version::V1_1 && self.model.program() {
-            return if etemp > crate::fermi::TEL_MIN { etemp * crate::occupations::KB_GXTB110 } else { 0.0 };
+            return if etemp > super::fermi::TEL_MIN { etemp * crate::occupations::KB_GXTB110 } else { 0.0 };
         }
         if etemp > 0.0 {
             etemp * super::fermi::boltzmann(self.model.program())
@@ -626,11 +632,11 @@ impl Setup {
     }
 
     /// Occupations, Fermi level and entropy term of one channel with `nel` electrons over the
-    /// levels `e` at `kt` in this model (v1.1: its rules, [`crate::fermi::fill_channel`]).
+    /// levels `e` at `kt` in this model (v1.1: its rules, [`super::fermi::fill_channel_v1_1`]).
     pub fn fill_channel(&self, nel: f64, kt: f64, e: &[f64]) -> (Vec<f64>, Option<f64>, f64) {
         match self.model.version {
             Version::V2_0_1 => super::fermi::fill_channel(nel, kt, e, self.model.program()),
-            Version::V1_1 => crate::fermi::fill_channel(nel as usize, kt, e, self.model.program()),
+            Version::V1_1 => super::fermi::fill_channel_v1_1(nel as usize, kt, e, self.model.program()),
         }
     }
 
@@ -856,10 +862,15 @@ impl Setup {
                 let pthr = opts.density_tol.unwrap_or(pthr * opts.accuracy);
                 let ndamp = opts.transition_iteration.unwrap_or(ndamp);
                 let ndiis = opts.diis_size.unwrap_or(ndiis);
-                let damping = opts.damping.unwrap_or(crate::scf::DAMPING);
-                let mixer =
-                    v1_mixer.insert(crate::strategy::Gxtb110FockMixer::new(n, damping, ndamp, ndiis, start.is_some()));
-                let rule = v1_rule.insert(crate::strategy::Gxtb110Rule::new(ethr, pthr));
+                let damping = opts.damping.unwrap_or(crate::options::DAMPING_V1_1);
+                let mixer = v1_mixer.insert(crate::program110::strategy::Gxtb110FockMixer::new(
+                    n,
+                    damping,
+                    ndamp,
+                    ndiis,
+                    start.is_some(),
+                ));
+                let rule = v1_rule.insert(crate::program110::strategy::Gxtb110Rule::new(ethr, pthr));
                 ScfStrategy { accelerator: Accelerator::Fock(mixer), rule, max_iter }
             }
         };

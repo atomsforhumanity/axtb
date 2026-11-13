@@ -23,10 +23,10 @@
 use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
 use super::gradient::Potentials;
+use super::h0::projector;
 use super::h0::AcpSet;
 use super::scf::{Setup, State};
 use super::tangent::{h0_pair, Jacobians};
-use crate::acp::projector;
 use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
 use axtb::molecule::{norm2_sq, sub3};

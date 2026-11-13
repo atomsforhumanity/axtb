@@ -17,9 +17,9 @@
 
 use super::basis::{h0_shells, scf_shells, INTCUT};
 use super::exchange::Products;
+use super::h0::bond_projectors_deriv;
 use super::h0::{acp_overlaps, anisotropy_gradient_par, diat_scale, kshell, selfenergy, shell_poly, AcpSet};
 use super::scf::{ScfResult, Setup, State};
-use crate::h0::bond_projectors_deriv;
 use crate::timing::Laps;
 use axtb::ao::{AtomPair, ShellPairs};
 use axtb::basis::Cgto;
@@ -87,7 +87,7 @@ pub struct Potentials {
 }
 
 /// One density and the dipole and quadrupole potentials its atomic moments are contracted with
-/// in [`Setup::add_overlap_multipole`].
+/// in the overlap and multipole contraction of the explicit gradient.
 #[derive(Clone, Copy)]
 pub struct MultipoleTerm<'a> {
     pub p: &'a [f64],
@@ -96,7 +96,7 @@ pub struct MultipoleTerm<'a> {
 }
 
 /// The weights of the integral derivatives of the explicit gradient
-/// ([`Setup::integral_weights`]): the overlap weight X, the total density and the dipole
+/// (`Setup::integral_weights`): the overlap weight X, the total density and the dipole
 /// (AES and anisotropy) and quadrupole potentials of its atomic moments.
 pub struct IntegralWeights {
     pub x: Vec<f64>,

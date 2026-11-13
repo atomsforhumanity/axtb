@@ -34,16 +34,16 @@ impl Version {
     }
 }
 
-/// The settings of one SCF of either version ([`crate::scf::Setup::scf`], [`crate::v2::scf::Setup::scf`]; a
+/// The settings of one SCF of either version ([`crate::v2::scf::Setup::scf`]; a
 /// [`crate::Calculator`] assembles them from its [`crate::Options`]). The defaults (`None`, 0)
 /// are the programs':
 ///
-/// - **v1.1** (the 1.1.0 program's `scf_`, `diisfock_`; [`crate::scf::Setup::scf`]): Fock damping with
-///   [`crate::scf::DAMPING`] in iterations 1-2 (open shell: 1-3), a transition step in iteration 3 (4), Pulay
+/// - **v1.1** (the 1.1.0 program's `scf_`, `diisfock_`): Fock damping with
+///   [`DAMPING_V1_1`] in iterations 1-2 (open shell: 1-3), a transition step in iteration 3 (4), Pulay
 ///   mixing of at most 7 (8) Fock matrices from iteration 4 (5) on, convergence when
 ///   |dE| < 1e-8 Eh and the RMS change of the packed spin densities < 2e-5 (open shell: 4e-7 Eh
 ///   and 5e-5), each times `accuracy`, followed by one more iteration with the unmixed Fock
-///   matrix whose energy is the result; at most [`crate::scf::MAX_ITER`] iterations.
+///   matrix whose energy is the result; at most [`MAX_ITER_V1_1`] iterations.
 /// - **2.0.1** (tblite's SCF as the 2.0.1 program runs it; [`crate::v2::scf`]): no mixing in
 ///   iteration 1, damping 0.2 in iterations 2-3, then DIIS with at most 7 Fock matrices,
 ///   convergence when |dE| < 1e-6 Eh and the RMS Fock residual < 2e-5, each times `accuracy`;
@@ -55,7 +55,7 @@ impl Version {
 /// cutoffs. Settings of one version only are refused for the other ([`ScfOptions::check`]).
 #[derive(Clone, Debug)]
 pub struct ScfOptions {
-    /// SCF iteration limit; 0 (the default): the program's, [`crate::scf::MAX_ITER`] for v1.1 and
+    /// SCF iteration limit; 0 (the default): the program's, [`MAX_ITER_V1_1`] for v1.1 and
     /// [`crate::v2::scf::MAX_ITER`] for 2.0.1.
     pub max_iter: usize,
     /// Multiplier of the program's convergence thresholds (those not given explicitly).
@@ -67,7 +67,7 @@ pub struct ScfOptions {
     /// 2.0.1 only: explicit threshold of the RMS Fock residual (the Fock matrix of the new
     /// density minus the mixed one it came from, over both spin channels).
     pub residual_tol: Option<f64>,
-    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`crate::scf::DAMPING`], 2.0.1 0.2.
+    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`DAMPING_V1_1`], 2.0.1 0.2.
     pub damping: Option<f64>,
     /// v1.1 only: iteration of the transition step (damping before it, Pulay mixing after);
     /// `None`: 3 (open shell: 4).
@@ -112,7 +112,7 @@ impl ScfOptions {
     /// The SCF iteration limit for `version` (`max_iter`, 0: the program's).
     pub fn iteration_limit(&self, version: Version) -> usize {
         match (self.max_iter, version) {
-            (0, Version::V1_1) => crate::scf::MAX_ITER,
+            (0, Version::V1_1) => MAX_ITER_V1_1,
             (0, Version::V2_0_1) => crate::v2::scf::MAX_ITER,
             (m, _) => m,
         }
@@ -204,3 +204,8 @@ impl std::str::FromStr for Conventions {
         }
     }
 }
+
+/// The g-xTB 1.1.0 program's SCF iteration limit (v1.1).
+pub const MAX_ITER_V1_1: usize = 1000;
+/// The g-xTB 1.1.0 program's damping factor (single precision; v1.1).
+pub const DAMPING_V1_1: f64 = 0.1_f32 as f64;
