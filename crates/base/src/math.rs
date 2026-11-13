@@ -3,7 +3,7 @@
 //! block of a pair term, the normalization of Gaussian primitives and the atomic sums of shell
 //! quantities.
 //!
-//! Sources: the C library's `erf`; the 3-vector and pair-Hessian helpers of the LGPL crates;
+//! Sources: the C library's `erf`; the 3-vector and pair-Hessian helpers of `axtb` and `axtb-d4`;
 //! the primitive normalization of axtb's STO-NG basis (tblite's `slater_to_gauss`) and Molden
 //! writer, which associate the factor 2α/π differently, both kept ([`primitive_norm_tblite`],
 //! [`primitive_norm`]); the shell-to-atom sum of axtb's SCF.

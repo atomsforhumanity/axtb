@@ -18,11 +18,11 @@
 //!   their order gives the same bits for every thread count, as long as each task runs
 //!   sequentially. Without `parallel` no rayon call is made.
 //!
-//! Sources: the thread pools and pool wrappers of the LGPL calculators of `axtb` (GFN2-xTB)
+//! Sources: the thread pools and pool wrappers of the calculators of `axtb` (GFN2-xTB)
 //! and `axtb-gfnff`, the fixed chunks of the GFN2-xTB Hamiltonian gradient (at most 64 chunks
 //! with bounds `c n / nchunk`), GFN-FF's chunked pair loops and the ordered parallel maps of
-//! `axtb` and `axtb_base::fd`. The GPL g-xTB crate calls these routines from its own code;
-//! nothing here comes from it.
+//! `axtb` and `axtb_base::fd`. `axtb-gxtb` (g-xTB) calls these routines too, and adds its own
+//! tiled helpers on top of them.
 
 use crate::{Error, Result};
 use rayon::prelude::*;

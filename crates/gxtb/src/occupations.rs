@@ -14,8 +14,7 @@
 //! Entropy terms: [`entropy_thresholded`] (the 1.1.0 program), [`entropy_exact`] (the exact
 //! filling); the 2.0.1 program's is tblite's ([`axtb_base::occupations::entropy_tblite`]).
 //!
-//! The exact filling is AFH's own, written in this GPL-3.0 crate; it stays GPL-3.0 here unless
-//! the maintainer relicenses it.
+//! The exact filling is AFH's own; only g-xTB's default conventions use it.
 
 use axtb_base::occupations::{aufbau, fermismear_iterate, Newton};
 

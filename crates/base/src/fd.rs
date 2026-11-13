@@ -18,8 +18,8 @@
 //!   two ways the methods place their points are the variants of [`Displacement`].
 //!
 //! Sources: the textbook two- and four-point central differences, and the finite-difference
-//! code of the LGPL crates `axtb` (GFN2-xTB) and `axtb-gfnff` that moved here. The GPL g-xTB
-//! crate calls these routines from its own code; nothing here comes from it.
+//! code of `axtb` (GFN2-xTB) and `axtb-gfnff` that moved here. `axtb-gxtb` (g-xTB) calls
+//! these routines too.
 
 use crate::threads;
 use std::convert::Infallible;

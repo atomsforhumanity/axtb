@@ -3,8 +3,8 @@
 //! driver, Python package and qccodec codec select it by method name (`"gxtb-v2.0.1"`,
 //! `"gxtb-v1.1"`).
 //!
-//! g-xTB lives in this GPL-3.0 crate, which builds on axtb (LGPL-3.0); the method trait is
-//! axtb-base's, so the front ends hold it like every other method.
+//! g-xTB lives in this crate, which builds on axtb; the method trait is axtb-base's, so the
+//! front ends hold it like every other method.
 //!
 //! Energies, analytic gradients ([`crate::gradient`]; v1.1 in the program's conventions with the
 //! response of its Fock matrix)
