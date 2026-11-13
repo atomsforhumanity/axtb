@@ -786,9 +786,9 @@ impl DampedMultipole {
         self.ncoord.add_hessian(mol, &w, hess);
     }
 
-    /// Explicit nuclear gradient at fixed moments, including the CN dependence of the
-    /// damping radii, which it contracts at once (tblite's order: before the CN dependence of
-    /// the other terms is contracted).
+    /// Explicit nuclear gradient at fixed moments; the CN dependence of the damping radii goes
+    /// to the chain's CN slot, contracted once with the other terms' (tblite contracts it
+    /// separately, first: the gradient differs by round-off).
     pub fn add_gradient(
         &self,
         geo: &Geometry<'_>,
@@ -869,10 +869,10 @@ impl DampedMultipole {
                 }
             }
         }
+        let w = chain.slot(self.cn);
         for i in 0..nat {
-            dedr[i] *= cache.dmrdcn[i];
+            w[i] += dedr[i] * cache.dmrdcn[i];
         }
-        chain.apply_now(geo, self.cn, &dedr).expect("the GFN2-xTB CN's chain rule cannot fail");
     }
 }
 

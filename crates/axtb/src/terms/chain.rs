@@ -279,14 +279,6 @@ impl Chain {
         }
     }
 
-    /// Contract `w` through the (single-output) intermediate of slot `s` into `g` now, instead
-    /// of adding it to the slot (a term that applies its own chain rule, in its own order).
-    pub fn apply_now(&mut self, geo: &Geometry<'_>, s: Slot, w: &[f64]) -> Result<()> {
-        let (x, _) = geo.layout.intermediate(s);
-        assert_eq!(x.outputs(), 1, "apply_now through {:?}, which has several outputs", x.name());
-        x.chain(geo, &[w], self)
-    }
-
     /// The gradient: every intermediate applied once, in the reverse registration order, each
     /// pushing its weights into `g` and into the slots of the intermediates it depends on (its
     /// own slots are zeroed while it is applied). An intermediate whose weights are all exactly
