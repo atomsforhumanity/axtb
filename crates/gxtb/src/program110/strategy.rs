@@ -5,7 +5,6 @@
 
 use axtb::scf::{ConvergenceRule, FockMixer, Iteration, Verdict};
 use axtb::Result;
-use faer::{Mat, Par};
 
 /// The 1.1.0 program's Fock mixing (`diisfock_`), all matrices per spin as full row-major
 /// vectors here (closed-shell iteration numbers; open shell one later, see
@@ -15,7 +14,7 @@ use faer::{Mat, Par};
 /// iteration 4 on the stored pairs (at most `size`, oldest dropped) are combined,
 /// Fs = sum_i c_i F_i with the coefficients minimizing |sum_i c_i r_i|^2, r_i = F_i - Fin_i,
 /// sum_i c_i = 1 (dot products over the packed lower triangle, separately for each spin; the
-/// bordered equations solved by faer's LU). Only the direction of Fs matters (it is
+/// bordered equations solved as 2.0.1 solves its own). Only the direction of Fs matters (it is
 /// diagonalized). An SCF restarted from a given density (`restart`, the program's
 /// `gxtbrestart`) has no transition step: iteration 3 (4) already combines the stored pairs, its
 /// own only, so Fs = F (found by comparing every iteration of the program's restarted runs).
@@ -94,30 +93,25 @@ impl FockMixer for Gxtb110FockMixer {
     }
 }
 
-/// Pulay coefficients of spin `s` from the residuals of `hist` (`npk` packed elements per spin).
+/// Pulay coefficients of spin `s` from the residuals of `hist` (`npk` packed elements per spin):
+/// the bordered equations solved as 2.0.1's ([`crate::strategy::diis_coefficients`]); the last
+/// Fock matrix alone if they are singular.
 fn diis_coefficients(hist: &[(Vec<Vec<f64>>, Vec<f64>)], s: usize, npk: usize) -> Vec<f64> {
     let m = hist.len();
-    let mut b = Mat::<f64>::zeros(m + 1, m + 1);
     let r = |i: usize| &hist[i].1[s * npk..(s + 1) * npk];
+    let mut b = vec![vec![0.0; m]; m];
     for i in 0..m {
         for j in 0..=i {
             let v: f64 = r(i).iter().zip(r(j)).map(|(a, b)| a * b).sum();
-            b[(i, j)] = v;
-            b[(j, i)] = v;
+            b[i][j] = v;
+            b[j][i] = v;
         }
-        b[(i, m)] = -1.0;
-        b[(m, i)] = -1.0;
     }
-    let mut rhs = Mat::<f64>::zeros(m + 1, 1);
-    rhs[(m, 0)] = -1.0;
-    // sequential: faer's high-level `partial_piv_lu` would start rayon's global pool
-    axtb_base::linalg::Lu::new(b, Par::Seq).solve(rhs.as_mut());
-    if (0..m).any(|i| !rhs[(i, 0)].is_finite()) {
+    crate::strategy::diis_coefficients(&b).unwrap_or_else(|| {
         let mut c = vec![0.0; m];
         c[m - 1] = 1.0;
-        return c;
-    }
-    (0..m).map(|i| rhs[(i, 0)]).collect()
+        c
+    })
 }
 
 /// The 1.1.0 program's convergence test: converged when the energy changed by less than
