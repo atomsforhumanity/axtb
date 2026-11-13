@@ -222,7 +222,12 @@ fn cli_v2_equals_rust_api_and_program() {
             .collect();
         assert_eq!(cli_h, h.hessian);
     }
+    // g-xTB v1.1's response Hessian: available in the axtb conventions, refused in the program's
     let req = serde_json::json!({"numbers": [8, 1, 1], "positions": water, "method": "gxtb-v1.1", "hessian": true, "hessian_method": "response"});
+    let (ok, out, err) = cli_json(&req);
+    let r: serde_json::Value = serde_json::from_str(&out).unwrap_or_default();
+    assert!(ok && r["hessian_method"] == "response" && r["hessian"].as_array().is_some_and(|h| h.len() == 9), "{err}");
+    let req = serde_json::json!({"numbers": [8, 1, 1], "positions": water, "method": "gxtb-v1.1", "hessian": true, "hessian_method": "response", "conventions": "gxtb"});
     let (ok, _, err) = cli_json(&req);
     assert!(!ok && err.contains("gxtb-v1.1 Hessians: the Response method is not available"), "{err}");
 }
