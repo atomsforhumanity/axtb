@@ -205,7 +205,8 @@ pub fn model_shells(model: &Model, z: usize) -> &'static [crate::params::QvszpSh
     }
 }
 
-/// The q-vSZP basis tables (bit-identical in 1.1.0 and 2.0.1), parsed once.
+/// The q-vSZP basis tables (bit-identical in 1.1.0 and 2.0.1), built once from the compiled-in
+/// table (`data::qvszp`).
 pub fn qvszp() -> &'static crate::params::QvszpParams {
     static B: std::sync::OnceLock<crate::params::QvszpParams> = std::sync::OnceLock::new();
     B.get_or_init(crate::params::QvszpParams::v1_1)
