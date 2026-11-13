@@ -203,7 +203,7 @@ fn input_errors() {
     // element without v1.1 parameters (Z = 60 is absent from the parameter file)
     assert!(Calculator::new(Version::V1_1, &[60, 1], &[[0.0; 3], [0.0, 0.0, 3.0]], 0.0, None, d()).is_err());
     // a 2.0.1 setup refuses SCF options of other conventions; its Hessians need every orbital
-    let mut setup = axtb_gxtb::v2::scf::Setup::new(&mol, Conventions::Axtb).unwrap();
+    let mut setup = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Axtb)).unwrap();
     assert!(setup.scf(&ScfOptions { conventions: Conventions::Gxtb, ..Default::default() }).is_err());
     let r = setup.scf(&ScfOptions::default()).unwrap();
     assert!(!r.all_orbitals);
@@ -266,7 +266,7 @@ fn v2_calculator_and_hessian() {
         let opts = Options { conventions: conv, ..Default::default() };
         let mut calc = Calculator::new(Version::V2_0_1, &mol.numbers, &mol.positions, 0.0, None, opts).unwrap();
         let r = calc.singlepoint(&mol.positions, &Want::gradient(true)).unwrap();
-        let setup = V2Setup::new(&mol, conv).unwrap();
+        let setup = V2Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(conv)).unwrap();
         let direct = setup.scf(&ScfOptions { conventions: conv, ..Default::default() }).unwrap();
         assert_eq!(r.energy, direct.energies.total);
         assert_eq!(r.gradient.as_ref().unwrap(), &setup.gradient(&direct).unwrap());

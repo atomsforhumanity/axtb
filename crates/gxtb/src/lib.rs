@@ -102,6 +102,7 @@ pub mod kernels;
 pub mod krylov;
 pub mod mulliken;
 pub mod occupations;
+pub mod options;
 pub mod parallel;
 pub mod params;
 pub mod qvszp;

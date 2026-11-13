@@ -88,7 +88,7 @@ impl Setup {
             let displaced = |d: f64| -> Result<Setup> {
                 let mut m = seq.mol.clone();
                 m.positions[y / 3][y % 3] += d;
-                Setup::new(&m, seq.model.conventions)
+                Setup::new(&m, seq.model)
             };
             let (sp, sm) = (displaced(step)?, displaced(-step)?);
             let (fp, fm) = (sp.fock_of_density(&r.density), sm.fock_of_density(&r.density));

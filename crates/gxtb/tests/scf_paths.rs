@@ -132,7 +132,7 @@ fn h2_v2_early_diis() {
     let summ: Value = serde_json::from_str(&std::fs::read_to_string(dir.join("summary.json")).unwrap()).unwrap();
     let xyz = std::fs::read_to_string(dir.join("mol.xyz")).unwrap();
     let mol = axtb_gxtb::v2::read_xyz(&xyz, 0.0, Some(0), Conventions::Gxtb).unwrap();
-    let r = Setup::new(&mol, Conventions::Gxtb)
+    let r = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb))
         .unwrap()
         .scf(&ScfOptions { conventions: Conventions::Gxtb, ..Default::default() })
         .unwrap();
@@ -167,7 +167,7 @@ fn gd_aqua_v2_program_gradient_axis() {
         Conventions::Gxtb,
     )
     .unwrap();
-    let setup = Setup::new(&mol, Conventions::Gxtb).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
     let r = setup.scf(&ScfOptions { conventions: Conventions::Gxtb, accuracy: 1e-4, ..Default::default() }).unwrap();
     assert!((r.energies.total - d["energy"].as_f64().unwrap()).abs() < 1e-9, "energy {}", r.energies.total);
     let g = setup.gradient(&r).unwrap();

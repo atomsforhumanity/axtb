@@ -37,7 +37,6 @@ use crate::h0::{
     INTCUT as H0_INTCUT, K_DELTA,
 };
 use crate::kernels::{hubbard_u, ALPHA_FX, R_SAME_ATOM};
-use crate::params::{EeqBcParams, QvszpParams};
 use crate::qvszp::{atom_shells_dq, KCN_BASIS};
 use crate::scf::Setup;
 use axtb::basis::{ao_offsets, Cgto};
@@ -133,8 +132,8 @@ fn add_pair(g: &mut [[f64; 3]], i: usize, j: usize, f: f64, v: [f64; 3]) {
 impl Setup {
     /// Shells of the SCF basis differentiated with respect to the effective charge.
     fn scf_basis_dq(&self) -> Result<Vec<Vec<Cgto>>> {
-        let qparam = QvszpParams::v1_1();
-        (0..self.mol.nat()).map(|i| atom_shells_dq(&qparam, self.mol.numbers[i], self.basis.qeff[i].qeff)).collect()
+        let qparam = crate::v2::qvszp();
+        (0..self.mol.nat()).map(|i| atom_shells_dq(qparam, self.mol.numbers[i], self.basis.qeff[i].qeff)).collect()
     }
 
     /// Sum_mu,nu X_mu,nu dS_mu,nu/dR for a symmetric weight matrix `x` plus, for every
@@ -248,14 +247,14 @@ impl Setup {
         let n = self.nao;
         let mol = &self.mol;
         let nat = mol.nat();
-        let qparam = QvszpParams::v1_1();
+        let qparam = crate::v2::qvszp();
         let param = &self.param;
         let mut sh = Vec::with_capacity(nat);
         let mut dsh = Vec::with_capacity(nat);
         for i in 0..nat {
             let q = h0_effective_charge(param, mol.numbers[i], &self.basis.qeff[i])?;
-            sh.push(h0_atom_shells(param, &qparam, mol.numbers[i], q)?);
-            dsh.push(h0_atom_shells_dq(param, &qparam, mol.numbers[i], q)?);
+            sh.push(h0_atom_shells(param, qparam, mol.numbers[i], q)?);
+            dsh.push(h0_atom_shells_dq(param, qparam, mol.numbers[i], q)?);
         }
         let first = ao_offsets(&sh);
         let kw = k_wolfsberg(param);
@@ -732,7 +731,7 @@ impl Setup {
     pub fn finish_chain(&self, mut ch: Chain) -> Result<Vec<[f64; 3]>> {
         let mol = &self.mol;
         let n = mol.nat();
-        let qparam = QvszpParams::v1_1();
+        let qparam = crate::v2::qvszp();
         for i in 0..n {
             let el = qparam.element(mol.numbers[i])?;
             let q = self.eeq.charges[i];
@@ -768,7 +767,7 @@ impl Setup {
             }
         }
         RevD4::add_cn_gradient(mol, &ch.dcnd4, &mut g);
-        eeqbc_charge_gradient(&EeqBcParams::v1_1(), mol, &ch.dqeeq, &mut g)?;
+        eeqbc_charge_gradient(crate::params::eeqbc_v1_1(), mol, &ch.dqeeq, &mut g)?;
         Ok(g)
     }
 

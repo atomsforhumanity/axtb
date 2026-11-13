@@ -42,7 +42,7 @@ pub(crate) mod strategy;
 pub mod tangent;
 pub(crate) mod terms;
 
-use crate::scf::Conventions;
+use crate::options::{Conventions, Version};
 use axtb::units::reference::MCTC_AATOAU;
 
 /// Highest atomic number with g-xTB 2.0.1 parameters.
@@ -60,9 +60,11 @@ pub fn sqrt_cn(cn: f64) -> (f64, f64) {
     (s - 1e-6, 0.5 / s)
 }
 
-/// Convention-dependent constants of a g-xTB 2.0.1 calculation.
+/// What a g-xTB calculation is: the version (its parameters and forms) and the conventions, with
+/// the constants that follow from them.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Model {
+    pub version: Version,
     pub conventions: Conventions,
     /// Ångström to bohr for the tables given in Ångström (D3 pair radii, Pyykkö radii) and
     /// the program's unit literals (mctc-lib's CODATA 2018 value in program mode, CODATA 2022
@@ -71,12 +73,23 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(conventions: Conventions) -> Self {
+    /// The model of `version` in `conventions`.
+    pub fn new(version: Version, conventions: Conventions) -> Self {
         let aatoau = match conventions {
             Conventions::Gxtb => MCTC_AATOAU,
             Conventions::Axtb => axtb::units::AATOAU,
         };
-        Self { conventions, aatoau }
+        Self { version, conventions, aatoau }
+    }
+
+    /// g-xTB 2.0.1 in `conventions`.
+    pub fn v2_0_1(conventions: Conventions) -> Self {
+        Self::new(Version::V2_0_1, conventions)
+    }
+
+    /// g-xTB v1.1 in `conventions`.
+    pub fn v1_1(conventions: Conventions) -> Self {
+        Self::new(Version::V1_1, conventions)
     }
 
     /// Program mode (hard cutoffs, fractional electron count).
@@ -171,7 +184,7 @@ pub fn check_elements(numbers: &[usize]) -> axtb::Result<()> {
 /// Read an XYZ file (Ångström) for g-xTB 2.0.1: coordinates multiplied by the conventions'
 /// Ångström-to-bohr factor (program mode: mctc-lib's, as the 2.0.1 program reads them).
 pub fn read_xyz(text: &str, charge: f64, uhf: Option<usize>, conventions: Conventions) -> axtb::Result<axtb::Molecule> {
-    let aatoau = Model::new(conventions).aatoau;
+    let aatoau = Model::v2_0_1(conventions).aatoau;
     let (numbers, positions) = axtb::io::read_xyz(text, aatoau)?;
     axtb::Molecule::new(&numbers, &positions, charge, uhf)
 }

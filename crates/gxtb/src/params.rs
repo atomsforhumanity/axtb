@@ -87,8 +87,21 @@ fn take<const N: usize>(v: &[f64], what: &str) -> Result<[f64; N]> {
     Ok(out)
 }
 
+/// The parameters shipped with g-xTB 1.1.0 ([`GxtbParams::v1_1`]), parsed once.
+pub fn gxtb_v1_1() -> &'static GxtbParams {
+    static P: std::sync::OnceLock<GxtbParams> = std::sync::OnceLock::new();
+    P.get_or_init(GxtbParams::v1_1)
+}
+
+/// The EEQ-BC parameters shipped with g-xTB 1.1.0 ([`EeqBcParams::v1_1`]), parsed once.
+pub fn eeqbc_v1_1() -> &'static EeqBcParams {
+    static P: std::sync::OnceLock<EeqBcParams> = std::sync::OnceLock::new();
+    P.get_or_init(EeqBcParams::v1_1)
+}
+
 impl GxtbParams {
-    /// The parameters shipped with g-xTB 1.1.0.
+    /// The parameters shipped with g-xTB 1.1.0 (parsed on every call; [`gxtb_v1_1`] parses
+    /// once).
     pub fn v1_1() -> Self {
         Self::parse(GXTB_PARAMETERS).expect("bundled gxtb_parameters")
     }

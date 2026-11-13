@@ -34,12 +34,12 @@ fn tight(c: Conventions) -> ScfOptions {
 }
 
 fn energy(m: &axtb::Molecule, c: Conventions) -> f64 {
-    Setup::new(m, c).unwrap().scf(&tight(c)).unwrap().energies.total
+    Setup::new(m, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap().scf(&tight(c)).unwrap().energies.total
 }
 
 fn fd_check(rel: &str, c: Conventions) -> f64 {
     let mol = molecule(rel, c);
-    let setup = Setup::new(&mol, c).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
     let r = setup.scf(&tight(c)).unwrap();
     let g = setup.gradient(&r).unwrap();
     let h = 5e-4;
@@ -109,7 +109,7 @@ fn gradient_matches_program() {
     for rel in &dirs {
         let c = Conventions::Gxtb;
         let mol = molecule(rel, c);
-        let setup = Setup::new(&mol, c).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
         let r = setup.scf(&ScfOptions { conventions: c, accuracy: 1e-4, ..Default::default() }).unwrap();
         let g = setup.gradient(&r).unwrap();
         let gp = program_gradient(rel, "gradient_tight");
@@ -150,7 +150,7 @@ fn smooth_cutoffs_finite_differences() {
     let numbers = [8, 1, 1, 8, 1, 1, 2];
     let mol = axtb::Molecule::new(&numbers, &pos, 0.0, None).unwrap();
     let c = Conventions::Axtb;
-    let setup = Setup::new(&mol, c).unwrap();
+    let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
     let r = setup.scf(&tight(c)).unwrap();
     let g = setup.gradient(&r).unwrap();
     let h = 1e-3;

@@ -37,7 +37,7 @@ fn tight(c: Conventions, etemp: f64) -> ScfOptions {
 }
 
 fn scf(m: &axtb::Molecule, opts: &ScfOptions) -> (Setup, ScfResult) {
-    let s = Setup::new(m, opts.conventions).unwrap();
+    let s = Setup::new(m, axtb_gxtb::v2::Model::v2_0_1(opts.conventions)).unwrap();
     let r = s.scf(opts).unwrap();
     (s, r)
 }

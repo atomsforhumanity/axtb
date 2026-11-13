@@ -35,7 +35,7 @@ fn main() {
     let symmetric = a[7] == "1";
     let threads: usize = a[8].parse().expect("threads");
     let mol = axtb_gxtb::v2::read_xyz(&xyz, charge, Some(uhf), conv).expect("molecule");
-    let mut setup = Setup::with_threads(&mol, conv, threads).expect("setup");
+    let mut setup = Setup::with_threads(&mol, axtb_gxtb::v2::Model::v2_0_1(conv), threads).expect("setup");
     let opts = ScfOptions {
         conventions: conv,
         etemp,

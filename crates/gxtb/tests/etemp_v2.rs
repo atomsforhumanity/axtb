@@ -85,7 +85,7 @@ fn compare(tight: bool) {
         let etemp = row0["etemp"].as_f64().unwrap();
         let label = format!("{name} {etemp} K");
         let mol = molecule(group, name, Conventions::Gxtb);
-        let setup = Setup::new(&mol, Conventions::Gxtb).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
         let opts = ScfOptions {
             conventions: Conventions::Gxtb,
             etemp,
@@ -177,11 +177,13 @@ fn etemp_gradient_matches_finite_differences() {
     {
         let c = Conventions::Axtb;
         let mol = molecule(group, name, c);
-        let setup = Setup::new(&mol, c).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
         let r = setup.scf(&tight(c, etemp)).unwrap();
         assert!(r.energies.entropy < -1e-6, "{name}: no smearing");
         let g = setup.gradient(&r).unwrap();
-        let e = |m: &axtb::Molecule| Setup::new(m, c).unwrap().scf(&tight(c, etemp)).unwrap().energies.total;
+        let e = |m: &axtb::Molecule| {
+            Setup::new(m, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap().scf(&tight(c, etemp)).unwrap().energies.total
+        };
         let h = 5e-4;
         let mut worst: f64 = 0.0;
         for a in 0..mol.nat() {

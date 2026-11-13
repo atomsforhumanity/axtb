@@ -97,7 +97,7 @@ fn terms_at_program_density() {
     for dir in molecules() {
         let Some((p, d)) = program_density(&dir) else { continue };
         let mol = molecule(&dir, Conventions::Gxtb);
-        let setup = Setup::new(&mol, Conventions::Gxtb).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
         assert_eq!(setup.nao, d["nao"].as_u64().unwrap() as usize, "{}", name(&dir));
         let st = setup.state(&p);
         let (e, _) = setup.evaluate(&st, false);
@@ -139,7 +139,7 @@ fn scf_matches_program() {
     for dir in molecules() {
         let summ = json(&dir.join("summary.json"));
         let mol = molecule(&dir, Conventions::Gxtb);
-        let setup = Setup::new(&mol, Conventions::Gxtb).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
         let t = std::time::Instant::now();
         let r = match setup.scf(&opts) {
             Ok(r) => r,
@@ -207,7 +207,7 @@ fn default_conventions_near_program() {
     let mut worst: f64 = 0.0;
     for dir in molecules() {
         let mol = molecule(&dir, Conventions::Axtb);
-        let r = Setup::new(&mol, Conventions::Axtb).unwrap().scf(&opts).unwrap();
+        let r = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Axtb)).unwrap().scf(&opts).unwrap();
         let summ = json(&dir.join("summary.json"));
         let de = r.energies.total - program_total(&dir);
         println!(
@@ -233,7 +233,7 @@ fn large_systems_match_program() {
         let dir = root().join("large").join(name);
         let summ = json(&dir.join("summary.json"));
         let mol = molecule(&dir, Conventions::Gxtb);
-        let setup = Setup::new(&mol, Conventions::Gxtb).unwrap();
+        let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Gxtb)).unwrap();
         let r = setup.scf(&ScfOptions { conventions: Conventions::Gxtb, ..Default::default() }).unwrap();
         let ep = program_total(&dir);
         let de = r.energies.total - ep;
@@ -244,7 +244,10 @@ fn large_systems_match_program() {
             }
         }
         let dmol = molecule(&dir, Conventions::Axtb);
-        let rd = Setup::new(&dmol, Conventions::Axtb).unwrap().scf(&ScfOptions::default()).unwrap();
+        let rd = Setup::new(&dmol, axtb_gxtb::v2::Model::v2_0_1(Conventions::Axtb))
+            .unwrap()
+            .scf(&ScfOptions::default())
+            .unwrap();
         println!(
             "{name}: program mode dE {de:.2e} (rel {:.1e}), terms {dterm:.1e}, iter {} / {}; default conventions dE {:.2e}",
             de / ep,

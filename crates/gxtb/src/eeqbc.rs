@@ -534,7 +534,7 @@ mod tests {
     #[test]
     fn sqrtpi_of_the_forms() {
         assert_eq!(EeqBcForm::V1_1.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits());
-        let v2 = crate::v2::eeqbc::form(&Model::new(crate::scf::Conventions::Gxtb));
+        let v2 = crate::v2::eeqbc::form(&Model::v2_0_1(crate::options::Conventions::Gxtb));
         assert_eq!(v2.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits() + 1);
     }
 }

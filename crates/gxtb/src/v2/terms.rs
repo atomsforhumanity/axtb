@@ -596,7 +596,7 @@ mod tests {
     fn aes_gradient_paths_agree() {
         let pos = [[0.0, 0.0, -1.14], [0.0, 0.0, 1.14], [0.0, 1.77, -2.24], [0.0, -1.77, -2.24]];
         let mol = Molecule::new(&[6, 8, 1, 1], &pos, 0.0, None).unwrap();
-        let mut setup = Setup::new(&mol, Conventions::Axtb).unwrap();
+        let mut setup = Setup::new(&mol, super::Model::v2_0_1(Conventions::Axtb)).unwrap();
         let r = setup.scf(&ScfOptions::default()).unwrap();
         for threads in [1, 2] {
             setup.set_threads(threads).unwrap();

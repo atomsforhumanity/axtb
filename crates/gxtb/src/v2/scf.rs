@@ -32,11 +32,10 @@ use super::repulsion::Repulsion;
 use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
 use super::terms::{buffer, Terms};
 use super::Model;
-use crate::calculator::Version;
 use crate::data_v2::{REF_OCC, ZEFF_SHELL};
 use crate::eeqbc::EeqBcCharges;
 use crate::fock::shell_list;
-use crate::scf::{Conventions, ScfOptions};
+use crate::options::{ScfOptions, Version};
 use crate::timing::{Laps, Timings};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockMixer, FockSource, Iteration, ScfModel, ScfStrategy};
@@ -161,17 +160,17 @@ impl State {
 }
 
 impl Setup {
-    /// Geometry-dependent setup of `mol` (positions in bohr, integer charge), on one thread.
-    pub fn new(mol: &Molecule, conventions: Conventions) -> Result<Self> {
-        Self::with_threads(mol, conventions, 1)
+    /// Geometry-dependent setup of `mol` (positions in bohr, integer charge) for `model` (the
+    /// version and conventions), on one thread.
+    pub fn new(mol: &Molecule, model: Model) -> Result<Self> {
+        Self::with_threads(mol, model, 1)
     }
 
     /// [`Setup::new`] on `threads` threads of the current rayon pool (the caller runs it inside a
     /// pool of that size): the setup's loops in parallel, its dense linear algebra from
     /// `axtb_base::threads::DENSE_MIN_AO` basis functions on, and so those of its SCF, gradient
     /// and Hessians ([`Setup::set_threads`]). Zero threads is an input error.
-    pub fn with_threads(mol: &Molecule, conventions: Conventions, threads: usize) -> Result<Self> {
-        let model = Model::new(conventions);
+    pub fn with_threads(mol: &Molecule, model: Model, threads: usize) -> Result<Self> {
         let parallel = threads > 1;
         crate::check_charge(mol)?;
         super::check_elements(&mol.numbers)?;

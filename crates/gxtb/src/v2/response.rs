@@ -534,7 +534,7 @@ pub fn rhs_finite_difference(setup: &Setup, p: &[Vec<f64>], y: usize, h: f64) ->
     let (fy, sy) = fd::try_derivative(fd::Stencil::Central4, h, |d| {
         let mut m = setup.mol.clone();
         m.positions[y / 3][y % 3] += d;
-        let s = Setup::new(&m, setup.model.conventions)?;
+        let s = Setup::new(&m, setup.model)?;
         Ok::<_, Error>((s.fock_of_density(p), s.s.clone()))
     })?;
     Ok((fy.iter().map(|f| to_mat(n, f)).collect(), to_mat(n, &sy)))

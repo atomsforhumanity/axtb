@@ -41,7 +41,7 @@ fn tangents_match_finite_differences() {
     for rel in cases.split(',') {
         for c in [Conventions::Axtb, Conventions::Gxtb] {
             let mol = molecule(rel, c);
-            let setup = Setup::new(&mol, c).unwrap();
+            let setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap();
             let tan = setup.tangents().unwrap();
             let n3 = 3 * mol.nat();
             let h = 1e-3;
@@ -52,7 +52,7 @@ fn tangents_match_finite_differences() {
                 let at = |d: f64| {
                     let mut m = mol.clone();
                     m.positions[x / 3][x % 3] += d;
-                    mats(&Setup::new(&m, c).unwrap())
+                    mats(&Setup::new(&m, axtb_gxtb::v2::Model::v2_0_1(c)).unwrap())
                 };
                 let (p1, m1, p2, m2) = (at(h), at(-h), at(2.0 * h), at(-2.0 * h));
                 let t = tan.cartesian(x);

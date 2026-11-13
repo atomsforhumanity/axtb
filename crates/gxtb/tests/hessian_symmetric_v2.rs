@@ -38,7 +38,7 @@ fn symmetric_response_terms_match_a_tight_solve() {
         ("reference/tetrachlorocuprate", Conventions::Axtb, 3000.0),
     ] {
         let mol = molecule(rel, conv);
-        let mut setup = Setup::new(&mol, conv).unwrap();
+        let mut setup = Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(conv)).unwrap();
         let opts = ScfOptions {
             conventions: conv,
             etemp,

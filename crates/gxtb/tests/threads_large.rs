@@ -15,7 +15,7 @@ fn threads_agree_on_a_large_molecule() {
     let xyz = include_str!("../../../tests/structures/large/water100.xyz");
     for conventions in [Conventions::Axtb, Conventions::Gxtb] {
         let mol = axtb_gxtb::v2::read_xyz(xyz, 0.0, None, conventions).unwrap();
-        let nao = axtb_gxtb::v2::scf::Setup::new(&mol, conventions).unwrap().nao;
+        let nao = axtb_gxtb::v2::scf::Setup::new(&mol, axtb_gxtb::v2::Model::v2_0_1(conventions)).unwrap().nao;
         assert!(nao >= DENSE_MIN_AO.max(314), "{nao} basis functions");
         let run = |threads: usize| {
             let o = Options { threads, conventions, ..Default::default() };

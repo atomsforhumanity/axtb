@@ -19,6 +19,7 @@
 //! that size (`axtb_base::threads::Threads`) and runs everything inside it; with `threads = 1`
 //! no thread is spawned and faer's global parallelism is never touched.
 
+pub use crate::options::Version;
 use crate::scf::{Conventions, ScfOptions, ScfResult, Setup};
 use crate::timing::Timings;
 use crate::v2;
@@ -34,37 +35,6 @@ use axtb_base::fd;
 use axtb_base::threads::Threads;
 use faer::Par;
 use std::time::Instant;
-
-/// The g-xTB versions.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub enum Version {
-    /// g-xTB 2.0.1 (the grimme-lab/g-xtb 2.0.1 release, `xtb --gxtb`), the default.
-    #[default]
-    V2_0_1,
-    /// g-xTB v1.1 (public preprint version, the 1.1.0 program).
-    V1_1,
-}
-
-impl Version {
-    /// The version a method name selects: `gxtb-v2.0.1` (also `gxtb-2.0.1`, `gxtbv201`,
-    /// `g-xTB 2.0`) or `gxtb-v1.1` (also `gxtb_v1.1`, `gxtbv11`, `g-xTB 1.1`), case-insensitive.
-    pub fn from_method(name: &str) -> Option<Self> {
-        let key: String = name.to_ascii_lowercase().chars().filter(|c| c.is_ascii_alphanumeric()).collect();
-        match key.as_str() {
-            "gxtbv201" | "gxtb201" | "gxtbv20" | "gxtb20" => Some(Self::V2_0_1),
-            "gxtbv11" | "gxtb11" => Some(Self::V1_1),
-            _ => None,
-        }
-    }
-
-    /// The method name: `"gxtb-v2.0.1"` or `"gxtb-v1.1"`.
-    pub fn method(&self) -> &'static str {
-        match self {
-            Self::V2_0_1 => "gxtb-v2.0.1",
-            Self::V1_1 => "gxtb-v1.1",
-        }
-    }
-}
 
 impl v2::scf::Energies {
     /// The terms with their names as the axtb front ends report them for g-xTB 2.0.1: every
@@ -242,7 +212,11 @@ pub struct Calculator {
 /// (inside the caller's pool).
 fn new_setup(version: Version, mol: &Molecule, opts: &ScfOptions) -> Result<AnySetup> {
     Ok(match version {
-        Version::V2_0_1 => AnySetup::V2(Box::new(v2::scf::Setup::with_threads(mol, opts.conventions, opts.threads)?)),
+        Version::V2_0_1 => AnySetup::V2(Box::new(v2::scf::Setup::with_threads(
+            mol,
+            crate::v2::Model::v2_0_1(opts.conventions),
+            opts.threads,
+        )?)),
         Version::V1_1 => {
             let mut s = Setup::new(mol)?;
             s.set_threads(opts.threads)?;
@@ -480,7 +454,7 @@ impl Calculator {
         let point = |m: &Molecule| -> Result<(f64, Vec<[f64; 3]>, [f64; 3])> {
             let (energy, g, qa, dip) = match version {
                 Version::V2_0_1 => {
-                    let setup = v2::scf::Setup::new(m, opts.conventions)?;
+                    let setup = v2::scf::Setup::new(m, crate::v2::Model::v2_0_1(opts.conventions))?;
                     let r = setup.scf(&opts)?;
                     let g = setup.gradient(&r)?;
                     (r.energies.total, g, r.atom_charges.clone(), r.state.dip.clone())
@@ -552,7 +526,7 @@ impl Calculator {
             let t0 = Instant::now();
             let mut setup = match cached {
                 Some(s) => s,
-                None => v2::scf::Setup::with_threads(mol, sopts.conventions, sopts.threads)?,
+                None => v2::scf::Setup::with_threads(mol, crate::v2::Model::v2_0_1(sopts.conventions), sopts.threads)?,
             };
             let ladder = RetryLadder::warm_then_fresh(start.is_some());
             let (r, _) = ladder.climb(|rung| match rung.fresh {
