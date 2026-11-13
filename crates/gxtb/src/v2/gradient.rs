@@ -592,7 +592,9 @@ impl Setup {
         let dsh = self.scf_shell_derivatives()?;
         self.add_overlap_multipole(&x, &ptot, &vd, &pot.vq, &dsh, &mut ch)?;
         t.lap("gradient: overlap+multipole integrals");
-        anisotropy_gradient_par(&self.model, mol, &st.dip, &mut ch.g, self.parallel);
+        if self.model.anisotropy() {
+            anisotropy_gradient_par(&self.model, mol, &st.dip, &mut ch.g, self.parallel);
+        }
         t.lap("gradient: anisotropy");
         self.add_h0(&ptot, &mut ch)?;
         t.lap("gradient: h0");
@@ -606,6 +608,15 @@ impl Setup {
         self.exch.add_kernel_gradient(&self.model, &tg, &tsh, &tat, &mut ch);
         t.lap("gradient: exchange kernels");
         self.terms.rep.gradient(&tg, &self.rep, &s, &mut ch);
+        if let Some(c) = &self.terms.classical {
+            axtb::terms::GeometryTerm::energy(
+                c,
+                &tg,
+                &(),
+                &mut TermEnergy { pieces: &mut [0.0], atoms: None },
+                Some(&mut ch),
+            );
+        }
         self.terms.disp.gradient(&tg, &self.disp, &s, &mut ch);
         t.lap("gradient: repulsion+revd4");
         let mut e3 = [0.0];
@@ -629,6 +640,11 @@ impl Setup {
 
     /// [`Setup::gradient`] and the wall time of its phases.
     pub fn gradient_timed(&self, r: &ScfResult) -> Result<(Vec<[f64; 3]>, crate::timing::Timings)> {
+        if self.program.is_some() {
+            return Err(axtb::Error::Input(
+                "g-xTB v1.1: the program's Fock matrix needs the Z-vector gradient (not on the engine yet)".into(),
+            ));
+        }
         let mut t = Laps::new();
         let mut w = self.energy_weighted_density(r);
         w.iter_mut().for_each(|x| *x = -*x);

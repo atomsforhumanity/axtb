@@ -1258,3 +1258,203 @@ fn revd4_and_repulsion_engine_match_program() {
     }
     eprintln!("engine v1.1 revD4: two-body {w2:e}, three-body {w3:e}; repulsion {wr:e} Eh; gradients vs FD {wg:e}");
 }
+
+/// The engine's v1.1 setup in the program's conventions.
+fn engine_setup(mol: &axtb::Molecule) -> axtb_gxtb::v2::scf::Setup {
+    axtb_gxtb::v2::scf::Setup::new(mol, v11()).unwrap()
+}
+
+/// The AOs ((atom, shell, l)) of the engine's setup.
+fn engine_ao(s: &axtb_gxtb::v2::scf::Setup) -> Vec<(usize, usize, usize)> {
+    s.basis.scf.ao2sh.iter().map(|&ish| s.shells[ish]).collect()
+}
+
+/// The engine's v1.1 Fock matrices in the program's conventions at the program's densities.
+#[test]
+fn fock_engine_matches_program() {
+    let mut worst = 0.0f64;
+    for c in cases() {
+        let setup = engine_setup(&c.mol);
+        let map = program_ao_map(&engine_ao(&setup), PROGRAM_D_ORDER);
+        let n = setup.nao;
+        let npk = n * (n + 1) / 2;
+        let r = json(&c.dir.join("fock.json"));
+        let tol = if c.name == "tetrachlorocuprate" { 3e-9 } else { 1e-12 };
+        for key in ["first", "last"] {
+            let ns = r[key]["nspin"].as_u64().unwrap() as usize;
+            assert_eq!(ns, setup.nspin);
+            let (pp, ff) = (floats(&r[key]["P"]), floats(&r[key]["F"]));
+            let p: Vec<Vec<f64>> = (0..ns).map(|s| unpack_program(&pp[s * npk..(s + 1) * npk], &map)).collect();
+            let (_, fock) = setup.evaluate(&setup.state(&p), true);
+            for s in 0..ns {
+                let f = unpack_program(&ff[s * npk..(s + 1) * npk], &map);
+                let d = max_abs_diff(&fock[s], &f);
+                if c.name != "tetrachlorocuprate" {
+                    worst = worst.max(d);
+                }
+                assert!(d < tol, "{}: Fock ({key}, spin {s}) differs by {d:e}", c.name);
+            }
+        }
+    }
+    eprintln!("engine Fock matrices at the program's densities: max deviation {worst:e} (excl. [CuCl4]2-)");
+}
+
+/// The engine's v1.1 single points in the program's conventions against the program, as
+/// [`scf_matches_program`].
+#[test]
+fn scf_engine_matches_program() {
+    let (mut we, mut wt, mut wq, mut weps) = (0.0f64, 0.0f64, 0.0f64, 0.0f64);
+    for c in cases() {
+        let r = engine_setup(&c.mol).scf(&program()).unwrap();
+        let e = &r.energies;
+        let eref = c.summary["total_energy"].as_f64().unwrap();
+        we = we.max((e.total - eref).abs());
+        assert!((e.total - eref).abs() < 1e-11, "{}: total {:.13} vs {eref:.13}", c.name, e.total);
+        assert_eq!(r.iterations as u64, c.summary["scf_iterations"].as_u64().unwrap(), "{}: iterations", c.name);
+        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
+        let es23 = e.second_order + e.third_order + e.fourth_order;
+        let terms = [
+            ("es1", e.first_order),
+            ("es2_3", es23),
+            ("ofx", e.exchange_onsite),
+            ("mfx", e.exchange),
+            ("aes", e.aes),
+            ("disp2", e.dispersion),
+            ("disp3", e.dispersion_three_body),
+        ];
+        for (k, v) in terms.into_iter().chain(fe.get("spin").map(|_| ("spin", e.spin))) {
+            let d = (v - fe[k].as_f64().unwrap()).abs();
+            wt = wt.max(d);
+            assert!(d < 1e-11, "{}: {k} {v:.14} vs {}", c.name, fe[k]);
+        }
+        let t = &c.summary["energy_terms"];
+        for (k, v) in [
+            ("electronic", e.electronic),
+            ("atomic core increments", e.increments),
+            ("dispersion", e.dispersion),
+            ("nuclear repulsion", e.repulsion),
+            ("ES total", e.first_order + es23 + e.aes),
+            ("total", e.total),
+        ] {
+            assert!((v - t[k].as_f64().unwrap()).abs() <= 5.0001e-9, "{}: printed {k} {} vs {v}", c.name, t[k]);
+        }
+        let scf = json(&c.dir.join("scf.json"));
+        for (ours, key) in [(&r.atom_charges, "atom_charges"), (&r.shell_charges, "shell_charges")] {
+            let d = max_abs_diff(ours, &floats(&scf[key]));
+            wq = wq.max(d);
+            assert!(d < 1e-10, "{}: {key} differ by {d:e}", c.name);
+        }
+        let text = std::fs::read_to_string(c.dir.join("molden.input")).unwrap();
+        let mut eps_ref: Vec<Vec<f64>> = vec![Vec::new(); r.orbital_energies.len()];
+        for block in text.split("[MO]").nth(1).unwrap().split("Sym=").skip(1) {
+            let ene: f64 = block.lines().find_map(|l| l.trim().strip_prefix("Ene=")).unwrap().trim().parse().unwrap();
+            let beta = block.contains("Spin= Beta");
+            eps_ref[if beta { 1 } else { 0 }].push(ene);
+        }
+        let tol = if c.name == "tetrachlorocuprate" { 2e-9 } else { 1e-10 };
+        for (s, er) in eps_ref.iter().enumerate() {
+            let d = max_abs_diff(&r.orbital_energies[s][..er.len()], er);
+            if c.name != "tetrachlorocuprate" {
+                weps = weps.max(d);
+            }
+            assert!(d < tol, "{}: orbital energies (spin {s}) differ by {d:e}", c.name);
+        }
+    }
+    eprintln!(
+        "engine SCF: total energy {we:e} Eh, terms {wt:e} Eh, charges {wq:e}, orbital energies {weps:e} Eh (excl. [CuCl4]2-)"
+    );
+}
+
+/// The engine's v1.1 single points of tests/reference_extra.json, as
+/// [`extra_singlepoints_match_program`].
+#[test]
+fn extra_singlepoints_engine_match_program() {
+    let r = json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/reference_extra.json"));
+    let mut worst = 0.0f64;
+    for m in r["molecules"].as_array().unwrap() {
+        let name = m["name"].as_str().unwrap();
+        let mol = read_xyz(
+            m["xyz"].as_str().unwrap(),
+            m["charge"].as_f64().unwrap(),
+            Some(m["uhf"].as_u64().unwrap() as usize),
+        )
+        .unwrap();
+        let res = engine_setup(&mol).scf(&program()).unwrap();
+        let eref = m["total_energy"].as_f64().unwrap();
+        let d = (res.energies.total - eref).abs();
+        worst = worst.max(d);
+        assert!(d < 1e-10, "{name}: total {:.12} vs {eref:.12}", res.energies.total);
+        assert_eq!(res.iterations as u64, m["scf_iterations"].as_u64().unwrap(), "{name}: iterations");
+    }
+    eprintln!("engine extra single points: max total-energy deviation {worst:e} Eh");
+}
+
+/// The engine's v1.1 in the default conventions against the old tree: the same iterations,
+/// energies and analytic gradients (at tight convergence) to round-off.
+#[test]
+fn axtb_conventions_engine_match_old_tree() {
+    use axtb_gxtb::Conventions;
+    let model = axtb_gxtb::v2::Model::v1_1(Conventions::Axtb);
+    let opts = axtb_gxtb::ScfOptions::default();
+    let tight = axtb_gxtb::ScfOptions { energy_tol: Some(1e-13), density_tol: Some(1e-11), ..Default::default() };
+    let (mut we, mut wg) = (0.0f64, 0.0f64);
+    for c in cases() {
+        let old = axtb_gxtb::scf::Setup::new(&c.mol).unwrap().scf(&opts).unwrap();
+        let setup = axtb_gxtb::v2::scf::Setup::new(&c.mol, model).unwrap();
+        let new = setup.scf(&opts).unwrap();
+        assert_eq!(old.iterations, new.iterations, "{}: iterations", c.name);
+        let d = (old.energies.total - new.energies.total).abs();
+        we = we.max(d);
+        assert!(d < 1e-10, "{}: total {} vs old {}", c.name, new.energies.total, old.energies.total);
+        // the analytic gradient against the old tree's at tight convergence
+        let old_setup = axtb_gxtb::scf::Setup::new(&c.mol).unwrap();
+        let g_old = old_setup.gradient(&old_setup.scf(&tight).unwrap()).unwrap();
+        let g = setup.gradient(&setup.scf(&tight).unwrap()).unwrap();
+        for (a, (x, y)) in g.iter().zip(&g_old).enumerate() {
+            for k in 0..3 {
+                wg = wg.max((x[k] - y[k]).abs());
+                assert!((x[k] - y[k]).abs() < 1e-10, "{} atom {a} {k}: engine {} old {}", c.name, x[k], y[k]);
+            }
+        }
+    }
+    eprintln!("engine v1.1 (axtb): vs the old tree: total energy {we:e} Eh, gradient {wg:e} Eh/bohr");
+}
+
+/// The engine's v1.1 at an electronic temperature (both conventions) against the old tree: the
+/// same iterations, energies, Fermi levels and occupations to round-off.
+#[test]
+fn etemp_engine_matches_old_tree() {
+    use axtb_gxtb::Conventions;
+    let mut we = 0.0f64;
+    for conventions in [Conventions::Axtb, Conventions::Gxtb] {
+        let opts = axtb_gxtb::ScfOptions { etemp: 3000.0, conventions, ..Default::default() };
+        for c in cases() {
+            let old = axtb_gxtb::scf::Setup::new(&c.mol).unwrap().scf(&opts).unwrap();
+            let model = axtb_gxtb::v2::Model::v1_1(conventions);
+            let new = axtb_gxtb::v2::scf::Setup::new(&c.mol, model).unwrap().scf(&opts).unwrap();
+            assert_eq!(old.iterations, new.iterations, "{conventions:?} {}: iterations", c.name);
+            let d = (old.energies.total - new.energies.total).abs();
+            we = we.max(d);
+            assert!(
+                d < 1e-10,
+                "{conventions:?} {}: total {} vs old {}",
+                c.name,
+                new.energies.total,
+                old.energies.total
+            );
+            let ts = (old.energies.entropy - new.energies.entropy).abs();
+            assert!(
+                ts < 1e-10,
+                "{conventions:?} {}: -TS {} vs old {}",
+                c.name,
+                new.energies.entropy,
+                old.energies.entropy
+            );
+            for (s, o) in old.occupations.iter().enumerate() {
+                let d = max_abs_diff(o, &new.occupations[s]);
+                assert!(d < 1e-9, "{conventions:?} {}: occupations (spin {s}) differ by {d:e}", c.name);
+            }
+        }
+    }
+    eprintln!("engine v1.1 at 3000 K vs the old tree: total energy {we:e} Eh");
+}

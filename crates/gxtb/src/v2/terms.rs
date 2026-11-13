@@ -39,7 +39,7 @@ impl Terms {
     pub fn new(model: &Model, shells: &[Shell], slots: &Slots) -> Self {
         Self {
             increments: Increments(*model),
-            classical: (model.version == Version::V1_1).then(|| ClassicalRepulsion { slots: [slots.eeq, slots.cn] }),
+            classical: (model.version == Version::V1_1).then_some(ClassicalRepulsion { slots: [slots.eeq, slots.cn] }),
             iso: Isotropic { model: *model, shells: shells.to_vec(), cn: [slots.cn] },
             aes: Aes { model: *model, cn: [slots.cn] },
             spin: Spin { model: *model, shells: shells.to_vec() },

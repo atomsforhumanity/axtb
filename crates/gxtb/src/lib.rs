@@ -105,6 +105,7 @@ pub mod occupations;
 pub mod options;
 pub mod parallel;
 pub mod params;
+pub(crate) mod program110;
 pub mod qvszp;
 pub mod response;
 pub mod scf;

@@ -223,14 +223,12 @@ pub mod classical {
     use axtb::molecule::{norm2_sq, sub3};
     use axtb::Molecule;
 
+    /// The gradient buffers (g, dE/dq, dE/dCN) of [`energy`].
+    pub type Grad<'a> = (&'a mut [[f64; 3]], &'a mut [f64], &'a mut [f64]);
+
     /// The energy and, with `grad` = (g, dE/dq, dE/dCN), its gradient at the EEQ-BC charges `q`
     /// and g-xTB CNs `cn`.
-    pub fn energy(
-        mol: &Molecule,
-        q: &[f64],
-        cn: &[f64],
-        grad: Option<(&mut [[f64; 3]], &mut [f64], &mut [f64])>,
-    ) -> f64 {
+    pub fn energy(mol: &Molecule, q: &[f64], cn: &[f64], grad: Option<Grad<'_>>) -> f64 {
         let p = crate::params::gxtb_v1_1();
         let el = |z: usize| p.element(z).expect("g-xTB v1.1 parameters of a checked element");
         let n = mol.nat();

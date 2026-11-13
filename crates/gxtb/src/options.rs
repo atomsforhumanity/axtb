@@ -67,7 +67,7 @@ pub struct ScfOptions {
     /// 2.0.1 only: explicit threshold of the RMS Fock residual (the Fock matrix of the new
     /// density minus the mixed one it came from, over both spin channels).
     pub residual_tol: Option<f64>,
-    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`DAMPING`], 2.0.1 0.2.
+    /// Damping factor in (0, 1] of the first iterations; `None`: v1.1 [`crate::scf::DAMPING`], 2.0.1 0.2.
     pub damping: Option<f64>,
     /// v1.1 only: iteration of the transition step (damping before it, Pulay mixing after);
     /// `None`: 3 (open shell: 4).

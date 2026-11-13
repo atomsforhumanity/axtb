@@ -456,7 +456,7 @@ impl Setup {
         let (acp_cut2, acp_intcut) = (set.cutoff * set.cutoff, set.intcut);
         for &(ip, ref proj, w, _) in &set.list {
             {
-                let (l, proj) = (proj.l, proj.clone());
+                let (l, proj) = (proj.l, *proj);
                 let np = 2 * l + 1;
                 let mut sh = AcpShell {
                     atom: ip,

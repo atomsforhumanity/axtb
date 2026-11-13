@@ -123,7 +123,7 @@ impl Model {
 
     /// Radius of the H0 distance polynomial: 2.0.1's `get_rad` (the Pyykkö radius in Ångström
     /// times 1.889725949, with fixed values for H, F and Ne); v1.1's `com::rcov` (bohr; the
-    /// program divides by their mean, [`super::h0::shell_poly`] by their sum).
+    /// program divides by their mean, [`h0::shell_poly`] by their sum).
     pub fn h0_rad(&self, z: usize) -> f64 {
         if self.version == Version::V1_1 {
             return crate::data::RCOV_COM[z - 1];
