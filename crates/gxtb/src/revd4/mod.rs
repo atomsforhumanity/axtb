@@ -23,7 +23,7 @@
 pub mod reference;
 
 use crate::data::v2_0_1::{D4_REFH, D4_REFQ};
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Molecule, Result};
@@ -41,7 +41,6 @@ pub const A4: f64 = 0.654;
 pub const CUTOFF_CN: f64 = 30.0;
 pub const CUTOFF_2B: f64 = 50.0;
 pub const CUTOFF_3B: f64 = 25.0;
-const SQRTPI: f64 = 1.772_453_850_905_516;
 /// The reference charges of 2.0.1 (`gxtbq`, `gxtbh`).
 pub const CHARGES: ReferenceCharges = ReferenceCharges { refq: &D4_REFQ, refh: &D4_REFH };
 

@@ -12,7 +12,7 @@
 //! (no cutoff; [`Model::cn_cutoff`]).
 
 use crate::eeqbc::erf_f64;
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
@@ -23,8 +23,6 @@ pub const CN_CUTOFF: f64 = 25.0;
 pub const KCN_GXTB: f64 = 2.068;
 /// Steepness of the basis CN.
 pub const KCN_BASIS: f64 = 3.75;
-
-const SQRTPI: f64 = 1.772_453_850_905_516;
 
 /// One counting term and its derivative with respect to R.
 #[inline]

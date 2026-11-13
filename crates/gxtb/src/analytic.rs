@@ -39,7 +39,7 @@ use crate::fock::{add_charge_potential, add_potentials_rows};
 use crate::gradient::{exchange_kernel_weights, Potentials};
 use crate::h0::{anisotropy, anisotropy_gradient};
 use crate::intermediates::Slots;
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::repulsion::Repulsion;
 use crate::response::KernelData;
 use crate::revd4::RevD4;
@@ -658,7 +658,6 @@ impl<'a> Analytic<'a> {
                 }
             }
         };
-        const SQRTPI: f64 = 1.772_453_850_905_516;
         for i in 0..nsh {
             for j in 0..i {
                 let (ia, ja) = (ex.shells[i].0, ex.shells[j].0);

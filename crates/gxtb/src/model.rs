@@ -28,6 +28,10 @@ use axtb::units::reference::MCTC_AATOAU;
 /// Highest atomic number with g-xTB 2.0.1 parameters.
 pub const MAX_ELEM: usize = 103;
 
+/// sqrt(pi) in the derivatives of the error functions of both versions, as the 2.0.1 program
+/// writes it: 1.772453850905516, one unit in the last place above `PI.sqrt()`.
+pub(crate) const SQRTPI: f64 = 1.772_453_850_905_516;
+
 /// Width (bohr) of the smooth switches that replace the program's hard cutoffs in the default
 /// conventions.
 pub const SWITCH_WIDTH: f64 = 1.0;

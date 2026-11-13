@@ -38,7 +38,7 @@ use crate::data::v2_0_1::{
 };
 use crate::eeqbc::{erf_f64, vdw_rad_pair};
 use crate::model::sqrt_cn;
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
@@ -56,7 +56,6 @@ pub const K4: f64 = 0.036;
 /// AES kernel prefactors and steepnesses for n = 3, 5, 7, 9.
 pub const AES_K: [f64; 4] = [0.3405910191, 0.1691310614, 0.074034339, -0.02];
 pub const AES_S: [f64; 4] = [0.5, 1.0, 1.0, 1.0];
-const SQRTPI: f64 = 1.772_453_850_905_516;
 
 /// v1.1: the first-order amplitude (the program's 0.012 [...] is k/2 with k = 0.024), the
 /// distance of an atom from itself in gamma (the program's packed distance array), the fourth

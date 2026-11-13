@@ -27,7 +27,7 @@ use crate::data::v2_0_1::{
     PG_H0_KSHELL, PG_H0_SHPOLY2,
 };
 use crate::eeqbc::erf_f64;
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::options::Version;
 use axtb::ao::ShellPairs;
 use axtb::basis::{Basis as AoBasis, Cgto, MAXPRIM};
@@ -43,7 +43,6 @@ use faer::{Accum, MatMut, MatRef, Par};
 pub const SHPOLY4: f64 = 0.0804696812;
 /// Steepness of the anisotropy damping.
 pub const ANISO_STEEP: f64 = 1.5;
-const SQRTPI: f64 = 1.772_453_850_905_516;
 
 /// The v1.1 parameters of element `z`.
 #[inline]

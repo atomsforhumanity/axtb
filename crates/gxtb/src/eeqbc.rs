@@ -45,7 +45,7 @@ use crate::data::v2_0_1::{
     EEQBC_AVG_CN, EEQBC_CAP, EEQBC_CHI, EEQBC_COV_RADII, EEQBC_ETA, EEQBC_KCNCHI, EEQBC_KQCHI, EEQBC_RAD,
     EEQBC_RVDW_SCALE,
 };
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::params::EeqBcParams;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::{Error, Molecule, Result};
@@ -117,9 +117,6 @@ pub struct EeqBcForm {
     /// function; pairs beyond it (zero count derivative) are skipped in the gradient. None: no
     /// cutoff (v1.1).
     pub cutoff: Option<Model>,
-    /// sqrt(pi) in the derivatives of the error functions: v1.1 computes it (`PI.sqrt()`),
-    /// 2.0.1 writes the literal 1.772453850905516, one unit in the last place larger.
-    pub sqrtpi: f64,
     /// The kernel of the matrix that the gradient factorizes (the charges use
     /// [`Kernel::RootGamma`]).
     pub gradient_kernel: Kernel,
@@ -134,8 +131,6 @@ impl EeqBcForm {
         kqeta: true,
         rvdw: RvdwRule::D3,
         cutoff: None,
-        // std::f64::consts::PI.sqrt()
-        sqrtpi: 1.772_453_850_905_515_9,
         gradient_kernel: Kernel::OverSigma,
     };
 }
@@ -198,10 +193,10 @@ struct Geometry {
 /// One counting term 1/2 [1 + erf(-k_cn (r - rc) / rc^0.75)] and its derivative with respect
 /// to r.
 #[inline]
-fn erf_count(r: f64, rc: f64, sqrtpi: f64) -> (f64, f64) {
+fn erf_count(r: f64, rc: f64) -> (f64, f64) {
     let den = rc.powf(NORM_EXP);
     let arg = -KCN * (r - rc) / den;
-    (0.5 * (1.0 + erf_f64(arg)), -KCN / den * (-arg * arg).exp() / sqrtpi)
+    (0.5 * (1.0 + erf_f64(arg)), -KCN / den * (-arg * arg).exp() / SQRTPI)
 }
 
 impl<'m> EeqBc<'m> {
@@ -252,12 +247,12 @@ impl<'m> EeqBc<'m> {
             RcRule::Sum => a.rcov + b.rcov,
         };
         match self.form.cutoff {
-            None => erf_count(r, rc, self.form.sqrtpi),
+            None => erf_count(r, rc),
             Some(model) => {
                 if r > model.reach(CN_CUTOFF) {
                     return (0.0, 0.0);
                 }
-                let (c, dc) = erf_count(r, rc, self.form.sqrtpi);
+                let (c, dc) = erf_count(r, rc);
                 let (sw, dsw) = model.cut(r, CN_CUTOFF);
                 (c * sw, dc * sw + c * dsw)
             }
@@ -276,7 +271,7 @@ impl<'m> EeqBc<'m> {
         let pre = (a.cap * b.cap).sqrt();
         let kbc = self.form.kbc;
         let arg = -kbc * (r - rv) / rv;
-        (pre * 0.5 * (1.0 + erf_f64(arg)), pre * (-kbc / rv) * (-arg * arg).exp() / self.form.sqrtpi)
+        (pre * 0.5 * (1.0 + erf_f64(arg)), pre * (-kbc / rv) * (-arg * arg).exp() / SQRTPI)
     }
 
     fn geometry(&self) -> Geometry {
@@ -411,7 +406,6 @@ impl<'m> EeqBc<'m> {
         let mol = e.mol;
         let p = &e.atoms;
         let (n, m) = (e.n(), e.n() + 1);
-        let sqrtpi = e.form.sqrtpi;
         let kcnrad = e.form.kcnrad;
         let w = solution.solver.adjoint(&dedq[..n]);
         let cmat = &g.cmat;
@@ -438,7 +432,7 @@ impl<'m> EeqBc<'m> {
             let sigma = (g.width[i] * g.width[i] + g.width[j] * g.width[j]).sqrt();
             let t = r / sigma;
             let ef = erf_f64(t);
-            let gauss = 2.0 / sqrtpi * (-t * t).exp();
+            let gauss = 2.0 / SQRTPI * (-t * t).exp();
             (ef / r, gauss / (sigma * r) - ef / (r * r), -gauss / (sigma * sigma))
         };
         for i in 0..n {
@@ -537,14 +531,10 @@ impl EeqBcForm {
             kqeta: false,
             rvdw: RvdwRule::ScaledD3(*model),
             cutoff: Some(*model),
-            sqrtpi: SQRTPI,
             gradient_kernel: Kernel::RootGamma,
         }
     }
 }
-
-/// sqrt(pi) as the 2.0.1 program writes it.
-const SQRTPI: f64 = 1.772_453_850_905_516;
 
 /// The EEQ-BC model of `mol` in `model` (v1.1: [`EeqBc::v1_1`]).
 pub fn eeqbc<'m>(model: &Model, mol: &'m Molecule) -> Result<EeqBc<'m>> {
@@ -588,11 +578,10 @@ pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: 
 mod tests {
     use super::*;
 
-    /// The forms' sqrt(pi): v1.1 computes it, 2.0.1 writes a literal one ulp larger.
+    /// The error functions' sqrt(pi) of both versions is the 2.0.1 program's literal, one ulp
+    /// above `PI.sqrt()`.
     #[test]
-    fn sqrtpi_of_the_forms() {
-        assert_eq!(EeqBcForm::V1_1.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits());
-        let v2 = EeqBcForm::of(&Model::v2_0_1(crate::options::Conventions::Gxtb));
-        assert_eq!(v2.sqrtpi.to_bits(), std::f64::consts::PI.sqrt().to_bits() + 1);
+    fn sqrtpi_is_the_programs_literal() {
+        assert_eq!(SQRTPI.to_bits(), std::f64::consts::PI.sqrt().to_bits() + 1);
     }
 }

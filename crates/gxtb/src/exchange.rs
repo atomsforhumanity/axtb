@@ -39,7 +39,7 @@ use crate::data::v2_0_1::{
 };
 use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
-use crate::model::Model;
+use crate::model::{Model, SQRTPI};
 use crate::options::Version;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
@@ -55,7 +55,6 @@ pub const SAME_SHELL: f64 = 1.3826597204;
 pub const KX1: f64 = -0.2960502355;
 /// k^x2 per Ångström of the pair radius (the program stores 0.0349817377 * autoaa).
 pub const KX2_AA: f64 = 0.0349817377;
-const SQRTPI: f64 = 1.772_453_850_905_516;
 
 /// General average 2^(xi-1) (x y)^(xi/2) / (x + y)^(xi-1), evaluated as the program does.
 #[inline]
