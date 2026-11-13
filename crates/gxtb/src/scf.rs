@@ -26,7 +26,7 @@ use axtb::integrals::{multipole, Scratch, MBLK};
 use axtb::linalg::GenEigSolver;
 use axtb::scf::{run_scf, Accelerator, FockSource, ScfModel, ScfStrategy};
 use axtb::{Error, Molecule, Result};
-use faer::{Mat, MatRef, Par};
+use faer::{Mat, MatMut, MatRef, Par};
 use std::ops::ControlFlow;
 
 /// Everything that depends on the geometry only.
@@ -635,8 +635,9 @@ impl Setup {
 /// One v1.1 SCF of [`Setup::scf_from`] as the core's SCF model (the 1.1.0 program's iteration,
 /// see [`ScfOptions`]): every eigenpair of the mixed (in the last iteration the unmixed) Fock
 /// matrices, the Aufbau or Fermi occupations (the program's eigenvalue cap at N_alpha + 10 in
-/// its conventions), the density by the program's element loop, its RMS change, and the
-/// evaluation of the density with the next Fock matrices (none in the last iteration).
+/// its conventions), the density as one matrix product
+/// ([`crate::v2::scf::weighted_density`]), its RMS change, and the evaluation of the density
+/// with the next Fock matrices (none in the last iteration).
 struct Scf110<'a> {
     setup: &'a Setup,
     solver: GenEigSolver,
@@ -669,11 +670,7 @@ impl ScfModel for Scf110<'_> {
         for s in 0..self.eps.len() {
             let fs = fock.matrix(s).expect("the v1.1 SCF diagonalizes row-major Fock matrices");
             self.solver.solve(MatRef::from_row_major_slice(fs, n, n), &mut self.eps[s], &mut self.c)?;
-            for i in 0..n {
-                for k in 0..n {
-                    self.coef[s][i * n + k] = self.c[(i, k)];
-                }
-            }
+            MatMut::from_row_major_slice_mut(&mut self.coef[s], n, n).copy_from(&self.c);
         }
         Ok(ControlFlow::Continue(()))
     }
@@ -699,24 +696,7 @@ impl ScfModel for Scf110<'_> {
             self.occ = if ns == 1 { vec![fa.iter().zip(&fb).map(|(a, b)| a + b).collect()] } else { vec![fa, fb] };
         }
         let (occ, coef) = (&self.occ, &self.coef);
-        let mut pnew = Vec::with_capacity(ns);
-        for s in 0..ns {
-            let mut ps = vec![0.0; n * n];
-            for k in 0..n {
-                let o = occ[s][k];
-                if o == 0.0 {
-                    continue;
-                }
-                for i in 0..n {
-                    let ci = o * coef[s][i * n + k];
-                    for j in 0..n {
-                        ps[i * n + j] += ci * coef[s][j * n + k];
-                    }
-                }
-            }
-            pnew.push(ps);
-        }
-        self.pnew = pnew;
+        self.pnew = (0..ns).map(|s| crate::v2::scf::weighted_density(n, &[(&coef[s], &occ[s])], setup.par)).collect();
     }
 
     fn update_state(&mut self, p: &mut Vec<Vec<f64>>) {

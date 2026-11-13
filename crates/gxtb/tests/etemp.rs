@@ -87,10 +87,19 @@ fn etemp_gradient_matches_finite_differences() {
         let (group, name) = rel.split_once('/').unwrap();
         let mol = molecule(group, name);
         for c in [Conventions::Gxtb, Conventions::Axtb] {
+            // program mode: its gradient is not stationary in the density, so the SCF's convergence
+            // error enters the energies at first order. Converged to 1e-11 it was the error of the
+            // differences at h = 5e-4 (CuCl4 2.2e-9 to 4.2e-9 depending on round-off; 6.4e-10 at
+            // 1e-13). Stencils with h >= 7.5e-4 cross a separate non-smoothness of the program-mode
+            // energy (~1e-8 in the differences, at any SCF threshold).
+            let opts = match c {
+                Conventions::Gxtb => ScfOptions { density_tol: Some(1e-13), max_iter: 1000, ..tight(c, 5000.0) },
+                Conventions::Axtb => tight(c, 5000.0),
+            };
             let setup = Setup::new(&mol).unwrap();
-            let r = setup.scf(&tight(c, 5000.0)).unwrap();
+            let r = setup.scf(&opts).unwrap();
             let g = setup.gradient(&r).unwrap();
-            let e = |m: &axtb::Molecule| Setup::new(m).unwrap().scf(&tight(c, 5000.0)).unwrap().energies.total;
+            let e = |m: &axtb::Molecule| Setup::new(m).unwrap().scf(&opts).unwrap().energies.total;
             let h = 5e-4;
             let mut worst: f64 = 0.0;
             for a in 0..mol.nat() {
@@ -105,7 +114,6 @@ fn etemp_gradient_matches_finite_differences() {
                 }
             }
             println!("{name:20} {c:?} 5000 K  -TS {:.3e}  max |analytic - FD| = {worst:.2e}", r.energies.entropy);
-            // program mode: its Fermi-level threshold (1e-9 electrons) roughens the energy at ~1e-9
             let tol = if c == Conventions::Gxtb { 3e-9 } else { 2e-9 };
             assert!(worst < tol, "{name} {c:?}: {worst:e}");
         }

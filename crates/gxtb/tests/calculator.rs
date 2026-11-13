@@ -219,14 +219,15 @@ fn mixer_settings_and_failures() {
     for v in [Version::V2_0_1, Version::V1_1] {
         let energy = |o: Options| {
             let mut c = Calculator::new(v, z, x, 0.0, None, o).unwrap();
-            c.singlepoint(x, &Want::gradient(false)).map(|r| (r.energy, r.scf().unwrap().iterations))
+            c.singlepoint(x, &Want::gradient(false)).map(|r| (r.energy, r.scf().unwrap().iterations, r.charges))
         };
-        let (e0, it0) = energy(Options::default()).unwrap();
+        let (e0, it0, q0) = energy(Options::default()).unwrap();
         let o = with_converger(ConvergerSettings { damping: Some(0.5), diis_size: Some(3), ..Default::default() });
-        let (e1, it1) = energy(o).unwrap();
-        // the same solution, along another path
-        assert!((e0 - e1).abs() < 1e-7 && (e0 != e1 || it0 != it1), "{v:?}: {e0} ({it0}) vs {e1} ({it1})");
-        match energy(with_scf(ScfSettings { max_iter: Some(2), ..Default::default() })) {
+        let (e1, it1, q1) = energy(o).unwrap();
+        // the same solution, along another path (seen in the charges: the energy is stationary, so
+        // it can agree to the last bit; v1.1 water: the densities differ by 8e-8)
+        assert!((e0 - e1).abs() < 1e-7 && (it0 != it1 || q0 != q1), "{v:?}: {e0} ({it0}) vs {e1} ({it1})");
+        match energy(with_scf(ScfSettings { max_iter: Some(2), ..Default::default() })).map(|r| (r.0, r.1)) {
             Err(axtb::Error::ScfNotConverged { iterations: 2, energy_change, residual }) => {
                 assert!(energy_change.is_finite() && residual.is_finite(), "{v:?}")
             }
