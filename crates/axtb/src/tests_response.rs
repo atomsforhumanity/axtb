@@ -264,7 +264,7 @@ pub fn check_term_hessians(mol: &Molecule, o: &Options) -> f64 {
     model.es2.add_hessian(mol, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut h);
     worst = worst.max(fd_check("ES2", mol, &h, |m| {
         let mut g = vec![[0.0; 3]; m.nat()];
-        model.es2.add_gradient(m, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut g);
+        model.es2.add_gradient(m, &bas.ish_at, &bas.nsh_at, &st.qsh, &mut g, false);
         g
     }));
     // AES

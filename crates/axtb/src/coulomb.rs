@@ -117,33 +117,98 @@ impl EffectiveCoulomb {
         a
     }
 
-    /// Add `sum_{A<B} q q dγ/dR` to the gradient.
-    pub fn add_gradient(&self, mol: &Molecule, ish_at: &[usize], nsh_at: &[usize], qsh: &[f64], grad: &mut [[f64; 3]]) {
+    /// Add `sum_{A<B} q q dγ/dR` to the gradient; with `parallel` on the current rayon pool
+    /// ([`ordered_pairs_par`]: the same sums in the same order).
+    pub fn add_gradient(
+        &self,
+        mol: &Molecule,
+        ish_at: &[usize],
+        nsh_at: &[usize],
+        qsh: &[f64],
+        grad: &mut [[f64; 3]],
+        parallel: bool,
+    ) {
         let g = self.gexp;
-        for iat in 0..mol.nat() {
-            let isp = mol.id[iat];
-            let ii = ish_at[iat];
-            for jat in 0..iat {
-                let jsp = mol.id[jat];
-                let jj = ish_at[jat];
-                let vec = sub3(mol.positions[iat], mol.positions[jat]);
-                let r1 = norm2_sq(vec).sqrt();
-                let mut dg = 0.0;
-                for ish in 0..nsh_at[iat] {
-                    for jsh in 0..nsh_at[jat] {
-                        let eta = self.eta[isp][jsp][ish][jsh];
-                        let mut dtmp = 1.0 / (r1.powf(g) + eta.powf(-g));
-                        dtmp = -r1.powf(g - 2.0) * dtmp * dtmp.powf(1.0 / g);
-                        dg += dtmp * qsh[ii + ish] * qsh[jj + jsh];
-                    }
-                }
-                for k in 0..3 {
-                    grad[iat][k] += dg * vec[k];
-                    grad[jat][k] -= dg * vec[k];
+        // the pair's term dE/dr / r (R_iat - R_jat), jat < iat
+        let pair = |iat: usize, jat: usize| -> [f64; 3] {
+            let (isp, jsp) = (mol.id[iat], mol.id[jat]);
+            let (ii, jj) = (ish_at[iat], ish_at[jat]);
+            let vec = sub3(mol.positions[iat], mol.positions[jat]);
+            let r1 = norm2_sq(vec).sqrt();
+            let mut dg = 0.0;
+            for ish in 0..nsh_at[iat] {
+                for jsh in 0..nsh_at[jat] {
+                    let eta = self.eta[isp][jsp][ish][jsh];
+                    let mut dtmp = 1.0 / (r1.powf(g) + eta.powf(-g));
+                    dtmp = -r1.powf(g - 2.0) * dtmp * dtmp.powf(1.0 / g);
+                    dg += dtmp * qsh[ii + ish] * qsh[jj + jsh];
                 }
             }
+            [dg * vec[0], dg * vec[1], dg * vec[2]]
+        };
+        if !parallel {
+            for iat in 1..mol.nat() {
+                for jat in 0..iat {
+                    let t = pair(iat, jat);
+                    for k in 0..3 {
+                        grad[iat][k] += t[k];
+                        grad[jat][k] -= t[k];
+                    }
+                }
+            }
+            return;
         }
+        let add = |_: usize, _: usize, t: &[f64; 3], gi: &mut [f64; 3], gj: &mut [f64; 3]| {
+            for k in 0..3 {
+                gi[k] += t[k];
+                gj[k] -= t[k];
+            }
+        };
+        ordered_pairs_par(mol.nat(), pair, add, grad);
     }
+}
+
+/// The pair loop `for i { for j < i { t = pair(i, j); add(i, j, t, &mut out[i], &mut out[j]) } }`
+/// of a gradient on the current rayon pool: the pair terms (one row of pairs per task) are
+/// stored, then every atom's element is summed by one task in the order the loop adds to it (its
+/// pairs with the earlier atoms as the first atom, then its pairs with the later atoms as the
+/// second), so the sums are the bits of the sequential loop. `add` must touch component k of
+/// `out[i]` and `out[j]` once each per pair (`+=` / `-=` of the pair's own term).
+fn ordered_pairs_par<const M: usize, T>(
+    nat: usize,
+    pair: impl Fn(usize, usize) -> [f64; M] + Sync,
+    add: impl Fn(usize, usize, &[f64; M], &mut T, &mut T) + Sync,
+    out: &mut [T],
+) where
+    T: Copy + Default + Send + Sync,
+{
+    // the pair terms, row i (pairs (i, j < i)) at i (i - 1) / 2
+    let mut terms = vec![[0.0; M]; nat * nat.saturating_sub(1) / 2];
+    {
+        let mut rows: Vec<(usize, &mut [[f64; M]])> = Vec::with_capacity(nat);
+        let mut rest = &mut terms[..];
+        for i in 1..nat {
+            let (row, tail) = rest.split_at_mut(i);
+            rows.push((i, row));
+            rest = tail;
+        }
+        rows.into_par_iter().with_min_len(4).for_each(|(i, row)| {
+            for (j, t) in row.iter_mut().enumerate() {
+                *t = pair(i, j);
+            }
+        });
+    }
+    let row = |i: usize| i * (i - 1) / 2;
+    out[..nat].par_iter_mut().enumerate().with_min_len(4).for_each(|(a, x)| {
+        // the other atom's element of `add` goes to a scratch value
+        let mut other = T::default();
+        for j in 0..a {
+            add(a, j, &terms[row(a) + j], x, &mut other);
+        }
+        for i in a + 1..nat {
+            add(i, a, &terms[row(i) + a], &mut other, x);
+        }
+    });
 }
 
 impl EffectiveCoulomb {
@@ -837,73 +902,94 @@ impl DampedMultipole {
         chain: &mut Chain,
     ) {
         let mol = geo.mol;
-        let grad = &mut chain.g;
         let nat = mol.nat();
         let (kdmp3, kdmp5) = (self.kdmp3, self.kdmp5);
+        // the pair (iat, jat), jat < iat: its gradient term dg and dE/d(rr), [dg, fddr]
+        let pair = |iat: usize, jat: usize| -> [f64; 4] {
+            let rr = 0.5 * (cache.mrad[iat] + cache.mrad[jat]);
+            let vec = sub3(mol.positions[jat], mol.positions[iat]);
+            let r2 = norm2_sq(vec);
+            let r1 = r2.sqrt();
+            let g1 = 1.0 / r1;
+            let g3 = g1 * g1 * g1;
+            let g5 = g3 * g1 * g1;
+            let g7 = g5 * g1 * g1;
+            let fdmp3 = 1.0 / (1.0 + 6.0 * (rr * g1).powf(kdmp3));
+            let ddmp3 = -3.0 * g5 * fdmp3 - kdmp3 * fdmp3 * (fdmp3 - 1.0) * g5;
+            let fdmp5 = 1.0 / (1.0 + 6.0 * (rr * g1).powf(kdmp5));
+            let ddmp5 = -5.0 * fdmp5 - kdmp5 * (fdmp5 * fdmp5 - fdmp5);
+            let (qi, qj) = (qat[iat], qat[jat]);
+            let (di, dj) = (dpat[iat], dpat[jat]);
+
+            let dpiqj = dot3(vec, di) * qj;
+            let qidpj = dot3(vec, dj) * qi;
+            let mut fddr = 3.0 * (dpiqj - qidpj) * kdmp3 * fdmp3 * g3 * (fdmp3 / rr) * (rr * g1).powf(kdmp3);
+            let mut dg = [0.0; 3];
+            for k in 0..3 {
+                dg[k] = -ddmp3 * vec[k] * (dpiqj - qidpj) + fdmp3 * g3 * (qi * dj[k] - qj * di[k]);
+            }
+
+            let dpidpj = dot3(dj, di);
+            let dpiv = dot3(di, vec);
+            let dpjv = dot3(dj, vec);
+            let edd = dpidpj * r2 - 3.0 * dpjv * dpiv;
+            fddr += 3.0 * edd * kdmp5 * fdmp5 * g5 * (fdmp5 / rr) * (rr * g1).powf(kdmp5);
+            for k in 0..3 {
+                dg[k] += -2.0 * fdmp5 * g5 * dpidpj * vec[k] + 3.0 * fdmp5 * g5 * (dpiv * dj[k] + dpjv * di[k])
+                    - edd * ddmp5 * g7 * vec[k];
+            }
+
+            let (ti, tj) = (qpat[iat], qpat[jat]);
+            let eq = 2.0 * (qj * ti[1] + tj[1] * qi) * vec[0] * vec[1]
+                + 2.0 * (qj * ti[3] + tj[3] * qi) * vec[0] * vec[2]
+                + 2.0 * (qj * ti[4] + tj[4] * qi) * vec[1] * vec[2]
+                + (qj * ti[0] + tj[0] * qi) * vec[0] * vec[0]
+                + (qj * ti[2] + tj[2] * qi) * vec[1] * vec[1]
+                + (qj * ti[5] + tj[5] * qi) * vec[2] * vec[2];
+            fddr += eq * 3.0 * kdmp5 * fdmp5 * g5 * fdmp5 / rr * (rr * g1).powf(kdmp5);
+            let tvj = [
+                vec[0] * tj[0] + vec[1] * tj[1] + vec[2] * tj[3],
+                vec[0] * tj[1] + vec[1] * tj[2] + vec[2] * tj[4],
+                vec[0] * tj[3] + vec[1] * tj[4] + vec[2] * tj[5],
+            ];
+            let tvi = [
+                vec[0] * ti[0] + vec[1] * ti[1] + vec[2] * ti[3],
+                vec[0] * ti[1] + vec[1] * ti[2] + vec[2] * ti[4],
+                vec[0] * ti[3] + vec[1] * ti[4] + vec[2] * ti[5],
+            ];
+            for k in 0..3 {
+                dg[k] += -eq * ddmp5 * g7 * vec[k] - 2.0 * fdmp5 * g5 * qi * tvj[k] - 2.0 * fdmp5 * g5 * qj * tvi[k];
+            }
+
+            [dg[0], dg[1], dg[2], fddr]
+        };
+        let add = |_: usize, _: usize, t: &[f64; 4], i: &mut ([f64; 3], f64), j: &mut ([f64; 3], f64)| {
+            i.1 += t[3];
+            j.1 += t[3];
+            for k in 0..3 {
+                i.0[k] += t[k];
+                j.0[k] -= t[k];
+            }
+        };
         let mut dedr = vec![0.0; nat];
-        for iat in 1..nat {
-            for jat in 0..iat {
-                let rr = 0.5 * (cache.mrad[iat] + cache.mrad[jat]);
-                let vec = sub3(mol.positions[jat], mol.positions[iat]);
-                let r2 = norm2_sq(vec);
-                let r1 = r2.sqrt();
-                let g1 = 1.0 / r1;
-                let g3 = g1 * g1 * g1;
-                let g5 = g3 * g1 * g1;
-                let g7 = g5 * g1 * g1;
-                let fdmp3 = 1.0 / (1.0 + 6.0 * (rr * g1).powf(kdmp3));
-                let ddmp3 = -3.0 * g5 * fdmp3 - kdmp3 * fdmp3 * (fdmp3 - 1.0) * g5;
-                let fdmp5 = 1.0 / (1.0 + 6.0 * (rr * g1).powf(kdmp5));
-                let ddmp5 = -5.0 * fdmp5 - kdmp5 * (fdmp5 * fdmp5 - fdmp5);
-                let (qi, qj) = (qat[iat], qat[jat]);
-                let (di, dj) = (dpat[iat], dpat[jat]);
-
-                let dpiqj = dot3(vec, di) * qj;
-                let qidpj = dot3(vec, dj) * qi;
-                let mut fddr = 3.0 * (dpiqj - qidpj) * kdmp3 * fdmp3 * g3 * (fdmp3 / rr) * (rr * g1).powf(kdmp3);
-                let mut dg = [0.0; 3];
-                for k in 0..3 {
-                    dg[k] = -ddmp3 * vec[k] * (dpiqj - qidpj) + fdmp3 * g3 * (qi * dj[k] - qj * di[k]);
-                }
-
-                let dpidpj = dot3(dj, di);
-                let dpiv = dot3(di, vec);
-                let dpjv = dot3(dj, vec);
-                let edd = dpidpj * r2 - 3.0 * dpjv * dpiv;
-                fddr += 3.0 * edd * kdmp5 * fdmp5 * g5 * (fdmp5 / rr) * (rr * g1).powf(kdmp5);
-                for k in 0..3 {
-                    dg[k] += -2.0 * fdmp5 * g5 * dpidpj * vec[k] + 3.0 * fdmp5 * g5 * (dpiv * dj[k] + dpjv * di[k])
-                        - edd * ddmp5 * g7 * vec[k];
-                }
-
-                let (ti, tj) = (qpat[iat], qpat[jat]);
-                let eq = 2.0 * (qj * ti[1] + tj[1] * qi) * vec[0] * vec[1]
-                    + 2.0 * (qj * ti[3] + tj[3] * qi) * vec[0] * vec[2]
-                    + 2.0 * (qj * ti[4] + tj[4] * qi) * vec[1] * vec[2]
-                    + (qj * ti[0] + tj[0] * qi) * vec[0] * vec[0]
-                    + (qj * ti[2] + tj[2] * qi) * vec[1] * vec[1]
-                    + (qj * ti[5] + tj[5] * qi) * vec[2] * vec[2];
-                fddr += eq * 3.0 * kdmp5 * fdmp5 * g5 * fdmp5 / rr * (rr * g1).powf(kdmp5);
-                let tvj = [
-                    vec[0] * tj[0] + vec[1] * tj[1] + vec[2] * tj[3],
-                    vec[0] * tj[1] + vec[1] * tj[2] + vec[2] * tj[4],
-                    vec[0] * tj[3] + vec[1] * tj[4] + vec[2] * tj[5],
-                ];
-                let tvi = [
-                    vec[0] * ti[0] + vec[1] * ti[1] + vec[2] * ti[3],
-                    vec[0] * ti[1] + vec[1] * ti[2] + vec[2] * ti[4],
-                    vec[0] * ti[3] + vec[1] * ti[4] + vec[2] * ti[5],
-                ];
-                for k in 0..3 {
-                    dg[k] +=
-                        -eq * ddmp5 * g7 * vec[k] - 2.0 * fdmp5 * g5 * qi * tvj[k] - 2.0 * fdmp5 * g5 * qj * tvi[k];
-                }
-
-                dedr[iat] += fddr;
-                dedr[jat] += fddr;
-                for k in 0..3 {
-                    grad[iat][k] += dg[k];
-                    grad[jat][k] -= dg[k];
+        if geo.parallel {
+            // (gradient, dE/d(rr)) per atom, summed in the order of the sequential pair loop
+            let mut out: Vec<([f64; 3], f64)> = chain.g[..nat].iter().map(|&g| (g, 0.0)).collect();
+            ordered_pairs_par(nat, pair, add, &mut out);
+            for ((g, d), o) in chain.g.iter_mut().zip(dedr.iter_mut()).zip(&out) {
+                (*g, *d) = *o;
+            }
+        } else {
+            let grad = &mut chain.g;
+            for iat in 1..nat {
+                for jat in 0..iat {
+                    let t = pair(iat, jat);
+                    dedr[iat] += t[3];
+                    dedr[jat] += t[3];
+                    for k in 0..3 {
+                        grad[iat][k] += t[k];
+                        grad[jat][k] -= t[k];
+                    }
                 }
             }
         }
@@ -978,7 +1064,7 @@ impl MomentTerm for EffectiveCoulomb {
     }
 
     fn gradient(&self, geo: &Geometry<'_>, _gamma: &Vec<f64>, s: &SccMoments<'_>, chain: &mut Chain) {
-        self.add_gradient(geo.mol, &self.shells.ish_at, &self.shells.nsh_at, s.qsh, &mut chain.g);
+        self.add_gradient(geo.mol, &self.shells.ish_at, &self.shells.nsh_at, s.qsh, &mut chain.g, geo.parallel);
     }
 
     fn kernel(&self, _geo: &Geometry<'_>, gamma: &Vec<f64>, _s: &SccMoments<'_>, k: &mut Kernel) {
