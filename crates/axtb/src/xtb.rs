@@ -5,7 +5,7 @@ use crate::basis::Basis;
 use crate::conventions::{SccGradient, OCCUPATION_CUTOFF};
 use crate::coulomb::{DampedMultipole, EffectiveCoulomb, MultipoleCache, OnsiteThirdOrder};
 use crate::hamiltonian::{H0Params, Integrals, MultipoleNeglect};
-use crate::linalg::{weighted_outer, weighted_outer_sym, GenEigSolver};
+use crate::linalg::{self, weighted_outer, weighted_outer_sym, GenEigSolver};
 use crate::molden::{MoSet, Orbitals, Spin};
 use crate::molecule::Molecule;
 use crate::ncoord::Ncoord;
@@ -543,11 +543,11 @@ impl XtbModel {
             parallel,
             par,
             trace: opts.trace,
-            fock: Mat::zeros(nao, nao),
-            work: Mat::zeros(nao, nao),
-            coeff: Mat::zeros(nao, nao),
+            fock: linalg::zeros(nao, nao, par),
+            work: linalg::zeros(nao, nao, par),
+            coeff: linalg::zeros(nao, nao, par),
             kocc: nao,
-            density: Mat::zeros(nao, nao),
+            density: linalg::zeros(nao, nao, par),
             emo: vec![0.0; nao],
             focc: vec![0.0; nao],
             occ_a: vec![0.0; nao],
@@ -653,7 +653,7 @@ impl XtbModel {
 
         let wdensity = if want_gradient || keep_state {
             let wocc: Vec<f64> = (0..kocc).map(|i| focc[i] * emo[i]).collect();
-            let mut wdensity = Mat::<f64>::zeros(nao, nao);
+            let mut wdensity = linalg::zeros(nao, nao, par);
             let outer = if self.params.occupied_orbitals_only { weighted_outer_sym } else { weighted_outer };
             outer(coeff.as_ref(), &wocc, &mut wdensity, par);
             wdensity

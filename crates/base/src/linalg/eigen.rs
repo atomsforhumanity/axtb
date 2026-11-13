@@ -70,7 +70,15 @@ impl GenEigSolver {
     /// Factorize the overlap matrix.
     pub fn new(s: MatRef<'_, f64>, par: Par) -> Result<Self> {
         let n = s.nrows();
-        let mut l = s.to_owned();
+        // (in parallel, the copy goes into a matrix the pool's threads zeroed: they take its page
+        // faults)
+        let mut l = if matches!(par, Par::Seq) {
+            s.to_owned()
+        } else {
+            let mut l = super::zeros(n, n, par);
+            l.copy_from(s);
+            l
+        };
         let req = StackReq::any_of(&[
             cholesky_in_place_scratch::<f64>(n, par, Default::default()),
             self_adjoint_evd_scratch::<f64>(n, ComputeEigenvectors::Yes, par, Default::default()),
@@ -92,7 +100,7 @@ impl GenEigSolver {
         };
         Ok(Self {
             l,
-            work: Mat::zeros(n, n),
+            work: super::zeros(n, n, par),
             mem,
             par,
             lowest: None,
@@ -296,7 +304,7 @@ impl GenEigSolver {
                 tridiag_in_place_scratch::<f64>(n, par, Default::default()),
                 apply_block_householder_sequence_on_the_left_in_place_scratch::<f64>(n - 1, bs, n),
             ]);
-            Lowest { trid: Mat::zeros(n, n), householder: Mat::zeros(bs, n - 1), mem: MemBuffer::new(req) }
+            Lowest { trid: super::zeros(n, n, par), householder: Mat::zeros(bs, n - 1), mem: MemBuffer::new(req) }
         })
     }
 

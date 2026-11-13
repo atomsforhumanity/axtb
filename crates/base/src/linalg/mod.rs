@@ -8,7 +8,9 @@
 //!   (GFN-FF's Hückel systems, the vibrational analysis);
 //! - [`weighted_outer`] and [`weighted_outer_sym`]: density matrices C diag(w) Cᵀ;
 //! - [`Lu`] and [`gauss_last_max`]: dense linear systems, two strategies whose pivot choices
-//!   differ on ties (each caller keeps the one it was validated with).
+//!   differ on ties (each caller keeps the one it was validated with);
+//! - [`zeros`]: zero matrices written by the pool's threads (large matrices' first-touch page
+//!   faults spread over the threads).
 //!
 //! Parallelism is always explicit (faer's `Par`, on the caller's rayon pool): faer's high-level
 //! solvers would run on its global parallelism, which starts rayon's global pool (one thread
@@ -36,7 +38,9 @@ mod eigen;
 mod lapack;
 mod lu;
 mod tridiag;
+mod zeros;
 
 pub use density::{weighted_outer, weighted_outer_sym};
 pub use eigen::{runtime_lapack, sym_eig, GenEigSolver};
 pub use lu::{gauss_last_max, Lu};
+pub use zeros::zeros;

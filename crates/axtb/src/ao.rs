@@ -197,7 +197,9 @@ where
     G: FnMut(&ShellPair) -> f64,
 {
     let nao = bas.nao;
-    let mut mats: [Mat<f64>; N] = std::array::from_fn(|_| Mat::zeros(nao, nao));
+    // zeroed by the pool's threads: one thread would take all first-touch page faults
+    let par = if parallel { faer::Par::rayon(0) } else { faer::Par::Seq };
+    let mut mats: [Mat<f64>; N] = std::array::from_fn(|_| axtb_base::linalg::zeros(nao, nao, par));
     {
         let w = MatWriter::new(mats.each_mut());
         let pairs = ShellPairs::screened(mol, bas, cutoff, bas.intcut);
