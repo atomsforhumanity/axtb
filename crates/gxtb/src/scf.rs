@@ -797,10 +797,11 @@ impl Setup {
         let version = self.model.version;
         opts.check(version)?;
         if opts.conventions != self.model.conventions {
-            let name = if version == Version::V1_1 { "g-xTB v1.1" } else { "g-xTB 2.0.1" };
             return Err(Error::Input(format!(
-                "{name}: SCF options in the {:?} conventions for a setup in the {:?} conventions",
-                opts.conventions, self.model.conventions
+                "{}: SCF options in the {:?} conventions for a setup in the {:?} conventions",
+                version.label(),
+                opts.conventions,
+                self.model.conventions
             )));
         }
         let n = self.nao;

@@ -62,9 +62,10 @@ impl Setup {
     /// restored afterwards.
     fn on_displacements<T>(&mut self, r: &ScfResult, f: impl FnOnce(&Setup, bool) -> Result<T>) -> Result<T> {
         if !r.all_orbitals {
-            return Err(Error::Input(
-                "g-xTB 2.0.1 Hessians need every orbital: converge the reference SCF with all_orbitals".into(),
-            ));
+            return Err(Error::Input(format!(
+                "{} Hessians need every orbital: converge the reference SCF with all_orbitals",
+                self.model.version.label()
+            )));
         }
         let threads = self.threads;
         self.set_threads(1)?;

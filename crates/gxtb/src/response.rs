@@ -440,14 +440,15 @@ impl<'a> Cpks<'a> {
             })
             .collect();
         // conjugate gradients
+        let name = self.setup.model.version.label();
         let krylov::CgSolution { x: z, residual: res, iterations } =
             krylov::cg(|p| self.apply(p), &rhs, self.opts.tol, self.opts.max_iter).map_err(|e| match e {
                 CgError::NotConverged { iterations, residual } => Error::Numerical(format!(
-                    "g-xTB 2.0.1 response: no convergence in {iterations} iterations (residual {residual:.1e})"
+                    "{name} response: no convergence in {iterations} iterations (residual {residual:.1e})"
                 )),
-                CgError::Indefinite => Error::Numerical(
-                    "g-xTB 2.0.1 response: electronic Hessian not positive definite (unstable SCF solution)".into(),
-                ),
+                CgError::Indefinite => Error::Numerical(format!(
+                    "{name} response: electronic Hessian not positive definite (unstable SCF solution)"
+                )),
             })?;
         let zr = self.keep_solution.then(|| {
             let flat = |ms: &[Mat<f64>]| -> Vec<f32> {

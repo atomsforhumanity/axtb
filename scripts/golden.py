@@ -246,6 +246,11 @@ def corpus():
     add("error-gxtb11-scf-not-converged", caf, method="gxtb-v1.1", max_iter=5)
     add("error-gxtb11-caffeine-converged-at-limit", caf, method="gxtb-v1.1", max_iter=10)
     add("error-gxtb2-scf-not-converged", caf, method="gxtb-v2.0.1", max_iter=5)
+    # the response refuses an unstable SCF solution: H2O at 3 Å, whose fresh SCF converges to a state with an
+    # indefinite electronic Hessian in both g-xTB versions (the warm start from water finds a lower one)
+    add("error-gxtb2-h2o-3a-hessian", h2o3, method="gxtb-v2.0.1", hessian=True)
+    add("error-gxtb11-h2o-3a-hessian-response", h2o3, method="gxtb-v1.1", accuracy=1e-4, hessian=True,
+        hessian_method="response")
     # g-xTB at finite temperature and open shell, energies and gradients, in both conventions
     add("gxtb2-o2-triplet-etemp-grad", o2, method="gxtb-v2.0.1", gradient=True, etemp=5000.0)
     add("gxtb2-cu-doublet-etemp-gxtb", cu, method="gxtb-v2.0.1", conventions="gxtb", etemp=3000.0)

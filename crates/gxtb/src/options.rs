@@ -32,6 +32,14 @@ impl Version {
             Self::V1_1 => "gxtb-v1.1",
         }
     }
+
+    /// The name messages use: `"g-xTB 2.0.1"` or `"g-xTB v1.1"`.
+    pub(crate) fn label(&self) -> &'static str {
+        match self {
+            Self::V2_0_1 => "g-xTB 2.0.1",
+            Self::V1_1 => "g-xTB v1.1",
+        }
+    }
 }
 
 /// The settings of one SCF of either version ([`crate::scf::Setup::scf`]; a
