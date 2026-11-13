@@ -99,8 +99,8 @@ impl Intermediate for RevD4Cn {
 }
 
 /// The EEQ-BC charges, with the factorization of the setup's geometry (`positions`), which the
-/// gradient at that geometry reuses; at any other geometry, or without it (v1.1), the equations
-/// are solved again.
+/// gradient at that geometry reuses; at any other geometry, or without it, the equations are
+/// solved again.
 struct EeqBcCharges {
     model: Model,
     positions: Vec<[f64; 3]>,

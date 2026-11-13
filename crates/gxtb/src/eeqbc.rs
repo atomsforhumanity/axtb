@@ -36,8 +36,13 @@
 //! capacitance-scaled matrix assembled here. [`EeqBc::solve`] factorizes it once per geometry
 //! and keeps it ([`EeqBcSolution`], owned, so that a setup can store it): the charges, and any
 //! number of adjoint gradients ([`EeqBc::add_charge_gradient`]) from the same factorization.
-//! In 2.0.1 the charges and the gradient use the same kernel, so the setup's factorization
-//! serves the gradients at its geometry ([`EeqBc::charges_and_solution`]).
+//! The setup's factorization serves the gradients at its geometry
+//! ([`EeqBc::charges_and_solution`]).
+//!
+//! The Coulomb kernel of two Gaussian charges, erf(r/sigma)/r with sigma² = w_A² + w_B², is
+//! evaluated as multicharge does, erf(sqrt(r r gamma²))/r with gamma² = 1/sigma², for the charges
+//! and the gradients of both versions (the 1.1.0 program's gradient writes erf(r/sigma)/r: the
+//! same matrix to rounding).
 
 use crate::cn::CN_CUTOFF;
 use crate::data::v1_1::{CN_AVG, PAULING_EN, VDW_RAD_PACKED};
@@ -87,17 +92,6 @@ pub enum RvdwRule {
     ScaledD3(Model),
 }
 
-/// The Coulomb kernel erf(r / sigma)/r of two Gaussian charges, sigma² = w_A² + w_B², in
-/// the two evaluation orders of the programs' matrices.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Kernel {
-    /// erf(sqrt(r r gamma²))/r with gamma² = 1/sigma² (multicharge): the charges of both
-    /// versions and the 2.0.1 gradient.
-    RootGamma,
-    /// erf(r/sigma)/r: the matrix of the v1.1 gradient.
-    OverSigma,
-}
-
 /// The form of an EEQ-BC model: what differs between the programs besides the element
 /// parameters.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -117,22 +111,12 @@ pub struct EeqBcForm {
     /// function; pairs beyond it (zero count derivative) are skipped in the gradient. None: no
     /// cutoff (v1.1).
     pub cutoff: Option<Model>,
-    /// The kernel of the matrix that the gradient factorizes (the charges use
-    /// [`Kernel::RootGamma`]).
-    pub gradient_kernel: Kernel,
 }
 
 impl EeqBcForm {
     /// g-xTB v1.1 (multicharge's `eeqbc2025`).
-    pub const V1_1: EeqBcForm = EeqBcForm {
-        kbc: 0.6,
-        kcnrad: 0.14,
-        rc: RcRule::Mean,
-        kqeta: true,
-        rvdw: RvdwRule::D3,
-        cutoff: None,
-        gradient_kernel: Kernel::OverSigma,
-    };
+    pub const V1_1: EeqBcForm =
+        EeqBcForm { kbc: 0.6, kcnrad: 0.14, rc: RcRule::Mean, kqeta: true, rvdw: RvdwRule::D3, cutoff: None };
 }
 
 /// The EEQ-BC parameters of one atom (by its element).
@@ -322,8 +306,8 @@ impl<'m> EeqBc<'m> {
         Geometry { dist, cn, qloc, cmat, x, width, hdiag }
     }
 
-    /// The charge equations A y = b of `g` with the Coulomb kernel `kernel`: A and b = C x.
-    fn equations(&self, g: &Geometry, kernel: Kernel) -> (ChargeEquations, Vec<f64>) {
+    /// The charge equations A y = b of `g`: A and b = C x.
+    fn equations(&self, g: &Geometry) -> (ChargeEquations, Vec<f64>) {
         let (n, m) = (self.n(), self.n() + 1);
         let rhs: Vec<f64> = (0..m).map(|i| (0..m).map(|k| g.cmat[i * m + k] * g.x[k]).sum()).collect();
         let a = ChargeEquations::new(
@@ -333,42 +317,27 @@ impl<'m> EeqBc<'m> {
             |i, j| {
                 let r = g.dist[i * n + j];
                 let (wi, wj) = (g.width[i], g.width[j]);
-                let k = match kernel {
-                    Kernel::RootGamma => {
-                        let gam2 = 1.0 / (wi * wi + wj * wj);
-                        erf_f64((r * r * gam2).sqrt()) / r
-                    }
-                    Kernel::OverSigma => {
-                        let sigma = (wi * wi + wj * wj).sqrt();
-                        erf_f64(r / sigma) / r
-                    }
-                };
-                k * g.cmat[j * m + i]
+                let gam2 = 1.0 / (wi * wi + wj * wj);
+                erf_f64((r * r * gam2).sqrt()) / r * g.cmat[j * m + i]
             },
         );
         (a, rhs)
     }
 
-    /// The charge equations at the geometry of the molecule with the Coulomb kernel
-    /// `kernel`, factorized once (sequential LU: faer's high-level `partial_piv_lu` would run
+    /// The charge equations at the geometry of the molecule, factorized once (sequential LU: faer's high-level `partial_piv_lu` would run
     /// on faer's global parallelism, i.e. start rayon's global pool in every process), and
     /// their solution. A singular matrix gives a solution that is not finite.
-    pub fn solve(&self, kernel: Kernel) -> EeqBcSolution {
+    pub fn solve(&self) -> EeqBcSolution {
         let g = self.geometry();
-        let (a, rhs) = self.equations(&g, kernel);
+        let (a, rhs) = self.equations(&g);
         let solver = a.factorize(Par::Seq);
         let y = solver.solve(&rhs);
-        EeqBcSolution { kernel, g, solver, y }
+        EeqBcSolution { g, solver, y }
     }
 
     /// [`EeqBc::solve`], kept together with the model.
-    pub fn system(&self, kernel: Kernel) -> EeqBcSystem<'_, 'm> {
-        EeqBcSystem { eeq: self, solution: self.solve(kernel) }
-    }
-
-    /// [`EeqBc::system`] with the kernel of the form's gradient.
-    pub fn gradient_system(&self) -> EeqBcSystem<'_, 'm> {
-        self.system(self.form.gradient_kernel)
+    pub fn system(&self) -> EeqBcSystem<'_, 'm> {
+        EeqBcSystem { eeq: self, solution: self.solve() }
     }
 
     /// The EEQ-BC partial charges (positions in bohr; total charge `mol.charge`), with the
@@ -377,12 +346,11 @@ impl<'m> EeqBc<'m> {
         Ok(self.charges_and_solution()?.0)
     }
 
-    /// [`EeqBc::charges`] and the factorized equations they were solved from (kernel
-    /// [`Kernel::RootGamma`]), for the gradients at this geometry when the form's gradient
-    /// uses the same kernel (2.0.1).
+    /// [`EeqBc::charges`] and the factorized equations they were solved from, for the
+    /// gradients at this geometry.
     pub fn charges_and_solution(&self) -> Result<(EeqBcCharges, EeqBcSolution)> {
         let n = self.n();
-        let s = self.solve(Kernel::RootGamma);
+        let s = self.solve();
         let charges = s.y[..n].to_vec();
         if charges.iter().any(|q| !q.is_finite()) {
             return Err(Error::Numerical("EEQ-BC: singular charge equations".into()));
@@ -392,14 +360,12 @@ impl<'m> EeqBc<'m> {
 
     /// Gradient of a function of the EEQ-BC charges: with `dedq[A]` = dE/dq_A, adds
     /// sum_A dE/dq_A dq_A/dR to `grad` (positions in bohr), with the factorized equations
-    /// `solution` of this model at this geometry, solved with the kernel of the form's
-    /// gradient (checked). Adjoint of the linear charge equations: dE/dR = w^T (db/dR -
+    /// `solution` of this model at this geometry. Adjoint of the linear charge equations: dE/dR = w^T (db/dR -
     /// dA/dR y) with A w = (dE/dq, 0) (A is symmetric), one pair of triangular solves with the
     /// kept factorization. R enters through the distances (Coulomb kernel, bond
     /// capacitances), the coordination numbers (charge widths, electronegativities) and the
     /// local charges.
     pub fn add_charge_gradient(&self, solution: &EeqBcSolution, dedq: &[f64], grad: &mut [[f64; 3]]) {
-        assert_eq!(solution.kernel, self.form.gradient_kernel, "EEQ-BC gradient from equations of another kernel");
         assert_eq!(solution.y.len(), self.n() + 1, "EEQ-BC gradient from equations of another molecule");
         let e = self;
         let (g, y) = (&solution.g, &solution.y);
@@ -479,26 +445,17 @@ impl<'m> EeqBc<'m> {
     }
 }
 
-/// The EEQ-BC charge equations A(R) y = b(R) of one geometry with one Coulomb kernel,
-/// factorized, with their solution y = (q, lambda) ([`EeqBc::solve`]). It does not borrow
+/// The EEQ-BC charge equations A(R) y = b(R) of one geometry, factorized, with their solution y = (q, lambda) ([`EeqBc::solve`]). It does not borrow
 /// the molecule, so that a setup can keep it for the gradients at its geometry.
 pub struct EeqBcSolution {
-    kernel: Kernel,
     g: Geometry,
     solver: ChargeSolver,
     y: Vec<f64>,
 }
 
-impl EeqBcSolution {
-    /// The Coulomb kernel of the factorized matrix.
-    pub fn kernel(&self) -> Kernel {
-        self.kernel
-    }
-}
-
 impl std::fmt::Debug for EeqBcSolution {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EeqBcSolution").field("kernel", &self.kernel).field("atoms", &self.solver.atoms()).finish()
+        f.debug_struct("EeqBcSolution").field("atoms", &self.solver.atoms()).finish()
     }
 }
 
@@ -531,7 +488,6 @@ impl EeqBcForm {
             kqeta: false,
             rvdw: RvdwRule::ScaledD3(*model),
             cutoff: Some(*model),
-            gradient_kernel: Kernel::RootGamma,
         }
     }
 }
@@ -566,11 +522,11 @@ pub fn eeqbc_charges(model: &Model, mol: &Molecule) -> Result<EeqBcCharges> {
 
 /// Adds sum_A dE/dq_A dq_A/dR to `grad` for a function E of the EEQ-BC charges (adjoint of
 /// the linear charge equations A y = b: dE/dR = w^T (db/dR - dA/dR y), A w = (dE/dq, 0)).
-/// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::gradient_system`]; at
-/// the geometry of a [`crate::scf::Setup`], its gradients use the setup's factorization (the
-/// charges' kernel is the 2.0.1 gradient's, [`EeqBc::charges_and_solution`]).
+/// For several `dedq` at one geometry, factorize once: [`eeqbc`], [`EeqBc::system`]; at the
+/// geometry of a [`crate::scf::Setup`], its gradients use the setup's factorization
+/// ([`EeqBc::charges_and_solution`]).
 pub fn eeqbc_charge_gradient(model: &Model, mol: &Molecule, dedq: &[f64], grad: &mut [[f64; 3]]) -> Result<()> {
-    eeqbc(model, mol)?.gradient_system().add_charge_gradient(dedq, grad);
+    eeqbc(model, mol)?.system().add_charge_gradient(dedq, grad);
     Ok(())
 }
 

@@ -234,9 +234,7 @@ impl Setup {
         // the intermediates; the EEQ-BC charges keep the factorized equations the charges were
         // solved from: the gradients at this geometry (the analytic gradient, the Jacobian rows
         // of the Hessian) reuse them instead of factorizing again
-        // (v1.1's gradient factorizes the matrix of another Coulomb kernel: no reuse)
-        let eeq_solution = (model.version == Version::V2_0_1).then(|| Arc::new(eeq_solution));
-        let (layout, slots) = crate::intermediates::layout(&model, mol, eeq_solution);
+        let (layout, slots) = crate::intermediates::layout(&model, mol, Some(Arc::new(eeq_solution)));
         let mut values = Values::new(&layout);
         values.set(slots.eeq, eeq.charges.clone());
         values.set(slots.cnd4, disp.cn.clone());
