@@ -21,6 +21,16 @@
 //!
 //! The Fock matrix is dE/dP at fixed kernels plus the Mulliken shell potential dE/dq of the
 //! charge dependence (the program's, exact).
+//!
+//! v1.1 (the 1.1.0 program's `setfock_mat_`, `setfock_indo_`, [`crate::exchange`]): the same
+//! MFX with its kernel ((0.15 + 0.85 erf(omega R))/(R + exp(-(glob(7) + glob(8) R0) R)/(eta g)),
+//! omega = glob(19), R0 the D3 pair radius in Ångström used as bohr, eta the general average of
+//! fam_l gam_Z with xi = 1 or 2 (polarization shells), g = 1.39 for the same shell, R = 1e-12 bohr
+//! within an atom), no bond-order correction, and the dual-density onsite exchange
+//! E = -1/2 t(P) per E(P) above, t = sum_{k != l} L_kl Pt_kl^2 + sum_{shells, l >= 1} f_kl L_kl
+//! Pt_kk Pt_ll with Pt = (PS + SP)/2, L = 0.15 gmunu(l_k, l_l): in the A-matrix form
+//! A1 += -L/4 and A3 += -L/4 on the same-atom pairs k != l, and -1/16 diag(SP)^T (8 f L)
+//! diag(SP) on the shell blocks ([`Dual`]); nothing depends on the charges.
 
 use super::coulomb::Shell;
 use super::Model;
@@ -30,6 +40,7 @@ use crate::data_v2::{
 use crate::dense::matmul;
 use crate::eeqbc::erf_f64;
 use crate::es::spin_index;
+use crate::options::Version;
 use crate::parallel::TILE;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::terms::{Chain, Geometry};
@@ -58,13 +69,20 @@ pub fn r0(model: &Model, za: usize, zb: usize) -> f64 {
     model.rvdw(za, zb) * model.aatoau
 }
 
-/// MFX kernel at distance `r` (0 within an atom) and its R derivative.
+/// MFX kernel of 2.0.1 at distance `r` (0 within an atom) and its R derivative.
 #[inline]
 pub fn mfx_kernel(r: f64, kap: f64, etag: f64) -> (f64, f64) {
-    let num = ALPHA + LR * erf_f64(OMEGA * r);
+    mfx_kernel_w(r, kap, etag, OMEGA)
+}
+
+/// The MFX kernel (0.15 + 0.85 erf(omega R))/(R + exp(-kappa R)/(eta g)) with the range
+/// separation `omega` (2.0.1: 0.2; v1.1: glob(19)) and its R derivative.
+#[inline]
+pub fn mfx_kernel_w(r: f64, kap: f64, etag: f64, omega: f64) -> (f64, f64) {
+    let num = ALPHA + LR * erf_f64(omega * r);
     let damp = (-kap * r).exp();
     let den = r + damp / etag;
-    let dnum = LR * 2.0 * OMEGA / SQRTPI * (-(OMEGA * r) * (OMEGA * r)).exp();
+    let dnum = LR * 2.0 * omega / SQRTPI * (-(omega * r) * (omega * r)).exp();
     let dden = 1.0 - kap * damp / etag;
     (num / den, (dnum * den - num * dden) / (den * den))
 }
@@ -101,6 +119,50 @@ pub struct Exchange {
     pub kq: Vec<f64>,
     /// AO range [first, end) of every atom (an atom's AOs are contiguous).
     pub atom_ao: Vec<(usize, usize)>,
+    /// The range separation of the MFX kernel ([`mfx_kernel_w`]) and whether the bond-order
+    /// correction is part of the model (2.0.1).
+    pub omega: f64,
+    pub bond_order: bool,
+    /// v1.1's onsite exchange (its `lam0` and `kq` are zero: no Mulliken-form onsite part).
+    pub dual: Option<Dual>,
+}
+
+/// v1.1's dual-density onsite exchange in the A-matrix form of [`Exchange`] (per E(P)): A1 and
+/// A3 get -`lam_off`/4 on the same-atom AO pairs k != l, and the energy
+/// -1/16 diag(SP)^T `m2` diag(SP) with `m2` = 8 f L on the shell blocks (l >= 1), f_kl =
+/// ((2l+1) delta_kl - 1)/(2l+1). Row-major nao x nao, zero between atoms.
+#[derive(Clone, Debug)]
+pub struct Dual {
+    pub lam_off: Vec<f64>,
+    pub m2: Vec<f64>,
+}
+
+impl Dual {
+    /// The onsite integrals of the AOs `ao` ((atom, shell, l)) of the elements `numbers`.
+    pub fn new(numbers: &[usize], ao: &[Shell]) -> Self {
+        use crate::exchange::{gmunu_index, OFX_SCALE};
+        let n = ao.len();
+        let mut lam_off = vec![0.0; n * n];
+        let mut m2 = vec![0.0; n * n];
+        for i in 0..n {
+            for j in 0..n {
+                let ((ai, si, li), (aj, sj, lj)) = (ao[i], ao[j]);
+                if ai != aj {
+                    continue;
+                }
+                let Some(k) = gmunu_index(li, lj) else { continue };
+                let lam = OFX_SCALE * crate::data::GMUNU[(k - 1) + 9 * (numbers[ai] - 1)];
+                if i != j {
+                    lam_off[i * n + j] = lam;
+                }
+                if si == sj && li >= 1 {
+                    let f = (if i == j { (2 * li + 1) as f64 } else { 0.0 } - 1.0) / (2 * li + 1) as f64;
+                    m2[i * n + j] = 8.0 * f * lam;
+                }
+            }
+        }
+        Self { lam_off, m2 }
+    }
 }
 
 /// Per-shell exchange parameters: (U^x, xi, G_l).
@@ -112,6 +174,9 @@ fn shell_params(mol: &Molecule, sh: &Shell) -> (f64, f64, f64) {
 
 /// Shell-pair data of the MFX kernel: (kappa, eta g) for shells i, j.
 pub fn mfx_pair(model: &Model, mol: &Molecule, shells: &[Shell], i: usize, j: usize) -> (f64, f64) {
+    if model.version == Version::V1_1 {
+        return mfx_pair_v1_1(mol, shells, i, j);
+    }
     let (ui, xi_i, gi) = shell_params(mol, &shells[i]);
     let (uj, xi_j, gj) = shell_params(mol, &shells[j]);
     let eta = general_average(ui, uj, xi_i.max(xi_j));
@@ -125,6 +190,25 @@ pub fn mfx_pair(model: &Model, mol: &Molecule, shells: &[Shell], i: usize, j: us
     (kap, eta * g)
 }
 
+/// v1.1's shell-pair data of the MFX kernel (`setgab_lrao_`): kappa = glob(7) + glob(8) R0_AB
+/// (R0 the D3 pair radius in Ångström, also within an atom) and eta g with the program's general
+/// average 2^(xi-1) (U U')^(xi/2) / (U + U')^(xi-1).
+fn mfx_pair_v1_1(mol: &Molecule, shells: &[Shell], i: usize, j: usize) -> (f64, f64) {
+    use crate::data::{BAS_POL, GAM};
+    let p = crate::params::gxtb_v1_1();
+    let g = &p.glob;
+    let ((ia, ish, li), (ja, jsh, lj)) = (shells[i], shells[j]);
+    let (zi, zj) = (mol.numbers[ia], mol.numbers[ja]);
+    let ux = |z: usize, s: usize| p.element(z).expect("g-xTB v1.1 parameters of a checked element").fam[s] * GAM[z - 1];
+    let (ui, uj) = (ux(zi, ish), ux(zj, jsh));
+    let xi = (BAS_POL[ish * 103 + zi - 1].max(BAS_POL[jsh * 103 + zj - 1]) + 1) as f64;
+    let eta = (xi - 1.0).exp2() * (ui * uj).powf(0.5 * xi) / (ui + uj).powf(xi - 1.0);
+    let gl = [g[4], g[5], g[5], g[5]];
+    let gg = if i == j { crate::kernels::G_ONSITE } else { (gl[li] * gl[lj]).sqrt() };
+    let r0 = crate::eeqbc::vdw_rad_pair(zi, zj);
+    (g[6] + g[7] * r0, eta * gg)
+}
+
 impl Exchange {
     /// The exchange kernels of a geometry, kernel rows in parallel when `parallel` (same result).
     pub fn new(model: &Model, mol: &Molecule, shells: &[Shell], ao_shell: &[usize], parallel: bool) -> Self {
@@ -132,14 +216,18 @@ impl Exchange {
         let nao = ao_shell.len();
         let nat = mol.nat();
         let ao_atom: Vec<usize> = ao_shell.iter().map(|&s| shells[s].0).collect();
+        let v1_1 = model.version == Version::V1_1;
+        // v1.1: the program's distance of an atom from itself, its range separation
+        let (r_same, omega) =
+            if v1_1 { (crate::kernels::R_SAME_ATOM, crate::params::gxtb_v1_1().glob[18]) } else { (0.0, OMEGA) };
         let [gx_sh] = crate::parallel::symmetric(nsh, parallel, |i, j| {
             let (ia, ja) = (shells[i].0, shells[j].0);
-            let r = if ia == ja { 0.0 } else { norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt() };
+            let r = if ia == ja { r_same } else { norm2_sq(sub3(mol.positions[ia], mol.positions[ja])).sqrt() };
             let (kap, etag) = mfx_pair(model, mol, shells, i, j);
-            [mfx_kernel(r, kap, etag).0]
+            [mfx_kernel_w(r, kap, etag, omega).0]
         });
         let [kbo] = crate::parallel::symmetric(nat, parallel, |i, j| {
-            if i == j {
+            if i == j || v1_1 {
                 return [0.0];
             }
             let r = norm2_sq(sub3(mol.positions[i], mol.positions[j])).sqrt();
@@ -161,7 +249,7 @@ impl Exchange {
                         rows[0][n] = gx_sh[sm * nsh + sn];
                         let (am, an) = (ao_atom[m], ao_atom[n]);
                         rows[1][n] = kbo[am * nat + an];
-                        if am == an {
+                        if am == an && !v1_1 {
                             let z = mol.numbers[am] - 1;
                             rows[2][n] = ALPHA * ONECX[z][spin_index(shells[sm].2, shells[sn].2)];
                         }
@@ -169,7 +257,7 @@ impl Exchange {
                 },
             );
         }
-        let kq = ao_shell.iter().map(|&s| PG_FOCK_KQ[shells[s].2]).collect();
+        let kq = ao_shell.iter().map(|&s| if v1_1 { 0.0 } else { PG_FOCK_KQ[shells[s].2] }).collect();
         let mut atom_ao = vec![(0, 0); nat];
         for (m, &a) in ao_atom.iter().enumerate() {
             if m == 0 || ao_atom[m - 1] != a {
@@ -179,6 +267,10 @@ impl Exchange {
             atom_ao[a].1 = m + 1;
         }
         let k1 = gx.iter().zip(&kbo_ao).map(|(g, k)| -0.125 * g + 0.5 * k).collect();
+        let dual = v1_1.then(|| {
+            let ao: Vec<Shell> = ao_shell.iter().map(|&s| shells[s]).collect();
+            Dual::new(&mol.numbers, &ao)
+        });
         Self {
             nao,
             nat,
@@ -193,7 +285,17 @@ impl Exchange {
             lam0,
             kq,
             atom_ao,
+            omega,
+            bond_order: !v1_1,
+            dual,
         }
+    }
+
+    /// The MFX kernel of this model at distance `r` for the pair data `kap`, `etag` of
+    /// [`mfx_pair`], and its R derivative.
+    #[inline]
+    pub fn kernel(&self, r: f64, kap: f64, etag: f64) -> (f64, f64) {
+        mfx_kernel_w(r, kap, etag, self.omega)
     }
 
     /// Onsite integrals Lambda(q) (nao x nao) and the shell-block coefficients r per AO
@@ -231,6 +333,14 @@ impl Exchange {
                 a1[mk] = -0.125 * self.gx[mk] + 0.5 * self.kbo_ao[mk] + rr;
                 a2[mk] = -0.125 * self.gx[mk] + rr - lam[mk] / 16.0;
                 a3[mk] = -lam[mk] / 16.0;
+            }
+        }
+        if let Some(d) = &self.dual {
+            for (mk, &lo) in d.lam_off.iter().enumerate() {
+                if lo != 0.0 {
+                    a1[mk] += -0.25 * lo;
+                    a3[mk] += -0.25 * lo;
+                }
             }
         }
         (a1, a2, a3)
@@ -354,6 +464,34 @@ impl Exchange {
         let mut y3 = vec![0.0; n];
         let mut dlam = Vec::new();
         let mut dr = Vec::new();
+        if let Some(d) = &self.dual {
+            // v1.1: A1 and A3 on the same-atom pairs, the diagonal coupling of diag(SP)
+            let mut e_on = 0.0;
+            for &(i0, i1) in &self.atom_ao {
+                for m in i0..i1 {
+                    let mut y2m = 0.0;
+                    for k in i0..i1 {
+                        let mk = m * n + k;
+                        let lo = d.lam_off[mk];
+                        if lo != 0.0 {
+                            let a = -0.25 * lo;
+                            let pkm = ps[k * n + m];
+                            e_on += a * (ps[mk] * pkm) + a * (ps[mk] * ps[mk]);
+                            if mats {
+                                b[mk] += a * pkm + a * ps[mk];
+                            }
+                        }
+                        let l2 = d.m2[mk];
+                        if l2 != 0.0 {
+                            y2m += l2 * ps[k * n + k];
+                        }
+                    }
+                    e_on -= ps[m * n + m] * y2m / 16.0;
+                    y2[m] = y2m;
+                }
+            }
+            return ChannelPass { e, e_onsite: e_on, b, x, y2, y3, v };
+        }
         for &(i0, i1) in &self.atom_ao {
             let na = i1 - i0;
             dlam.clear();
@@ -401,7 +539,7 @@ impl Exchange {
             }
             self.add_block_shell_potential((i0, i1), |m, k| dlam[(m - i0) * na + k - i0], |m| dr[m - i0], &mut v);
         }
-        ChannelPass { e, b, x, y2, y3, v }
+        ChannelPass { e, e_onsite: 0.0, b, x, y2, y3, v }
     }
 
     /// The exchange Fock matrix of a channel from its [`ChannelPass`] (with matrices):
@@ -445,8 +583,8 @@ impl Exchange {
                 }
             }
         });
-        // atom blocks: the onsite and same-shell parts of A2
-        for &(i0, i1) in &self.atom_ao {
+        // atom blocks: the onsite and same-shell parts of A2 (none in v1.1)
+        for &(i0, i1) in self.atom_ao.iter().filter(|_| self.dual.is_none()) {
             for m in i0..i1 {
                 let sm = self.ao_shell[m];
                 for k in i0..i1 {
@@ -480,14 +618,33 @@ impl Exchange {
         par: Par,
         parallel: bool,
     ) -> (f64, Vec<Vec<f64>>, Vec<f64>) {
+        let (e, _, fm, v) = self.evaluate_parts(s, p, pr, q, fock, par, parallel);
+        (e, fm, v)
+    }
+
+    /// [`Exchange::evaluate_with`] with v1.1's onsite exchange apart: (E_MFX (2.0.1: the whole
+    /// exchange), E_onsite (v1.1; 0 for 2.0.1), Fock matrices, shell potential).
+    #[allow(clippy::type_complexity, clippy::too_many_arguments)]
+    pub fn evaluate_parts(
+        &self,
+        s: &[f64],
+        p: &[Vec<f64>],
+        pr: &[Products],
+        q: &[f64],
+        fock: bool,
+        par: Par,
+        parallel: bool,
+    ) -> (f64, f64, Vec<Vec<f64>>, Vec<f64>) {
         let (f, r) = self.onsite_factors(q);
         let w = if p.len() == 1 { 1.0 } else { 2.0 };
         let mut e = 0.0;
+        let mut e_on = 0.0;
         let mut fm = Vec::new();
         let mut v = vec![0.0; self.shells.len()];
         for (pm, prm) in p.iter().zip(pr) {
             let cp = self.channel(pm, prm, &f, &r, fock, parallel);
             e += w * cp.e;
+            e_on += w * cp.e_onsite;
             for (a, b) in v.iter_mut().zip(&cp.v) {
                 *a += w * b;
             }
@@ -495,7 +652,7 @@ impl Exchange {
                 fm.push(self.channel_fock(s, &f, &r, prm, cp, w, par, parallel));
             }
         }
-        (e, fm, v)
+        (e, e_on, fm, v)
     }
 
     /// dE/dG (shell pairs, nsh x nsh) and dE/dK (atom pairs, nat x nat) of the exchange at fixed
@@ -619,12 +776,15 @@ impl Exchange {
                 let v = sub3(mol.positions[ia], mol.positions[ja]);
                 let r = norm2_sq(v).sqrt();
                 let (kap, etag) = mfx_pair(model, mol, shells, i, j);
-                let dg = mfx_kernel(r, kap, etag).1;
+                let dg = self.kernel(r, kap, etag).1;
                 let w = tsh[i * nsh + j] + tsh[j * nsh + i];
                 add_pair(&mut ch.g, ia, ja, w * dg / r, v);
             }
         });
         ch.add(&acc);
+        if !self.bond_order {
+            return;
+        }
         let acc = chain_rows(nat, ch, geo.parallel, |i, ch| {
             for j in 0..i {
                 let v = sub3(mol.positions[i], mol.positions[j]);
@@ -648,6 +808,8 @@ pub struct Products {
 /// The per-channel parts of the exchange of [`Exchange::channel`].
 struct ChannelPass {
     e: f64,
+    /// v1.1: the onsite exchange (not in `e`).
+    e_onsite: f64,
     b: Vec<f64>,
     x: Vec<f64>,
     y2: Vec<f64>,
@@ -671,6 +833,8 @@ struct FockAcc {
 #[derive(Clone, Debug)]
 pub struct ResponseBase {
     pub lam: Vec<f64>,
+    /// v1.1: the diagonal coupling `m2` of [`Dual`] (its y2 = m2 diag(PS); 2.0.1 uses `lam`).
+    pub lam2: Option<Vec<f64>>,
     pub a1: Vec<f64>,
     pub a2: Vec<f64>,
     pub a3: Vec<f64>,
@@ -723,7 +887,8 @@ impl Exchange {
             xs.push(matmul(n, &x, s, par));
             bs.push(b);
         }
-        ResponseBase { lam, a1, a2, a3, ps, sps, b: bs, xs }
+        let lam2 = self.dual.as_ref().map(|d| d.m2.clone());
+        ResponseBase { lam, lam2, a1, a2, a3, ps, sps, b: bs, xs }
     }
 
     /// Onsite shift of shell charge changes `dq`: kq dq per AO and the change of the
@@ -762,6 +927,7 @@ impl Exchange {
         a2: &[f64],
         a3: Option<&[f64]>,
         lam: Option<&[f64]>,
+        lam2: Option<&[f64]>,
     ) {
         let n = self.nao;
         for i0 in (0..n).step_by(TILE) {
@@ -796,6 +962,17 @@ impl Exchange {
                     acc.x[m * n + m] -= y1 / 16.0;
                     acc.y2[m] += y2;
                     acc.y3[m] += y3;
+                }
+            }
+        }
+        if let Some(l2) = lam2 {
+            for &(i0, i1) in &self.atom_ao {
+                for m in i0..i1 {
+                    let mut y2 = 0.0;
+                    for k in i0..i1 {
+                        y2 += l2[m * n + k] * ps[k * n + k];
+                    }
+                    acc.y2[m] += y2;
                 }
             }
         }
@@ -878,9 +1055,11 @@ impl Exchange {
             .map(|(k, pm)| {
                 let mut acc = self.acc_new();
                 if let Some((e1, e2)) = extra {
-                    self.acc_dense(&mut acc, pm, &base.ps[k], &base.sps[k], e1, e2, None, None);
+                    self.acc_dense(&mut acc, pm, &base.ps[k], &base.sps[k], e1, e2, None, None, None);
                 }
-                self.acc_onsite(&mut acc, pm, &base.ps[k], &base.sps[k], &fm, &dr);
+                if self.dual.is_none() {
+                    self.acc_onsite(&mut acc, pm, &base.ps[k], &base.sps[k], &fm, &dr);
+                }
                 self.acc_finish(s, acc, w, par)
             })
             .collect()
@@ -933,6 +1112,17 @@ impl Exchange {
                         y2[m] += lam[ml] * dsp[l];
                         dy2[m] += lam[ml] * ddsp[l];
                         dy3[m] += lam[ml] * ddsps[l];
+                    }
+                }
+            }
+            if let Some(l2) = &base.lam2 {
+                for m in 0..n {
+                    for l in 0..n {
+                        let ml = m * n + l;
+                        if l2[ml] != 0.0 {
+                            y2[m] += l2[ml] * dsp[l];
+                            dy2[m] += l2[ml] * ddsp[l];
+                        }
                     }
                 }
             }
@@ -993,6 +1183,9 @@ impl Exchange {
                     if lam[ml] != 0.0 {
                         z2[m] += lam[ml] * ddsp[l];
                     }
+                    if let Some(l2) = &base.lam2 {
+                        z2[m] += l2[ml] * ddsp[l];
+                    }
                     bb[ml] = a1[ml] * a[l * n + m] + a3[ml] * a[ml];
                     cc[ml] = a2[ml] * pm[ml];
                 }
@@ -1043,8 +1236,20 @@ impl Exchange {
             let dps = matmul(n, dpm, s, par);
             let dsps = matmul(n, s, &dps, par);
             let mut acc = self.acc_new();
-            self.acc_dense(&mut acc, dpm, &dps, &dsps, &base.a1, &base.a2, Some(&base.a3), Some(&base.lam));
-            self.acc_onsite(&mut acc, pm, ps, sps, &fm, &dr);
+            self.acc_dense(
+                &mut acc,
+                dpm,
+                &dps,
+                &dsps,
+                &base.a1,
+                &base.a2,
+                Some(&base.a3),
+                Some(&base.lam),
+                base.lam2.as_deref(),
+            );
+            if self.dual.is_none() {
+                self.acc_onsite(&mut acc, pm, ps, sps, &fm, &dr);
+            }
             out.push(self.acc_finish(s, acc, w, par));
             // derivative of dE/dLambda and dE/dr (quadratic in P) along dp, on the atom blocks,
             // and its shell potential
@@ -1110,6 +1315,18 @@ impl Exchange {
                         dy1[m] += lam[ml] * dpm[ll];
                         y2[m] += lam[ml] * ps[ll];
                         dy2[m] += lam[ml] * dps[ll];
+                    }
+                }
+            }
+            if let Some(l2) = &base.lam2 {
+                for m in 0..n {
+                    for l in 0..n {
+                        let ml = m * n + l;
+                        if l2[ml] != 0.0 {
+                            let ll = l * n + l;
+                            y2[m] += l2[ml] * ps[ll];
+                            dy2[m] += l2[ml] * dps[ll];
+                        }
                     }
                 }
             }

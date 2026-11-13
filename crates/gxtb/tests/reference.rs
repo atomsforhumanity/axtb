@@ -1128,3 +1128,80 @@ fn basis_and_one_electron_engine_match_program() {
     }
     eprintln!("engine v1.1: S {ws:e}, H0 {wh:e}, H0 + ACP {wa:e} (max abs deviation from the program)");
 }
+
+/// The engine's v1.1 exchange (MFX and the dual-density onsite exchange) against the program's
+/// energies at its densities, and its Fock matrices, overlap weight and response against the
+/// old tree and central differences.
+#[test]
+fn exchange_engine_matches_program() {
+    use axtb_gxtb::fock::{mfx_fock, ofx_fock};
+    use axtb_gxtb::scf::Setup;
+    use axtb_gxtb::v2::exchange::Exchange;
+    use faer::Par;
+    let model = v11();
+    let (mut wm, mut wo, mut wf, mut wx, mut wr) = (0.0f64, 0.0f64, 0.0f64, 0.0f64, 0.0f64);
+    for c in cases() {
+        let old = Setup::new(&c.mol).unwrap();
+        let n = old.nao;
+        let map = program_ao_map(&old.ao, PROGRAM_D_ORDER);
+        let dens = program_densities(&c, &map);
+        let ex = Exchange::new(&model, &c.mol, &old.shells, &old.basis.scf.ao2sh, false);
+        // the MFX kernel: the old tree's bits
+        assert_eq!(ex.gx, old.gamma_x, "{}: MFX kernel", c.name);
+        let s = &old.s;
+        let pr = ex.products(s, &dens, Par::Seq);
+        let q = vec![0.0; old.shells.len()];
+        let (e_mfx, e_ofx, fm, _) = ex.evaluate_parts(s, &dens, &pr, &q, true, Par::Seq, false);
+        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
+        let (rm, ro) = (fe["mfx"].as_f64().unwrap(), fe["ofx"].as_f64().unwrap());
+        wm = wm.max((e_mfx - rm).abs());
+        wo = wo.max((e_ofx - ro).abs());
+        assert!((e_mfx - rm).abs() < 1e-11, "{}: E_MFX {e_mfx} vs {rm}", c.name);
+        assert!((e_ofx - ro).abs() < 1e-12, "{}: E_OFX {e_ofx} vs {ro}", c.name);
+        // Fock matrices: the old tree's exact ones
+        let closed = dens.len() == 1;
+        for (k, p) in dens.iter().enumerate() {
+            let fx = mfx_fock(n, s, p, &old.gamma_x, closed, Par::Seq);
+            let fo = ofx_fock(&c.mol.numbers, &old.ao, s, p, closed, true, Par::Seq);
+            let scale = fx.iter().fold(1.0f64, |m, v| m.max(v.abs()));
+            let d = (0..n * n).map(|x| (fx[x] + fo[x] - fm[k][x]).abs()).fold(0.0, f64::max) / scale;
+            wf = wf.max(d);
+            assert!(d < 1e-13, "{}: exchange Fock (spin {k}) differs by {d:e}", c.name);
+        }
+        // overlap weight: the old tree's d(E_MFX + E_OFX)/dS
+        let xw = ex.overlap_weight(s, &dens, &q, Par::Seq);
+        let mut xo = vec![0.0; n * n];
+        for p in &dens {
+            for (a, b) in xo.iter_mut().zip(old.exchange_overlap_weight(p, closed)) {
+                *a += b;
+            }
+        }
+        let scale = xo.iter().fold(1.0f64, |m, v| m.max(v.abs()));
+        let d = (0..n * n).map(|x| (xw[x] - xo[x]).abs()).fold(0.0, f64::max) / scale;
+        wx = wx.max(d);
+        assert!(d < 1e-13, "{}: exchange overlap weight differs by {d:e}", c.name);
+        // response: the change of the Fock matrices along a density change (exact: quadratic in P)
+        let base = ex.response_base(s, &dens, &q, Par::Seq);
+        let dp: Vec<Vec<f64>> = dens
+            .iter()
+            .map(|p| (0..n * n).map(|x| ((x % n + x / n) % 7) as f64 * 1e-2 + 0.1 * p[x]).collect())
+            .collect();
+        let (df, _, _) = ex.response(s, &dens, &base, &dp, &q, Par::Seq);
+        let h = 1e-3;
+        let at = |sg: f64| {
+            let pp: Vec<Vec<f64>> =
+                dens.iter().zip(&dp).map(|(a, b)| a.iter().zip(b).map(|(x, y)| x + sg * h * y).collect()).collect();
+            let prp = ex.products(s, &pp, Par::Seq);
+            ex.evaluate_parts(s, &pp, &prp, &q, true, Par::Seq, false).2
+        };
+        let (fp, fmm) = (at(1.0), at(-1.0));
+        for k in 0..dens.len() {
+            let d = (0..n * n).map(|x| ((fp[k][x] - fmm[k][x]) / (2.0 * h) - df[k][x]).abs()).fold(0.0, f64::max);
+            wr = wr.max(d);
+            assert!(d < 1e-9, "{}: exchange response (spin {k}) vs FD {d:e}", c.name);
+        }
+    }
+    eprintln!(
+        "engine v1.1 exchange: E_MFX {wm:e}, E_OFX {wo:e} Eh; Fock {wf:e}, overlap weight {wx:e} (rel); response vs FD {wr:e}"
+    );
+}
