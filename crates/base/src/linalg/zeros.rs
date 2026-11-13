@@ -10,7 +10,7 @@ const PAR_MIN: usize = 1 << 16;
 /// Columns per task of the parallel fill.
 const COLS: usize = 16;
 
-/// An `nrows x ncols` zero matrix; with `par` parallel and at least [`PAR_MIN`] elements its
+/// An `nrows x ncols` zero matrix; with `par` parallel and at least 65,536 elements its
 /// columns are written by the threads of the current rayon pool. The values are those of
 /// `Mat::zeros`; only who writes them first changes: a large matrix written by one thread pays
 /// all of its first-touch page faults on that thread (the GFN2-xTB AO matrices of 1200 basis
