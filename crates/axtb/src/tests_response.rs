@@ -99,7 +99,7 @@ pub fn check_potential_derivative(mol: &Molecule, o: &Options) -> f64 {
         for (i, sign) in [1.0, -1.0].into_iter().enumerate() {
             let mut mm = mol.clone();
             mm.positions[a][k] += sign * h;
-            let geo = model.geometry(&mm, &extra).unwrap();
+            let geo = model.geometry(&mm, &extra, false).unwrap();
             let mut pot = crate::terms::Potentials::new(nsh, nat, false);
             model.potentials(&mm, &geo, &st.qsh, &st.qat, &st.dpat, &st.qpat, &mut pot, false);
             let vsh: Vec<f64> = (0..nsh).map(|s| pot.shell[s] + pot.atom[model.basis.sh2at[s]]).collect();

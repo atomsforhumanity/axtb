@@ -251,13 +251,18 @@ impl ScfState {
 
 impl XtbModel {
     /// Coordination numbers, self-energies, Coulomb kernels and the added terms bound to
-    /// `mol`.
-    pub(crate) fn geometry(&self, mol: &Molecule, extra: &[Arc<dyn AnyMomentTerm>]) -> Result<GeometryData> {
+    /// `mol` (the γ matrix on the current rayon pool with `parallel`).
+    pub(crate) fn geometry(
+        &self,
+        mol: &Molecule,
+        extra: &[Arc<dyn AnyMomentTerm>],
+        parallel: bool,
+    ) -> Result<GeometryData> {
         let bas = &self.basis;
         let cn = self.ncoord.compute(mol);
         let (se, dsedcn) = self.h0.selfenergy(mol, bas, &cn);
         let cutoff = self.pair_cutoff;
-        let gamma = self.es2.matrix(mol, &bas.ish_at, &bas.nsh_at, bas.nsh);
+        let gamma = self.es2.matrix(mol, &bas.ish_at, &bas.nsh_at, bas.nsh, parallel);
         let mp_cache = self.aes2.as_ref().map(|m| m.cache(mol, &cn));
         let mut values = Values::new(&self.layout);
         values.set(self.cn, cn);
@@ -379,7 +384,7 @@ impl XtbModel {
         let bas = &self.basis;
         let mut chain = Chain::new(&self.layout, nat);
         let mut e = vec![0.0; nat];
-        let geo = self.geometry(mol, extra)?;
+        let geo = self.geometry(mol, extra, parallel)?;
         let tg = self.term_geometry(mol, &geo, parallel);
         let mut erep = [0.0];
         self.repulsion.energy(&tg, &(), &mut TermEnergy { pieces: &mut erep, atoms: Some(&mut e) }, Some(&mut chain));
@@ -442,7 +447,7 @@ impl XtbModel {
         let mut energies = vec![0.0; nat];
         let mut erep = vec![0.0; nat];
         // geometry-dependent setup
-        let geo = self.geometry(mol, extra)?;
+        let geo = self.geometry(mol, extra, parallel)?;
         let tg = self.term_geometry(mol, &geo, parallel);
         let mut e_repulsion = [0.0];
         let te = &mut TermEnergy { pieces: &mut e_repulsion, atoms: Some(&mut erep) };

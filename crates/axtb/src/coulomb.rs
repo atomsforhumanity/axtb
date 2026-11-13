@@ -53,29 +53,67 @@ impl EffectiveCoulomb {
         Self { gexp, eta, shells: ShellLayout::of(bas) }
     }
 
-    /// Dense γ matrix over all shells (row-major `nsh x nsh`).
-    pub fn matrix(&self, mol: &Molecule, ish_at: &[usize], nsh_at: &[usize], nsh: usize) -> Vec<f64> {
+    /// Dense γ matrix over all shells (row-major `nsh x nsh`). With `parallel`, on the current
+    /// rayon pool: the rows of each atom (its shells against those of itself and every earlier
+    /// atom: the lower triangle) are one task, then the upper triangle is mirrored row by row.
+    /// Every element is computed once, by the same expression, on any thread count.
+    pub fn matrix(&self, mol: &Molecule, ish_at: &[usize], nsh_at: &[usize], nsh: usize, parallel: bool) -> Vec<f64> {
         let mut a = vec![0.0; nsh * nsh];
         let g = self.gexp;
-        for iat in 0..mol.nat() {
-            let isp = mol.id[iat];
-            let ii = ish_at[iat];
-            for jat in 0..=iat {
-                let jsp = mol.id[jat];
-                let jj = ish_at[jat];
-                let r1 = norm2_sq(sub3(mol.positions[jat], mol.positions[iat])).sqrt();
-                let r1g = r1.powf(g);
-                for ish in 0..nsh_at[iat] {
-                    let jmax = if iat == jat { ish + 1 } else { nsh_at[jat] };
-                    for jsh in 0..jmax {
-                        let eta = self.eta[isp][jsp][ish][jsh];
-                        let val = if iat == jat { eta } else { 1.0 / (r1g + eta.powf(-g)).powf(1.0 / g) };
-                        a[(ii + ish) * nsh + jj + jsh] = val;
-                        a[(jj + jsh) * nsh + ii + ish] = val;
+        // the element of shell ish of atom iat and shell jsh of atom jat <= iat (r1g = r^g)
+        let gamma = |iat: usize, jat: usize, ish: usize, jsh: usize, r1g: f64| -> f64 {
+            let eta = self.eta[mol.id[iat]][mol.id[jat]][ish][jsh];
+            if iat == jat {
+                eta
+            } else {
+                1.0 / (r1g + eta.powf(-g)).powf(1.0 / g)
+            }
+        };
+        let r1g = |iat: usize, jat: usize| norm2_sq(sub3(mol.positions[jat], mol.positions[iat])).sqrt().powf(g);
+        if !parallel {
+            for iat in 0..mol.nat() {
+                let ii = ish_at[iat];
+                for jat in 0..=iat {
+                    let jj = ish_at[jat];
+                    let r = r1g(iat, jat);
+                    for ish in 0..nsh_at[iat] {
+                        let jmax = if iat == jat { ish + 1 } else { nsh_at[jat] };
+                        for jsh in 0..jmax {
+                            let val = gamma(iat, jat, ish, jsh, r);
+                            a[(ii + ish) * nsh + jj + jsh] = val;
+                            a[(jj + jsh) * nsh + ii + ish] = val;
+                        }
                     }
                 }
             }
+            return a;
         }
+        // the atoms' row blocks (lower triangle), then the upper triangle from a copy
+        let mut blocks: Vec<(usize, &mut [f64])> = Vec::with_capacity(mol.nat());
+        let mut rest = &mut a[..];
+        for iat in 0..mol.nat() {
+            let (block, tail) = rest.split_at_mut(nsh_at[iat] * nsh);
+            blocks.push((iat, block));
+            rest = tail;
+        }
+        blocks.into_par_iter().with_min_len(8).for_each(|(iat, rows)| {
+            for jat in 0..=iat {
+                let jj = ish_at[jat];
+                let r = r1g(iat, jat);
+                for ish in 0..nsh_at[iat] {
+                    let jmax = if iat == jat { ish + 1 } else { nsh_at[jat] };
+                    for jsh in 0..jmax {
+                        rows[ish * nsh + jj + jsh] = gamma(iat, jat, ish, jsh, r);
+                    }
+                }
+            }
+        });
+        let lower = a.clone();
+        a.par_chunks_mut(nsh).enumerate().with_min_len(32).for_each(|(i, row)| {
+            for j in i + 1..nsh {
+                row[j] = lower[j * nsh + i];
+            }
+        });
         a
     }
 
@@ -914,7 +952,7 @@ impl MomentTerm for EffectiveCoulomb {
 
     fn update(&self, geo: &Geometry<'_>) -> Result<Vec<f64>> {
         let sh = &self.shells;
-        Ok(self.matrix(geo.mol, &sh.ish_at, &sh.nsh_at, sh.sh2at.len()))
+        Ok(self.matrix(geo.mol, &sh.ish_at, &sh.nsh_at, sh.sh2at.len(), geo.parallel))
     }
 
     /// E = q^T γ q / 2 (folded over the shells); per atom, each shell's q_a (γ q)_a / 2 on its
