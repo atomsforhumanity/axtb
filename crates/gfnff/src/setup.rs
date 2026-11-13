@@ -1553,15 +1553,9 @@ fn qmsolve(a: &Mat<f64>, nel: usize, et: f64, fermi: FermiSmearing, par: Par) ->
         let p = Mat::<f64>::from_fn(ndim, ndim, |r, c| if r == c { focc[0] } else { 0.0 });
         return Ok((p, eel, focc, e));
     }
-    // P = C diag(focc) C^T
-    let mut cw = Mat::<f64>::zeros(ndim, ndim);
-    for m in 0..ndim {
-        for i in 0..ndim {
-            cw[(i, m)] = u[(i, m)] * focc[m];
-        }
-    }
+    // P = C diag(focc) C^T over the occupied columns
     let mut p = Mat::<f64>::zeros(ndim, ndim);
-    faer::linalg::matmul::matmul(p.as_mut(), faer::Accum::Replace, cw.as_ref(), u.transpose(), 1.0, Par::Seq);
+    axtb_base::linalg::weighted_outer(u.as_ref(), &focc, &mut p, Par::Seq);
     Ok((p, eel, focc, e))
 }
 
