@@ -6,10 +6,16 @@
 //! SCF basis with tblite's screening: primitive pairs with a_i a_j R^2/(a_i + a_j) > 25 are
 //! skipped and, in program mode, atom pairs beyond tblite's integral cutoff
 //! min(sqrt(2 * 25 / alpha_min), 40) bohr.
+//!
+//! v1.1 (the 1.1.0 program's `ncoord_basq`, `modbas_`): every shell of the `basisq` file, the
+//! plain square root of the CN, q_eff = (q - k_q2 q^2) + k_cn sqrt(CN) + k_qcn q CN with the
+//! program's operand order, the H0 basis with exponents scaled by `pln` and the three terms
+//! weighted by `kqvszp`; no integral pair cutoff.
 
 use super::cn::basis_cn;
-use super::{element_shells, qvszp, sqrt_cn, Model};
+use super::{model_shells, qvszp, Model};
 use crate::data_v2::{H0_EXP_SCALE, H0_K0_SCALE, H0_K2_SCALE, H0_K3_SCALE};
+use crate::options::Version;
 use crate::qvszp::{contracted_shells, Exponents};
 use axtb::ao::ShellPairs;
 use axtb::basis::{Basis as AoBasis, Cgto};
@@ -38,38 +44,75 @@ pub struct Basis {
     pub h0: AoBasis,
 }
 
-/// SCF-basis weights (k0, k1, k2, k3) of the effective charge of element `z`.
+/// SCF-basis weights (k0, k1, k2, k3) of the effective charge of element `z` (both versions).
 pub fn qeff_weights(z: usize) -> [f64; 4] {
     let el = qvszp().element(z).expect("q-vSZP covers H-Lr");
     [1.0, el.k_q2, el.k_cn, el.k_qcn]
 }
 
-/// H0-basis weights (k0, k1, k2, k3) of element `z`.
-pub fn qeff_h0_weights(z: usize) -> [f64; 4] {
+/// H0-basis weights (k0, k1, k2, k3) of element `z` in `model` (2.0.1: the scales
+/// `pa_h0_qvszp_k*_scal`; v1.1: `kqvszp` of the three terms).
+pub fn qeff_h0_weights(model: &Model, z: usize) -> [f64; 4] {
     let k = qeff_weights(z);
-    [H0_K0_SCALE[z - 1] * k[0], k[1], H0_K2_SCALE[z - 1] * k[2], H0_K3_SCALE[z - 1] * k[3]]
+    match model.version {
+        Version::V2_0_1 => [H0_K0_SCALE[z - 1] * k[0], k[1], H0_K2_SCALE[z - 1] * k[2], H0_K3_SCALE[z - 1] * k[3]],
+        Version::V1_1 => {
+            let s = crate::params::gxtb_v1_1().element(z).expect("g-xTB v1.1 parameters of a checked element").kqvszp;
+            [s[0] * k[0], k[1], s[1] * k[2], s[2] * k[3]]
+        }
+    }
 }
 
-/// Effective charge and its terms for weights `k`, charge `q` and basis CN `cn`.
+/// Effective charge and its terms for weights `k`, charge `q` and basis CN `cn` (2.0.1).
 pub fn effective_charge(k: [f64; 4], q: f64, cn: f64) -> ([f64; 3], f64) {
-    let t = [q - k[1] * q * q, sqrt_cn(cn).0, q * cn];
+    let t = [q - k[1] * q * q, super::sqrt_cn(cn).0, q * cn];
     (t, k[0] * t[0] + k[2] * t[1] + k[3] * t[2])
 }
 
-/// d q_eff / d q and d q_eff / d CN.
-pub fn effective_charge_deriv(k: [f64; 4], q: f64, cn: f64) -> (f64, f64) {
-    (k[0] * (1.0 - 2.0 * k[1] * q) + k[3] * cn, k[2] * sqrt_cn(cn).1 + k[3] * q)
+/// The effective charges of an atom of element `z` with charge `q` and basis CN `cn` in
+/// `model`: the three terms (2.0.1: unweighted; v1.1: the program's printed "q change", "CN
+/// change" and "qCN change"), q_eff of the SCF basis and q_eff0 of the H0 basis.
+pub fn effective_charges(model: &Model, z: usize, q: f64, cn: f64) -> ([f64; 3], f64, f64) {
+    match model.version {
+        Version::V2_0_1 => {
+            let (t, qe) = effective_charge(qeff_weights(z), q, cn);
+            let (_, qh) = effective_charge(qeff_h0_weights(model, z), q, cn);
+            (t, qe, qh)
+        }
+        Version::V1_1 => {
+            // `modbas_`: the three terms in the program's operand order
+            let el = qvszp().element(z).expect("q-vSZP covers H-Lr");
+            let k = crate::params::gxtb_v1_1().element(z).expect("g-xTB v1.1 parameters of a checked element").kqvszp;
+            let q_term = q - el.k_q2 * q * q;
+            let cn_term = el.k_cn * cn.sqrt();
+            let qcn_term = el.k_qcn * q * cn;
+            ([q_term, cn_term, qcn_term], q_term + cn_term + qcn_term, k[0] * q_term + k[1] * cn_term + k[2] * qcn_term)
+        }
+    }
+}
+
+/// d q_eff / d q and d q_eff / d CN for weights `k` in `model` (its square root of the CN).
+pub fn effective_charge_deriv(model: &Model, k: [f64; 4], q: f64, cn: f64) -> (f64, f64) {
+    (k[0] * (1.0 - 2.0 * k[1] * q) + k[3] * cn, k[2] * model.cn_root(cn).1 + k[3] * q)
 }
 
 /// SCF-basis shells of element `z` at effective charge `q` (`dq`: their q derivatives).
-pub fn scf_shells(z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
-    contracted_shells(element_shells(z), |_| Exponents::Tabulated, q, dq)
+pub fn scf_shells(model: &Model, z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
+    contracted_shells(model_shells(model, z), |_| Exponents::Tabulated, q, dq)
 }
 
 /// H0-basis shells of element `z` at effective charge `q` (`dq`: their q derivatives):
-/// exponents scaled by `ps_h0_qvszp_exp_scal`.
-pub fn h0_shells(z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
-    contracted_shells(element_shells(z), |ish| Exponents::Scaled(H0_EXP_SCALE[z - 1][ish]), q, dq)
+/// exponents scaled by `ps_h0_qvszp_exp_scal` (2.0.1) or `pln` (v1.1).
+pub fn h0_shells(model: &Model, z: usize, q: f64, dq: bool) -> Result<Vec<Cgto>> {
+    match model.version {
+        Version::V2_0_1 => {
+            contracted_shells(model_shells(model, z), |ish| Exponents::Scaled(H0_EXP_SCALE[z - 1][ish]), q, dq)
+        }
+        Version::V1_1 => {
+            let pln = crate::params::gxtb_v1_1().element(z)?.pln;
+            contracted_shells(model_shells(model, z), |ish| Exponents::Scaled(pln[ish]), q, dq)
+        }
+    }
 }
 
 impl Basis {
@@ -84,10 +127,9 @@ impl Basis {
         let mut hshells = Vec::with_capacity(n);
         for i in 0..n {
             let z = mol.numbers[i];
-            let (t, qe) = effective_charge(qeff_weights(z), q[i], cn[i]);
-            let (_, qh) = effective_charge(qeff_h0_weights(z), q[i], cn[i]);
-            shells.push(scf_shells(z, qe, false)?);
-            hshells.push(h0_shells(z, qh, false)?);
+            let (t, qe, qh) = effective_charges(model, z, q[i], cn[i]);
+            shells.push(scf_shells(model, z, qe, false)?);
+            hshells.push(h0_shells(model, z, qh, false)?);
             terms.push(t);
             qeff.push(qe);
             qeff_h0.push(qh);
@@ -97,9 +139,10 @@ impl Basis {
         Ok(Self { cn, terms, qeff, qeff_h0, scf, h0 })
     }
 
-    /// Integral pair cutoff (bohr): tblite's `get_cutoff` in program mode, none otherwise.
+    /// Integral pair cutoff (bohr): tblite's `get_cutoff` in 2.0.1's program mode, none
+    /// otherwise (v1.1 evaluates every pair).
     pub fn pair_cutoff(&self, model: &Model) -> f64 {
-        if model.program() {
+        if model.program() && model.version == Version::V2_0_1 {
             (2.0 * INTCUT / self.scf.min_alpha).sqrt().min(MAX_CUTOFF)
         } else {
             f64::INFINITY

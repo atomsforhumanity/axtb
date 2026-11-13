@@ -12,9 +12,8 @@
 //! ([`Jacobians`]); the ACP projectors of a displaced atom add a low-rank term.
 
 use super::basis::{h0_shells, scf_shells, INTCUT};
-use super::h0::{acp_projectors, diat_scale, kshell, selfenergy, shell_poly};
+use super::h0::{diat_scale, kshell, selfenergy, shell_poly, AcpSet};
 use super::scf::Setup;
-use crate::acp::projector;
 use crate::h0::bond_projectors_deriv;
 use axtb::basis::{ao_offsets, Cgto};
 use axtb::integrals::{multipole, multipole_grad, overlap, MultipoleGrad, Scratch, MBLK};
@@ -159,7 +158,8 @@ pub fn h0_pair(
     let rab = sub3(rb, ra);
     let r = norm2_sq(rab).sqrt();
     let nv = [rab[0] / r, rab[1] / r, rab[2] / r];
-    let kmu = diat_scale(za, zb);
+    let kmu = diat_scale(model, za, zb);
+    let intcut = model.intcut_h0();
     let radsum = model.h0_rad(za) + model.h0_rad(zb);
     let vec = sub3(ra, rb);
     let (mut ba, mut bb) = ([0.0; MBLK], [0.0; MBLK]);
@@ -179,15 +179,15 @@ pub fn h0_pair(
     };
     let mut oa = 0;
     for (isa, sa) in sha.iter().enumerate() {
-        let (pia, dpia) = shell_poly(za, sa.l, r, radsum);
-        let (sea, dsea) = selfenergy(za, isa, cna);
+        let (pia, dpia) = shell_poly(model, za, sa.l, r, radsum);
+        let (sea, dsea) = selfenergy(model, za, isa, cna);
         let mut ob = 0;
         for (isb, sb) in shb.iter().enumerate() {
-            let (pib, dpib) = shell_poly(zb, sb.l, r, radsum);
-            let (seb, dseb) = selfenergy(zb, isb, cnb);
-            multipole_grad(sb, sa, vec, INTCUT, mg, scr);
-            overlap(sb, &dsha[isa], vec, INTCUT, &mut ba);
-            overlap(&dshb[isb], sa, vec, INTCUT, &mut bb);
+            let (pib, dpib) = shell_poly(model, zb, sb.l, r, radsum);
+            let (seb, dseb) = selfenergy(model, zb, isb, cnb);
+            multipole_grad(sb, sa, vec, intcut, mg, scr);
+            overlap(sb, &dsha[isa], vec, intcut, &mut ba);
+            overlap(&dshb[isb], sa, vec, intcut, &mut bb);
             let (la, lb) = (sa.l, sb.l);
             let (ma, mb) = (2 * la + 1, 2 * lb + 1);
             let pick = |src: &dyn Fn(usize) -> f64| -> Vec<f64> {
@@ -241,7 +241,7 @@ pub fn h0_pair(
             } else {
                 (raw, draw, rqa, rqb)
             };
-            let ks = kshell(la, lb);
+            let ks = kshell(model, la, lb);
             let pre = 0.5 * (sea + seb) * ks;
             let pp = pia * pib;
             let dpp = dpia * pib + pia * dpib;
@@ -284,8 +284,9 @@ impl Setup {
         let first = ao_offsets(shells);
         let off: Vec<usize> = (0..nat).map(|a| first[a][0]).collect();
         let na: Vec<usize> = (0..nat).map(|a| shells[a].iter().map(|s| 2 * s.l + 1).sum()).collect();
-        let dsh: Vec<Vec<Cgto>> =
-            (0..nat).map(|i| scf_shells(mol.numbers[i], self.basis.qeff[i], true)).collect::<Result<_>>()?;
+        let dsh: Vec<Vec<Cgto>> = (0..nat)
+            .map(|i| scf_shells(&self.model, mol.numbers[i], self.basis.qeff[i], true))
+            .collect::<Result<_>>()?;
         let mut disp: Vec<[IntegralBlock; 3]> =
             (0..nat).map(|a| [0, 1, 2].map(|_| IntegralBlock::zeros(na[a], n))).collect();
         let mut qb: Vec<IntegralBlock> = (0..nat).map(|a| IntegralBlock::zeros(na[a], n)).collect();
@@ -395,14 +396,16 @@ impl Setup {
         let mut h_qeff0: Vec<Vec<f64>> = (0..nat).map(|a| vec![0.0; na[a] * n]).collect();
         let mut h_cn: Vec<Vec<f64>> = (0..nat).map(|a| vec![0.0; na[a] * n]).collect();
         let mut h_qeff: Vec<Vec<f64>> = (0..nat).map(|a| vec![0.0; na[a] * n]).collect();
-        let hsh: Vec<Vec<Cgto>> =
-            (0..nat).map(|i| h0_shells(mol.numbers[i], self.basis.qeff_h0[i], false)).collect::<Result<_>>()?;
-        let hdsh: Vec<Vec<Cgto>> =
-            (0..nat).map(|i| h0_shells(mol.numbers[i], self.basis.qeff_h0[i], true)).collect::<Result<_>>()?;
+        let hsh: Vec<Vec<Cgto>> = (0..nat)
+            .map(|i| h0_shells(&self.model, mol.numbers[i], self.basis.qeff_h0[i], false))
+            .collect::<Result<_>>()?;
+        let hdsh: Vec<Vec<Cgto>> = (0..nat)
+            .map(|i| h0_shells(&self.model, mol.numbers[i], self.basis.qeff_h0[i], true))
+            .collect::<Result<_>>()?;
         for ia in 0..nat {
             // onsite self-energies
             for (is, s) in hsh[ia].iter().enumerate() {
-                let (_, de) = selfenergy(mol.numbers[ia], is, self.cn[ia]);
+                let (_, de) = selfenergy(&self.model, mol.numbers[ia], is, self.cn[ia]);
                 for a in 0..2 * s.l + 1 {
                     let mu = first[ia][is] + a;
                     h_cn[ia][(mu - off[ia]) * n + mu] = 0.5 * de;
@@ -449,12 +452,11 @@ impl Setup {
         let mut acp = Vec::new();
         let mut bq = [0.0; MBLK];
         let mut blk = [0.0; MBLK];
-        for ip in 0..nat {
-            for (l, alpha, w) in acp_projectors(mol.numbers[ip]) {
-                if w == 0.0 {
-                    continue;
-                }
-                let proj = projector(l, alpha);
+        let set = AcpSet::new(&self.model, mol, &self.cn, self.cutoff);
+        let (acp_cut2, acp_intcut) = (set.cutoff * set.cutoff, set.intcut);
+        for &(ip, ref proj, w, _) in &set.list {
+            {
+                let (l, proj) = (proj.l, proj.clone());
                 let np = 2 * l + 1;
                 let mut sh = AcpShell {
                     atom: ip,
@@ -466,14 +468,14 @@ impl Setup {
                 };
                 for ia in 0..nat {
                     let vec = sub3(pos[ia], pos[ip]);
-                    if norm2_sq(vec) > cut2 {
+                    if norm2_sq(vec) > acp_cut2 {
                         continue;
                     }
                     for (is, s) in shells[ia].iter().enumerate() {
-                        overlap(&proj, s, vec, INTCUT, &mut blk);
-                        overlap(&proj, &dsh[ia][is], vec, INTCUT, &mut bq);
+                        overlap(&proj, s, vec, acp_intcut, &mut blk);
+                        overlap(&proj, &dsh[ia][is], vec, acp_intcut, &mut bq);
                         if ia != ip {
-                            multipole_grad(&proj, s, vec, INTCUT, &mut mg, &mut scr);
+                            multipole_grad(&proj, s, vec, acp_intcut, &mut mg, &mut scr);
                         }
                         for a in 0..2 * s.l + 1 {
                             let mu = first[ia][is] + a;

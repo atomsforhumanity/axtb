@@ -23,7 +23,7 @@
 use super::basis::{effective_charge_deriv, h0_shells, qeff_h0_weights, qeff_weights, scf_shells, INTCUT};
 use super::cn::{basis_cn_gradient, gxtb_cn_gradient};
 use super::gradient::Potentials;
-use super::h0::acp_projectors;
+use super::h0::AcpSet;
 use super::scf::{Setup, State};
 use super::tangent::{h0_pair, Jacobians};
 use crate::acp::projector;
@@ -74,9 +74,9 @@ pub(crate) const STEP: f64 = 1e-3;
 /// The variant of [`axtb::integrals::pair_screened`] with a margin for the steps (distance
 /// shortened by 3 STEP, relative margin 1e-6). The smallest exponents are those of the
 /// setup's bases (`min_alpha_at`): the q-vSZP exponents do not depend on q.
-fn screened_at_every_step(a: f64, b: f64, r: f64) -> bool {
+fn screened_at_every_step(a: f64, b: f64, r: f64, intcut: f64) -> bool {
     let rmin = r - 3.0 * STEP;
-    rmin > 0.0 && a * b * rmin * rmin / (a + b) > INTCUT * (1.0 + 1e-6)
+    rmin > 0.0 && a * b * rmin * rmin / (a + b) > intcut * (1.0 + 1e-6)
 }
 
 /// 4-point central differences of a gradient function `g` of K variables (row i, column v:
@@ -215,20 +215,21 @@ impl Setup {
             .flat_map(|a| (0..a).map(move |b| (a, b)))
             .filter(|&(a, b)| norm2_sq(sub3(pos[a], pos[b])) <= cut2)
             .collect();
-        let scf_cache = shell_cache(&mol.numbers, &self.basis.qeff, scf_shells)?;
-        let h0_cache = shell_cache(&mol.numbers, &self.basis.qeff_h0, h0_shells)?;
+        let model = &self.model;
+        let scf_cache = shell_cache(&mol.numbers, &self.basis.qeff, |z, q, d| scf_shells(model, z, q, d))?;
+        let h0_cache = shell_cache(&mol.numbers, &self.basis.qeff_h0, |z, q, d| h0_shells(model, z, q, d))?;
         // pairs whose integrals are screened at every displaced geometry contribute nothing
         let (scf_amin, h0_amin) = (&self.basis.scf.min_alpha_at, &self.basis.h0.min_alpha_at);
         let dist = |a: usize, b: usize| norm2_sq(sub3(pos[a], pos[b])).sqrt();
         let scf_pairs: Vec<(usize, usize)> = pairs
             .iter()
             .copied()
-            .filter(|&(a, b)| !screened_at_every_step(scf_amin[a], scf_amin[b], dist(a, b)))
+            .filter(|&(a, b)| !screened_at_every_step(scf_amin[a], scf_amin[b], dist(a, b), INTCUT))
             .collect();
         let h0_pairs: Vec<(usize, usize)> = pairs
             .iter()
             .copied()
-            .filter(|&(a, b)| !screened_at_every_step(h0_amin[a], h0_amin[b], dist(a, b)))
+            .filter(|&(a, b)| !screened_at_every_step(h0_amin[a], h0_amin[b], dist(a, b), model.intcut_h0()))
             .collect();
         // SCF-basis integral pairs: variables R_A (3), q_eff A, q_eff B
         let scf_pair = |&(ia, ib): &(usize, usize)| -> Result<Block> {
@@ -385,15 +386,14 @@ impl Setup {
         let shells = &self.basis.scf.cgto;
         let first = ao_offsets(shells);
         let na: Vec<usize> = (0..nat).map(|a| shells[a].iter().map(|s| 2 * s.l + 1).sum()).collect();
-        let dsh: Vec<Vec<Cgto>> =
-            (0..nat).map(|i| scf_shells(mol.numbers[i], self.basis.qeff[i], true)).collect::<Result<_>>()?;
-        let cut2 = self.cutoff * self.cutoff;
+        let dsh: Vec<Vec<Cgto>> = (0..nat)
+            .map(|i| scf_shells(&self.model, mol.numbers[i], self.basis.qeff[i], true))
+            .collect::<Result<_>>()?;
+        let set = AcpSet::new(&self.model, mol, &self.cn, self.cutoff);
+        let (cut2, intcut) = (set.cutoff * set.cutoff, set.intcut);
         let scf_amin = &self.basis.scf.min_alpha_at;
-        let projs: Vec<(usize, usize, f64, f64)> = (0..nat)
-            .flat_map(|ip| {
-                acp_projectors(mol.numbers[ip]).into_iter().filter(|t| t.2 != 0.0).map(move |(l, a, w)| (ip, l, a, w))
-            })
-            .collect();
+        let projs: Vec<(usize, usize, f64, f64)> =
+            set.list.iter().map(|(ip, p, w, _)| (*ip, p.l, p.alpha[0], *w)).collect();
         let per_proj = |k: usize| -> Vec<Block> {
             let (ip, l, alpha, w) = projs[k];
             let proj = projector(l, alpha);
@@ -412,10 +412,10 @@ impl Setup {
                 let mut ua =
                     [vec![0.0; na[ia] * np], vec![0.0; na[ia] * np], vec![0.0; na[ia] * np], vec![0.0; na[ia] * np]];
                 for (is, sh) in shells[ia].iter().enumerate() {
-                    overlap(&proj, sh, vec, INTCUT, &mut blk);
-                    overlap(&proj, &dsh[ia][is], vec, INTCUT, &mut bq);
+                    overlap(&proj, sh, vec, intcut, &mut blk);
+                    overlap(&proj, &dsh[ia][is], vec, intcut, &mut bq);
                     if ia != ip {
-                        multipole_grad(&proj, sh, vec, INTCUT, &mut mg, &mut scr);
+                        multipole_grad(&proj, sh, vec, intcut, &mut mg, &mut scr);
                     }
                     for a in 0..2 * sh.l + 1 {
                         let mu = first[ia][is] + a;
@@ -526,7 +526,7 @@ impl Setup {
             // second derivatives of the overlaps: pair (projector atom, AO atom) differences
             for ia in 0..nat {
                 if u[ia].is_none()
-                    || screened_at_every_step(alpha, scf_amin[ia], norm2_sq(sub3(pos[ia], pos[ip])).sqrt())
+                    || screened_at_every_step(alpha, scf_amin[ia], norm2_sq(sub3(pos[ia], pos[ip])).sqrt(), intcut)
                 {
                     continue;
                 }
@@ -537,9 +537,9 @@ impl Setup {
                     let mut out = [0.0; 4];
                     for (is, s_) in sh.iter().enumerate() {
                         if ia != ip {
-                            multipole_grad(&proj, s_, vec, INTCUT, &mut mg, &mut scr);
+                            multipole_grad(&proj, s_, vec, intcut, &mut mg, &mut scr);
                         }
-                        overlap(&proj, &dq[is], vec, INTCUT, &mut bq);
+                        overlap(&proj, &dq[is], vec, intcut, &mut bq);
                         for a in 0..2 * s_.l + 1 {
                             let mu = first[ia][is] + a;
                             for m in 0..np {
@@ -600,8 +600,8 @@ impl Setup {
             let z = mol.numbers[a];
             let (q, c) = (self.eeq.charges[a], self.basis.cn[a]);
             let s2 = -0.25 * (c + 1e-12).powf(-1.5);
-            for (w, k) in [(dqeff[a], qeff_weights(z)), (dqeff0[a], qeff_h0_weights(z))] {
-                let (fq, fc) = effective_charge_deriv(k, q, c);
+            for (w, k) in [(dqeff[a], qeff_weights(z)), (dqeff0[a], qeff_h0_weights(&self.model, z))] {
+                let (fq, fc) = effective_charge_deriv(&self.model, k, q, c);
                 u[a] += w * fq;
                 v[a] += w * fc;
                 alpha[a] += w * (-2.0 * k[0] * k[1]);

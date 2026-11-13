@@ -121,15 +121,60 @@ impl Model {
         }
     }
 
-    /// Radius of the H0 distance polynomial (`get_rad`): the Pyykkö radius in Ångström times
-    /// 1.889725949, with fixed values for H, F and Ne.
+    /// Radius of the H0 distance polynomial: 2.0.1's `get_rad` (the Pyykkö radius in Ångström
+    /// times 1.889725949, with fixed values for H, F and Ne); v1.1's `com::rcov` (bohr; the
+    /// program divides by their mean, [`super::h0::shell_poly`] by their sum).
     pub fn h0_rad(&self, z: usize) -> f64 {
+        if self.version == Version::V1_1 {
+            return crate::data::RCOV_COM[z - 1];
+        }
         match z {
             1 => 0.7615595574470001,
             9 => 0.9448629745,
             10 => 1.15273282889,
             _ => self.covalent_rad_d3(z) * 0.75 / self.aatoau * 1.889725949,
         }
+    }
+
+    /// f(CN) and df/dCN of the CN-dependent parameters: 2.0.1's smoothed square root
+    /// ([`sqrt_cn`]); v1.1's plain square root, whose derivative the 1.1.0 program sets to 0 at
+    /// CN = 0.
+    #[inline]
+    pub fn cn_root(&self, cn: f64) -> (f64, f64) {
+        match self.version {
+            Version::V2_0_1 => sqrt_cn(cn),
+            Version::V1_1 => {
+                let s = cn.sqrt();
+                (s, if s > 0.0 { 0.5 / s } else { 0.0 })
+            }
+        }
+    }
+
+    /// The cutoff (bohr) of the g-xTB and basis coordination numbers ([`Model::cut`]): 25 bohr
+    /// in 2.0.1, none in v1.1.
+    #[inline]
+    pub fn cn_cutoff(&self) -> Option<f64> {
+        match self.version {
+            Version::V2_0_1 => Some(cn::CN_CUTOFF),
+            Version::V1_1 => None,
+        }
+    }
+
+    /// The primitive screening of the H0-basis overlaps and of the ACP projector overlaps
+    /// (2.0.1: tblite's 25; v1.1: the 1.1.0 program's 20); the SCF-basis integrals use
+    /// [`basis::INTCUT`] (25) in both versions.
+    #[inline]
+    pub fn intcut_h0(&self) -> f64 {
+        match self.version {
+            Version::V2_0_1 => basis::INTCUT,
+            Version::V1_1 => crate::h0::INTCUT,
+        }
+    }
+
+    /// Whether the H0 has 2.0.1's anisotropy term (the dipole shift a_A).
+    #[inline]
+    pub fn anisotropy(&self) -> bool {
+        self.version == Version::V2_0_1
     }
 
     /// Cutoff factor of a pair at distance `r` for a cutoff radius `cutoff` and its derivative:
@@ -167,6 +212,15 @@ pub fn element_shells(z: usize) -> &'static [crate::params::QvszpShell] {
     &el.shells[..crate::data_v2::NSHELL[z - 1]]
 }
 
+/// The q-vSZP shells of an element in `model`: 2.0.1's first `NSHELL` ([`element_shells`]),
+/// every shell of the `basisq` file in v1.1.
+pub fn model_shells(model: &Model, z: usize) -> &'static [crate::params::QvszpShell] {
+    match model.version {
+        Version::V2_0_1 => element_shells(z),
+        Version::V1_1 => &qvszp().element(z).expect("q-vSZP covers H-Lr").shells,
+    }
+}
+
 /// The q-vSZP basis tables (bit-identical in 1.1.0 and 2.0.1), parsed once.
 pub fn qvszp() -> &'static crate::params::QvszpParams {
     static B: std::sync::OnceLock<crate::params::QvszpParams> = std::sync::OnceLock::new();
@@ -179,6 +233,23 @@ pub fn check_elements(numbers: &[usize]) -> axtb::Result<()> {
         return Err(axtb::Error::UnsupportedElement { method: "g-xTB 2.0.1", z });
     }
     Ok(())
+}
+
+/// Element check for the version of `model` (both cover H-Lr).
+pub fn check_model_elements(model: &Model, numbers: &[usize]) -> axtb::Result<()> {
+    match model.version {
+        Version::V2_0_1 => check_elements(numbers),
+        Version::V1_1 => {
+            let p = crate::params::gxtb_v1_1();
+            for &z in numbers {
+                if z == 0 || z > MAX_ELEM {
+                    return Err(axtb::Error::UnsupportedElement { method: "g-xTB v1.1", z });
+                }
+                p.element(z)?;
+            }
+            Ok(())
+        }
+    }
 }
 
 /// Read an XYZ file (Ångström) for g-xTB 2.0.1: coordinates multiplied by the conventions'

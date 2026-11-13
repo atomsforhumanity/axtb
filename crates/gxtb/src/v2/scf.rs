@@ -26,7 +26,7 @@ use super::coulomb::{AesCache, IsotropicCache, Shell};
 use super::disp::RevD4;
 use super::eeqbc::eeqbc;
 use super::exchange::Exchange;
-use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy};
+use super::h0::{add_acp, anisotropy_par, build_h0, mirror_add_anisotropy, AcpSet};
 use super::intermediates::Slots;
 use super::repulsion::Repulsion;
 use super::strategy::{Gxtb201FockDiis, Gxtb201Rule};
@@ -175,7 +175,7 @@ impl Setup {
     pub fn with_threads(mol: &Molecule, model: Model, threads: usize) -> Result<Self> {
         let parallel = threads > 1;
         crate::check_charge(mol)?;
-        super::check_elements(&mol.numbers)?;
+        super::check_model_elements(&model, &mol.numbers)?;
         let mut t = Laps::new();
         let (eeq, eeq_solution) = eeqbc(&model, mol)?.charges_and_solution()?;
         t.lap("setup: eeq-bc");
@@ -191,12 +191,24 @@ impl Setup {
         t.lap("setup: integrals");
         let mut h = build_h0(&model, mol, &basis.h0, &cn, cutoff, parallel);
         t.lap("setup: h0");
-        add_acp(mol, &basis.scf, cutoff, &mut h, dense, parallel);
+        add_acp(mol, &basis.scf, &AcpSet::new(&model, mol, &cn, cutoff), &mut h, dense, parallel);
         t.lap("setup: acp");
-        let aniso = anisotropy_par(&model, mol, parallel);
-        mirror_add_anisotropy(nao, &basis.scf.ao2at, &dpint, &aniso, &mut h, parallel);
+        let aniso = if model.anisotropy() {
+            let aniso = anisotropy_par(&model, mol, parallel);
+            mirror_add_anisotropy(nao, &basis.scf.ao2at, &dpint, &aniso, &mut h, parallel);
+            aniso
+        } else {
+            crate::parallel::mirror_lower(&mut h, nao, parallel);
+            vec![[0.0; 3]; mol.nat()]
+        };
         t.lap("setup: anisotropy");
-        let ref_occ: Vec<f64> = shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect();
+        let ref_occ: Vec<f64> = match model.version {
+            Version::V2_0_1 => shells.iter().map(|&(iat, ish, _)| REF_OCC[mol.numbers[iat] - 1][ish]).collect(),
+            Version::V1_1 => shells
+                .iter()
+                .map(|&(iat, ish, _)| crate::data_runtime::REF_SHELL_OCC[mol.numbers[iat] - 1][ish])
+                .collect(),
+        };
         let isotropic = IsotropicCache::new_par(&model, mol, &shells, &cn, parallel);
         let aes = AesCache::new_par(&model, mol, &cn, parallel);
         let rep = Repulsion::new_par(&model, mol, &cn, parallel);
@@ -205,8 +217,9 @@ impl Setup {
         // the intermediates; the EEQ-BC charges keep the factorized equations the charges were
         // solved from: the gradients at this geometry (the analytic gradient, the Jacobian rows
         // of the Hessian) reuse them instead of factorizing again
-        let eeq_solution = Arc::new(eeq_solution);
-        let (layout, slots) = super::intermediates::layout(&model, mol, Arc::clone(&eeq_solution));
+        // (v1.1's gradient factorizes the matrix of another Coulomb kernel: no reuse)
+        let eeq_solution = (model.version == Version::V2_0_1).then(|| Arc::new(eeq_solution));
+        let (layout, slots) = super::intermediates::layout(&model, mol, eeq_solution);
         let mut values = Values::new(&layout);
         values.set(slots.eeq, eeq.charges.clone());
         values.set(slots.cnd4, disp.cn.clone());

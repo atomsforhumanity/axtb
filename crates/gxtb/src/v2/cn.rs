@@ -6,9 +6,14 @@
 //!   the H0 self-energies and through the smoothed square root by the repulsion, first and
 //!   second order, the AES dipole scaling.
 //! - basis CN ([`basis_cn`]): k = 3.75, Rc = R_A + R_B (q-vSZP radii), e = 1; q_eff.
+//!
+//! v1.1 (the 1.1.0 program's `ncoord_erf`, `ncoord_basq`): the g-xTB CN with k = -glob(11) and
+//! Rc = (rad_A + rad_B)/2 of its `gxtb_parameters`, the same basis CN, both over every pair
+//! (no cutoff; [`Model::cn_cutoff`]).
 
 use super::Model;
 use crate::eeqbc::erf_f64;
+use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
 
@@ -37,8 +42,21 @@ pub fn erf_cn(
     den: impl Fn(f64) -> f64,
 ) -> Vec<f64> {
     let n = mol.nat();
-    let reach2 = model.reach(CN_CUTOFF).powi(2);
     let mut cn = vec![0.0; n];
+    let Some(cutoff) = model.cn_cutoff() else {
+        // every pair, no cutoff factor (v1.1)
+        for i in 0..n {
+            for j in 0..i {
+                let r = norm2_sq(sub3(mol.positions[i], mol.positions[j])).sqrt();
+                let c = rc(i, j);
+                let v = erf_count(k, r, c, den(c)).0;
+                cn[i] += v;
+                cn[j] += v;
+            }
+        }
+        return cn;
+    };
+    let reach2 = model.reach(cutoff).powi(2);
     for i in 0..n {
         for j in 0..i {
             let r2 = norm2_sq(sub3(mol.positions[i], mol.positions[j]));
@@ -48,7 +66,7 @@ pub fn erf_cn(
             let r = r2.sqrt();
             let c = rc(i, j);
             let (cnt, _) = erf_count(k, r, c, den(c));
-            let (sw, _) = model.cut(r, CN_CUTOFF);
+            let (sw, _) = model.cut(r, cutoff);
             let v = cnt * sw;
             cn[i] += v;
             cn[j] += v;
@@ -68,7 +86,8 @@ pub fn erf_cn_gradient(
     g: &mut [[f64; 3]],
 ) {
     let n = mol.nat();
-    let reach2 = model.reach(CN_CUTOFF).powi(2);
+    let cutoff = model.cn_cutoff();
+    let reach2 = cutoff.map_or(f64::INFINITY, |c| model.reach(c).powi(2));
     for i in 0..n {
         for j in 0..i {
             let w = dedcn[i] + dedcn[j];
@@ -83,8 +102,13 @@ pub fn erf_cn_gradient(
             let r = r2.sqrt();
             let c = rc(i, j);
             let (cnt, dcnt) = erf_count(k, r, c, den(c));
-            let (sw, dsw) = model.cut(r, CN_CUTOFF);
-            let f = w * (dcnt * sw + cnt * dsw) / r;
+            let f = match cutoff {
+                Some(cutoff) => {
+                    let (sw, dsw) = model.cut(r, cutoff);
+                    w * (dcnt * sw + cnt * dsw) / r
+                }
+                None => w * dcnt / r,
+            };
             for x in 0..3 {
                 g[i][x] += f * v[x];
                 g[j][x] -= f * v[x];
@@ -98,6 +122,15 @@ fn gxtb_rc(mol: &Molecule) -> impl Fn(usize, usize) -> f64 + '_ {
     move |i, j| CN_RCOV[mol.numbers[i] - 1] + CN_RCOV[mol.numbers[j] - 1]
 }
 
+/// v1.1's radii of the g-xTB CN (`rad` of `gxtb_parameters`, bohr) and its steepness (the
+/// program writes k (R - Rc)/Rc with k = glob(11) < 0, which is [`erf_count`]'s -k' (R - Rc)/Rc
+/// with k' = -k bit for bit).
+fn gxtb_v1_1(mol: &Molecule) -> (f64, Vec<f64>) {
+    let p = crate::params::gxtb_v1_1();
+    let rad = mol.numbers.iter().map(|&z| p.element(z).expect("g-xTB v1.1 parameters of a checked element").rad);
+    (-p.glob[10], rad.collect())
+}
+
 fn basis_rc(mol: &Molecule) -> impl Fn(usize, usize) -> f64 + '_ {
     use crate::data::RCOV_BASIS_CN;
     move |i, j| RCOV_BASIS_CN[mol.numbers[i] - 1] + RCOV_BASIS_CN[mol.numbers[j] - 1]
@@ -105,12 +138,24 @@ fn basis_rc(mol: &Molecule) -> impl Fn(usize, usize) -> f64 + '_ {
 
 /// The g-xTB coordination number.
 pub fn gxtb_cn(model: &Model, mol: &Molecule) -> Vec<f64> {
-    erf_cn(model, mol, KCN_GXTB, gxtb_rc(mol), |c| c)
+    match model.version {
+        Version::V2_0_1 => erf_cn(model, mol, KCN_GXTB, gxtb_rc(mol), |c| c),
+        Version::V1_1 => {
+            let (k, rad) = gxtb_v1_1(mol);
+            erf_cn(model, mol, k, |i, j| 0.5 * (rad[i] + rad[j]), |c| c)
+        }
+    }
 }
 
 /// dE/dCN of the g-xTB CN to the geometry.
 pub fn gxtb_cn_gradient(model: &Model, mol: &Molecule, dedcn: &[f64], g: &mut [[f64; 3]]) {
-    erf_cn_gradient(model, mol, KCN_GXTB, gxtb_rc(mol), |c| c, dedcn, g)
+    match model.version {
+        Version::V2_0_1 => erf_cn_gradient(model, mol, KCN_GXTB, gxtb_rc(mol), |c| c, dedcn, g),
+        Version::V1_1 => {
+            let (k, rad) = gxtb_v1_1(mol);
+            erf_cn_gradient(model, mol, k, |i, j| 0.5 * (rad[i] + rad[j]), |c| c, dedcn, g)
+        }
+    }
 }
 
 /// The q-vSZP basis coordination number.

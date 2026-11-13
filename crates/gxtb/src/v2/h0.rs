@@ -13,8 +13,15 @@
 //!   the Mulliken atomic dipoles d_A of the density;
 //! - ACP: H += S_pv^T diag(w) S_pv, normalized single-Gaussian projectors (`pa_nacp` per
 //!   element, l = `pa_l_acp`, exponent `ps_acp_exp`, weight `ps_acp_level`).
+//!
+//! v1.1 ([`crate::h0`], [`crate::acp`]: the 1.1.0 program's `scf_`, `sintm_diat_`,
+//! `setupcbas_`) has the same structure with its parameters: levels -(lev_l - lev_cn_l CN),
+//! K(l, l') = 1/2 (K_l + K_l') with K = (glob(1), glob(2), 1.4, 2.85) and no d-f factor, the
+//! linear polynomial 1 + poly_A F_l R / ((rcov_A + rcov_B)/2) (F = (1, glob(3), 2, 2)), the
+//! diatomic scaling by the harmonic means of h0k (sigma, pi) and 5 (delta), primitive
+//! screening at 20, no anisotropy, and one ACP projector per l = s..f per element with the
+//! CN-dependent weight acp_coeff_l (1 + acpcn sqrt(CN)), pairs within 40 bohr.
 
-use super::basis::INTCUT;
 use super::Model;
 use crate::acp::projector;
 use crate::data_v2::{
@@ -23,6 +30,7 @@ use crate::data_v2::{
 };
 use crate::eeqbc::erf_f64;
 use crate::h0::scale_diatomic_block;
+use crate::options::Version;
 use axtb::ao::ShellPairs;
 use axtb::basis::{Basis as AoBasis, Cgto};
 use axtb::integrals::{overlap, MBLK};
@@ -38,9 +46,20 @@ pub const SHPOLY4: f64 = 0.0804696812;
 pub const ANISO_STEEP: f64 = 1.5;
 const SQRTPI: f64 = 1.772_453_850_905_516;
 
-/// Shell factor K(l, l').
+/// The v1.1 parameters of element `z`.
 #[inline]
-pub fn kshell(la: usize, lb: usize) -> f64 {
+fn v1_1(z: usize) -> &'static crate::params::ElementParams {
+    crate::params::gxtb_v1_1().element(z).expect("g-xTB v1.1 parameters of a checked element")
+}
+
+/// Shell factor K(l, l') (v1.1: the mean of (glob(1), glob(2), 1.4, 2.85), no d-f factor).
+#[inline]
+pub fn kshell(model: &Model, la: usize, lb: usize) -> f64 {
+    if model.version == Version::V1_1 {
+        let g = &crate::params::gxtb_v1_1().glob;
+        let kw = [g[0], g[1], 1.4, 2.85];
+        return 0.5 * (kw[la] + kw[lb]);
+    }
     let k = 0.5 * (PG_H0_KSHELL[la] + PG_H0_KSHELL[lb]);
     if (la == 2 && lb == 3) || (la == 3 && lb == 2) {
         k * 1.5
@@ -49,23 +68,40 @@ pub fn kshell(la: usize, lb: usize) -> f64 {
     }
 }
 
-/// Self-energy of shell `ish` of element `z` at g-xTB CN `cn` and its CN derivative.
+/// Self-energy of shell `ish` of element `z` at g-xTB CN `cn` and its CN derivative (v1.1:
+/// -(lev - lev_cn CN), the same bits as (-lev) - (-lev_cn) CN).
 #[inline]
-pub fn selfenergy(z: usize, ish: usize, cn: f64) -> (f64, f64) {
+pub fn selfenergy(model: &Model, z: usize, ish: usize, cn: f64) -> (f64, f64) {
+    if model.version == Version::V1_1 {
+        let e = v1_1(z);
+        return (-e.lev[ish] - -e.lev_cn[ish] * cn, e.lev_cn[ish]);
+    }
     (H0_SELFENERGY[z - 1][ish] - H0_SELFENERGY_CN[z - 1][ish] * cn, -H0_SELFENERGY_CN[z - 1][ish])
 }
 
 /// Diatomic-frame scaling factors (sigma, pi, delta) of a pair: harmonic means, 0 if either
-/// element has 0.
-pub fn diat_scale(za: usize, zb: usize) -> [f64; 3] {
-    let (a, b) = (H0_DIAT_SCALE[za - 1], H0_DIAT_SCALE[zb - 1]);
+/// element has 0 (v1.1: of h0k and of 5 for delta).
+pub fn diat_scale(model: &Model, za: usize, zb: usize) -> [f64; 3] {
+    let (a, b) = match model.version {
+        Version::V2_0_1 => (H0_DIAT_SCALE[za - 1], H0_DIAT_SCALE[zb - 1]),
+        Version::V1_1 => {
+            let (ea, eb) = (v1_1(za), v1_1(zb));
+            ([ea.h0k[0], ea.h0k[1], crate::h0::K_DELTA], [eb.h0k[0], eb.h0k[1], crate::h0::K_DELTA])
+        }
+    };
     [0, 1, 2].map(|k| 2.0 / (1.0 / a[k] + 1.0 / b[k]))
 }
 
 /// Distance polynomial factors (pi_A,l, pi_B,l') of a pair at distance `r` with
-/// rad_A + rad_B = `radsum`, and their R derivatives.
+/// rad_A + rad_B = `radsum`, and their R derivatives (v1.1: the linear polynomial
+/// 1 + poly_A F_l R / Rc with Rc = radsum/2, the program's expression).
 #[inline]
-pub fn shell_poly(z: usize, l: usize, r: f64, radsum: f64) -> (f64, f64) {
+pub fn shell_poly(model: &Model, z: usize, l: usize, r: f64, radsum: f64) -> (f64, f64) {
+    if model.version == Version::V1_1 {
+        let rc = 0.5 * radsum;
+        let c = v1_1(z).poly * [1.0, crate::params::gxtb_v1_1().glob[2], 2.0, 2.0][l];
+        return (1.0 + c * r / rc, c / rc);
+    }
     let kp = H0_SHPOLY2[z - 1];
     let x = r / radsum;
     let s2 = 2.0 * kp * PG_H0_SHPOLY2[l];
@@ -81,7 +117,7 @@ pub fn build_h0(model: &Model, mol: &Molecule, h0: &AoBasis, cn: &[f64], cutoff:
     let mut h = vec![0.0; nao * nao];
     let mut se = vec![0.0; nao];
     for (ia, is, s) in h0.shell_iter() {
-        let e = selfenergy(mol.numbers[ia], is, cn[ia]).0;
+        let e = selfenergy(model, mol.numbers[ia], is, cn[ia]).0;
         let first = h0.iao_sh[h0.ish_at[ia] + is];
         for mu in first..first + 2 * s.l + 1 {
             se[mu] = e;
@@ -90,7 +126,8 @@ pub fn build_h0(model: &Model, mol: &Molecule, h0: &AoBasis, cn: &[f64], cutoff:
     }
     let mut bounds = h0.iao_at.clone();
     bounds.push(nao);
-    let pairs = ShellPairs::screened(mol, h0, cutoff, INTCUT);
+    let intcut = model.intcut_h0();
+    let pairs = ShellPairs::screened(mol, h0, cutoff, intcut);
     crate::parallel::for_row_blocks(&mut [&mut h], nao, &bounds, parallel, |ia, rows| {
         let rows = &mut rows[0];
         let row0 = bounds[ia];
@@ -102,17 +139,17 @@ pub fn build_h0(model: &Model, mol: &Molecule, h0: &AoBasis, cn: &[f64], cutoff:
             let rab = sub3(mol.positions[ib], mol.positions[ia]);
             let r = p.r2.sqrt();
             let nv = [rab[0] / r, rab[1] / r, rab[2] / r];
-            let k = diat_scale(za, zb);
+            let k = diat_scale(model, za, zb);
             let radsum = model.h0_rad(za) + model.h0_rad(zb);
             pairs.for_each(&p, |sp| {
                 let (sa, sb) = (sp.ci, sp.cj);
-                let pia = shell_poly(za, sa.l, r, radsum).0;
-                let pib = shell_poly(zb, sb.l, r, radsum).0;
-                overlap(sb, sa, p.vec, INTCUT, &mut blk);
+                let pia = shell_poly(model, za, sa.l, r, radsum).0;
+                let pib = shell_poly(model, zb, sb.l, r, radsum).0;
+                overlap(sb, sa, p.vec, intcut, &mut blk);
                 let (na, nb) = (2 * sa.l + 1, 2 * sb.l + 1);
                 let mut s: Vec<f64> = (0..na * nb).map(|x| blk[(x % nb) + nb * (x / nb)]).collect();
                 scale_diatomic_block(sa.l, sb.l, nv, k, &mut s);
-                let ks = kshell(sa.l, sb.l);
+                let ks = kshell(model, sa.l, sb.l);
                 for a in 0..na {
                     let i = sp.ii + a;
                     for b in 0..nb {
@@ -235,33 +272,66 @@ pub fn mirror_add_anisotropy(
     });
 }
 
-/// The ACP projectors of element `z`: (l, exponent, weight).
+/// The ACP projectors of element `z` (2.0.1): (l, exponent, weight).
 pub fn acp_projectors(z: usize) -> Vec<(usize, f64, f64)> {
     (0..ACP_N[z - 1]).map(|k| (ACP_L[z - 1][k], ACP_EXP[z - 1][k], ACP_LEVEL[z - 1][k])).collect()
 }
+
+/// v1.1's ACP pair cutoff (bohr; the program skips R^2 > 1600).
+pub const ACP_CUTOFF_V1_1: f64 = 40.0;
 
 /// The ACP projectors of a molecule with nonzero weight and the rows of their components in
 /// the projector-overlap matrix.
 pub struct AcpSet {
     /// (atom, normalized projector shell, weight, first row).
     pub list: Vec<(usize, Cgto, f64, usize)>,
+    /// The CN derivative of every weight (v1.1; 2.0.1's weights do not depend on the CN: zero).
+    pub dw: Vec<f64>,
     /// Number of rows (projector components).
     pub nrow: usize,
+    /// The pair cutoff (bohr) and primitive screening of the projector overlaps.
+    pub cutoff: f64,
+    pub intcut: f64,
 }
 
 impl AcpSet {
-    pub fn new(mol: &Molecule) -> Self {
+    /// The projectors of `mol` in `model` at the g-xTB CN `cn`, with the integral pair cutoff
+    /// `cutoff` of the setup (v1.1: its own 40 bohr).
+    pub fn new(model: &Model, mol: &Molecule, cn: &[f64], cutoff: f64) -> Self {
         let mut list = Vec::new();
+        let mut dw = Vec::new();
         let mut nrow = 0;
-        for ip in 0..mol.nat() {
-            for (l, alpha, w) in acp_projectors(mol.numbers[ip]) {
-                if w != 0.0 {
-                    list.push((ip, projector(l, alpha), w, nrow));
-                    nrow += 2 * l + 1;
+        match model.version {
+            Version::V2_0_1 => {
+                for ip in 0..mol.nat() {
+                    for (l, alpha, w) in acp_projectors(mol.numbers[ip]) {
+                        if w != 0.0 {
+                            list.push((ip, projector(l, alpha), w, nrow));
+                            dw.push(0.0);
+                            nrow += 2 * l + 1;
+                        }
+                    }
                 }
+                Self { list, dw, nrow, cutoff, intcut: model.intcut_h0() }
+            }
+            Version::V1_1 => {
+                // `setupcbas_`: w = acp_coeff_l (1 + acpcn sqrt(CN)), one projector per l
+                for ip in 0..mol.nat() {
+                    let e = v1_1(mol.numbers[ip]);
+                    let sqcn = cn[ip].sqrt();
+                    let f = 1.0 + e.acpcn * sqcn;
+                    for l in 0..4 {
+                        let w = e.acp_coeff[l] * f;
+                        if w != 0.0 {
+                            list.push((ip, projector(l, e.acp_exp[l]), w, nrow));
+                            dw.push(if sqcn > 0.0 { e.acp_coeff[l] * e.acpcn / (2.0 * sqcn) } else { 0.0 });
+                            nrow += 2 * l + 1;
+                        }
+                    }
+                }
+                Self { list, dw, nrow, cutoff: ACP_CUTOFF_V1_1, intcut: model.intcut_h0() }
             }
         }
-        Self { list, nrow }
     }
 
     /// Weight of every row.
@@ -271,11 +341,12 @@ impl AcpSet {
 }
 
 /// Overlaps <p_r|mu> of every projector component with every AO of the SCF basis `bas`
-/// (row-major nrow x n), pairs within `cutoff` (bohr); screened blocks, which are exactly
-/// zero, are skipped ([`ShellPairs::screened`]).
-pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, cutoff: f64, parallel: bool) -> Vec<f64> {
+/// (row-major nrow x n), pairs within the set's cutoff (bohr); screened blocks, which are
+/// exactly zero, are skipped ([`ShellPairs::screened`]).
+pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, parallel: bool) -> Vec<f64> {
     let n = bas.nao;
-    let pairs = ShellPairs::screened(mol, bas, cutoff, INTCUT);
+    let intcut = set.intcut;
+    let pairs = ShellPairs::screened(mol, bas, set.cutoff, intcut);
     let blocks = threads::map(set.list.len(), parallel, |k| {
         let (ip, ref proj, _, _) = set.list[k];
         let np = 2 * proj.l + 1;
@@ -284,7 +355,7 @@ pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, cutoff: f64, pa
         for ia in 0..mol.nat() {
             let Some(p) = pairs.pair_with(ia, ip, proj.min_alpha()) else { continue };
             pairs.for_each_against(&p, proj, |sp| {
-                overlap(proj, sp.ci, p.vec, INTCUT, &mut blk);
+                overlap(proj, sp.ci, p.vec, intcut, &mut blk);
                 for a in 0..2 * sp.ci.l + 1 {
                     for m in 0..np {
                         out[m * n + sp.ii + a] = blk[m + np * a];
@@ -297,15 +368,14 @@ pub fn acp_overlaps(mol: &Molecule, bas: &AoBasis, set: &AcpSet, cutoff: f64, pa
     blocks.concat()
 }
 
-/// Adds H^ACP = S_p^T diag(w) S_p to the lower triangle of `h` (nao x nao) as one matrix
-/// product.
-pub fn add_acp(mol: &Molecule, bas: &AoBasis, cutoff: f64, h: &mut [f64], par: Par, parallel: bool) {
+/// Adds H^ACP = S_p^T diag(w) S_p of the projectors `set` to the lower triangle of `h`
+/// (nao x nao) as one matrix product.
+pub fn add_acp(mol: &Molecule, bas: &AoBasis, set: &AcpSet, h: &mut [f64], par: Par, parallel: bool) {
     let n = bas.nao;
-    let set = AcpSet::new(mol);
     if set.nrow == 0 {
         return;
     }
-    let sp = acp_overlaps(mol, bas, &set, cutoff, parallel);
+    let sp = acp_overlaps(mol, bas, set, parallel);
     let mut wsp = sp.clone();
     for (r, w) in set.row_weights().into_iter().enumerate() {
         wsp[r * n..(r + 1) * n].iter_mut().for_each(|x| *x *= w);

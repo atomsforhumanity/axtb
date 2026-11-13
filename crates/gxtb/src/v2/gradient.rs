@@ -137,7 +137,7 @@ impl Setup {
     /// The q_eff derivatives of the SCF-basis shells of every atom.
     pub(crate) fn scf_shell_derivatives(&self) -> Result<Vec<Vec<Cgto>>> {
         let mol = &self.mol;
-        (0..mol.nat()).map(|i| scf_shells(mol.numbers[i], self.basis.qeff[i], true)).collect()
+        (0..mol.nat()).map(|i| scf_shells(&self.model, mol.numbers[i], self.basis.qeff[i], true)).collect()
     }
 
     /// Sum_mn X_mn dS_mn/dR (symmetric X) plus Sum_A vd_A . dd_A/dR + vq_A . dQ_A/dR of the atomic
@@ -262,14 +262,14 @@ impl Setup {
         let hb = &self.basis.h0;
         let mut dsh = Vec::with_capacity(nat);
         for i in 0..nat {
-            dsh.push(h0_shells(mol.numbers[i], self.basis.qeff_h0[i], true)?);
+            dsh.push(h0_shells(model, mol.numbers[i], self.basis.qeff_h0[i], true)?);
         }
         let mut level = vec![0.0; n];
         let mut dlevel = vec![0.0; n];
         let (cn, qeff0) = (self.slots.cn, self.slots.qeff0);
         let dcn = ch.slot(cn);
         for (ia, is, s) in hb.shell_iter() {
-            let (e, de) = selfenergy(mol.numbers[ia], is, self.cn[ia]);
+            let (e, de) = selfenergy(model, mol.numbers[ia], is, self.cn[ia]);
             let first = hb.iao_sh[hb.ish_at[ia] + is];
             for mu in first..first + 2 * s.l + 1 {
                 level[mu] = e;
@@ -278,7 +278,8 @@ impl Setup {
             }
         }
         let pos = &mol.positions;
-        let pairs = ShellPairs::screened(mol, hb, self.cutoff, INTCUT);
+        let intcut = model.intcut_h0();
+        let pairs = ShellPairs::screened(mol, hb, self.cutoff, intcut);
         let parts = map_chunks(nat, self.parallel, |atoms| {
             let mut c = ch.zeroed_like();
             let (cg, [cq0, ccn]) = c.g_and_slots([qeff0, cn]);
@@ -292,7 +293,7 @@ impl Setup {
                     let rab = sub3(pos[ib], pos[ia]);
                     let r = pr.r2.sqrt();
                     let nv = [rab[0] / r, rab[1] / r, rab[2] / r];
-                    let kmu = diat_scale(za, zb);
+                    let kmu = diat_scale(model, za, zb);
                     let radsum = model.h0_rad(za) + model.h0_rad(zb);
                     // bond-frame projectors and their derivatives per l <= 2, once per bond
                     let mut proj: [Option<BondProj>; 3] = [None, None, None];
@@ -300,15 +301,15 @@ impl Setup {
                     let mut dedr = 0.0;
                     pairs.for_each(&pr, |shp| {
                         let (sa, sb) = (shp.ci, shp.cj);
-                        let (pia, dpia) = shell_poly(za, sa.l, r, radsum);
-                        let (pib, dpib) = shell_poly(zb, sb.l, r, radsum);
+                        let (pia, dpia) = shell_poly(model, za, sa.l, r, radsum);
+                        let (pib, dpib) = shell_poly(model, zb, sb.l, r, radsum);
                         overlap_grad_coeff(
                             sb,
                             sa,
                             Some(&dsh[ib][shp.jsh]),
                             Some(&dsh[ia][shp.ish]),
                             pr.vec,
-                            INTCUT,
+                            intcut,
                             &mut sab,
                             &mut dsab,
                             &mut bb,
@@ -319,7 +320,7 @@ impl Setup {
                         let nab = na * nb;
                         // the block in (a, b) row-major order: S[b + nb a] is the same index
                         let raw = &sab[..nab];
-                        let ks = kshell(la, lb);
+                        let ks = kshell(model, la, lb);
                         let mut wst = [0.0; MBLK];
                         let mut wcn = [0.0; MBLK];
                         for a in 0..na {
@@ -406,12 +407,12 @@ impl Setup {
         let mol = &self.mol;
         let nat = mol.nat();
         let bas = &self.basis.scf;
-        let set = AcpSet::new(mol);
+        let set = AcpSet::new(&self.model, mol, &self.cn, self.cutoff);
         let nrow = set.nrow;
         if nrow == 0 {
             return Ok(());
         }
-        let sp = acp_overlaps(mol, bas, &set, self.cutoff, self.parallel);
+        let sp = acp_overlaps(mol, bas, &set, self.parallel);
         // pc = P S_p^T (row-major n x nrow)
         let mut pc = vec![0.0; n * nrow];
         faer::linalg::matmul::matmul(
@@ -422,8 +423,22 @@ impl Setup {
             1.0,
             self.par,
         );
+        // v1.1's CN-dependent weights: dE/dCN_A = sum_r dw_r/dCN_A (s_r . P s_r)
+        if set.dw.iter().any(|&d| d != 0.0) {
+            let dcn = ch.slot(self.slots.cn);
+            for (k, &(ip, ref proj, _, row)) in set.list.iter().enumerate() {
+                if set.dw[k] == 0.0 {
+                    continue;
+                }
+                let np = 2 * proj.l + 1;
+                let er: f64 = (0..np)
+                    .map(|m| (0..n).map(|mu| sp[(row + m) * n + mu] * pc[mu * nrow + row + m]).sum::<f64>())
+                    .sum();
+                dcn[ip] += set.dw[k] * er;
+            }
+        }
         drop(sp);
-        let pairs = ShellPairs::screened(mol, bas, self.cutoff, INTCUT);
+        let (pairs, intcut) = (ShellPairs::screened(mol, bas, set.cutoff, set.intcut), set.intcut);
         let qeff = self.slots.qeff;
         let parts = map_chunks(set.list.len(), self.parallel, |projs| {
             let mut c = ch.zeroed_like();
@@ -442,7 +457,7 @@ impl Setup {
                             None,
                             Some(&dsh[ia][shp.ish]),
                             pr.vec,
-                            INTCUT,
+                            intcut,
                             &mut s,
                             &mut ds,
                             &mut sj,

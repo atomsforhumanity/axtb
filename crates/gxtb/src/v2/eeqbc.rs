@@ -37,9 +37,12 @@ pub fn form(model: &Model) -> EeqBcForm {
     }
 }
 
-/// The 2.0.1 EEQ-BC model of `mol`.
+/// The EEQ-BC model of `mol` in `model` (v1.1: [`EeqBc::v1_1`]).
 pub fn eeqbc<'m>(model: &Model, mol: &'m Molecule) -> Result<EeqBc<'m>> {
-    super::check_elements(&mol.numbers)?;
+    super::check_model_elements(model, &mol.numbers)?;
+    if model.version == crate::options::Version::V1_1 {
+        return Ok(EeqBc::v1_1(crate::params::eeqbc_v1_1(), mol));
+    }
     Ok(EeqBc::new(form(model), mol, |z| {
         let k = z - 1;
         EeqBcAtom {

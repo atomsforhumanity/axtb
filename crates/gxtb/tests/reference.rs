@@ -1052,3 +1052,79 @@ fn aes_and_spin_engine_match_program() {
     assert_eq!(n_open, 2);
     eprintln!("engine AES energy at the program's density: {we:e} Eh");
 }
+
+/// The engine's v1.1 EEQ-BC charges, coordination numbers, effective charges, SCF overlap, H0
+/// and ACP against the old tree (the same bits where the expressions are the program's) and
+/// the program.
+#[test]
+fn basis_and_one_electron_engine_match_program() {
+    use axtb_gxtb::classical::gxtb_cn as old_gxtb_cn;
+    use axtb_gxtb::v2::basis::{integrals, Basis};
+    use axtb_gxtb::v2::cn::gxtb_cn;
+    use axtb_gxtb::v2::h0::{add_acp, build_h0, selfenergy, AcpSet};
+    let basis = QvszpParams::v1_1();
+    let p = axtb_gxtb::params::GxtbParams::v1_1();
+    let model = v11();
+    let (mut ws, mut wh, mut wa) = (0.0f64, 0.0f64, 0.0f64);
+    for c in cases() {
+        let mol = &c.mol;
+        // EEQ-BC and the CNs: the old tree's bits
+        let q_old = eeqbc_charges(&EeqBcParams::v1_1(), mol).unwrap().charges;
+        let q_new = axtb_gxtb::v2::eeqbc::eeqbc_charges(&model, mol).unwrap().charges;
+        assert_eq!(q_old, q_new, "{}: EEQ-BC charges", c.name);
+        let cn = gxtb_cn(&model, mol);
+        assert_eq!(cn, old_gxtb_cn(&p, mol).unwrap(), "{}: g-xTB CN", c.name);
+        // basis CN and effective charges from the program's charges: the old tree's bits
+        let q_ref = floats(&c.inter["q_eeq"]["data"]);
+        let old = QvszpBasis::new(&basis, mol, &q_ref).unwrap();
+        let b = Basis::new(&model, mol, &q_ref).unwrap();
+        assert_eq!(b.cn, old.cn, "{}: basis CN", c.name);
+        assert_eq!(b.qeff, old.qeff.iter().map(|e| e.qeff).collect::<Vec<_>>(), "{}: q_eff", c.name);
+        let coef = |bs: &[Vec<axtb::basis::Cgto>]| -> Vec<f64> { bs.iter().flatten().flat_map(|s| s.coeff).collect() };
+        assert_eq!(coef(&b.scf.cgto), coef(&old.scf.cgto), "{}: SCF shells", c.name);
+        // SCF overlap (every pair evaluated in both orders and averaged)
+        let (s, _, _) = integrals(mol, &b.scf, b.pair_cutoff(&model), false);
+        let ao = ao_list(&b.scf);
+        let map = program_ao_map(&ao, PROGRAM_D_ORDER);
+        let n = ao.len();
+        let sp = floats(&json(&c.dir.join("scf.json"))["s_packed"]);
+        let mut k = 0;
+        for i in 0..n {
+            for j in 0..=i {
+                let d = (s[map[i] * n + map[j]] - sp[k]).abs();
+                ws = ws.max(d);
+                assert!(d < 1e-13, "{}: S({i},{j}) = {} vs {}", c.name, s[map[i] * n + map[j]], sp[k]);
+                k += 1;
+            }
+        }
+        // H0 (lower triangle, then mirrored) and H0 + ACP
+        let r = json(&c.dir.join("h0.json"));
+        let nh = b.h0.nao;
+        assert_eq!(r["nsao"].as_u64().unwrap() as usize, nh, "{}: nao", c.name);
+        let mut h = build_h0(&model, mol, &b.h0, &cn, b.pair_cutoff(&model), false);
+        let mut h0 = h.clone();
+        axtb_gxtb::parallel::mirror_lower(&mut h0, nh, false);
+        let set = AcpSet::new(&model, mol, &cn, b.pair_cutoff(&model));
+        add_acp(mol, &b.scf, &set, &mut h, faer::Par::Seq, false);
+        axtb_gxtb::parallel::mirror_lower(&mut h, nh, false);
+        let hmap = program_ao_map(&ao_list(&b.h0), PROGRAM_D_ORDER);
+        let (hp, ha, lv) = (floats(&r["h0_packed"]), floats(&r["h0_acp_packed"]), floats(&r["levels"]));
+        let shells = shell_list(&b.h0);
+        let mut k = 0;
+        for i in 0..nh {
+            let (iat, ish, _) = shells[b.h0.ao2sh[hmap[i]]];
+            let level = selfenergy(&model, mol.numbers[iat], ish, cn[iat]).0;
+            assert!((-level - lv[i]).abs() < 1e-14, "{}: level {i}", c.name);
+            for j in 0..=i {
+                let (x, y) = (hmap[i], hmap[j]);
+                let (dh, da) = ((h0[x * nh + y] - hp[k]).abs(), (h[x * nh + y] - ha[k]).abs());
+                wh = wh.max(dh);
+                wa = wa.max(da);
+                assert!(dh < 1e-12, "{}: H0({i},{j}) = {} vs {}", c.name, h0[x * nh + y], hp[k]);
+                assert!(da < 1e-12, "{}: H0+ACP({i},{j}) = {} vs {}", c.name, h[x * nh + y], ha[k]);
+                k += 1;
+            }
+        }
+    }
+    eprintln!("engine v1.1: S {ws:e}, H0 {wh:e}, H0 + ACP {wa:e} (max abs deviation from the program)");
+}
