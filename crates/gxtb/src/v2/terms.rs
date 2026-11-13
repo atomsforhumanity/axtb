@@ -20,10 +20,12 @@ use axtb::molecule::{norm2_sq, sub3};
 use axtb::terms::{Chain, Chain2, Geometry, GeometryTerm, MomentTerm, Needs, Potentials, SccMoments, Slot, TermEnergy};
 use axtb::Result;
 
-/// The terms of a 2.0.1 model.
+/// The terms of a model.
 #[derive(Clone, Debug)]
 pub struct Terms {
     pub increments: Increments,
+    /// v1.1's semi-classical repulsion (2.0.1's is the self-consistent `rep`).
+    pub classical: Option<ClassicalRepulsion>,
     pub iso: Isotropic,
     pub aes: Aes,
     pub spin: Spin,
@@ -36,7 +38,8 @@ impl Terms {
     /// ([`crate::fock::shell_list`]) and the intermediates `slots`.
     pub fn new(model: &Model, shells: &[Shell], slots: &Slots) -> Self {
         Self {
-            increments: Increments,
+            increments: Increments(*model),
+            classical: (model.version == Version::V1_1).then(|| ClassicalRepulsion { slots: [slots.eeq, slots.cn] }),
             iso: Isotropic { model: *model, shells: shells.to_vec(), cn: [slots.cn] },
             aes: Aes { model: *model, cn: [slots.cn] },
             spin: Spin { model: *model, shells: shells.to_vec() },
@@ -48,7 +51,7 @@ impl Terms {
 
 /// The atomic energy increments: a constant per element.
 #[derive(Clone, Copy, Debug)]
-pub struct Increments;
+pub struct Increments(pub Model);
 
 impl GeometryTerm for Increments {
     type Cache = ();
@@ -62,11 +65,57 @@ impl GeometryTerm for Increments {
     }
 
     fn energy(&self, geo: &Geometry<'_>, _c: &(), e: &mut TermEnergy<'_>, _chain: Option<&mut Chain>) {
-        e.pieces[0] = geo.mol.numbers.iter().map(|&z| INCREMENT[z - 1]).sum();
+        e.pieces[0] = match self.0.version {
+            Version::V2_0_1 => geo.mol.numbers.iter().map(|&z| INCREMENT[z - 1]).sum(),
+            Version::V1_1 => {
+                let p = crate::params::gxtb_v1_1();
+                geo.mol.numbers.iter().map(|&z| p.element(z).expect("checked element").increment).sum()
+            }
+        };
     }
 
     fn add_hessian(&self, _geo: &Geometry<'_>, _c: &(), _h: &mut Chain2<'_>) -> Result<()> {
         Ok(())
+    }
+}
+
+/// v1.1's semi-classical repulsion of the EEQ-BC charges and the g-xTB CN
+/// ([`super::repulsion::classical`]): a geometry term (it reads no SCC moment).
+#[derive(Clone, Debug)]
+pub struct ClassicalRepulsion {
+    /// The EEQ-BC charges and the g-xTB CN.
+    slots: [Slot; 2],
+}
+
+impl GeometryTerm for ClassicalRepulsion {
+    type Cache = ();
+
+    fn names(&self) -> &[&'static str] {
+        &["repulsion"]
+    }
+
+    fn slots(&self) -> &[Slot] {
+        &self.slots
+    }
+
+    fn update(&self, _geo: &Geometry<'_>) -> Result<()> {
+        Ok(())
+    }
+
+    fn energy(&self, geo: &Geometry<'_>, _c: &(), e: &mut TermEnergy<'_>, chain: Option<&mut Chain>) {
+        let [eeq, cn] = self.slots;
+        let (q, c) = (geo.value(eeq), geo.value(cn));
+        e.pieces[0] = match chain {
+            Some(ch) => {
+                let n = geo.mol.nat();
+                let (mut dq, mut dcn) = (vec![0.0; n], vec![0.0; n]);
+                let v = super::repulsion::classical::energy(geo.mol, q, c, Some((&mut ch.g, &mut dq, &mut dcn)));
+                add(ch.slot(eeq), &dq);
+                add(ch.slot(cn), &dcn);
+                v
+            }
+            None => super::repulsion::classical::energy(geo.mol, q, c, None),
+        };
     }
 }
 

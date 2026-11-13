@@ -7,9 +7,13 @@
 //! k1_AB and kpen_AB arithmetic means, Rv the shared vdW pair radius; pairs beyond 25 bohr are
 //! cut ([`Model::cut`]). The geometry part M is computed once per geometry; the potential
 //! dE/dq_A enters the Fock matrix as an atomic Mulliken potential.
+//!
+//! v1.1 has no self-consistent repulsion (its [`Repulsion`] is empty) but the semi-classical
+//! repulsion of the EEQ-BC charges, [`classical`] (the 1.1.0 program's `repuls_`).
 
 use super::{sqrt_cn, Model};
 use crate::data_v2::{REP_ALPHA, REP_CN, REP_K1, REP_Q, REP_ROFFSET, REP_ZEFF};
+use crate::options::Version;
 use axtb::molecule::{norm2_sq, sub3};
 use axtb::Molecule;
 
@@ -77,6 +81,9 @@ impl Repulsion {
     /// [`Repulsion::new`], rows in parallel when `parallel` (same result).
     pub fn new_par(model: &Model, mol: &Molecule, cn: &[f64], parallel: bool) -> Self {
         let n = mol.nat();
+        if model.version == Version::V1_1 {
+            return Self { nat: n, z0: Vec::new(), kq: Vec::new(), m: Vec::new() };
+        }
         let al: Vec<f64> = (0..n).map(|i| alpha(mol.numbers[i], cn[i]).0).collect();
         let reach2 = model.reach(CUTOFF).powi(2);
         let [m] = crate::parallel::symmetric(n, parallel, |i, j| {
@@ -92,6 +99,13 @@ impl Repulsion {
         Self { nat: n, z0, kq, m }
     }
 
+    /// Whether the model has no self-consistent repulsion (v1.1): zero energy, potential and
+    /// gradient.
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.m.is_empty()
+    }
+
     /// Effective charges z_A.
     pub fn zeff(&self, q: &[f64]) -> Vec<f64> {
         (0..self.nat).map(|i| self.z0[i] * (1.0 - self.kq[i] * q[i])).collect()
@@ -104,6 +118,9 @@ impl Repulsion {
 
     /// [`Repulsion::energy`], atom rows in fixed chunks (in parallel when `parallel`).
     pub fn energy_par(&self, q: &[f64], parallel: bool) -> f64 {
+        if self.is_empty() {
+            return 0.0;
+        }
         let z = self.zeff(q);
         let n = self.nat;
         crate::parallel::sum(n, parallel, |i| (0..i).map(|j| z[i] * z[j] * self.m[i * n + j]).sum::<f64>())
@@ -116,6 +133,9 @@ impl Repulsion {
 
     /// [`Repulsion::potential`], atoms in parallel when `parallel` (same result).
     pub fn potential_par(&self, q: &[f64], parallel: bool) -> Vec<f64> {
+        if self.is_empty() {
+            return vec![0.0; self.nat];
+        }
         let z = self.zeff(q);
         let n = self.nat;
         axtb_base::threads::map(n, parallel, |i| {
@@ -126,6 +146,9 @@ impl Repulsion {
     /// Change of dE/dq_A for atomic charge changes `dq` (E is quadratic in q).
     pub fn potential_delta(&self, dq: &[f64]) -> Vec<f64> {
         let n = self.nat;
+        if self.is_empty() {
+            return vec![0.0; n];
+        }
         let dz: Vec<f64> = (0..n).map(|j| -self.z0[j] * self.kq[j] * dq[j]).collect();
         (0..n).map(|i| -self.kq[i] * self.z0[i] * (0..n).map(|j| self.m[i * n + j] * dz[j]).sum::<f64>()).collect()
     }
@@ -146,6 +169,9 @@ impl Repulsion {
         dcn_out: &mut [f64],
         parallel: bool,
     ) {
+        if self.is_empty() {
+            return;
+        }
         let n = self.nat;
         let z = self.zeff(q);
         let al: Vec<(f64, f64)> = (0..n).map(|i| alpha(mol.numbers[i], cn[i])).collect();
@@ -184,5 +210,80 @@ impl Repulsion {
         );
         crate::parallel::add_into(g_out.as_flattened_mut(), gs.as_flattened());
         crate::parallel::add_into(dcn_out, &ds);
+    }
+}
+
+/// v1.1's semi-classical repulsion (the 1.1.0 program's `repuls_`, [`crate::classical`]):
+/// E = sum_{A<B} Z_A Z_B exp(-a_AB (R + R0_AB)^{3/2}) [1 + (k1_A + k1_B)/(2R) + k2/R^2 + k3/R^3 + k4/R^4]
+/// with Z_A = rep3 (1 - rep5 q_A - rep6 q_A^2) of the EEQ-BC charges q, a_A = rep1 (1 + rep4 sqrt(CN_A))
+/// (g-xTB CN), a_AB = 2 a_A a_B / (a_A + a_B), R0_AB = sqrt(rep2_A rep2_B), k1 = glob(9) for H and
+/// He and glob(4) otherwise, (k2, k3, k4) = glob(13..15); every pair. With `chain`, its gradient:
+/// positions, dE/dq of the EEQ-BC charges and dE/dCN (the program's expressions).
+pub mod classical {
+    use axtb::molecule::{norm2_sq, sub3};
+    use axtb::Molecule;
+
+    /// The energy and, with `grad` = (g, dE/dq, dE/dCN), its gradient at the EEQ-BC charges `q`
+    /// and g-xTB CNs `cn`.
+    pub fn energy(
+        mol: &Molecule,
+        q: &[f64],
+        cn: &[f64],
+        grad: Option<(&mut [[f64; 3]], &mut [f64], &mut [f64])>,
+    ) -> f64 {
+        let p = crate::params::gxtb_v1_1();
+        let el = |z: usize| p.element(z).expect("g-xTB v1.1 parameters of a checked element");
+        let n = mol.nat();
+        let g = &p.glob;
+        let mut zeff = vec![0.0; n];
+        let mut dz = vec![0.0; n];
+        let mut alpha = vec![0.0; n];
+        let mut dalpha = vec![0.0; n];
+        let mut k1 = vec![0.0; n];
+        for i in 0..n {
+            let z = mol.numbers[i];
+            let r = &el(z).rep;
+            zeff[i] = (1.0 - r[4] * q[i] - r[5] * q[i] * q[i]) * r[2];
+            dz[i] = (-r[4] - 2.0 * r[5] * q[i]) * r[2];
+            let sq = cn[i].sqrt();
+            alpha[i] = (r[3] * sq + 1.0) * r[0];
+            dalpha[i] = if sq > 0.0 { r[0] * r[3] / (2.0 * sq) } else { 0.0 };
+            k1[i] = if z <= 2 { g[8] } else { g[3] };
+        }
+        let mut e = 0.0;
+        let mut grad = grad;
+        for i in 0..n {
+            let ri = &el(mol.numbers[i]).rep;
+            for j in i + 1..n {
+                let rj = &el(mol.numbers[j]).rep;
+                let v = sub3(mol.positions[i], mol.positions[j]);
+                let r = norm2_sq(v).sqrt();
+                let a = 2.0 / (1.0 / alpha[j] + 1.0 / alpha[i]);
+                let x = (ri[1] * rj[1]).sqrt() + r;
+                let x15 = x.sqrt() * x;
+                let damp = (-(x15 * a)).exp();
+                let r2 = r * r;
+                let r3 = r * r2;
+                let poly = (k1[j] + k1[i]) * 0.5 / r + 1.0 + g[12] / r2 + g[13] / r3 + g[14] / (r * r3);
+                e += damp * zeff[i] * zeff[j] * poly;
+                let Some((gr, dq, dcn)) = grad.as_mut() else { continue };
+                let dpoly =
+                    -(k1[j] + k1[i]) * 0.5 / r2 - 2.0 * g[12] / r3 - 3.0 * g[13] / (r * r3) - 4.0 * g[14] / (r2 * r3);
+                let zz = zeff[i] * zeff[j];
+                let dedr = zz * damp * (-1.5 * a * x.sqrt() * poly + dpoly);
+                let f = dedr / r;
+                for k in 0..3 {
+                    gr[i][k] += f * v[k];
+                    gr[j][k] -= f * v[k];
+                }
+                dq[i] += dz[i] * zeff[j] * damp * poly;
+                dq[j] += zeff[i] * dz[j] * damp * poly;
+                let dade = -zz * damp * poly * x15; // dE/da
+                let s = alpha[i] + alpha[j];
+                dcn[i] += dade * 2.0 * alpha[j] * alpha[j] / (s * s) * dalpha[i];
+                dcn[j] += dade * 2.0 * alpha[i] * alpha[i] / (s * s) * dalpha[j];
+            }
+        }
+        e
     }
 }

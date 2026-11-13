@@ -1205,3 +1205,56 @@ fn exchange_engine_matches_program() {
         "engine v1.1 exchange: E_MFX {wm:e}, E_OFX {wo:e} Eh; Fock {wf:e}, overlap weight {wx:e} (rel); response vs FD {wr:e}"
     );
 }
+
+/// The engine's v1.1 revD4 (rational two-body damping with C8, zero-damped three-body term) and
+/// semi-classical repulsion against the program, and their gradients against central
+/// differences.
+#[test]
+fn revd4_and_repulsion_engine_match_program() {
+    use axtb_gxtb::v2::cn::gxtb_cn;
+    use axtb_gxtb::v2::disp::RevD4;
+    use axtb_gxtb::v2::repulsion::classical;
+    let model = v11();
+    let (mut w2, mut w3, mut wr, mut wg) = (0.0f64, 0.0f64, 0.0f64, 0.0f64);
+    for c in cases() {
+        let mol = &c.mol;
+        let d = RevD4::new(&model, mol).unwrap();
+        let q = floats(&json(&c.dir.join("scf.json"))["atom_charges"]);
+        let fe = &json(&c.dir.join("kernels.json"))["final_energies"];
+        let (e2, e3) = (d.two_body(&q).0, d.three_body(&model, mol, None).0);
+        let (r2, r3) = (fe["disp2"].as_f64().unwrap(), fe["disp3"].as_f64().unwrap());
+        w2 = w2.max((e2 - r2).abs());
+        w3 = w3.max((e3 - r3).abs());
+        assert!((e2 - r2).abs() < 1e-14, "{}: revD4 two-body {e2:.17} vs {r2:.17}", c.name);
+        assert!((e3 - r3).abs() < 1e-15, "{}: revD4 ATM {e3:.17} vs {r3:.17}", c.name);
+        let qe = axtb_gxtb::v2::eeqbc::eeqbc_charges(&model, mol).unwrap().charges;
+        let cn = gxtb_cn(&model, mol);
+        let erep = classical::energy(mol, &qe, &cn, None);
+        let dr = (erep - c.inter["repulsion_energy"].as_f64().unwrap()).abs();
+        wr = wr.max(dr);
+        assert!(dr < 1e-12, "{}: repulsion {erep:.16} vs {}", c.name, c.inter["repulsion_energy"]);
+        // gradients at fixed charges and CNs (positions only) against central differences
+        let n = mol.nat();
+        let mut g = vec![[0.0; 3]; n];
+        d.two_body_gradient(&model, mol, &q, &mut g);
+        d.three_body(&model, mol, Some(&mut g));
+        let (mut gq, mut gc) = (vec![0.0; n], vec![0.0; n]);
+        classical::energy(mol, &qe, &cn, Some((&mut g, &mut gq, &mut gc)));
+        let h = 1e-5;
+        for a in 0..n.min(3) {
+            for x in 0..3 {
+                let e = |s: f64| {
+                    let mut m = mol.clone();
+                    m.positions[a][x] += s * h;
+                    // the same CNs (fixed), so only the explicit position dependence
+                    let dd = RevD4::with_cn(&model, &m, d.cn.clone()).unwrap();
+                    dd.two_body(&q).0 + dd.three_body(&model, &m, None).0 + classical::energy(&m, &qe, &cn, None)
+                };
+                let fd = (e(1.0) - e(-1.0)) / (2.0 * h);
+                wg = wg.max((fd - g[a][x]).abs());
+                assert!((fd - g[a][x]).abs() < 1e-8, "{}: gradient {a} {x}: {} vs FD {fd}", c.name, g[a][x]);
+            }
+        }
+    }
+    eprintln!("engine v1.1 revD4: two-body {w2:e}, three-body {w3:e}; repulsion {wr:e} Eh; gradients vs FD {wg:e}");
+}
