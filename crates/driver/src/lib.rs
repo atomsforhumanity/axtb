@@ -16,10 +16,11 @@
 //!   Hessian's step without a Hessian) are [`Error::Input`], never ignored;
 //! - one error type with kinds (input, unsupported element, topology, SCF not converged,
 //!   numerical), [`Error::kind`];
-//! - at least one thread, no clamps; warnings about more than 8 threads for an SCF method's
-//!   single point ([`threads_warning`]), about unpaired electrons for GFN-FF ([`uhf_warning`])
-//!   and about a run-time LAPACK that was not used ([`eigensolver_warning`]) are the front
-//!   ends' to print;
+//! - at least one thread, no clamps; a one-off task ([`run`]) of a molecule small enough that
+//!   threads only cost runs on one ([`task_threads`]: the same results); warnings about more
+//!   than 8 threads for an SCF method's single point ([`threads_warning`]), about unpaired
+//!   electrons for GFN-FF ([`uhf_warning`]) and about a run-time LAPACK that was not used
+//!   ([`eigensolver_warning`]) are the front ends' to print;
 //! - XYZ files in Ångström are converted with the factor of the method's conventions
 //!   ([`read_xyz`]).
 //!
@@ -48,18 +49,57 @@ use std::time::Instant;
 
 /// Run a request: the calculation it describes, or with `analyze_hessian` the vibrational
 /// analysis of the given Hessian ([`analyze`]). `seconds` of the response includes the
-/// setup.
+/// setup. The calculation runs on [`task_threads`] threads.
 pub fn run(req: &Request) -> Result<Response> {
     let t0 = Instant::now();
     let mut out = if req.analyze_hessian.is_some() {
         analyze(req)?
     } else {
         let task = Task::from_request(req)?;
-        let mut calc = Calculator::new(req)?;
+        let threads = task_threads(req, &task);
+        let mut calc = if req.threads.is_some_and(|t| t != threads) {
+            Calculator::new(&Request { threads: Some(threads), ..req.clone() })?
+        } else {
+            Calculator::new(req)?
+        };
         calc.compute(&req.positions, &task)?
     };
     out.seconds = Some(t0.elapsed().as_secs_f64());
     Ok(out)
+}
+
+/// The threads one task of `req` runs on in [`run`]: the requested ones, or one for a molecule
+/// of at most [`single_thread_atoms`] atoms, where starting the pool and synchronizing its
+/// parallel loops cost more than they save. Systems that small (far below 200 basis functions)
+/// give the same bits on any thread count. A [`Calculator`] of its own (Python's
+/// `axtb.Calculator`) keeps the requested threads: its tasks vary.
+pub fn task_threads(req: &Request, task: &Task) -> usize {
+    let threads = req.threads.unwrap_or(1);
+    if threads <= 1 {
+        // (zero threads is the calculator's input error)
+        return threads;
+    }
+    match Method::parse(req.method.as_deref().unwrap_or("gfn2")) {
+        Ok(method) if req.numbers.len() <= single_thread_atoms(method, task.hessian.is_some()) => 1,
+        _ => threads,
+    }
+}
+
+/// The largest molecule (atoms) whose single point (`hessian` false) or Hessian of `method`
+/// runs on one thread in [`run`]: up to this size one thread was faster than 8 for every
+/// molecule measured (laptop, i9-11900H; energy + gradient: water, methane, ammonium, ethanol,
+/// glycine, benzene, caffeine, ferrocene, taxol and alkanes up to 152 atoms for GFN-FF; the
+/// method's default Hessian). g-xTB's Hessians gain from threads at every size.
+pub fn single_thread_atoms(method: Method, hessian: bool) -> usize {
+    match (method, hessian) {
+        (Method::Gfn2, false) => 10,
+        (Method::Gfn2, true) => 6,
+        (Method::GxtbV2_0_1, false) => 9,
+        (Method::GxtbV1_1, false) => 6,
+        (Method::GxtbV1_1 | Method::GxtbV2_0_1, true) => 0,
+        (Method::Gfnff, false) => 100,
+        (Method::Gfnff, true) => 10,
+    }
 }
 
 /// The vibrational analysis of a given Hessian (`analyze_hessian`, 3N x 3N, Eh/bohr²) at

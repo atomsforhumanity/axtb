@@ -290,8 +290,13 @@ The response, for every front end (a field is present when it applies):
 
 ## Threads
 
-axtb runs every calculation on exactly the threads you ask for (default 1) and never caps
-them, but more is not always faster. Measured on a whole 64-core AMD Threadripper PRO 9985WX
+axtb runs every calculation on the threads you ask for (default 1) and never caps them, but
+more is not always faster. One exception: a one-off calculation (the CLI, Python's
+`axtb.singlepoint` and `axtb.hessian`) of a molecule so small that threads only cost runs on
+one thread, with the same results (GFN2-xTB single points up to 10 atoms and Hessians up to 6,
+g-xTB 2.0.1 single points up to 9 atoms, v1.1 up to 6, GFN-FF single points up to 100 atoms and
+Hessians up to 10; g-xTB's Hessians always use the threads; `axtb_driver::task_threads`).
+An `axtb.Calculator` keeps the threads you give it. Measured on a whole 64-core AMD Threadripper PRO 9985WX
 node with axtb 0.1.0 (`bench/results/cluster-9985wx`, the release run of 2026-11-07: energy +
 gradient in one Python process, xtb conventions, seconds):
 
