@@ -48,7 +48,7 @@ g-xTB (https://github.com/grimme-lab/g-xtb), GPL-3.0
   from the 2.0.1 release binary (docs/gxtb-v2.0.1-spec.md says how).
   g-xTB is distributed under GPL-3.0. axtb distributes its g-xTB parts (crates/gxtb, these
   parameters included) under LGPL-3.0-or-later, with the explicit permission the g-xTB
-  authors gave in November 2026:
+  authors gave on 13 November 2026:
     "In the meantime, you have our explicit permission to use g-xTB, including its
     parameters (1.1 and 2.0.1), in your axtb implementation and to distribute your
     implementation under LGPL-3.0-or-later."
